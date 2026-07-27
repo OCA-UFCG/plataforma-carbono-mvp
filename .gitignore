@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# variáveis de ambiente; só o exemplo é versionado
+.env*
+!.env.example
+
+# credenciais da service account do Google Earth Engine
+gen-lang-client-*.json
+service-account*.json

@@ -1,0 +1,27 @@
+# Render Blueprint, Web Service Node (nao mais Static Site).
+# O app deixou de ser estatico quando o WebGIS passou a viver na rota
+# /plataforma: as rotas /api/gee/* falam com o Google Earth Engine pelo SDK
+# Node, entao precisam de um processo servidor. `output: export` foi removido
+# do next.config.ts pelo mesmo motivo.
+# Aplicar em: New + -> Blueprint -> conectar este repositorio.
+#
+# Passo manual obrigatorio (segredo nao vai em arquivo versionado):
+# no painel do servico, Environment -> Secret Files, subir o JSON da service
+# account com o nome gee-service-account.json. O Render monta em /etc/secrets/,
+# que e o caminho apontado por GOOGLE_APPLICATION_CREDENTIALS abaixo.
+
+services:
+  - type: web
+    name: carbono-caatinga
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/gee-service-account.json

@@ -1,0 +1,137 @@
+/* Estilos da plataforma. Carregado só por app/(plataforma)/layout.tsx; as páginas de
+ * marketing usam app/globals.css. O `overflow: hidden` abaixo é a razão de os
+ * dois viverem em layouts raiz separados: aplicado à landing, mataria a rolagem
+ * da página. */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Design tokens
+ * Os neutros "mata branca" são fixos o ano inteiro; só o acento (--acc*) muda,
+ * e muda a cada mês. Os valores abaixo são apenas o repouso: quem manda são as
+ * vars que A plataforma escreve inline na sua raiz, calculadas da cor do mês em
+ * config/plataforma/platforms.ts. São doze meses em dois modos, então listá-los aqui
+ * seriam 24 blocos que sairiam de sincronia com o tema em JS na primeira edição.
+ * O tema escuro deriva os neutros sobre as mesmas variáveis. */
+:root {
+  /* neutros fixos ("mata branca") */
+  --paper:     #f7f6f2;  /* papel / fundos de tela */
+  --mist:      #eceae3;  /* superfícies rebaixadas */
+  --silver:    #d8d5cb;  /* bordas / divisores */
+  --dry:       #a8a49a;  /* ícones apagados */
+  --trunk:     #6f6c63;  /* texto secundário */
+  --ink:       #26241d;  /* tinta / texto principal / header */
+  --terracota: #b5602f;  /* fixo: desenho, avisos quentes */
+  --acude:     #4a7fa5;  /* fixo: água, links, info */
+  /* auxiliares */
+  --body:      #57544a;
+  --dim:       #8a8776;
+  --caption:   #95927f;
+  --card:      #ffffff;
+  --card-hover:#faf9f4;
+  --border-soft:#eceadf;
+  --chip:      #f2f0e8;
+  /* superfícies flutuantes (glass) */
+  --glass:     rgba(252, 252, 247, .96);
+  --glass-bd:  rgba(60, 58, 48, .14);
+  /* elevação */
+  --sh-panel:  0 18px 50px -18px rgba(30, 28, 18, .4);
+  --sh-pop:    0 24px 60px -20px rgba(30, 28, 18, .5);
+  --sh-ctrl:   0 6px 20px -8px rgba(30, 28, 18, .35);
+
+  /* alias temporário, componentes ainda não migrados referenciam esta var */
+  --font-raleway: var(--font-app);
+
+  /* acento de repouso, sobrescrito inline pelo mês corrente */
+  --acc:     #5f7030;
+  --accBg:   #ecf0e0;
+  --accInk:  #3c4a1e;
+  --accBd:   #dde3c8;
+  --accGrad: linear-gradient(135deg, #5f7030, #8aa04f);
+}
+
+/* dark mode, deriva os neutros sobre a mesma estrutura; acento sazonal segue */
+[data-theme='dark'] {
+  --paper:     #16150f;
+  --mist:      #201e16;
+  --silver:    #34322a;
+  --dry:       #7d7a6f;
+  --trunk:     #a8a49a;
+  --ink:       #f2f0e8;
+  --body:      #d7d4c7;
+  --dim:       #9b9788;
+  --caption:   #8a8776;
+  --card:      #211f18;
+  --card-hover:#282619;
+  --border-soft:#302e24;
+  --chip:      #2a281d;
+  --glass:     rgba(28, 26, 18, .94);
+  --glass-bd:  rgba(230, 226, 210, .12);
+}
+
+body {
+  font-family: var(--font-app), 'Libre Franklin', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* Números sempre tabulares e com figuras alinhadas (evita o "tremor" de dígitos) */
+body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
+
+/* Maplibre canvas should fill its container */
+.maplibregl-map {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Shift the native bottom-left cluster (scale + attribution) past the Temas
+   panel, in sync with the floating layout's left edge. */
+.maplibregl-ctrl-bottom-left {
+  left: var(--cc-left-edge, 8px);
+  transition: left .3s;
+}
+
+/* mapbox-gl-draw cursor-intent classes aliased onto .maplibregl-* */
+.maplibregl-map.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive { cursor: pointer; }
+.maplibregl-map.mouse-move .maplibregl-canvas-container.maplibregl-interactive { cursor: move; }
+.maplibregl-map.mouse-add .maplibregl-canvas-container.maplibregl-interactive { cursor: crosshair; }
+.maplibregl-map.mouse-move.mode-direct_select .maplibregl-canvas-container.maplibregl-interactive { cursor: grab; }
+.maplibregl-map.mode-direct_select.feature-vertex.mouse-move .maplibregl-canvas-container.maplibregl-interactive { cursor: move; }
+.maplibregl-map.mode-direct_select.feature-midpoint.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive { cursor: cell; }
+.maplibregl-map.mode-direct_select.feature-feature.mouse-move .maplibregl-canvas-container.maplibregl-interactive { cursor: move; }
+.maplibregl-map.mode-static.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive { cursor: grab; }
+
+/* Scrollbar, neutra translúcida */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, .4); border-radius: 4px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(128, 128, 128, .4) transparent; }
+
+/* Feedback de clique, leve escala no active */
+.ui-press { transition: transform .12s ease, opacity .15s ease; }
+.ui-press:active { transform: scale(0.96); }
+
+/* Skeleton loader (results sidebar) */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton-shimmer {
+  background-image: linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,.6) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+/* Sliders de opacidade: nativos, tomam a cor de accent-color inline (var(--acc)) */

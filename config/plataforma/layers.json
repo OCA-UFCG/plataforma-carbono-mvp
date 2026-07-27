@@ -1,0 +1,889 @@
+{
+  "map": {
+    "center": [
+      -40,
+      -9
+    ],
+    "zoom": 5.2
+  },
+  "layers": [
+    {
+      "id": "bioma",
+      "name": "Bioma Caatinga",
+      "type": "vector",
+      "url": "/data/vector/limite_caatinga.geojson",
+      "clipAsset": "projects/ee-arturlourenco/assets/limite_caatinga",
+      "visible": true,
+      "opacity": 70,
+      "color": "#5f7030",
+      "hoverLabelField": "Bioma"
+    },
+    {
+      "id": "estados",
+      "name": "Estados",
+      "type": "vector",
+      "url": "/data/vector/estados.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#414141",
+      "hoverLabelField": "abbrev_state"
+    },
+    {
+      "id": "municipios",
+      "name": "Municípios",
+      "type": "vector",
+      "url": "/data/vector/municipios.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#6b6a60",
+      "hoverLabelField": "name_muni"
+    },
+    {
+      "id": "terras_indigenas",
+      "name": "Terras Indígenas",
+      "type": "vector",
+      "url": "/data/vector/terras_indigenas.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#a0522d",
+      "hoverLabelField": "name_indigenous_land"
+    },
+    {
+      "id": "quilombolas",
+      "name": "Territórios Quilombolas",
+      "type": "vector",
+      "url": "/data/vector/quilombolas.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#8c6d1f",
+      "hoverLabelField": "name_quilombo"
+    },
+    {
+      "id": "assentamentos",
+      "name": "Assentamentos (INCRA)",
+      "type": "vector",
+      "url": "/data/vector/assentamentos.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#ce8b44",
+      "hoverLabelField": "nome_proje"
+    },
+    {
+      "id": "solo_carbono",
+      "name": "Carbono Orgânico do Solo (0-30 cm)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/mapbiomas-public/assets/brazil/soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm",
+          "band": "prediction_2023",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 80,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        80
+      ],
+      "unit": "t C/ha"
+    },
+    {
+      "id": "gpp_modis",
+      "name": "Produtividade Primária Bruta (GPP, MODIS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD17A2HGF",
+          "band": "Gpp",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 500,
+          "validMin": 0,
+          "validMax": 32760,
+          "scaleFactor": 0.0001
+        },
+        "classify": {
+          "numClasses": 5,
+          "method": "jenks",
+          "breaks": [
+            228.6304,
+            293.3043,
+            351.413,
+            433.6087
+          ]
+        },
+        "visParams": {
+          "palette": [
+            "#d73027",
+            "#fc8d59",
+            "#fee08b",
+            "#91cf60",
+            "#1a9850"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "categorical",
+      "unit": "kg*C/m²/8day",
+      "classes": [
+        {
+          "value": 1,
+          "label": "Muito baixo",
+          "color": "#d73027"
+        },
+        {
+          "value": 2,
+          "label": "Baixo",
+          "color": "#fc8d59"
+        },
+        {
+          "value": 3,
+          "label": "Médio",
+          "color": "#fee08b"
+        },
+        {
+          "value": 4,
+          "label": "Alto",
+          "color": "#91cf60"
+        },
+        {
+          "value": 5,
+          "label": "Muito alto",
+          "color": "#1a9850"
+        }
+      ]
+    },
+    {
+      "id": "npp_modis",
+      "name": "Produtividade Primária Líquida (NPP, MODIS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD17A3HGF",
+          "band": "Npp",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 500,
+          "validMin": -30000,
+          "validMax": 32760,
+          "scaleFactor": 0.0001
+        },
+        "classify": {
+          "numClasses": 5,
+          "method": "jenks",
+          "breaks": [
+            5352,
+            7133,
+            9055,
+            11883
+          ]
+        },
+        "visParams": {
+          "palette": [
+            "#d73027",
+            "#fc8d59",
+            "#fee08b",
+            "#91cf60",
+            "#1a9850"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "categorical",
+      "unit": "kg C/m²/ano",
+      "classes": [
+        {
+          "value": 1,
+          "label": "Muito baixo",
+          "color": "#d73027"
+        },
+        {
+          "value": 2,
+          "label": "Baixo",
+          "color": "#fc8d59"
+        },
+        {
+          "value": 3,
+          "label": "Médio",
+          "color": "#fee08b"
+        },
+        {
+          "value": 4,
+          "label": "Alto",
+          "color": "#91cf60"
+        },
+        {
+          "value": 5,
+          "label": "Muito alto",
+          "color": "#1a9850"
+        }
+      ]
+    },
+    {
+      "id": "biomassa_gedi",
+      "name": "Biomassa Aérea (GEDI L4B)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "LARSE/GEDI/GEDI04_B_002",
+          "band": "MU",
+          "scale": 1000
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha"
+    },
+    {
+      "id": "biomassa_spawn",
+      "name": "Carbono na Biomassa Aérea (Spawn & Gibbs 2010)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "NASA/ORNL/biomass_carbon_density/v1",
+          "band": "agb",
+          "reducer": "first",
+          "scale": 300
+        },
+        "visParams": {
+          "min": 0,
+          "max": 100,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        100
+      ],
+      "unit": "Mg C/ha"
+    },
+    {
+      "id": "gfw_netflux",
+      "name": "Fluxo Líquido de Carbono Florestal (GFW)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/sat-io/open-datasets/forest_carbon_fluxes/net_flux",
+          "band": "b1",
+          "scale": 30
+        },
+        "visParams": {
+          "min": -100,
+          "max": 300,
+          "palette": [
+            "#2166ac",
+            "#67a9cf",
+            "#d1e5f0",
+            "#f7f7f7",
+            "#fddbc7",
+            "#ef8a62",
+            "#b2182b"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        -100,
+        300
+      ],
+      "unit": "Mg CO2e/ha"
+    },
+    {
+      "id": "gfw_emissions",
+      "name": "Emissões Brutas de Carbono Florestal (GFW)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/sat-io/open-datasets/forest_carbon_fluxes/gross_emissions",
+          "band": "b1",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 500,
+          "palette": [
+            "#fff5f0",
+            "#fcbba1",
+            "#fb6a4a",
+            "#cb181d",
+            "#67000d"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        500
+      ],
+      "unit": "Mg CO2e/ha"
+    },
+    {
+      "id": "gfw_removals",
+      "name": "Remoções Brutas de Carbono Florestal (GFW)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/sat-io/open-datasets/forest_carbon_fluxes/gross_removals",
+          "band": "b1",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 200,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        200
+      ],
+      "unit": "Mg CO2/ha"
+    },
+    {
+      "id": "lulc_mapbiomas",
+      "name": "Uso e Cobertura da Terra (MapBiomas 2024)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/mapbiomas-public/assets/brazil/lulc/collection10_1/mapbiomas_brazil_collection10_1_coverage_v1",
+          "band": "classification_2024",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 75,
+          "palette": [
+            "#ffffff",
+            "#32a65e",
+            "#ffffff",
+            "#1f8d49",
+            "#7dc975",
+            "#04381d",
+            "#026975",
+            "#ffffff",
+            "#ffffff",
+            "#7a5900",
+            "#ad975a",
+            "#519799",
+            "#d6bc74",
+            "#ffffff",
+            "#ffffb2",
+            "#edde8e",
+            "#ffffff",
+            "#ffffff",
+            "#e974ed",
+            "#c27ba0",
+            "#db7093",
+            "#ffefc3",
+            "#d4271e",
+            "#ffa07a",
+            "#d4271e",
+            "#db4d4f",
+            "#0000ff",
+            "#ffffff",
+            "#ffffff",
+            "#ffaa5f",
+            "#9c0027",
+            "#091077",
+            "#fc8114",
+            "#2532e4",
+            "#ffffff",
+            "#9065d0",
+            "#d082de",
+            "#ffffff",
+            "#ffffff",
+            "#f5b3c8",
+            "#c71585",
+            "#f54ca9",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#d68fe2",
+            "#9932cc",
+            "#e6ccff",
+            "#02d659",
+            "#ad5100",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ff69b4",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#c12100"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "categorical",
+      "classes": [
+        {
+          "value": 3,
+          "label": "Formação Florestal",
+          "color": "#1f8d49"
+        },
+        {
+          "value": 4,
+          "label": "Formação Savânica",
+          "color": "#7dc975"
+        },
+        {
+          "value": 5,
+          "label": "Mangue",
+          "color": "#04381d"
+        },
+        {
+          "value": 6,
+          "label": "Floresta Alagável",
+          "color": "#026975"
+        },
+        {
+          "value": 49,
+          "label": "Restinga Arbórea",
+          "color": "#02d659"
+        },
+        {
+          "value": 11,
+          "label": "Campo Alagado e Área Pantanosa",
+          "color": "#519799"
+        },
+        {
+          "value": 12,
+          "label": "Formação Campestre",
+          "color": "#d6bc74"
+        },
+        {
+          "value": 32,
+          "label": "Apicum",
+          "color": "#fc8114"
+        },
+        {
+          "value": 29,
+          "label": "Afloramento Rochoso",
+          "color": "#ffaa5f"
+        },
+        {
+          "value": 50,
+          "label": "Restinga Herbácea",
+          "color": "#ad5100"
+        },
+        {
+          "value": 15,
+          "label": "Pastagem",
+          "color": "#edde8e"
+        },
+        {
+          "value": 18,
+          "label": "Agricultura",
+          "color": "#e974ed"
+        },
+        {
+          "value": 39,
+          "label": "Soja",
+          "color": "#f5b3c8"
+        },
+        {
+          "value": 20,
+          "label": "Cana",
+          "color": "#db7093"
+        },
+        {
+          "value": 40,
+          "label": "Arroz",
+          "color": "#c71585"
+        },
+        {
+          "value": 62,
+          "label": "Algodão (beta)",
+          "color": "#ff69b4"
+        },
+        {
+          "value": 41,
+          "label": "Outras Lavouras Temporárias",
+          "color": "#f54ca9"
+        },
+        {
+          "value": 46,
+          "label": "Café",
+          "color": "#d68fe2"
+        },
+        {
+          "value": 47,
+          "label": "Citrus",
+          "color": "#9932cc"
+        },
+        {
+          "value": 35,
+          "label": "Dendê",
+          "color": "#9065d0"
+        },
+        {
+          "value": 48,
+          "label": "Outras Lavouras Perenes",
+          "color": "#e6ccff"
+        },
+        {
+          "value": 9,
+          "label": "Silvicultura",
+          "color": "#7a5900"
+        },
+        {
+          "value": 21,
+          "label": "Mosaico de Usos",
+          "color": "#ffefc3"
+        },
+        {
+          "value": 23,
+          "label": "Praia, Duna e Areal",
+          "color": "#ffa07a"
+        },
+        {
+          "value": 24,
+          "label": "Área Urbanizada",
+          "color": "#d4271e"
+        },
+        {
+          "value": 30,
+          "label": "Mineração",
+          "color": "#9c0027"
+        },
+        {
+          "value": 75,
+          "label": "Usina Fotovoltaica (beta)",
+          "color": "#c12100"
+        },
+        {
+          "value": 25,
+          "label": "Outras Áreas não Vegetadas",
+          "color": "#db4d4f"
+        },
+        {
+          "value": 33,
+          "label": "Rio, Lago e Oceano",
+          "color": "#2532e4"
+        },
+        {
+          "value": 31,
+          "label": "Aquicultura",
+          "color": "#091077"
+        }
+      ]
+    },
+    {
+      "id": "fogo_frequencia",
+      "name": "Frequência de Fogo (1985-2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1",
+          "band": "fire_frequency_1985_2023",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 15,
+          "palette": [
+            "#ffffcc",
+            "#fecc5c",
+            "#fd8d3c",
+            "#f03b20",
+            "#bd0026"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        15
+      ],
+      "unit": "anos com fogo"
+    },
+    {
+      "id": "ndvi_modis",
+      "name": "NDVI (MODIS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD13Q1",
+          "band": "NDVI",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 250,
+          "validMin": -2000,
+          "validMax": 10000,
+          "multiplier": 0.0001
+        },
+        "visParams": {
+          "min": 0,
+          "max": 0.8,
+          "palette": [
+            "#d73027",
+            "#f46d43",
+            "#fdae61",
+            "#fee08b",
+            "#d9ef8b",
+            "#a6d96a",
+            "#66bd63",
+            "#1a9850"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        0.8
+      ],
+      "unit": "NDVI"
+    },
+    {
+      "id": "evi_modis",
+      "name": "EVI (MODIS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD13Q1",
+          "band": "EVI",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 250,
+          "validMin": -2000,
+          "validMax": 10000,
+          "multiplier": 0.0001
+        },
+        "visParams": {
+          "min": 0,
+          "max": 0.6,
+          "palette": [
+            "#d73027",
+            "#f46d43",
+            "#fdae61",
+            "#fee08b",
+            "#d9ef8b",
+            "#a6d96a",
+            "#66bd63",
+            "#1a9850"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        0.6
+      ],
+      "unit": "EVI"
+    },
+    {
+      "id": "chirps_precip",
+      "name": "Precipitação Anual (CHIRPS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "UCSB-CHG/CHIRPS/DAILY",
+          "band": "precipitation",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "sum",
+          "scale": 5566
+        },
+        "visParams": {
+          "min": 200,
+          "max": 1400,
+          "palette": [
+            "#ffffd9",
+            "#edf8b1",
+            "#c7e9b4",
+            "#7fcdbb",
+            "#41b6c4",
+            "#1d91c0",
+            "#225ea8",
+            "#0c2c84"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        200,
+        1400
+      ],
+      "unit": "mm/ano"
+    },
+    {
+      "id": "lst_modis",
+      "name": "Temperatura de Superfície (MODIS 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD11A2",
+          "band": "LST_Day_1km",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 1000,
+          "validMin": 7500,
+          "multiplier": 0.02,
+          "offset": -273.15
+        },
+        "visParams": {
+          "min": 25,
+          "max": 40,
+          "palette": [
+            "#313695",
+            "#74add1",
+            "#e0f3f8",
+            "#fee090",
+            "#f46d43",
+            "#a50026"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        25,
+        40
+      ],
+      "unit": "°C"
+    }
+  ]
+}
