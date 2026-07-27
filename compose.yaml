@@ -1,0 +1,16 @@
+services:
+  carbono-caatinga:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gee-service-account.json
+    secrets:
+      - source: gee_service_account
+        target: gee-service-account.json
+        mode: 0444
+
+secrets:
+  gee_service_account:
+    file: ${GEE_CREDENTIALS_FILE:?Defina GEE_CREDENTIALS_FILE com o caminho absoluto do JSON da service account}

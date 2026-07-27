@@ -20,6 +20,25 @@ npm run dev
 
 Sobe em http://localhost:3000. As rotas `/api/gee/*` precisam da credencial da service account do Earth Engine em `.env.local` (modelo em `.env.example`); sem ela as páginas de marketing funcionam normalmente e o mapa carrega só os vetores locais.
 
+## Docker
+
+A imagem usa Node 22 e a saída standalone do Next.js. Ela não contém credenciais: em produção, forneça o JSON da service account como um secret de arquivo e a variável `GOOGLE_APPLICATION_CREDENTIALS` com o caminho onde ele foi montado.
+
+Build e execução sem Earth Engine (landing e vetores locais):
+
+```bash
+docker build -t carbono-caatinga .
+docker run --rm -p 3000:3000 carbono-caatinga
+```
+
+Para executar localmente com as camadas e estatísticas do Earth Engine, informe o caminho absoluto da sua chave no host. O Compose monta o arquivo somente para leitura dentro do container, sem incluí-lo na imagem:
+
+```bash
+GEE_CREDENTIALS_FILE=/caminho/absoluto/service-account.json docker compose up --build
+```
+
+Para encerrar, execute `docker compose down`. Em qualquer provedor, use a mesma imagem, monte o JSON como secret e defina `GOOGLE_APPLICATION_CREDENTIALS` para esse ponto de montagem. A porta pode ser ajustada pela variável `PORT`.
+
 ## Estrutura
 
 ```

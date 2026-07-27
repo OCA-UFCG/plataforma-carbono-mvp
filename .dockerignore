@@ -1,0 +1,9 @@
+.git
+.next
+node_modules
+.env*
+!.env.example
+*.tsbuildinfo
+gen-lang-client-*.json
+service-account*.json
+npm-debug.log*
