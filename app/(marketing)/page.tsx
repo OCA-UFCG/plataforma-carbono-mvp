@@ -266,8 +266,8 @@ export default function LandingPage() {
           <div className="hero-conteudo">
             <div className="hero-inner">
               <h1>
-                A Caatinga responde por quase metade da remoção de carbono do
-                Brasil
+                A Caatinga em anos chuvosos pode responder por quase metade da
+                remoção de carbono do Brasil
               </h1>
               <p className="hero-apoio">
                 O reconhecimento do bioma costuma parar na condição de único
@@ -370,7 +370,7 @@ export default function LandingPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/plataforma_preview.jpg"
-                alt="Tela de entrada da plataforma, com a rampa dos doze meses do ciclo do bioma"
+                alt="Mapa da plataforma com a camada de produtividade primária bruta ativa sobre o bioma"
               />
             </div>
             <div className="plataforma-texto">

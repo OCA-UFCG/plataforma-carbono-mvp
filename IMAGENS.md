@@ -37,7 +37,7 @@ Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação
 
 | Arquivo | Onde aparece |
 |---|---|
-| `plataforma_preview.jpg` | Moldura da seção "A plataforma": captura de tela real da plataforma. Hoje mostra a tela de entrada com a rampa dos doze meses; para trocar pelo mapa, substituir o arquivo e ajustar o texto alternativo em `app/(marketing)/page.tsx`. |
+| `plataforma_preview.jpg` | Moldura da seção "A plataforma": captura de tela real do mapa, com a camada de produtividade primária bruta (GPP) ativa. |
 
 ## Hero
 
