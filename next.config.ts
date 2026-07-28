@@ -4,6 +4,9 @@ import type { NextConfig } from "next";
 // que depende das rotas /api/gee/* rodando no servidor. Por causa delas o app
 // não pode mais usar output:'export'; o deploy é um Web Service Node.
 const nextConfig: NextConfig = {
+  // Produz um servidor autocontido em .next/standalone para a imagem Docker.
+  output: "standalone",
+
   // Keep @google/earthengine out of the server bundle. It's a CommonJS package
   // with Node-only dependencies (crypto, Buffer, http via google-auth-library)
   // and Turbopack will fail to bundle it. Listing it here makes Next.js
