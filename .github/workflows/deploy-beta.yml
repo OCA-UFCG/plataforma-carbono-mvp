@@ -52,7 +52,7 @@ jobs:
   push-beta:
     if: github.event.workflow_run.conclusion == 'success'
     needs: build-image
-    runs-on: beta-runner
+    runs-on: sap-beta-runner
 
     steps:
       - name: Pull the latest image
