@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 // Aplicação única: páginas de marketing (estáticas) e o módulo de mapas em /mapa,
 // que depende das rotas /api/gee/* rodando no servidor. Por causa delas o app
-// não pode mais usar output:'export'; o deploy é um Web Service Node.
+// não pode usar output:'export'; o deploy precisa de um processo Node, seja a
+// imagem Docker deste repositório, seja um Web Service no Render.
 const nextConfig: NextConfig = {
   // Produz um servidor autocontido em .next/standalone para a imagem Docker.
   output: "standalone",
