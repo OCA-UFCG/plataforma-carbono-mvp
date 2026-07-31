@@ -1,4 +1,4 @@
-import type { RasterLayerConfig } from '@/types/plataforma'
+import type { RasterLayerConfig } from '@/types/mapa'
 
 /**
  * Sample a GEE raster at a single [lon, lat] via POST /api/gee/point.

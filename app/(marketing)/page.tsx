@@ -10,7 +10,7 @@ import SiteHeader from "@/components/SiteHeader";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import HeroBackground from "@/components/HeroBackground";
 import Sazonalidade from "@/components/Sazonalidade";
-import { PLATFORM_URL } from "@/lib/config";
+import { MAPA_URL } from "@/lib/config";
 
 const HERO_FOTOS = [
   "/images/hero/hero1.jpg",
@@ -20,21 +20,32 @@ const HERO_FOTOS = [
   "/images/hero/hero5.jpg",
 ];
 
-// As funções do bioma, uma dimensão por card. Os números vêm do levantamento em
-// ../Caatinga_Panorama_Revisado.md, com a fonte primária ao pé de cada um.
+// Os quatro primeiros cards descrevem funções ecológicas que o bioma desempenha
+// por processo próprio; os três seguintes, usos que a sociedade faz do seu
+// território. A ordem sustenta a distinção feita na introdução da seção e não
+// deve ser embaralhada. Números do levantamento em ../Caatinga_Panorama_Revisado.md
+// e do boletim temático em ../../boletim/Boletim_Carbono_Caatinga.docx.
 const DIMENSOES = [
   {
     cor: "#5f7030",
     num: "48%",
-    titulo: "Das remoções de carbono do Brasil",
+    titulo: "Da remoção bruta de carbono do país",
     texto:
-      "Em 2022 a Caatinga respondeu por quase metade da remoção bruta de carbono do país, ocupando cerca de 10% do território. A eficiência de uso de carbono da sua vegetação, situada entre 0,31 e 0,58, é a maior já registrada dentre florestas secas áridas e semiáridas, superando a da Amazônia.",
-    fonte: "DA COSTA et al. (2025); MENDES et al. (2025)",
+      "Em 2022 a Caatinga respondeu por quase metade da remoção bruta de carbono do Brasil, ocupando cerca de 10% do território. A vegetação reativa a fotossíntese rapidamente após a chuva, mesmo depois de estiagem prolongada, e é nesses pulsos que o bioma opera como sumidouro de alta eficiência.",
+    fonte: "DA COSTA et al. (2025); MENDES et al. (2023; 2025)",
+  },
+  {
+    cor: "#6b7d34",
+    num: "60%",
+    titulo: "De eficiência no uso do carbono",
+    texto:
+      "A eficiência do uso do carbono mede quanto do carbono captado pela fotossíntese é de fato convertido em biomassa vegetal. Na Caatinga ela alcança 60%, contra cerca de 30% na Amazônia, onde a captação é mais constante ao longo do ano mas a respiração do ecossistema consome parcela proporcionalmente maior do CO2 absorvido.",
+    fonte: "MENDES et al. (2025)",
   },
   {
     cor: "#4e5d26",
     num: "72%",
-    titulo: "Do carbono estocado no solo",
+    titulo: "Do carbono da Caatinga densa está no solo",
     texto:
       "A Caatinga densa preservada estoca cerca de 125 Mg C por hectare, permanecendo quase três quartos desse total abaixo da superfície, fração que as metodologias tradicionais de REDD+ não contabilizam. O estoque de carbono orgânico do solo do bioma alcança 2,5 gigatoneladas.",
     fonte: "DE OLIVEIRA et al. (2021)",
@@ -50,27 +61,27 @@ const DIMENSOES = [
   },
   {
     cor: "#ce8b44",
-    num: "93%",
-    titulo: "Da potência eólica nacional",
+    num: "309 GW",
+    titulo: "De potencial eólico em terra no Nordeste",
     texto:
-      "O Nordeste concentra 1.026 das 1.132 usinas eólicas do país, abrigando a Caatinga 62% das áreas de usinas solares brasileiras. A irradiação média da região, de 5,49 kWh por m² ao dia, é a maior do território nacional.",
-    fonte: "ETENE/BNB (2025); MAPBIOMAS (2025); PEREIRA et al. (2017)",
+      "Estimativa do INPE para aerogeradores a 100 metros de altura, contra 32,1 GW hoje instalados, ou seja, cerca de um décimo do que o vento da região comporta. Soma-se a isso a maior irradiação solar do país, de 5,49 kWh por m² ao dia em média. O que já foi instalado sobre o bioma, e o que se projeta instalar, é tratado adiante.",
+    fonte: "PEREIRA (2016), via ETENE/BNB; ETENE/BNB (2025); PEREIRA et al. (2017)",
   },
   {
     cor: "#a66a2e",
-    num: "62%",
-    titulo: "Da uva de mesa do país",
+    num: "1,66 milhão",
+    titulo: "De estabelecimentos de agricultura familiar",
     texto:
-      "O Vale do São Francisco produz ainda 61% da manga nacional, permitindo o clima de duas a quatro safras por ano, contra uma no Sul. Quanto à pecuária, o Semiárido concentra cerca de 90% do rebanho nacional de caprinos, liderando o Nordeste as exportações brasileiras de mel.",
-    fonte: "CNA; Embrapa; Consórcio Nordeste",
+      "No bioma, 68% deles produzem para consumo próprio ou familiar, e a agricultura familiar responde por 72% dos caprinos e 61% do leite de vaca da região. Sistemas agroflorestais e de manejo agroecológico acumulam carbono no solo mantendo a vegetação em pé, prática que a Lei nº 14.119/2021 prioriza ao definir quem recebe por serviços ambientais.",
+    fonte: "IBGE, Censo Agropecuário (2017); IPEA; Brasil, Lei nº 14.119/2021",
   },
   {
     cor: "#7a4e1e",
-    num: "1.000",
-    titulo: "Sítios arqueológicos, no mínimo",
+    num: "27 milhões",
+    titulo: "De pessoas vivem no bioma",
     texto:
-      "O Parque Nacional Serra da Capivara é Patrimônio Mundial da UNESCO desde 1991 e guarda a maior concentração de sítios pré-históricos das Américas. No bioma vivem cerca de 27 milhões de pessoas, dentre as quais 45 povos indígenas e boa parte das comunidades quilombolas do país.",
-    fonte: "UNESCO (2021); IPHAN; CEDEFES; IBGE (2022)",
+      "Dentre elas, 45 povos indígenas e boa parte das comunidades quilombolas do país, que a mesma lei nomeia junto aos agricultores familiares como beneficiários prioritários. O Parque Nacional Serra da Capivara, Patrimônio Mundial da UNESCO desde 1991, guarda a maior concentração de sítios pré-históricos das Américas.",
+    fonte: "SILVA; LEAL; TABARELLI (2017); IBGE (2022); CEDEFES; UNESCO (2021)",
   },
 ];
 
@@ -78,7 +89,7 @@ const AMEACAS = [
   {
     num: "8,6 mi ha",
     texto:
-      "De vegetação nativa perdidos entre 1985 e 2023, correspondendo a 14,4% do bioma, do qual restam 59,6%. Em 2023, 67,4% da supressão ocorreu em vegetação primária, nunca antes desmatada.",
+      "De vegetação nativa perdidos entre 1985 e 2023, o equivalente a 14,4% da cobertura nativa que havia em 1985. Restam 51,4 milhões de hectares, ou 59,6% da área do bioma. Em 2023, 67,4% da supressão ocorreu em vegetação primária, nunca antes desmatada.",
     fonte: "MAPBIOMAS, Coleção 9 (2025)",
   },
   {
@@ -120,7 +131,7 @@ const AMEACAS = [
   {
     num: "US$ 0,50",
     texto:
-      "Por hectare ao ano foi o orçamento médio de 20 unidades de conservação federais da Caatinga entre 2008 e 2014, cerca de treze vezes inferior ao que o próprio MMA declara necessário. Dentre elas, doze não dispunham de conselho gestor e onze não tinham plano de manejo.",
+      "Por hectare ao ano, excluída a regularização fundiária, foi o orçamento médio de 20 unidades de conservação federais da Caatinga entre 2008 e 2014, cerca de treze vezes inferior ao que o próprio MMA declara necessário. Dentre elas, doze não dispunham de conselho gestor e onze não tinham plano de manejo.",
     fonte: "DE OLIVEIRA; BERNARD (2017)",
   },
   {
@@ -132,8 +143,9 @@ const AMEACAS = [
   {
     num: "180 GW",
     texto:
-      "Em projetos eólicos e solares planejados sobre o bioma, contra 35,35 GW já instalados. O Ministério Público Federal registra desmatamento, fragmentação territorial, conflitos fundiários e contratos de arrendamento os quais retiram das comunidades o controle efetivo da terra.",
-    fonte: "ANEEL; Ministério Público Federal (2024)",
+      "Em projetos eólicos e solares planejados sobre o bioma, contra 35,35 GW já instalados. Em 2024 a Caatinga concentrou 62% das áreas ocupadas por usinas solares de médio e grande porte do país. A literatura sobre esses empreendimentos no Nordeste documenta violação de direitos humanos, conflitos fundiários, arrendamentos de longa duração com cláusulas assimétricas, supressão de vegetação nativa, perda de habitat e pressão sobre territórios já vulneráveis pela desertificação.",
+    fonte:
+      "ANEEL; MAPBIOMAS (2025); SILVA et al. (2026); SANTOS et al. (2026); MPF (2024)",
   },
 ];
 
@@ -142,13 +154,13 @@ const FRENTES = [
     icon: FaLayerGroup,
     color: "#5f7030",
     title: "Dados espaciais do bioma",
-    text: "Carbono do solo, biomassa aérea, GPP, queimadas, precipitação, umidade do solo, fenologia e SIF, com dados de campo e torres de fluxo.",
+    text: "Carbono do solo, biomassa aérea, produtividade primária, fogo, precipitação, temperatura e uso da terra, com dados de campo e de torres de fluxo, que medem a troca de carbono entre a vegetação e a atmosfera.",
   },
   {
     icon: FaScaleBalanced,
     color: "#7a4e1e",
     title: "Governança dos mercados",
-    text: "Acompanhamento das decisões e normas que afetam a Caatinga, incluindo o SBCE e as resoluções de REDD+ no país.",
+    text: "Acompanhamento das decisões e normas que afetam a Caatinga, incluindo o Sistema Brasileiro de Comércio de Emissões (SBCE) e as resoluções de REDD+ no país.",
   },
   {
     icon: FaBullhorn,
@@ -160,7 +172,7 @@ const FRENTES = [
     icon: FaFlaskVial,
     color: "#4e5d26",
     title: "Metodologia e MRV digital",
-    text: "Método de estimativa desenhado para o semiárido, com sistema digital de mensuração, relato e verificação.",
+    text: "Método de estimativa desenhado para o semiárido, com sistema digital de mensuração, relato e verificação (MRV) da prática de restauração e manutenção.",
   },
   {
     icon: FaShieldHalved,
@@ -267,20 +279,19 @@ export default function LandingPage() {
             <div className="hero-inner">
               <h1>
                 A Caatinga em anos chuvosos pode responder por quase metade da
-                remoção de carbono do Brasil
+                remoção bruta de carbono do Brasil
               </h1>
               <p className="hero-apoio">
                 O reconhecimento do bioma costuma parar na condição de único
-                inteiramente contido no território brasileiro. Contudo, os seus
-                862.818 km² abarcam 3.347 espécies de plantas com flores, 93% da
-                potência eólica instalada no país e cerca de 27 milhões de
-                pessoas. Já a proteção legal alcança 9% do território, tendo sido
-                perdidos 8,6 milhões de hectares de vegetação nativa entre 1985 e
-                2023.
+                exclusivamente brasileiro. Contudo, os seus 862.818 km² abarcam
+                3.347 espécies de plantas com flores, 35,35 GW de parques
+                eólicos e solares já instalados e cerca de 27 milhões de pessoas.
+                Já a proteção legal alcança 9% do território, tendo sido perdidos
+                8,6 milhões de hectares de vegetação nativa entre 1985 e 2023.
               </p>
               <div className="hero-acoes">
-                <a href={PLATFORM_URL} className="btn btn--primario">
-                  Acessar a plataforma
+                <a href={MAPA_URL} className="btn btn--primario">
+                  Abrir os mapas
                 </a>
                 <a href="#bioma" className="btn btn--contorno-branco">
                   Conhecer o bioma
@@ -294,16 +305,17 @@ export default function LandingPage() {
         {/* Dimensões do bioma */}
         <section className="secao" id="bioma">
           <div className="container">
-            <p className="rotulo">Dimensões do bioma</p>
-            <h2>As funções que a Caatinga cumpre para o país</h2>
+            <p className="rotulo">Funções e usos</p>
+            <h2>As funções ecológicas do bioma e os usos do seu território</h2>
             <p className="intro">
               A delimitação do IBGE (2019) atribui à Caatinga 862.818 km², cerca
               de 10,1% do território nacional, sendo ela o bioma predominante em
-              1.095 municípios (IBGE, 2024). No que diz respeito às funções que o
-              bioma desempenha, elas foram medidas por instituições distintas,
-              abarcando desde o ciclo do carbono até a matriz elétrica e o
-              patrimônio arqueológico nacionais, e raramente aparecem reunidas
-              num mesmo panorama.
+              1.095 municípios (IBGE, 2024). Os números a seguir separam o que o
+              bioma faz por processo próprio, como estocar carbono e abrigar
+              espécies, daquilo que a sociedade faz sobre o seu território, da
+              infraestrutura de energia à agricultura familiar. Manter os dois na
+              mesma lista, sob o rótulo de serviços prestados à sociedade, é o
+              hábito que este trabalho evita.
             </p>
             <div className="dim-grid">
               {DIMENSOES.map((d) => (
@@ -334,7 +346,9 @@ export default function LandingPage() {
               sensoriamento remoto, tornando-se perceptível em campo somente
               quando a recuperação já se inviabilizou (MAPBIOMAS, 2021). Dessa
               forma, os processos descritos a seguir foram medidos por satélite
-              antes de serem percebidos pelas populações que habitam o bioma.
+              antes de serem percebidos pelas populações que habitam o bioma, e
+              descrevem menos uma perda de recursos disponíveis do que a ruptura
+              da relação que sustentava a capacidade ecológica do território.
             </p>
             <div className="ameaca-lista">
               {AMEACAS.map((a) => (
@@ -350,8 +364,9 @@ export default function LandingPage() {
             <div className="projecao">
               <p>
                 Mantido o ritmo atual de degradação, a modelagem projeta perda de
-                até 90% da biodiversidade do bioma em 60 anos, com 87% das
-                espécies perdendo habitat até 2060. Trata-se de projeção de
+                até 90% da biodiversidade do bioma em 60 anos, com alteração em
+                91,6% das comunidades de mamíferos e 87% das espécies desse grupo
+                perdendo habitat até 2060. Trata-se de projeção de
                 cenário, dependente do ritmo de degradação e da trajetória de
                 emissões globais, e não de medição já realizada, permanecendo por
                 isso passível de alteração.
@@ -363,42 +378,55 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* A plataforma */}
-        <section className="secao" id="plataforma">
-          <div className="container plataforma-grid">
-            <div className="plataforma-quadro">
+        {/* Mapas e análises: o módulo geoespacial da plataforma */}
+        <section className="secao" id="mapa">
+          <div className="container mapa-grid">
+            <div className="mapa-quadro">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/plataforma_preview.jpg"
-                alt="Mapa da plataforma com a camada de produtividade primária bruta ativa sobre o bioma"
+                alt="Mapa do bioma com a camada de produtividade primária bruta ativa"
               />
             </div>
-            <div className="plataforma-texto">
-              <p className="rotulo">A plataforma</p>
-              <h2>Medição como condição para a conservação</h2>
+            <div className="mapa-texto">
+              <p className="rotulo">Mapas e análises</p>
+              <h2>O que se mede e o que se remunera</h2>
               <p className="paragrafo">
-                A Caatinga chega ao mercado regulado de carbono sem metodologia
-                própria. As abordagens dominantes foram desenhadas para florestas
-                tropicais úmidas, desconsiderando a caducifólia da vegetação, a
-                dependência dos pulsos de chuva e a permanência de quase três
-                quartos do carbono no solo. Diante do exposto, e em curso a
-                regulamentação do Sistema Brasileiro de Comércio de Emissões
-                instituído pela Lei nº 15.042/2024, a ausência de número
-                confiável tende a inserir o bioma como fronteira tardia, com
+                O mercado regulado de carbono alcança a Caatinga sem que exista
+                metodologia de estimativa concebida para o bioma. As abordagens
+                dominantes foram desenhadas para florestas tropicais úmidas,
+                desconsiderando a caducifólia da vegetação, a dependência dos
+                pulsos de chuva e a permanência, na Caatinga densa, de quase três
+                quartos do carbono no solo. Com a regulamentação do Sistema
+                Brasileiro de Comércio de Emissões, instituído pela Lei nº
+                15.042/2024, ainda em curso, a ausência de número confiável tende
+                a inserir o bioma como fronteira tardia, com
                 crédito barato, pouco verificado e contratos desfavoráveis a quem
-                mantém a floresta em pé.
+                sustenta a floresta em pé.
               </p>
               <p className="paragrafo">
-                A plataforma reúne carbono do solo, biomassa aérea, produtividade
-                primária, fluxo, fogo, precipitação, temperatura e uso da terra
-                num mapa único, permitindo o cálculo de estatística por
-                município, território ou área desenhada sobre a série do Google
-                Earth Engine. Quanto à rastreabilidade, cada crédito carrega o
-                registro público da sua origem, em consonância com o modelo de
-                Certificação Participativa de Créditos de Carbono Social.
+                O módulo de mapas e análises reúne carbono do solo, biomassa
+                aérea, produtividade primária, fluxo, fogo, precipitação,
+                temperatura e uso da terra num mapa único, permitindo o cálculo
+                de estatística por município, território ou área desenhada sobre
+                a série do Google Earth Engine. O estado do bioma e o efeito da
+                prática humana
+                sobre esse estado são apurados em separado, e não somados sob o
+                rótulo de serviço prestado pelo ecossistema. A Lei nº 14.119/2021
+                atribui a prestação do serviço ambiental ao agente humano, de
+                modo que o que a PNPSA e a Lei nº 15.042/2024 remuneram é o
+                trabalho de restauração e manutenção, cabendo ao bioma, uma vez
+                restabelecidas as suas condições, o desempenho das suas funções
+                ecológicas próprias.
               </p>
-              <a href={PLATFORM_URL} className="btn btn--primario">
-                Acessar a plataforma
+              <p className="paragrafo">
+                Quanto à rastreabilidade, cada crédito carrega o registro público
+                da sua origem e da prática que o gerou, em consonância com o
+                modelo de Certificação Participativa de Créditos de Carbono
+                Social (CPCS).
+              </p>
+              <a href={MAPA_URL} className="btn btn--primario">
+                Abrir os mapas
               </a>
             </div>
           </div>
@@ -509,18 +537,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Conheça a Caatinga (galeria) */}
+        {/* A Caatinga em imagens (galeria) */}
         <section className="secao caatinga" id="caatinga">
           <div className="container">
-            <p className="rotulo">Conheça a Caatinga, de verdade</p>
-            <h2>A maior floresta tropical sazonalmente seca do planeta</h2>
+            <p className="rotulo">A Caatinga em imagens</p>
+            <h2>A maior floresta tropical sazonalmente seca das Américas</h2>
             <p className="intro">
-              Único bioma exclusivamente brasileiro, a Caatinga abarca alta
-              biodiversidade e riqueza social e cultural, estocando e ciclando o
-              carbono que regula o clima do país e do planeta. Trata-se de uma
-              Floresta Tropical Sazonalmente Seca, a maior do mundo. As fotos a
-              seguir registram o bioma para além do estereótipo de terra seca e
-              vazia.
+              A Caatinga responde por cerca de 31% de toda a extensão desse tipo
+              florestal no Neotrópico, abarcando alta biodiversidade e riqueza
+              social e cultural. As fotos a seguir foram feitas em campo ao longo
+              do ciclo anual e registram o bioma para além do estereótipo de
+              terra seca e vazia.
             </p>
             <div className="galeria">
               {FOTOS_CAATINGA.map((f) => (
@@ -566,8 +593,8 @@ export default function LandingPage() {
               Acompanhe o carbono do bioma sobre o mapa, por município ou por
               área desenhada
             </h2>
-            <a href={PLATFORM_URL} className="btn btn--branco">
-              Acessar a plataforma
+            <a href={MAPA_URL} className="btn btn--branco">
+              Abrir os mapas
             </a>
           </div>
         </section>

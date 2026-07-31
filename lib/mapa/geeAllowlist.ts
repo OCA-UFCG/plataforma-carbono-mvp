@@ -3,7 +3,7 @@
 // in config/layers.json are permitted. Without this the routes would proxy
 // the service account to ANY Earth Engine asset supplied by a caller.
 
-import appConfig from '@/config/plataforma/layers.json'
+import appConfig from '@/config/mapa/layers.json'
 import type { GeeAssetConfig } from './geeImage'
 
 function assetKey(id: string, band?: string): string {

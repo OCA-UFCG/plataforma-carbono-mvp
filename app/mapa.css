@@ -1,4 +1,4 @@
-/* Estilos da plataforma. Carregado só por app/(plataforma)/layout.tsx; as páginas de
+/* Estilos do módulo de mapas e análises. Carregado só por app/(mapa)/layout.tsx; as páginas de
  * marketing usam app/globals.css. O `overflow: hidden` abaixo é a razão de os
  * dois viverem em layouts raiz separados: aplicado à landing, mataria a rolagem
  * da página. */
@@ -17,8 +17,8 @@ html, body {
 /* Design tokens
  * Os neutros "mata branca" são fixos o ano inteiro; só o acento (--acc*) muda,
  * e muda a cada mês. Os valores abaixo são apenas o repouso: quem manda são as
- * vars que A plataforma escreve inline na sua raiz, calculadas da cor do mês em
- * config/plataforma/platforms.ts. São doze meses em dois modos, então listá-los aqui
+ * vars que o módulo escreve inline na sua raiz, calculadas da cor do mês em
+ * config/mapa/platforms.ts. São doze meses em dois modos, então listá-los aqui
  * seriam 24 blocos que sairiam de sincronia com o tema em JS na primeira edição.
  * O tema escuro deriva os neutros sobre as mesmas variáveis. */
 :root {

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { IcSearch, IcX, IcChevronRight } from '../icons'
-import { useStore } from '@/lib/plataforma/store'
-import { computeBbox } from '@/lib/plataforma/computeBbox'
-import type { PlatformTheme, VectorLayerConfig } from '@/types/plataforma'
+import { useStore } from '@/lib/mapa/store'
+import { computeBbox } from '@/lib/mapa/computeBbox'
+import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
 

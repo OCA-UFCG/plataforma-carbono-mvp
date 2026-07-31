@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLATFORM_URL } from "@/lib/config";
+import { MAPA_URL } from "@/lib/config";
 
 export default function SiteHeader() {
   return (
@@ -20,11 +20,11 @@ export default function SiteHeader() {
       <nav className="header-nav" aria-label="Navegação principal">
         <Link href="/#bioma">O bioma</Link>
         <Link href="/#ameacas">Ameaças</Link>
-        <Link href="/#plataforma">A plataforma</Link>
+        <Link href="/#mapa">Mapas e análises</Link>
         <Link href="/#comunicacao">Comunicação</Link>
         <Link href="/#paleta">A paleta</Link>
-        <a href={PLATFORM_URL} className="btn btn--primario btn--sm">
-          Acessar a plataforma
+        <a href={MAPA_URL} className="btn btn--primario btn--sm">
+          Abrir os mapas
         </a>
       </nav>
     </header>

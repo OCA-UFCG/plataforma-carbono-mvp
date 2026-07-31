@@ -1,4 +1,4 @@
-import type { Basemap } from '@/types/plataforma'
+import type { Basemap } from '@/types/mapa'
 
 /**
  * Basemap providers, all treated uniformly as raster XYZ tiles.

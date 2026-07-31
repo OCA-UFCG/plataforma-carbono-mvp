@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useStore } from '@/lib/plataforma/store'
-import type { PlatformTheme, DrawMode } from '@/types/plataforma'
+import { useStore } from '@/lib/mapa/store'
+import type { PlatformTheme, DrawMode } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { IcX, IcBarChart } from './icons'
-import { useStore } from '@/lib/plataforma/store'
-import type { PlatformTheme } from '@/types/plataforma'
+import { useStore } from '@/lib/mapa/store'
+import type { PlatformTheme } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })

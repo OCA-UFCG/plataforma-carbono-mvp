@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { initGee, getEe } from '@/lib/plataforma/geeAuth'
-import { buildEeImage, type GeeAssetConfig } from '@/lib/plataforma/geeImage'
-import { jenksBreaks } from '@/lib/plataforma/jenks'
-import { evaluate, withTimeout, GEE_TIMEOUT_MS } from '@/lib/plataforma/geeEvaluate'
+import { initGee, getEe } from '@/lib/mapa/geeAuth'
+import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { jenksBreaks } from '@/lib/mapa/jenks'
+import { evaluate, withTimeout, GEE_TIMEOUT_MS } from '@/lib/mapa/geeEvaluate'
 import {
   isValidAsset,
   isValidBbox,
@@ -10,11 +10,11 @@ import {
   isValidVisParams,
   validateClipGeometry,
   bodyTooLarge,
-} from '@/lib/plataforma/geeValidation'
-import { isAllowedAsset } from '@/lib/plataforma/geeAllowlist'
-import { rateLimit, clientIp } from '@/lib/plataforma/rateLimit'
-import { getClip } from '@/lib/plataforma/clipRegistry'
-import { getTileCache, setTileCache } from '@/lib/plataforma/tileCache'
+} from '@/lib/mapa/geeValidation'
+import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
+import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
+import { getClip } from '@/lib/mapa/clipRegistry'
+import { getTileCache, setTileCache } from '@/lib/mapa/tileCache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

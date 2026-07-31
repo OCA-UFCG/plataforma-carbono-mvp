@@ -4,11 +4,11 @@ Plataforma de monitoramento do carbono florestal do bioma Caatinga. Exibe camada
 
 Esta é a Fase 1, focada em três coisas: as camadas presentes, os recortes territoriais e as estatísticas por recorte e por desenho. Sem camadas temporais nesta fase.
 
-A plataforma e a página institucional são uma aplicação Next.js só, num repositório só. A plataforma ocupa a rota `/plataforma`; as páginas de marketing ocupam `/`. O botão "Acessar a plataforma" usa `PLATFORM_URL` (`lib/config.ts`), que resolve para `/plataforma` a menos que `NEXT_PUBLIC_PLATFORM_URL` diga outra coisa.
+O módulo de mapas e as páginas institucionais são uma aplicação Next.js só, num repositório só. O módulo ocupa a rota `/mapa`; as páginas de marketing ocupam `/`. O botão "Abrir os mapas" usa `MAPA_URL` (`lib/config.ts`), que resolve para `/mapa` a menos que `NEXT_PUBLIC_MAPA_URL` diga outra coisa.
 
 ## Stack
 
-A plataforma foi clonada do projeto `great-panini` (`C:\Users\artur\Documents\sig_gen\websig\.claude\worktrees\great-panini`), reaproveitando o pipeline GEE, o mapa e o store, e depois mesclada nesta aplicação.
+O módulo de mapas foi clonado do projeto `great-panini` (`C:\Users\artur\Documents\sig_gen\websig\.claude\worktrees\great-panini`), reaproveitando o pipeline GEE, o mapa e o store, e depois mesclada nesta aplicação.
 
 - Next.js 16.2.3 (App Router), React 19, TypeScript strict
 - MapLibre GL JS 5 (renderização WebGL)
@@ -16,7 +16,7 @@ A plataforma foi clonada do projeto `great-panini` (`C:\Users\artur\Documents\si
 - Recharts (gráficos de estatística)
 - @mapbox/mapbox-gl-draw e @turf/area (desenho e medição)
 - @google/earthengine (SDK server-side, nas rotas de API)
-- Libre Franklin na plataforma, Raleway nas páginas de marketing
+- Libre Franklin no módulo de mapas, Raleway nas páginas de marketing
 
 ## Estrutura
 
@@ -25,20 +25,20 @@ app/
 ├ (marketing)/
 │   ├ layout.tsx               # layout raiz: Raleway, metadata, globals.css
 │   └ page.tsx                 # a landing
-├ (plataforma)/
-│   ├ layout.tsx               # layout raiz: Libre Franklin, tela cheia, plataforma.css
-│   └ plataforma/page.tsx      # entrada da plataforma (dynamic import ssr:false)
+├ (mapa)/
+│   ├ layout.tsx               # layout raiz: Libre Franklin, tela cheia, mapa.css
+│   └ mapa/page.tsx            # entrada do módulo (dynamic import ssr:false)
 ├ api/gee/                     # rotas server-side
 │   ├ tile/route.ts            # URL de tile do GEE (clip por clipId)
 │   ├ stats/route.ts           # estatística zonal (categórica e contínua)
 │   ├ point/route.ts           # valor de pixel pontual
 │   └ timeseries/route.ts      # série temporal (dormente nesta fase)
 ├ globals.css                  # estilos das páginas de marketing
-└ plataforma.css                   # estilos da plataforma
+└ mapa.css                     # estilos do módulo de mapas
 components/                    # marketing: SiteHeader, PhotoCarousel, HeroBackground,
                                # Sazonalidade (matriz, paleta e climatologias)
-components/plataforma/
-├ Plataforma.tsx                   # orquestrador (tema, dark mode, sidebars)
+components/mapa/
+├ Mapa.tsx                     # orquestrador (tema, dark mode, sidebars)
 ├ MapView.tsx                  # mapa, desenho, clique-para-estatística
 ├ Sidebar.tsx                  # acordeões de camadas
 ├ ResultsSidebar.tsx           # painel de resultados (fechável)
@@ -47,14 +47,14 @@ components/plataforma/
 ├ Welcome.tsx                  # tela de entrada sazonal
 ├ icons.tsx                    # ícones da interface
 └ overlays/                    # busca, legenda, ferramentas, mapa base, coords
-config/plataforma/
+config/mapa/
 ├ layers.json                  # 20 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
 ├ basemaps.ts                  # mapas base
 └ layerMeta.ts                 # fichas das camadas
 lib/
-├ config.ts                    # PLATFORM_URL
-└ plataforma/
+├ config.ts                    # MAPA_URL
+└ mapa/
     ├ geeAuth.ts               # autenticação da service account (+ setDeadline)
     ├ geeImage.ts              # construção do ee.Image (máscara de fill, reducers)
     ├ geeEvaluate.ts           # promisify de evaluate + timeout
@@ -73,7 +73,7 @@ lib/
 lib/phenology.ts               # os 12 meses do ciclo, cores e NDFI mediano
 lib/color.ts                   # mistura, luminância e contraste WCAG
 lib/ndfi-series.json           # matriz 40 anos x 12 meses do NDFI mediano
-types/plataforma.ts                # tipos da plataforma
+types/mapa.ts                  # tipos do módulo de mapas
 public/
 ├ images/ e logos/             # marketing
 ├ data/vector/                 # GeoJSON dos recortes
@@ -83,7 +83,7 @@ public/
 scripts/
 ├ verify-assets.mjs            # autentica no GEE e verifica asset IDs
 ├ list-assets.mjs              # lista diretórios de assets no GEE
-├ compute-breaks.mjs           # Jenks offline, grava em config/plataforma/layers.json
+├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
 └ build-recortes.py            # baixa e recorta os recortes ao bioma
@@ -96,11 +96,11 @@ Plataforma única: só o tema "Carbono Caatinga". O seletor de plataformas e os 
 
 ### Por que dois layouts raiz
 
-`app/(marketing)/layout.tsx` e `app/(plataforma)/layout.tsx` são layouts raiz irmãos, cada um com o seu `<html>`, o seu `<body>` e o seu CSS global. Não existe `app/layout.tsx`.
+`app/(marketing)/layout.tsx` e `app/(mapa)/layout.tsx` são layouts raiz irmãos, cada um com o seu `<html>`, o seu `<body>` e o seu CSS global. Não existe `app/layout.tsx`.
 
-O motivo é CSS. O `plataforma.css` zera a rolagem (`html, body { overflow: hidden }`), pinta o fundo com `--paper` e troca a família tipográfica; aplicado às páginas de marketing, mataria a rolagem da landing. O `globals.css` define `.btn`, `.container`, `body { font-size: 15px; line-height: 1.75 }` e a paleta `--verde`/`--laranja`, que não têm uso no mapa. Com layouts raiz separados, o Next.js emite um chunk de CSS por grupo e nenhum dos dois alcança o outro. Verificado no build: o CSS de `/` não contém `--paper`, `--acc` nem `overflow:hidden` no `body`; o de `/plataforma` não contém `.btn`, `--verde` nem Raleway.
+O motivo é CSS. O `mapa.css` zera a rolagem (`html, body { overflow: hidden }`), pinta o fundo com `--paper` e troca a família tipográfica; aplicado às páginas de marketing, mataria a rolagem da landing. O `globals.css` define `.btn`, `.container`, `body { font-size: 15px; line-height: 1.75 }` e a paleta `--verde`/`--laranja`, que não têm uso no mapa. Com layouts raiz separados, o Next.js emite um chunk de CSS por grupo e nenhum dos dois alcança o outro. Verificado no build: o CSS de `/` não contém `--paper`, `--acc` nem `overflow:hidden` no `body`; o de `/mapa` não contém `.btn`, `--verde` nem Raleway.
 
-O preço é que navegar entre os dois grupos é um carregamento de página inteiro, não uma transição de cliente. Por isso todo link que cruza a fronteira usa `<a href>`, não `next/link`: os botões "Acessar a plataforma" e a marca no header da plataforma, que volta para `/`.
+O preço é que navegar entre os dois grupos é um carregamento de página inteiro, não uma transição de cliente. Por isso todo link que cruza a fronteira usa `<a href>`, não `next/link`: os botões "Abrir os mapas" e a marca no header do módulo, que volta para `/`.
 
 ## Configuração e execução
 
@@ -175,7 +175,7 @@ Os resultados são cacheados por chave `camada:estático:hashDaGeometria`, entã
 
 ## Rotas de API
 
-Todas `POST`, runtime Node, `force-dynamic`. Autenticam via `initGee()` (`lib/plataforma/geeAuth.ts`). Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
+Todas `POST`, runtime Node, `force-dynamic`. Autenticam via `initGee()` (`lib/mapa/geeAuth.ts`). Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
 
 Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate limiting por IP, teto de `numClasses`, validação de geometria/`lon`/`lat`/`visParams`, timeout nas chamadas GEE e mensagens de erro genéricas (não vazam o caminho das credenciais).
 
@@ -185,17 +185,17 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 ## Identidade visual
 
-Cores do logo OCA nos dois lados: verde-oliva `#5f7030` e laranja `#ce8b44`. A tipografia difere por grupo de rotas: as páginas de marketing usam Raleway (pesos 300/400/600), A plataforma usa Libre Franklin (400 a 800), ambas self-hosted via `next/font/google` e com numerais alinhados e tabulares (`lnum`/`tnum`).
+Cores do logo OCA nos dois lados: verde-oliva `#5f7030` e laranja `#ce8b44`. A tipografia difere por grupo de rotas: as páginas de marketing usam Raleway (pesos 300/400/600), o módulo de mapas usa Libre Franklin (400 a 800), ambas self-hosted via `next/font/google` e com numerais alinhados e tabulares (`lnum`/`tnum`).
 
 ### A paleta mensal
 
 O acento da interface não é fixo: é a cor do mês corrente. As doze cores saem da série Landsat de 1985 a 2024 sobre a vegetação nativa do bioma, desmisturada em NDFI (fracções GV, NPV, solo e sombra), com a mediana de cada mês traduzida numa rampa ancorada nas duas cores do logo. Abril é o pico verde (NDFI mediano +0,56) e outubro o fundo seco (-0,56). O estudo que originou a rampa está em `prototipos/sazonalidade.html`, e os scripts que produziram a série em `../gee`.
 
-- `lib/phenology.ts`: os doze meses (`MONTHS`), as quatro fases do ciclo (`PHASES`), `resolveMonth`, a faixa `CYCLE_GRADIENT` e a série mediana por mês. Compartilhado entre a landing e A plataforma, por isso fica em `lib/` e não em `lib/plataforma/`.
+- `lib/phenology.ts`: os doze meses (`MONTHS`), as quatro fases do ciclo (`PHASES`), `resolveMonth`, a faixa `CYCLE_GRADIENT` e a série mediana por mês. Compartilhado entre a landing e o módulo de mapas, por isso fica em `lib/` e não em `lib/mapa/`.
 - `lib/color.ts`: matemática de cor (mistura sRGB, luminância e contraste WCAG) usada para derivar os acentos.
-- `config/plataforma/platforms.ts`: `buildAccent(cor, escuro)` calcula fundo suave, borda, tinta e cor sobre o sólido a partir da cor do mês, em vez de 24 conjuntos escritos à mão. `npm run contrast` roda esse mesmo código nos 12 meses e nos 2 modos e falha se algum par cair abaixo de 4,5:1.
+- `config/mapa/platforms.ts`: `buildAccent(cor, escuro)` calcula fundo suave, borda, tinta e cor sobre o sólido a partir da cor do mês, em vez de 24 conjuntos escritos à mão. `npm run contrast` roda esse mesmo código nos 12 meses e nos 2 modos e falha se algum par cair abaixo de 4,5:1.
 
-A plataforma abre no mês de hoje e escreve as CSS vars `--acc*` inline na sua raiz, junto com `data-month`. O `plataforma.css` guarda só um valor de repouso; não há blocos `[data-month]` no CSS, que seriam 24 e sairiam de sincronia com o tema em JS. O usuário pode fixar outro mês pelo chip do header ou pela rampa do welcome, e a escolha persiste em `cc_month_v2`.
+O módulo abre no mês de hoje e escreve as CSS vars `--acc*` inline na sua raiz, junto com `data-month`. O `mapa.css` guarda só um valor de repouso; não há blocos `[data-month]` no CSS, que seriam 24 e sairiam de sincronia com o tema em JS. O usuário pode fixar outro mês pelo chip do header ou pela rampa do welcome, e a escolha persiste em `cc_month_v2`.
 
 Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components/Sazonalidade.tsx`): a matriz de 40 anos por 12 meses, a tira dos doze tons e as três climatologias mensais em vídeo (cor real, precipitação e GPP), em `public/videos`. Os vídeos só baixam quando a seção chega perto da tela.
 
@@ -203,7 +203,7 @@ Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components
 
 - `node scripts/verify-assets.mjs`: autentica no GEE e imprime as bandas de cada asset candidato, ou o erro. Serve para confirmar IDs e bandas antes de configurar uma camada.
 - `node scripts/list-assets.mjs`: lista os filhos de um diretório de assets, para achar caminhos exatos.
-- `npm run breaks`: calcula os breaks de Jenks sobre o bioma e grava em `config/plataforma/layers.json`.
+- `npm run breaks`: calcula os breaks de Jenks sobre o bioma e grava em `config/mapa/layers.json`.
 - `npm run clip`: gera as versões simplificadas das bordas usadas como recorte.
 - `npm run prewarm`: aquece o cache de tile do servidor (rodar com o servidor no ar).
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
@@ -212,11 +212,11 @@ Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components
 
 ## Deploy
 
-Um Web Service Node no Render serve o site inteiro, marketing e plataforma. Não dá mais para usar o Static Site gratuito: as rotas `/api/gee/*` rodam no servidor, e por isso `output: 'export'` e `trailingSlash` saíram do `next.config.ts`.
+Um Web Service Node no Render serve o site inteiro, marketing e módulo de mapas. Não dá mais para usar o Static Site gratuito: as rotas `/api/gee/*` rodam no servidor, e por isso `output: 'export'` e `trailingSlash` saíram do `next.config.ts`.
 
 1. `render.yaml` já traz `runtime: node`, `buildCommand: npm ci && npm run build` e `startCommand: npm run start`.
 2. No painel do serviço, Environment -> Secret Files: subir o JSON da service account com o nome `gee-service-account.json`. O Render monta em `/etc/secrets/`, caminho apontado por `GOOGLE_APPLICATION_CREDENTIALS` no `render.yaml`.
-3. `NEXT_PUBLIC_PLATFORM_URL` não precisa ser definida: sem ela, `PLATFORM_URL` resolve para a rota interna `/plataforma`.
+3. `NEXT_PUBLIC_MAPA_URL` não precisa ser definida: sem ela, `MAPA_URL` resolve para a rota interna `/mapa`.
 
 O GEE: a service account precisa estar registrada no Earth Engine e com a Earth Engine API habilitada no projeto GCP. Os assets sat-io e mapbiomas-public são públicos.
 
@@ -226,7 +226,7 @@ Camadas e dados:
 
 - Assentamentos e municípios são pesados (1923 e 1210 feições). Se o desenho ficar lento, converter para PMTiles (o código de PMTiles do MapView já existe).
 - ESA CCI Biomass não foi incluída (o caminho do inventário não existe no GEE). A biomassa está coberta por GEDI e Spawn e Gibbs. Localizar o asset correto se quiser incluir.
-- Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/plataforma/geeImage.ts` ou na rota) para somar bandas.
+- Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
 - Fogo: a camada mostra `min: 0`, então áreas nunca queimadas aparecem na cor mais clara. Para mostrar só o que queimou, mascarar o valor 0 (edição no servidor).
 - Camadas do inventário ainda não incluídas: clima e água (CHIRPS, ERA5, TerraClimate), índices e fenologia (NDVI/EVI, Sentinel-2), gases e fluorescência (TROPOMI, SIF), e integridade de projetos. Ficam para fases seguintes.
 - Camadas temporais (slider e série) estão fora do escopo desta fase. O código temporal foi deixado dormente, não removido.
@@ -235,7 +235,7 @@ Interface:
 
 - Os banners dos acordeões são gradientes simples gerados. Trocar por arte definitiva se quiser.
 - Reordenar camadas usa arrastar-e-soltar (HTML5), que funciona no desktop mas não em telas de toque. Adicionar botões subir/descer se o mobile virar alvo.
-- O header da plataforma traz "Dados" e "Metodologia" como rótulos inertes. Ligar às seções correspondentes da landing (`/#plataforma`, `/#frentes`) ou remover.
+- O header do módulo traz "Dados" e "Metodologia" como rótulos inertes. Ligar às seções correspondentes da landing (`/#mapa`, `/#frentes`) ou remover.
 
 Notas de ambiente:
 
@@ -243,4 +243,4 @@ Notas de ambiente:
 
 ## Revisão técnica
 
-Uma revisão de código completa (segurança, bugs, desempenho, UI, código morto) está em [`REVISAO_TECNICA.md`](REVISAO_TECNICA.md), com os itens P0-P3 já implementados e verificados e a limpeza P4 aplicada (plataformas herdadas, caminho TiTiler, código morto e dependências não usadas removidos). Os caminhos citados lá são os anteriores à mesclagem (`lib/`, `config/`, `components/`); hoje leia-os como `lib/plataforma/`, `config/plataforma/` e `components/plataforma/`.
+Uma revisão de código completa (segurança, bugs, desempenho, UI, código morto) está em [`REVISAO_TECNICA.md`](REVISAO_TECNICA.md), com os itens P0-P3 já implementados e verificados e a limpeza P4 aplicada (plataformas herdadas, caminho TiTiler, código morto e dependências não usadas removidos). Os caminhos citados lá são os anteriores à mesclagem (`lib/`, `config/`, `components/`); hoje leia-os como `lib/mapa/`, `config/mapa/` e `components/mapa/`.

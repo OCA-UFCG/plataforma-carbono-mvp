@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { IcList, IcChevronDown } from '../icons'
-import { useStore } from '@/lib/plataforma/store'
-import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/plataforma'
+import { useStore } from '@/lib/mapa/store'
+import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme

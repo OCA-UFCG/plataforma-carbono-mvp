@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import {
   IcLayers, IcBox, IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft,
 } from './icons'
-import { useStore } from '@/lib/plataforma/store'
-import { LAYER_META } from '@/config/plataforma/layerMeta'
+import { useStore } from '@/lib/mapa/store'
+import { LAYER_META } from '@/config/mapa/layerMeta'
 import { resolveMonth, PHASES } from '@/lib/phenology'
-import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/plataforma'
+import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import "../globals.css";
 
-// Layout raiz das páginas de marketing. A plataforma tem o seu próprio layout raiz
-// em app/(plataforma)/, com outra fonte e outro CSS global, então nenhum dos dois
-// carrega o estilo do outro.
+// Layout raiz das páginas de marketing. O módulo de mapas tem o seu próprio
+// layout raiz em app/(mapa)/, com outra fonte e outro CSS global, então nenhum
+// dos dois carrega o estilo do outro.
 const raleway = Raleway({
   subsets: ["latin"],
   weight: ["300", "400", "600"],

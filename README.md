@@ -1,15 +1,15 @@
 # Plataforma Carbono Caatinga
 
-Aplicação única, em Next.js, que reúne a página institucional do projeto Floresta em pé, Renda justa e A plataforma de monitoramento do carbono florestal do bioma Caatinga.
+Aplicação única, em Next.js, que reúne a página institucional do projeto Floresta em pé, Renda justa e o módulo de mapas e análises do carbono florestal do bioma Caatinga.
 
 - `/` e demais páginas de marketing: apresentação do projeto, indicadores, cartilhas, formação e galeria.
-- `/plataforma`: A plataforma, em tela cheia, com camadas de carbono, recortes territoriais e estatística zonal calculada no Google Earth Engine.
+- `/mapa`: o módulo de mapas e análises, em tela cheia, com camadas de carbono, recortes territoriais e estatística zonal calculada no Google Earth Engine.
 
 O inventário técnico completo (camadas, pipeline GEE, rotas de API, estrutura de pastas) está em [`DOCUMENTACAO.md`](DOCUMENTACAO.md).
 
 ## Stack
 
-Next.js 16.2.3 (App Router), React 19, TypeScript strict. MapLibre GL JS 5, Zustand, Recharts, `@mapbox/mapbox-gl-draw` e `@google/earthengine` no lado da plataforma.
+Next.js 16.2.3 (App Router), React 19, TypeScript strict. MapLibre GL JS 5, Zustand, Recharts, `@mapbox/mapbox-gl-draw` e `@google/earthengine` no lado do módulo de mapas.
 
 ## Execução
 
@@ -68,31 +68,31 @@ app/
 ├ (marketing)/          layout raiz de marketing (Raleway, globals.css)
 │   ├ layout.tsx
 │   └ page.tsx          a landing
-├ (plataforma)/             layout raiz da plataforma (Libre Franklin, plataforma.css)
+├ (mapa)/               layout raiz do módulo (Libre Franklin, mapa.css)
 │   ├ layout.tsx
-│   └ plataforma/page.tsx
+│   └ mapa/page.tsx
 ├ api/gee/              rotas server-side (tile, stats, point, timeseries)
 ├ globals.css           estilos das páginas de marketing
-└ plataforma.css            estilos da plataforma
+└ mapa.css             estilos do módulo de mapas
 components/             SiteHeader, PhotoCarousel, HeroBackground, Sazonalidade
-components/plataforma/      mapa, sidebars, gráficos, overlays
-config/plataforma/          layers.json, platforms.ts, basemaps.ts, layerMeta.ts
-lib/config.ts           PLATFORM_URL (destino dos botões de acesso)
+components/mapa/        mapa, sidebars, gráficos, overlays
+config/mapa/            layers.json, platforms.ts, basemaps.ts, layerMeta.ts
+lib/config.ts           MAPA_URL (destino dos botões de acesso)
 lib/phenology.ts        os 12 meses do ciclo e suas cores
 lib/color.ts            mistura e contraste WCAG, base dos acentos
-lib/plataforma/             autenticação GEE, store, estatística, utilitários
-types/plataforma.ts         tipos da plataforma
+lib/mapa/               autenticação GEE, store, estatística, utilitários
+types/mapa.ts           tipos do módulo de mapas
 public/                 images, logos, data/vector, banners, welcome, videos
 scripts/                utilitários GEE, recortes e verificações
 ```
 
-Os dois grupos de rotas têm layouts raiz irmãos, e não um layout comum. É isso que mantém o `overflow: hidden` e os tokens do mapa fora das páginas de marketing, e o header/rodapé institucionais fora da plataforma. A consequência é que navegar entre `/` e `/plataforma` é um carregamento de página inteiro: use `<a href>`, nunca `next/link`.
+Os dois grupos de rotas têm layouts raiz irmãos, e não um layout comum. É isso que mantém o `overflow: hidden` e os tokens do mapa fora das páginas de marketing, e o header/rodapé institucionais fora do módulo. A consequência é que navegar entre `/` e `/mapa` é um carregamento de página inteiro: use `<a href>`, nunca `next/link`.
 
 ## Identidade visual
 
-Paleta do logo OCA: verde-oliva `#5f7030` e laranja `#ce8b44`, sobre neutros de cinza-areia. As páginas de marketing usam Raleway (pesos 300/400/600) com numerais lining; A plataforma usa Libre Franklin (400 a 800).
+Paleta do logo OCA: verde-oliva `#5f7030` e laranja `#ce8b44`, sobre neutros de cinza-areia. As páginas de marketing usam Raleway (pesos 300/400/600) com numerais lining; o módulo de mapas usa Libre Franklin (400 a 800).
 
-O acento acompanha o mês: as doze cores vêm da série Landsat 1985-2024 do bioma, desmisturada em NDFI, e ficam em `lib/phenology.ts`. A plataforma abre no mês de hoje e deixa fixar outro. A seção `/#paleta` da landing mostra o estudo que originou a rampa. Ver a seção Identidade visual da [`DOCUMENTACAO.md`](DOCUMENTACAO.md).
+O acento acompanha o mês: as doze cores vêm da série Landsat 1985-2024 do bioma, desmisturada em NDFI, e ficam em `lib/phenology.ts`. O módulo abre no mês de hoje e deixa fixar outro. A seção `/#paleta` da landing mostra o estudo que originou a rampa. Ver a seção Identidade visual da [`DOCUMENTACAO.md`](DOCUMENTACAO.md).
 
 ## Deploy
 

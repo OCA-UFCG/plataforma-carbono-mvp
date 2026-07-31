@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Aplicação única: páginas de marketing (estáticas) e A plataforma em /plataforma,
+// Aplicação única: páginas de marketing (estáticas) e o módulo de mapas em /mapa,
 // que depende das rotas /api/gee/* rodando no servidor. Por causa delas o app
 // não pode mais usar output:'export'; o deploy é um Web Service Node.
 const nextConfig: NextConfig = {

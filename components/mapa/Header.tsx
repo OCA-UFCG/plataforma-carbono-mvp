@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { IcLeaf, IcSearch, IcChevronDown, IcMoon, IcSun, IcCheck } from './icons'
-import { useStore } from '@/lib/plataforma/store'
+import { useStore } from '@/lib/mapa/store'
 import {
   MONTHS, PHASES, CYCLE_GRADIENT, cyclePosition, resolveMonth, type MonthInfo,
 } from '@/lib/phenology'
 import { readableOn } from '@/lib/color'
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme

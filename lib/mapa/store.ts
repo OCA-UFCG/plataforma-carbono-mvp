@@ -5,9 +5,9 @@ import type {
   PixelValueResult,
   RasterLayerConfig,
   RasterStatsResult,
-} from '@/types/plataforma'
-import appConfig from '@/config/plataforma/layers.json'
-import { defaultBasemapId } from '@/config/plataforma/basemaps'
+} from '@/types/mapa'
+import appConfig from '@/config/mapa/layers.json'
+import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
 
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
@@ -15,7 +15,7 @@ const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
 // Store shape
 
-interface PlataformaStore {
+interface MapaStore {
   layers: LayerConfig[]
   drawMode: DrawMode
   drawnArea: number | null
@@ -82,7 +82,7 @@ interface PlataformaStore {
 
 // Store
 
-export const useStore = create<PlataformaStore>((set, get) => ({
+export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json
   layers: appConfig.layers as LayerConfig[],
   drawMode: null,

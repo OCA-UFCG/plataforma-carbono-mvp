@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
-import { useStore } from '@/lib/plataforma/store'
-import { basemaps } from '@/config/plataforma/basemaps'
+import { useStore } from '@/lib/mapa/store'
+import { basemaps } from '@/config/mapa/basemaps'
 import {
   IcPlus, IcMinus, IcLocate, IcMaximize, IcNorth, IcMap, IcPen,
 } from '../icons'
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   mapRef: RefObject<maplibregl.Map | null>

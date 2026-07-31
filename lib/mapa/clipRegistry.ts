@@ -10,8 +10,8 @@
 
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
-import appConfig from '@/config/plataforma/layers.json'
-import { computeBbox } from '@/lib/plataforma/computeBbox'
+import appConfig from '@/config/mapa/layers.json'
+import { computeBbox } from '@/lib/mapa/computeBbox'
 
 type Bbox = [number, number, number, number]
 

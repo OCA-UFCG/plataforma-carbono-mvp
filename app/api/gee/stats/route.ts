@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
-import { initGee, getEe } from '@/lib/plataforma/geeAuth'
-import { buildEeImage, type GeeAssetConfig } from '@/lib/plataforma/geeImage'
-import { jenksBreaks } from '@/lib/plataforma/jenks'
-import { evaluate } from '@/lib/plataforma/geeEvaluate'
+import { initGee, getEe } from '@/lib/mapa/geeAuth'
+import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { jenksBreaks } from '@/lib/mapa/jenks'
+import { evaluate } from '@/lib/mapa/geeEvaluate'
 import {
   isValidAsset,
   isValidClassify,
   validatePolygonGeometry,
   bodyTooLarge,
-} from '@/lib/plataforma/geeValidation'
-import { isAllowedAsset } from '@/lib/plataforma/geeAllowlist'
-import { rateLimit, clientIp } from '@/lib/plataforma/rateLimit'
+} from '@/lib/mapa/geeValidation'
+import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
+import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

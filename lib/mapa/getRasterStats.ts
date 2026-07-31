@@ -1,5 +1,5 @@
-import type { RasterLayerConfig, RasterStatsResult, TimeSeriesPoint } from '@/types/plataforma'
-import { useStore } from '@/lib/plataforma/store'
+import type { RasterLayerConfig, RasterStatsResult, TimeSeriesPoint } from '@/types/mapa'
+import { useStore } from '@/lib/mapa/store'
 
 // GeoJSON Feature with (Multi)Polygon geometry.
 type StatsFeature = {

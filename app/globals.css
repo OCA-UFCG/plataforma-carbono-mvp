@@ -1,5 +1,5 @@
 /* Estilos das páginas de marketing. Carregado só por app/(marketing)/layout.tsx;
- * A plataforma de /plataforma usa app/plataforma.css, com outro reset e outros tokens.
+ * o módulo de mapas em /mapa usa app/mapa.css, com outro reset e outros tokens.
  * Nada aqui vale lá, e vice-versa, porque os dois grupos de rotas têm layouts
  * raiz irmãos e o Next.js separa o CSS por rota. */
 
@@ -292,7 +292,7 @@ section {
   color: var(--titulo);
 }
 
-/* Conheça a Caatinga (galeria) */
+/* A Caatinga em imagens (galeria) */
 .caatinga {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -406,44 +406,44 @@ section {
   color: var(--texto-2);
 }
 
-/* A plataforma */
-.plataforma-grid {
+/* Mapas e análises */
+.mapa-grid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 56px;
   align-items: center;
 }
 
-.plataforma-quadro {
+.mapa-quadro {
   border: 1px solid var(--borda);
   overflow: hidden;
 }
 
-.plataforma-quadro img {
+.mapa-quadro img {
   width: 100%;
   display: block;
 }
 
-.plataforma-texto h2 {
+.mapa-texto h2 {
   margin-top: 16px;
   font-size: 30px;
 }
 
-.plataforma-texto .paragrafo {
+.mapa-texto .paragrafo {
   margin-top: 16px;
   font-size: 15px;
   line-height: 1.75;
   color: var(--texto-2);
 }
 
-.plataforma-texto .nota {
+.mapa-texto .nota {
   margin-top: 14px;
   font-size: 13.5px;
   line-height: 1.7;
   color: var(--texto-3);
 }
 
-.plataforma-texto .btn {
+.mapa-texto .btn {
   margin-top: 26px;
 }
 
@@ -1297,13 +1297,13 @@ section {
 
 /* Responsivo */
 @media (max-width: 1024px) {
-  .plataforma-grid {
+  .mapa-grid {
     grid-template-columns: 1fr;
     gap: 36px;
   }
 
   /* Empilhado, a imagem vem depois do texto */
-  .plataforma-quadro {
+  .mapa-quadro {
     order: 2;
   }
 

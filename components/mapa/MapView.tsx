@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol as PMTilesProtocol } from 'pmtiles'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
-import DrawRectangleMode from '@/lib/plataforma/drawRectangleMode'
+import DrawRectangleMode from '@/lib/mapa/drawRectangleMode'
 
 // mapbox-gl-draw's default styles use `line-dasharray` expressions that
 // MapLibre v5 rejects (bare arrays are parsed as expressions, need
@@ -33,17 +33,17 @@ const MAPBOX_DRAW_STYLES: object[] = [
   { id: 'gl-draw-point-static',                        type: 'circle', filter: ['all', ['==', 'mode', 'static'], ['==', '$type', 'Point']],                                 paint: { 'circle-radius': 5, 'circle-color': '#404040' } },
 ]
 import { area as turfArea } from '@turf/area'
-import { useStore, mapConfig } from '@/lib/plataforma/store'
-import { getRasterStats, getTemporalTimeSeries } from '@/lib/plataforma/getRasterStats'
-import { getRasterPointValue } from '@/lib/plataforma/getRasterPointValue'
-import { resolvePixelValue } from '@/lib/plataforma/resolvePixelValue'
-import { basemaps } from '@/config/plataforma/basemaps'
+import { useStore, mapConfig } from '@/lib/mapa/store'
+import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
+import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
+import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
+import { basemaps } from '@/config/mapa/basemaps'
 import type {
   LayerConfig,
   VectorLayerConfig,
   RasterLayerConfig,
   PlatformTheme,
-} from '@/types/plataforma'
+} from '@/types/mapa'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
 import DrawToolbar from './overlays/DrawToolbar'
@@ -593,7 +593,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
               setStatsLoading(true)
               try {
                 const series = await getTemporalTimeSeries(activeRaster, lon, lat)
-                const result: import('@/types/plataforma').RasterStatsResult = { kind: 'timeseries', series }
+                const result: import('@/types/mapa').RasterStatsResult = { kind: 'timeseries', series }
                 useStore.setState((s) => ({
                   statsCache: { ...s.statsCache, [tsCacheKey]: result },
                 }))
@@ -971,7 +971,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
               setStatsLoading(true)
               try {
                 const series = await getTemporalTimeSeries(raster, lon, lat)
-                const result: import('@/types/plataforma').RasterStatsResult = { kind: 'timeseries', series }
+                const result: import('@/types/mapa').RasterStatsResult = { kind: 'timeseries', series }
                 useStore.setState((s) => ({
                   statsCache: { ...s.statsCache, [tsCacheKey]: result },
                 }))

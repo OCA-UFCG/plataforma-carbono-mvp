@@ -8,13 +8,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useStore } from '@/lib/plataforma/store'
+import { useStore } from '@/lib/mapa/store'
 import type {
   RasterLayerConfig,
   PlatformTheme,
   ContinuousStats,
   TimeSeriesPoint,
-} from '@/types/plataforma'
+} from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme

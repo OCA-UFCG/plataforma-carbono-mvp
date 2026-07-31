@@ -2,7 +2,7 @@
 // dois modos. Roda o codigo real (buildAccent), nao uma copia. Uso: npm run contrast
 import { MONTHS } from '@/lib/phenology'
 import { contrast } from '@/lib/color'
-import { buildAccent } from '@/config/plataforma/platforms'
+import { buildAccent } from '@/config/mapa/platforms'
 
 const CARD = { light: '#ffffff', dark: '#211f18' }
 const MIN = 4.5

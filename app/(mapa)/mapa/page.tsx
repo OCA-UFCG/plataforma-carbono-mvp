@@ -1,11 +1,11 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { IcLeaf } from '@/components/plataforma/icons'
+import { IcLeaf } from '@/components/mapa/icons'
 
 // MapLibre requires browser APIs (WebGL, window).
 // dynamic + ssr:false prevents Next.js from trying to render it on the server.
-const Plataforma = dynamic(() => import('@/components/plataforma/Plataforma'), {
+const Mapa = dynamic(() => import('@/components/mapa/Mapa'), {
   ssr: false,
   loading: () => (
     <div
@@ -27,6 +27,6 @@ const Plataforma = dynamic(() => import('@/components/plataforma/Plataforma'), {
   ),
 })
 
-export default function PlataformaPage() {
-  return <Plataforma />
+export default function MapaPage() {
+  return <Mapa />
 }

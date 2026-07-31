@@ -1,5 +1,5 @@
-import type { PixelValueResult, RasterLayerConfig } from '@/types/plataforma'
-import { useStore } from '@/lib/plataforma/store'
+import type { PixelValueResult, RasterLayerConfig } from '@/types/mapa'
+import { useStore } from '@/lib/mapa/store'
 
 /**
  * Turn a raw pixel value from /api/gee/point into a display result: apply the

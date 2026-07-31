@@ -7,12 +7,12 @@ import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
 import Header from './Header'
 import Welcome from './Welcome'
-import { useStore } from '@/lib/plataforma/store'
-import { buildTheme } from '@/config/plataforma/platforms'
+import { useStore } from '@/lib/mapa/store'
+import { buildTheme } from '@/config/mapa/platforms'
 import { resolveMonth } from '@/lib/phenology'
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 
-export default function Plataforma() {
+export default function Mapa() {
   const darkMode    = useStore((s) => s.darkMode)
   const monthPref   = useStore((s) => s.month)
   const welcomeSeen = useStore((s) => s.welcomeSeen)

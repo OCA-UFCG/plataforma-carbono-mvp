@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   mapRef: RefObject<maplibregl.Map | null>

@@ -1,4 +1,4 @@
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 import { resolveMonth, type MonthInfo } from '@/lib/phenology'
 import { mix, readableOn, adjustContrast } from '@/lib/color'
 
@@ -7,13 +7,13 @@ import { mix, readableOn, adjustContrast } from '@/lib/color'
  * So o acento muda ao longo do ano; os neutros sao o cromo fixo.
  * `buildTheme(month, dark)` compoe o PlatformTheme efetivo.
  *
- * O conjunto de acentos sai calculado da cor do mes (ver lib/plataforma/color.ts),
+ * O conjunto de acentos sai calculado da cor do mes (ver lib/mapa/color.ts),
  * nao escrito a mao: sao doze meses em dois modos, e a tinta de texto precisa
  * passar em 4,5:1 contra o cartao tanto no verde-oliva de abril quanto no
  * laranja claro de outubro.
  */
 
-// Neutros fixos, mantidos em sincronia com as CSS vars em plataforma.css.
+// Neutros fixos, mantidos em sincronia com as CSS vars em mapa.css.
 const lightNeutrals = {
   bg: '#f7f6f2', mist: '#eceae3', border: '#d8d5cb', bgCard: '#ffffff',
   text: '#26241d', body: '#57544a', textDim: '#6f6c63', dim: '#8a8776', caption: '#95927f',

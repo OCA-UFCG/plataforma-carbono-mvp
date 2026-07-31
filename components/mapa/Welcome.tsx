@@ -2,12 +2,12 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { IcLeaf, IcX } from './icons'
-import { useStore } from '@/lib/plataforma/store'
+import { useStore } from '@/lib/mapa/store'
 import {
   MONTHS, PHASES, CYCLE_GRADIENT, cyclePosition, resolveMonth, type MonthInfo,
 } from '@/lib/phenology'
 import { readableOn } from '@/lib/color'
-import type { PlatformTheme } from '@/types/plataforma'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
@@ -81,7 +81,7 @@ export default function Welcome({ theme, month }: Props) {
             A cor da interface acompanha o mês do bioma
           </h1>
           <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.6, color: theme.colors.body, margin: '0 0 20px', maxWidth: 680 }}>
-            Plataforma de monitoramento do carbono florestal do bioma Caatinga. A interface veste a cor do mês
+            Módulo de mapas e análises da Plataforma Carbono Caatinga. A interface veste a cor do mês
             corrente, apurada desde 1985 no acompanhamento da vegetação nativa por imagens do satélite Landsat e
             por uma câmera instalada em campo. Estão disponíveis camadas de solo, biomassa, produtividade, fluxo,
             fogo e uso da terra, sobre as quais se calcula estatística por município, território ou área desenhada.
