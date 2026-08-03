@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { IcSearch, IcX, IcChevronRight } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
@@ -28,13 +29,6 @@ interface Props {
 }
 
 // Helpers
-
-/** Strip diacritics and lowercase for accent-insensitive comparison */
-const normalize = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
 
 const MAX_RESULTS = 20
 
@@ -143,7 +137,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       return
     }
 
-    const normQ = normalize(q)
+    const normQ = normalizeSearch(q)
     const found: SearchResult[] = []
     const seen = new Set<string>() // dedupe: layerId:featureIndex:fieldName
 
@@ -157,7 +151,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
         for (const [key, raw] of Object.entries(props)) {
           if (typeof raw !== 'string' || raw === '') continue
-          const normVal = normalize(raw)
+          const normVal = normalizeSearch(raw)
           if (!normVal.includes(normQ)) continue
 
           const dedupeKey = `${layer.id}:${fi}:${key}`
@@ -242,8 +236,8 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
   const renderHighlighted = (value: string) => {
     const q = query.trim()
     if (!q) return value
-    const normVal = normalize(value)
-    const normQ = normalize(q)
+    const normVal = normalizeSearch(value)
+    const normQ = normalizeSearch(q)
     const idx = normVal.indexOf(normQ)
     if (idx < 0) return value
     // Map normalized index back to original string positions
