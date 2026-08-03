@@ -121,7 +121,7 @@ O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (
 
 ## Camadas
 
-São 20 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 21 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
 
 ### Recortes territoriais (vetoriais)
 
@@ -145,6 +145,7 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
 | `biomassa_gedi` | Biomassa Aérea (GEDI L4B) | `LARSE/GEDI/GEDI04_B_002`, banda `MU` | contínua | Mg/ha |
 | `biomassa_spawn` | Carbono na Biomassa Aérea (Spawn e Gibbs 2010) | `NASA/ORNL/biomass_carbon_density/v1`, banda `agb` | contínua | Mg C/ha |
+| `altura_dossel` | Altura do Dossel (Meta e WRI 2023) | `sat-io/.../facebook/meta-canopy-height`, banda `cover_code` | contínua | m |
 | `gfw_netflux` | Fluxo Líquido de Carbono Florestal (GFW) | `sat-io/.../forest_carbon_fluxes/net_flux`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_emissions` | Emissões Brutas (GFW) | `.../gross_emissions`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_removals` | Remoções Brutas (GFW) | `.../gross_removals`, banda `b1` | contínua | Mg CO2/ha |
@@ -225,7 +226,8 @@ O GEE: a service account precisa estar registrada no Earth Engine e com a Earth 
 Camadas e dados:
 
 - Assentamentos e municípios são pesados (1923 e 1210 feições). Se o desenho ficar lento, converter para PMTiles (o código de PMTiles do MapView já existe).
-- ESA CCI Biomass não foi incluída (o caminho do inventário não existe no GEE). A biomassa está coberta por GEDI e Spawn e Gibbs. Localizar o asset correto se quiser incluir.
+- ESA CCI Biomass ainda não foi incluída. O caminho que constava do inventário estava errado; o asset correto é `projects/sat-io/open-datasets/ESA/ESA_CCI_AGB`. Ao incluir, atentar para a máscara de cobertura não-lenhosa, que infla a média por hectare no bioma arbustivo.
+- A altura do dossel do Meta e WRI tem 1 m de resolução nativa, mas a estatística zonal roda a 30 m, para ficar comparável às demais camadas de 30 m e não estourar o tempo em municípios grandes. A média sobre o bioma praticamente não muda com isso; quem precisar do detalhe de árvore isolada deve baixar o dado direto.
 - Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
 - Fogo: a camada mostra `min: 0`, então áreas nunca queimadas aparecem na cor mais clara. Para mostrar só o que queimou, mascarar o valor 0 (edição no servidor).
 - Camadas do inventário ainda não incluídas: clima e água (CHIRPS, ERA5, TerraClimate), índices e fenologia (NDVI/EVI, Sentinel-2), gases e fluorescência (TROPOMI, SIF), e integridade de projetos. Ficam para fases seguintes.
