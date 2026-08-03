@@ -99,7 +99,32 @@ function ThemeSection({
   layers: LayerConfig[]; onInfo: (id: string) => void; defaultOpen?: boolean
 }) {
   const [open, setOpen] = useState(!!defaultOpen)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const allLayers = useStore((s) => s.layers)
+  const reorderLayer = useStore((s) => s.reorderLayer)
   const c = theme.colors
+
+  const clearDrag = () => {
+    setDraggingId(null)
+    setDropIndex(null)
+  }
+
+  const onDragOver = (event: React.DragEvent<HTMLDivElement>, targetId: string) => {
+    if (!draggingId) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    const targetIndex = allLayers.findIndex((layer) => layer.id === targetId)
+    const isBefore = event.clientY < event.currentTarget.getBoundingClientRect().top + event.currentTarget.offsetHeight / 2
+    setDropIndex(targetIndex + (isBefore ? 0 : 1))
+  }
+
+  const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (draggingId && dropIndex !== null) reorderLayer(draggingId, dropIndex)
+    clearDrag()
+  }
+
   return (
     <div>
       <button
@@ -114,16 +139,70 @@ function ThemeSection({
       </button>
       {open && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 7 }}>
-          {layers.map((l) => <LayerRow key={l.id} theme={theme} layer={l} onInfo={onInfo} />)}
+          {layers.map((layer) => {
+            const index = allLayers.findIndex((item) => item.id === layer.id)
+            return (
+              <div
+                key={layer.id}
+                onDragOver={(event) => onDragOver(event, layer.id)}
+                onDrop={onDrop}
+                style={{ position: 'relative' }}
+              >
+                {dropIndex === index && <DropIndicator color={c.accent} />}
+                <LayerRow
+                  theme={theme}
+                  layer={layer}
+                  onInfo={onInfo}
+                  onDragStart={(event) => {
+                    if ((event.target as HTMLElement).closest('button, input, select, textarea, a')) {
+                      event.preventDefault()
+                      return
+                    }
+                    event.dataTransfer.effectAllowed = 'move'
+                    event.dataTransfer.setData('text/plain', layer.id)
+                    setDraggingId(layer.id)
+                  }}
+                  onDragEnd={clearDrag}
+                />
+                {dropIndex === index + 1 && <DropIndicator color={c.accent} bottom />}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
 
+function DropIndicator({ color, bottom = false }: { color: string; bottom?: boolean }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        [bottom ? 'bottom' : 'top']: -4,
+        left: 4,
+        right: 4,
+        height: 3,
+        borderRadius: 99,
+        background: color,
+        zIndex: 1,
+        pointerEvents: 'none',
+      }}
+    />
+  )
+}
+
 // Layer row (card)
 
-function LayerRow({ theme, layer, onInfo }: { theme: PlatformTheme; layer: LayerConfig; onInfo: (id: string) => void }) {
+function LayerRow({
+  theme, layer, onInfo, onDragStart, onDragEnd,
+}: {
+  theme: PlatformTheme
+  layer: LayerConfig
+  onInfo: (id: string) => void
+  onDragStart: (event: React.DragEvent<HTMLDivElement>) => void
+  onDragEnd: () => void
+}) {
   const toggleLayer     = useStore((s) => s.toggleLayer)
   const setOpacity      = useStore((s) => s.setOpacity)
   const clearLayerError = useStore((s) => s.clearLayerError)
@@ -135,7 +214,11 @@ function LayerRow({ theme, layer, onInfo }: { theme: PlatformTheme; layer: Layer
   const unit = layer.type === 'raster' ? (layer as RasterLayerConfig).unit : undefined
 
   return (
-    <div style={{
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      style={{
       background: layer.visible ? c.accentBg : c.bgCard,
       border: `1px solid ${layer.visible ? c.accentBd : c.border}`,
       borderRadius: 11, padding: '9px 10px', transition: 'background .15s, border-color .15s',
