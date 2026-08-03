@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import {
-  IcLayers, IcBox, IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft,
+  IcLayers, IcBox, IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft, IcSearch,
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
+import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { resolveMonth, PHASES } from '@/lib/phenology'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
@@ -18,9 +19,18 @@ export default function Sidebar({ theme, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
   const monthPref = useStore((s) => s.month)
   const [infoId, setInfoId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
 
-  const vectors = layers.filter((l) => l.type === 'vector')
-  const rasters = layers.filter((l) => l.type === 'raster')
+  const normalizedQuery = normalizeSearch(query.trim())
+  const matchesQuery = (layer: LayerConfig) => {
+    if (!normalizedQuery) return true
+    const meta = LAYER_META[layer.id]
+    return [layer.name, layer.type, meta?.description, meta?.source, meta?.kind]
+      .filter((value): value is string => Boolean(value))
+      .some((value) => normalizeSearch(value).includes(normalizedQuery))
+  }
+  const vectors = layers.filter((l) => l.type === 'vector' && matchesQuery(l))
+  const rasters = layers.filter((l) => l.type === 'raster' && matchesQuery(l))
   const activeCount = layers.filter((l) => l.visible).length
   const month = resolveMonth(monthPref)
 
@@ -71,10 +81,41 @@ export default function Sidebar({ theme, onCollapse }: Props) {
 
         {/* Body */}
         <div style={{ overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <ThemeSection theme={theme} title="Recortes territoriais" count={vectors.length}
-            icon={<IcBox size={15} />} iconColor="#5f7030" layers={vectors} onInfo={setInfoId} defaultOpen />
-          <ThemeSection theme={theme} title="Carbono e ambiente" count={rasters.length}
-            icon={<IcLayers size={15} />} iconColor={c.terracota} layers={rasters} onInfo={setInfoId} defaultOpen />
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <IcSearch size={15} color={c.textDim} style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setQuery('')
+              }}
+              aria-label="Buscar camadas"
+              placeholder="Buscar camadas"
+              style={{ width: '100%', border: `1px solid ${c.border}`, borderRadius: 9, background: c.bgCard, color: c.text, font: 'inherit', fontSize: 12.5, padding: '8px 32px 8px 32px', outlineColor: c.accent }}
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                aria-label="Limpar busca de camadas"
+                title="Limpar busca"
+                style={{ position: 'absolute', right: 5, border: 'none', background: 'transparent', color: c.textDim, cursor: 'pointer', padding: 5, display: 'flex' }}
+              >
+                <IcX size={14} />
+              </button>
+            )}
+          </div>
+          {normalizedQuery && vectors.length + rasters.length === 0 ? (
+            <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 12.5, textAlign: 'center' }}>
+              Nenhuma camada encontrada.
+            </div>
+          ) : (
+            <>
+              <ThemeSection theme={theme} title="Recortes territoriais" count={vectors.length}
+                icon={<IcBox size={15} />} iconColor="#5f7030" layers={vectors} onInfo={setInfoId} defaultOpen />
+              <ThemeSection theme={theme} title="Carbono e ambiente" count={rasters.length}
+                icon={<IcLayers size={15} />} iconColor={c.terracota} layers={rasters} onInfo={setInfoId} defaultOpen />
+            </>
+          )}
         </div>
 
         {/* Footer */}
@@ -110,13 +151,20 @@ function ThemeSection({
     setDropIndex(null)
   }
 
-  const onDragOver = (event: React.DragEvent<HTMLDivElement>, targetId: string) => {
+  const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     if (!draggingId) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    const targetIndex = allLayers.findIndex((layer) => layer.id === targetId)
-    const isBefore = event.clientY < event.currentTarget.getBoundingClientRect().top + event.currentTarget.offsetHeight / 2
-    setDropIndex(targetIndex + (isBefore ? 0 : 1))
+
+    const cards = [...event.currentTarget.querySelectorAll<HTMLElement>('[data-layer-index]')]
+    const nextCard = cards.find((card) =>
+      event.clientY < card.getBoundingClientRect().top + card.offsetHeight / 2,
+    )
+    const nextIndex = nextCard
+      ? Number(nextCard.dataset.layerIndex)
+      : Number(cards.at(-1)?.dataset.layerIndex) + 1
+
+    setDropIndex(nextIndex)
   }
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -138,14 +186,17 @@ function ThemeSection({
         <span style={{ marginLeft: 'auto', color: c.textDim, display: 'flex' }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
       </button>
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 7 }}>
+        <div
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 7, paddingBottom: 24 }}
+        >
           {layers.map((layer) => {
             const index = allLayers.findIndex((item) => item.id === layer.id)
             return (
               <div
                 key={layer.id}
-                onDragOver={(event) => onDragOver(event, layer.id)}
-                onDrop={onDrop}
+                data-layer-index={index}
                 style={{ position: 'relative' }}
               >
                 {dropIndex === index && <DropIndicator color={c.accent} />}
