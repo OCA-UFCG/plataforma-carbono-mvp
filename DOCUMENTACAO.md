@@ -143,6 +143,7 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | `solo_carbono` | Carbono Orgânico do Solo (0-30 cm) | `mapbiomas-public/.../soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm`, banda `prediction_2023` | contínua | t C/ha |
 | `gpp_modis` | Produtividade Primária Bruta (GPP) | `MODIS/061/MOD17A2HGF`, banda `Gpp`, 2023 | Jenks 5 classes | kg C/m2/8d |
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
+| `gpp_pml` | Produtividade Primária Bruta (GPP, PML-V2 2023) | `CAS/IGSNRR/PML/V2_v018`, banda `GPP`, 2023, média ×365 | contínua | g C/m2/ano |
 | `biomassa_gedi` | Biomassa Aérea (GEDI L4B) | `LARSE/GEDI/GEDI04_B_002`, banda `MU` | contínua | Mg/ha |
 | `biomassa_spawn` | Carbono na Biomassa Aérea (Spawn e Gibbs 2010) | `NASA/ORNL/biomass_carbon_density/v1`, banda `agb` | contínua | Mg C/ha |
 | `biomassa_esa_lenhosa` | Biomassa Aérea, vegetação lenhosa (ESA CCI 2022) | `sat-io/.../ESA/ESA_CCI_AGB`, banda `AGB`, 2022 | contínua | Mg/ha |
@@ -159,6 +160,21 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
+
+O GPP do PML-V2 entra como segunda estimativa independente da mesma variável já
+coberta pelo MOD17, e não como camada nova de produtividade. A finalidade é
+sustentar, mais à frente, uma leitura do erro possível a partir de várias bases.
+Por isso sai contínua e anual, ao contrário do MOD17, que está classificado em
+cinco classes de Jenks: para camada classificada a estatística zonal devolve
+percentual de pixels por classe, que não se compara com nada. As duas se
+aproximam na média sobre o bioma em 2023 e divergem nas caudas, com o PML-V2
+chegando a zero em solo exposto e afloramento enquanto o MOD17 mantém um piso
+diferente de zero em todo pixel, comportamento que é a limitação registrada no
+inventário para o MOD17 em bioma semiárido. A versão é a `v018`, que vai até
+27/12/2023; a `v017` que consta do inventário para em 26/12/2020.
+
+A evapotranspiração do mesmo produto ficou de fora de propósito, e a ressalva
+está registrada nos TODOs.
 
 As duas camadas do ESA CCI saem do mesmo asset e da mesma banda, diferindo só
 no tratamento dos pixels que o produto mascara por não haver vegetação lenhosa.
@@ -240,6 +256,8 @@ Camadas e dados:
 
 - Assentamentos e municípios são pesados (1923 e 1210 feições). Se o desenho ficar lento, converter para PMTiles (o código de PMTiles do MapView já existe).
 - O inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md` traz o caminho errado para a ESA CCI Biomass. O asset correto, já em uso nas duas camadas `biomassa_esa_*`, é `projects/sat-io/open-datasets/ESA/ESA_CCI_AGB`. Corrigir no inventário.
+- A evapotranspiração do PML-V2 não fecha balanço hídrico sobre a Caatinga e por isso não entrou. Medido sobre o limite do bioma, a média de 18 anos (2003-2020) de `Ec+Es+Ei` dá 815 mm/ano contra 688 mm/ano de precipitação do CHIRPS, excesso de 18% sustentado em escala de bioma, com a transpiração isolada (`Ec`, 538 mm/ano) consumindo 78% da chuva num bioma caducifólio. Falta confrontar com a literatura se há superestimativa conhecida do PML-V2 em semiárido. Se for incluída, a ressalva tem que estar na ficha da camada.
+- A ET total exigiria somar as bandas `Ec`, `Es` e `Ei`, aritmética entre bandas que o servidor ainda não faz. É o mesmo obstáculo do AGB mais BGB do Spawn e Gibbs, então uma implementação resolve os dois. A transpiração `Ec` sozinha é banda única e sairia sem código novo.
 - A ESA CCI entrou só com 2022. A coleção cobre 2007, 2010 e 2015 a 2022, de modo que uma série temporal é viável quando o slider sair do estado dormente.
 - A altura do dossel do Meta e WRI tem 1 m de resolução nativa, mas a estatística zonal roda a 30 m, para ficar comparável às demais camadas de 30 m e não estourar o tempo em municípios grandes. A média sobre o bioma praticamente não muda com isso; quem precisar do detalhe de árvore isolada deve baixar o dado direto.
 - Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
