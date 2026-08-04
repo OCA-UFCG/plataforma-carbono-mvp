@@ -286,6 +286,123 @@
       "unit": "Mg/ha"
     },
     {
+      "id": "altura_dossel",
+      "name": "Altura do Dossel (Meta e WRI 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/facebook/meta-canopy-height",
+          "band": "cover_code",
+          "reducer": "mean",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 15,
+          "palette": [
+            "#f7fcf5",
+            "#e5f5e0",
+            "#c7e9c0",
+            "#a1d99b",
+            "#74c476",
+            "#41ab5d",
+            "#238b45",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        15
+      ],
+      "unit": "m"
+    },
+    {
+      "id": "biomassa_esa_lenhosa",
+      "name": "Biomassa Aérea, vegetação lenhosa (ESA CCI 2022)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
+          "band": "AGB",
+          "filterDate": [
+            "2022-01-01",
+            "2023-01-01"
+          ],
+          "reducer": "first",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha"
+    },
+    {
+      "id": "biomassa_esa_territorial",
+      "name": "Biomassa Aérea, média territorial (ESA CCI 2022)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
+          "band": "AGB",
+          "filterDate": [
+            "2022-01-01",
+            "2023-01-01"
+          ],
+          "reducer": "first",
+          "scale": 100,
+          "unmaskValue": 0
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha"
+    },
+    {
       "id": "biomassa_spawn",
       "name": "Carbono na Biomassa Aérea (Spawn & Gibbs 2010)",
       "type": "raster",

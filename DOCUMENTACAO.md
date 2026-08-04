@@ -121,7 +121,7 @@ O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (
 
 ## Camadas
 
-São 20 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 21 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
 
 ### Recortes territoriais (vetoriais)
 
@@ -145,6 +145,9 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
 | `biomassa_gedi` | Biomassa Aérea (GEDI L4B) | `LARSE/GEDI/GEDI04_B_002`, banda `MU` | contínua | Mg/ha |
 | `biomassa_spawn` | Carbono na Biomassa Aérea (Spawn e Gibbs 2010) | `NASA/ORNL/biomass_carbon_density/v1`, banda `agb` | contínua | Mg C/ha |
+| `biomassa_esa_lenhosa` | Biomassa Aérea, vegetação lenhosa (ESA CCI 2022) | `sat-io/.../ESA/ESA_CCI_AGB`, banda `AGB`, 2022 | contínua | Mg/ha |
+| `biomassa_esa_territorial` | Biomassa Aérea, média territorial (ESA CCI 2022) | idem, com `unmaskValue: 0` | contínua | Mg/ha |
+| `altura_dossel` | Altura do Dossel (Meta e WRI 2023) | `sat-io/.../facebook/meta-canopy-height`, banda `cover_code` | contínua | m |
 | `gfw_netflux` | Fluxo Líquido de Carbono Florestal (GFW) | `sat-io/.../forest_carbon_fluxes/net_flux`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_emissions` | Emissões Brutas (GFW) | `.../gross_emissions`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_removals` | Remoções Brutas (GFW) | `.../gross_removals`, banda `b1` | contínua | Mg CO2/ha |
@@ -156,6 +159,17 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
+
+As duas camadas do ESA CCI saem do mesmo asset e da mesma banda, diferindo só
+no tratamento dos pixels que o produto mascara por não haver vegetação lenhosa.
+Como vem do asset, a média responde à pergunta "quanta biomassa há onde existe
+lenhosa"; com `unmaskValue: 0` esses pixels entram como zero e a média responde
+a "quanta biomassa há por hectare de território". Sobre o retângulo do bioma em
+2022 a diferença é grande, 40,86 contra 26,50 Mg/ha na média e 30,63 contra
+12,61 na mediana, com cerca de 30% dos pixels mascarados, de modo que declarar
+qual das duas leituras está em uso é condição para o número ser comparável a
+outra fonte. Como partem do mesmo `id::band`, a flag entra na chave do cache de
+tiles em `app/api/gee/tile/route.ts`, sem o que as duas serviriam o mesmo tile.
 
 Todos os asset IDs foram confirmados no catálogo do GEE por `scripts/verify-assets.mjs`.
 
@@ -225,10 +239,12 @@ O GEE: a service account precisa estar registrada no Earth Engine e com a Earth 
 Camadas e dados:
 
 - Assentamentos e municípios são pesados (1923 e 1210 feições). Se o desenho ficar lento, converter para PMTiles (o código de PMTiles do MapView já existe).
-- ESA CCI Biomass não foi incluída (o caminho do inventário não existe no GEE). A biomassa está coberta por GEDI e Spawn e Gibbs. Localizar o asset correto se quiser incluir.
+- O inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md` traz o caminho errado para a ESA CCI Biomass. O asset correto, já em uso nas duas camadas `biomassa_esa_*`, é `projects/sat-io/open-datasets/ESA/ESA_CCI_AGB`. Corrigir no inventário.
+- A ESA CCI entrou só com 2022. A coleção cobre 2007, 2010 e 2015 a 2022, de modo que uma série temporal é viável quando o slider sair do estado dormente.
+- A altura do dossel do Meta e WRI tem 1 m de resolução nativa, mas a estatística zonal roda a 30 m, para ficar comparável às demais camadas de 30 m e não estourar o tempo em municípios grandes. A média sobre o bioma praticamente não muda com isso; quem precisar do detalhe de árvore isolada deve baixar o dado direto.
 - Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
 - Fogo: a camada mostra `min: 0`, então áreas nunca queimadas aparecem na cor mais clara. Para mostrar só o que queimou, mascarar o valor 0 (edição no servidor).
-- Camadas do inventário ainda não incluídas: clima e água (CHIRPS, ERA5, TerraClimate), índices e fenologia (NDVI/EVI, Sentinel-2), gases e fluorescência (TROPOMI, SIF), e integridade de projetos. Ficam para fases seguintes.
+- Camadas do inventário ainda não incluídas: ERA5 e TerraClimate no bloco de clima e água, fenologia por Sentinel-2, gases e fluorescência (TROPOMI, SIF) e integridade de projetos. Ficam para fases seguintes. CHIRPS, NDVI e EVI, que constavam aqui, já estão na plataforma.
 - Camadas temporais (slider e série) estão fora do escopo desta fase. O código temporal foi deixado dormente, não removido.
 
 Interface:
