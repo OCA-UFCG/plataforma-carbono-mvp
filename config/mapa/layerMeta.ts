@@ -23,6 +23,11 @@ export const LAYER_META: Record<string, LayerMeta> = {
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   biomassa_gedi:    { description: 'biomassa aérea',                 source: 'GEDI L4B, 1 km',      kind: 'Raster contínuo' },
   biomassa_spawn:   { description: 'carbono da biomassa aérea',      source: 'Spawn & Gibbs, 300 m', kind: 'Raster contínuo' },
+  // O par abaixo sai do mesmo asset e difere só no tratamento dos pixels sem
+  // lenhosa. Sobre a Caatinga a diferença é grande (média de 40,9 contra
+  // 26,5 Mg/ha em 2022), então as duas leituras aparecem separadas no painel.
+  biomassa_esa_lenhosa:     { description: 'biomassa aérea medida apenas onde há vegetação lenhosa, com solo exposto e estrato herbáceo fora da conta', source: 'ESA CCI Biomass v6, 100 m', kind: 'Raster contínuo' },
+  biomassa_esa_territorial: { description: 'a mesma biomassa distribuída por todo o território, contando como zero o que não é lenhoso', source: 'ESA CCI Biomass v6, 100 m', kind: 'Raster contínuo' },
   altura_dossel:    { description: 'altura da vegetação acima do solo, estimada por rede neural sobre imagem aérea', source: 'Meta e WRI, 1 m', kind: 'Raster contínuo' },
   gfw_netflux:      { description: 'fluxo líquido de carbono florestal', source: 'GFW, 30 m',       kind: 'Raster contínuo' },
   gfw_emissions:    { description: 'emissões brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },

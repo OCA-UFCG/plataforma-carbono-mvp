@@ -136,6 +136,10 @@ export async function POST(req: Request) {
       ? JSON.stringify({
           id: asset.id, band: asset.band, scale: asset.scale,
           vmin: asset.validMin, vmax: asset.validMax,
+          // Sem isto as duas camadas do ESA CCI, que partem do mesmo asset e da
+          // mesma banda e diferem só pelo unmask, colidiriam no cache.
+          unmask: asset.unmaskValue,
+          filterDate: asset.filterDate,
           clipId: body.clipId ?? null, clipBbox, temporalDate,
           vis: clientVis, classify,
         })

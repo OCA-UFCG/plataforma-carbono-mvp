@@ -21,6 +21,12 @@ export interface GeeAssetConfig {
   // continuous layers whose stats should read in physical units.
   multiplier?:  number
   offset?:      number
+  // Fill masked pixels with a constant, applied after the collection reducer.
+  // The ESA CCI AGB masks non-woody cover instead of writing 0, so a
+  // territorial mean over the Caatinga comes out ~54% above reality (measured:
+  // 40,86 vs 26,50 Mg/ha em 2022). `unmaskValue: 0` restores the territorial
+  // reading. Leave undefined to keep the asset's own masking.
+  unmaskValue?: number
 }
 
 /**
@@ -46,10 +52,12 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
   }
 
   // Convert raw DN to physical units on the final single-band image (after any
-  // reducer), so tiles, stats and point value are all physical.
+  // reducer), so tiles, stats and point value are all physical. The unmask
+  // step runs first, so the filled pixels also go through the unit conversion.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transform = (img: any) => {
     let out = img
+    if (asset.unmaskValue !== undefined) out = out.unmask(asset.unmaskValue)
     if (asset.multiplier !== undefined) out = out.multiply(asset.multiplier)
     if (asset.offset !== undefined) out = out.add(asset.offset)
     return out
