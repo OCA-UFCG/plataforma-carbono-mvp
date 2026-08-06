@@ -8,6 +8,7 @@ import {
 } from '@/lib/phenology'
 import { readableOn } from '@/lib/color'
 import type { PlatformTheme } from '@/types/mapa'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 interface Props {
   theme: PlatformTheme
@@ -20,6 +21,7 @@ export default function Header({ theme, month }: Props) {
   const setWelcomeSeen = useStore((s) => s.setWelcomeSeen)
   const darkMode       = useStore((s) => s.darkMode)
   const toggleDarkMode = useStore((s) => s.toggleDarkMode)
+  const { user, signOut } = useAuth()
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -37,6 +39,11 @@ export default function Header({ theme, month }: Props) {
 
   const isAuto = monthPref === 'auto'
   const realMonth = resolveMonth('auto')
+
+  async function handleSignOut() {
+    await signOut()
+    window.location.replace('/login')
+  }
 
   return (
     <div style={{ flex: 'none', background: '#26241d', position: 'relative', zIndex: 30 }}>
@@ -178,6 +185,15 @@ export default function Header({ theme, month }: Props) {
           >
             {darkMode ? <IcSun size={14} /> : <IcMoon size={13} />}
           </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 2 }}>
+            {user?.email && <span title={user.email} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', color: '#d9d5c5', fontSize: 11.5 }}>{user.email}</span>}
+            <button
+              onClick={() => { void handleSignOut() }}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, color: '#ede9d8', cursor: 'pointer', font: 'inherit', fontSize: 11.5, fontWeight: 700, padding: '6px 10px' }}
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </div>
 
