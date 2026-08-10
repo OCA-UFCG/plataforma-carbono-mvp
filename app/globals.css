@@ -44,7 +44,7 @@ body {
   font-family: var(--font-sans, var(--font-fallback));
   /* Raleway usa algarismos old-style por padrão; lnum alinha os números */
   font-feature-settings: "lnum" 1;
-  font-size: 15px;
+  font-size: clamp(15px, 0.4vw + 14px, 16px);
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
 }
@@ -72,6 +72,8 @@ section {
 .container {
   max-width: 1150px;
   margin: 0 auto;
+  padding-inline: clamp(16px, 4vw, 0);
+  width: 100%;
 }
 
 /* Botões (pill) */
@@ -140,7 +142,7 @@ section {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 14px 48px;
+  padding: 14px clamp(16px, 4vw, 48px);
   background: var(--branco);
   border-bottom: 1px solid var(--borda);
 }
@@ -150,6 +152,7 @@ section {
   align-items: center;
   gap: 14px;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .header-marca img {
@@ -168,6 +171,7 @@ section {
   font-weight: 600;
   line-height: 1.25;
   color: var(--texto);
+  white-space: nowrap;
 }
 
 .header-nav {
@@ -189,10 +193,35 @@ section {
   color: var(--verde);
 }
 
+/* Botão hamburger do header (visível só em mobile/tablet). */
+.header-hamburguer {
+  display: none;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  color: var(--texto);
+  cursor: pointer;
+  font-size: 18px;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.header-hamburguer:hover {
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+.header-painel {
+  display: none;
+}
+
 /* Hero */
 .hero {
   position: relative;
-  height: 560px;
+  height: clamp(520px, 75vh, 560px);
   overflow: hidden;
 }
 
@@ -214,12 +243,9 @@ section {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(20, 24, 10, 0.72) 0%,
-    rgba(20, 24, 10, 0.5) 55%,
-    rgba(20, 24, 10, 0.32) 100%
-  );
+  background:
+    linear-gradient(0deg, rgba(20, 24, 10, 0.75) 0%, rgba(20, 24, 10, 0.30) 60%, rgba(20, 24, 10, 0.50) 100%),
+    linear-gradient(90deg, rgba(20, 24, 10, 0.50) 0%, rgba(20, 24, 10, 0.10) 55%);
 }
 
 .hero-conteudo {
@@ -228,29 +254,29 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 48px;
+  padding: 0 clamp(22px, 5vw, 48px);
 }
 
 .hero-inner {
-  max-width: 820px;
+  max-width: 800px;
 }
 
 .hero-inner h1 {
-  font-size: 50px;
+  font-size: clamp(30px, 7vw, 50px);
   font-weight: 300;
-  line-height: 1.18;
+  line-height: 1.2;
   color: var(--branco);
-  text-shadow: 0 2px 12px rgba(20, 24, 10, 0.45);
+  text-shadow: 0 2px 10px rgba(20, 24, 10, 0.5);
 }
 
 .hero-apoio {
   margin-top: 22px;
-  font-size: 18px;
+  font-size: clamp(15px, 2vw, 18px);
   font-weight: 300;
-  line-height: 1.7;
-  color: var(--branco);
-  max-width: 52ch;
-  text-shadow: 0 1px 8px rgba(20, 24, 10, 0.45);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.94);
+  max-width: 54ch;
+  text-shadow: 0 1px 6px rgba(20, 24, 10, 0.45);
 }
 
 .hero-acoes {
@@ -258,12 +284,12 @@ section {
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 32px;
+  margin-top: 28px;
 }
 
 .hero-credito {
   position: absolute;
-  bottom: 12px;
+  bottom: 10px;
   right: 14px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.92);
@@ -274,7 +300,7 @@ section {
 
 /* Seções */
 .secao {
-  padding: 76px 48px;
+  padding: clamp(52px, 8vw, 76px) clamp(22px, 5vw, 48px);
 }
 
 .rotulo {
@@ -286,7 +312,7 @@ section {
 }
 
 .secao h2 {
-  font-size: 32px;
+  font-size: clamp(24px, 4vw, 32px);
   font-weight: 300;
   line-height: 1.35;
   color: var(--titulo);
@@ -300,22 +326,21 @@ section {
 }
 
 .caatinga .intro {
-  font-size: 15px;
+  font-size: clamp(14px, 1vw + 13px, 15px);
   line-height: 1.75;
   color: var(--texto-2);
   max-width: 74ch;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
 .galeria {
-  column-count: 3;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 28vw, 220px), 1fr));
+  gap: 12px;
 }
 
 .galeria-item {
   position: relative;
-  break-inside: avoid;
-  margin: 0 0 16px;
 }
 
 .galeria-item img {
@@ -330,14 +355,14 @@ section {
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  margin-top: 40px;
-  padding: 28px 32px;
+  margin-top: 36px;
+  padding: 28px clamp(20px, 4vw, 32px);
   border: 1px dashed var(--borda-tracejada);
 }
 
 .galeria-cta h3 {
-  font-size: 20px;
-  font-weight: 300;
+  font-size: clamp(18px, 3vw, 20px);
+  font-weight: 400;
   line-height: 1.35;
   color: var(--titulo);
 }
@@ -367,7 +392,7 @@ section {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
   border-bottom: 1px solid var(--borda);
-  padding: 72px 48px;
+  padding: 72px clamp(22px, 5vw, 48px);
 }
 
 .frentes h2 {
@@ -377,7 +402,7 @@ section {
 
 .frentes-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
 }
 
@@ -410,7 +435,7 @@ section {
 .mapa-grid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  gap: 56px;
+  gap: clamp(32px, 5vw, 56px);
   align-items: center;
 }
 
@@ -426,7 +451,7 @@ section {
 
 .mapa-texto h2 {
   margin-top: 16px;
-  font-size: 30px;
+  font-size: clamp(24px, 4vw, 30px);
 }
 
 .mapa-texto .paragrafo {
@@ -452,7 +477,7 @@ section {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
   border-bottom: 1px solid var(--borda);
-  padding: 72px 48px;
+  padding: 72px clamp(22px, 5vw, 48px);
 }
 
 .comunicacao h2 {
@@ -483,7 +508,7 @@ section {
 .boletim {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
-  gap: 48px;
+  gap: clamp(28px, 5vw, 48px);
   align-items: center;
   margin-bottom: 56px;
   padding-bottom: 48px;
@@ -497,7 +522,7 @@ section {
 
 .boletim-texto h3 {
   margin-top: 12px;
-  font-size: 24px;
+  font-size: clamp(20px, 3vw, 24px);
   font-weight: 300;
   line-height: 1.35;
   color: var(--titulo);
@@ -512,7 +537,7 @@ section {
 
 .cartilhas-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 22px;
 }
 
@@ -549,7 +574,7 @@ section {
 .colecao {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 48px;
+  gap: clamp(28px, 5vw, 48px);
   align-items: center;
   margin-top: 48px;
   padding-top: 44px;
@@ -562,7 +587,7 @@ section {
 }
 
 .colecao-texto h3 {
-  font-size: 24px;
+  font-size: clamp(20px, 3vw, 24px);
   font-weight: 300;
   line-height: 1.35;
   color: var(--titulo);
@@ -623,8 +648,8 @@ section {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 40px 20px 14px;
-  font-size: 14px;
+  padding: 40px 18px 14px;
+  font-size: clamp(13px, 1.6vw, 14px);
   color: var(--branco);
   text-shadow: 0 1px 2px rgba(20, 24, 10, 0.6);
   background: linear-gradient(
@@ -691,7 +716,7 @@ section {
 .faixa-cta {
   position: relative;
   background: var(--laranja);
-  padding: 64px 48px;
+  padding: 64px clamp(22px, 5vw, 48px);
   overflow: hidden;
 }
 
@@ -725,14 +750,12 @@ section {
 
 .faixa-cta h2 {
   text-shadow: 0 1px 6px rgba(20, 24, 10, 0.35);
-}
-
-.faixa-cta h2 {
-  font-size: 27px;
+  font-size: clamp(22px, 3.5vw, 27px);
   font-weight: 300;
   line-height: 1.4;
   color: var(--branco);
   max-width: 34ch;
+  margin: 0;
 }
 
 .faixa-cta a:focus-visible {
@@ -741,7 +764,7 @@ section {
 
 /* Rodapé */
 .rodape {
-  padding: 44px 48px 40px;
+  padding: 44px clamp(22px, 5vw, 48px) 40px;
 }
 
 .rodape .container {
@@ -782,7 +805,7 @@ section {
 /* O potencial do bioma, por dimensão */
 .dim-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   margin-top: 34px;
 }
@@ -795,7 +818,7 @@ section {
 }
 
 .dim-num {
-  font-size: 40px;
+  font-size: clamp(34px, 5vw, 40px);
   font-weight: 300;
   line-height: 1.05;
   color: var(--verde);
@@ -827,7 +850,7 @@ section {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
   border-bottom: 1px solid var(--borda);
-  padding: 76px 48px;
+  padding: 76px clamp(22px, 5vw, 48px);
 }
 
 .ameacas h2 {
@@ -860,7 +883,7 @@ section {
 }
 
 .ameaca-num {
-  font-size: 27px;
+  font-size: clamp(22px, 4vw, 27px);
   font-weight: 300;
   line-height: 1.15;
   color: var(--laranja-btn-texto);
@@ -1256,7 +1279,7 @@ section {
 
 .climatologias {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
   margin-top: 44px;
 }
@@ -1295,7 +1318,13 @@ section {
   }
 }
 
-/* Responsivo */
+/* Responsivo
+ * Breakpoints:
+ *  - <=1024px: tablets em retrato/landscape, colapsa grids de duas colunas
+ *  - <=900px:  tablets pequenos e moveis grandes, header vira hamburguer
+ *  - <=640px:  moveis, empilha tudo, ajusta tipografia final
+ * Estilos fluidos (clamp, auto-fit) cuidam dos casos intermediarios. */
+
 @media (max-width: 1024px) {
   .mapa-grid {
     grid-template-columns: 1fr;
@@ -1307,21 +1336,9 @@ section {
     order: 2;
   }
 
-  .frentes-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .dim-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+  /* De 2 para 1 coluna na lista de ameaças, para a coluna não espremer o texto */
   .ameaca-lista {
     grid-template-columns: 1fr;
-  }
-
-  .cartilhas-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
   }
 
   .colecao {
@@ -1335,12 +1352,7 @@ section {
   }
 
   .boletim img {
-    max-width: 320px;
-  }
-
-  .climatologias {
-    grid-template-columns: 1fr;
-    gap: 26px;
+    max-width: 360px;
   }
 
   /* A trilha de atos deita acima do palco e rola na horizontal. */
@@ -1354,6 +1366,7 @@ section {
     overflow-x: auto;
     gap: 14px;
     padding-bottom: 2px;
+    scroll-snap-type: x proximity;
   }
 
   .ato {
@@ -1361,6 +1374,7 @@ section {
     border-bottom: 1px solid var(--borda);
     padding: 0 0 8px;
     white-space: nowrap;
+    scroll-snap-align: start;
   }
 
   .ato--on {
@@ -1368,78 +1382,208 @@ section {
   }
 }
 
-@media (min-width: 641px) and (max-width: 900px) {
-  .galeria {
-    column-count: 2;
-  }
-}
-
-/* Abaixo de 900px permanece apenas o botão de acesso (handoff) */
+/* Header: abaixo de 900px hamburguer substitui os links inline */
 @media (max-width: 900px) {
-  .header-nav a:not(.btn) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .header-nav {
     display: none;
+  }
+
+  .header-hamburguer {
+    display: inline-flex;
+  }
+
+  /* Painel de navegação sobreposto, aberto pelo botão hamburguer.
+     .header-painel--aberto é alternado pelo SiteHeader. */
+  .header-painel {
+    position: fixed;
+    top: 67px;
+    left: 0;
+    right: 0;
+    z-index: 39;
+    display: none;
+    flex-direction: column;
+    background: var(--branco);
+    border-bottom: 1px solid var(--borda);
+    box-shadow: 0 12px 24px rgba(51, 51, 51, 0.10);
+    padding: 8px clamp(22px, 5vw, 48px) 22px;
+    gap: 4px;
+  }
+
+  .header-painel--aberto {
+    display: flex;
+  }
+
+  .header-painel a:not(.btn) {
+    display: block;
+    padding: 14px 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #555555;
+    border-bottom: 1px solid var(--borda);
+    transition: color 0.18s ease;
+  }
+
+  .header-painel a:not(.btn):hover {
+    color: var(--verde);
+  }
+
+  .header-painel a:last-child {
+    border-bottom: none;
+  }
+
+  .header-painel .btn {
+    margin-top: 14px;
+    align-self: flex-start;
+  }
+
+  /* Em tablet estreito (600-900) a galeria usa 2 colunas */
+  .galeria {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
   .header {
-    padding: 14px 22px;
+    padding: 12px 18px;
+  }
+
+  .header-marca img {
+    height: 32px;
+  }
+
+  .header-wordmark {
+    font-size: 13.5px;
   }
 
   .hero-conteudo {
-    padding: 0 22px;
+    padding: 0 20px;
   }
 
-  .hero-inner h1 {
-    font-size: 38px;
+  .hero-acoes {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .secao,
-  .frentes,
-  .indicadores,
-  .comunicacao,
-  .ameacas,
-  .caatinga {
-    padding-left: 22px;
-    padding-right: 22px;
+  .hero-acoes .btn {
+    text-align: center;
   }
 
-  /* O número da ameaça sobe para cima do texto em vez de espremer a coluna. */
+  /* Remove duplicação de paddings (já aplicados via clamp() no base). */
   .ameaca-item {
     grid-template-columns: 1fr;
     gap: 8px;
+    padding: 22px 20px;
   }
 
-  .faixa-cta,
-  .rodape {
-    padding-left: 22px;
-    padding-right: 22px;
+  .ameaca-num {
+    font-size: 24px;
   }
 
-  .frentes-grid,
-  .dim-grid {
-    grid-template-columns: 1fr;
+  .projecao {
+    padding: 24px 20px;
   }
 
   .galeria {
-    column-count: 1;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .galeria-cta {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .galeria-cta .btn {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  /* Capas das cartilhas: 2 colunas em móveis estreitos */
+  .cartilhas-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .boletim img {
+    max-width: 100%;
+  }
+
+  /* Faixa CTA empilhada e centralizada em móveis */
+  .faixa-cta .container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+  }
+
+  .faixa-cta h2 {
+    max-width: 100%;
+  }
+
+  /* Carrossel: setas menores e mais próximas da borda */
+  .carrossel-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .carrossel-btn--prev {
+    left: 8px;
+  }
+
+  .carrossel-btn--next {
+    right: 8px;
+  }
+
+  /* Sazonalidade em mobile */
+  .ato-dizer h3 {
+    font-size: clamp(20px, 5.5vw, 25px);
   }
 
   .ato-palco {
     padding: 22px 18px;
   }
 
-  .ato-dizer h3 {
-    font-size: 21px;
-  }
-
   /* Abaixo de 640px a matriz de quarenta anos fica ilegível; rola na horizontal. */
   .matriz-grade {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .matriz-envolto,
   .matriz-anos {
     min-width: 520px;
+  }
+
+  /* Rodapé centralizado */
+  .rodape-logos {
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .rodape-linha {
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+}
+
+/* Em telas muito estreitas, esconde as setas e deixa os dots + swipe. */
+@media (max-width: 380px) {
+  .carrossel-btn {
+    display: none;
+  }
+
+  .carrossel-slide figcaption {
+    padding: 50px 14px 12px;
+    font-size: 12.5px;
   }
 }
