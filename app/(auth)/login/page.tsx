@@ -7,9 +7,9 @@ interface LoginPageProps {
 }
 
 function getRedirect(value: string | string[] | undefined) {
-  return typeof value === 'string' && (value === '/mapa' || value.startsWith('/mapa/'))
+  return typeof value === 'string' && (value === '/' || value === '/mapa' || value.startsWith('/mapa/'))
     ? value
-    : '/mapa'
+    : '/'
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {

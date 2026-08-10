@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
+import { redirect } from "next/navigation";
 import "../globals.css";
+import { getAuthenticatedSession } from "@/lib/auth";
 
 // Layout raiz das páginas de marketing. O módulo de mapas tem o seu próprio
 // layout raiz em app/(mapa)/, com outra fonte e outro CSS global, então nenhum
@@ -21,11 +23,13 @@ export const metadata: Metadata = {
   icons: { icon: "/logos/logo_oca.png" },
 };
 
-export default function MarketingLayout({
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  if (!(await getAuthenticatedSession())) redirect("/login?redirect=/");
+
   return (
     <html lang="pt-BR">
       <body className={raleway.variable}>{children}</body>

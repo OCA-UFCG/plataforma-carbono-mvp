@@ -22,7 +22,7 @@ Sobe em http://localhost:3000. Configure `.env.local` a partir de `.env.example`
 
 ## Autenticação
 
-O mapa e as rotas `/api/gee/*` exigem uma sessão Firebase válida. A landing (`/`) é pública. O login usa e-mail e senha, sem cadastro público: os usuários são criados manualmente no Firebase Console.
+Todas as páginas, incluindo a landing (`/`) e o mapa, exigem uma sessão Firebase válida. A única página pública é `/login`; as rotas `/api/gee/*` também exigem sessão. O login usa e-mail e senha, sem cadastro público: os usuários são criados manualmente no Firebase Console.
 
 1. Crie um projeto no [Firebase Console](https://console.firebase.google.com/) e registre uma aplicação Web.
 2. Em **Authentication > Sign-in method**, habilite somente **Email/Password**.
