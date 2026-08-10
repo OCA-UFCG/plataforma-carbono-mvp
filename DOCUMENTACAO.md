@@ -32,7 +32,7 @@ app/
 │   ├ tile/route.ts            # URL de tile do GEE (clip por clipId)
 │   ├ stats/route.ts           # estatística zonal (categórica e contínua)
 │   ├ point/route.ts           # valor de pixel pontual
-│   └ timeseries/route.ts      # série temporal (dormente nesta fase)
+│   └ timeseries/route.ts      # série anual num ponto
 ├ globals.css                  # estilos das páginas de marketing
 └ mapa.css                     # estilos do módulo de mapas
 components/                    # marketing: SiteHeader, PhotoCarousel, HeroBackground,
@@ -189,6 +189,37 @@ tiles em `app/api/gee/tile/route.ts`, sem o que as duas serviriam o mesmo tile.
 
 Todos os asset IDs foram confirmados no catálogo do GEE por `scripts/verify-assets.mjs`.
 
+### Navegação no tempo
+
+Doze das dezoito camadas raster são navegáveis por ano. O que torna uma camada
+temporal é o bloco `gee.temporal` no `layers.json`, e o passo é sempre anual: a
+camada num dado ano é exatamente o mesmo cálculo que a versão estática fazia,
+só com o ano variando. Por isso ligar uma camada abre no ano mais recente, e não
+no primeiro, mostrando o mesmo retrato de antes.
+
+São duas formas de série, e a configuração diz qual é. Coleções filtradas por
+data agregam o ano com o `reducer` da própria camada, o que faz o CHIRPS somar a
+chuva do ano e o NDVI tirar a média das composições de 16 dias. Imagens com o ano
+no nome da banda declaram `asset.bandPattern`, como `classification_{ano}` no
+MapBiomas e `fire_frequency_1985_{ano}` no Fogo, e aí a data seleciona a banda em
+vez de filtrar coleção, o que traz os assets do tipo `image` para o caminho
+temporal. Séries com lacuna, como a do ESA CCI, listam as paradas reais em
+`dates`, e a rota de série confere no GEE quais anos existem antes de montar,
+para não pedir um ano vazio.
+
+Dois pontos que quebram em silêncio se forem esquecidos. O primeiro é a
+allowlist: ela casa por `id::band`, e uma camada com `bandPattern` pede banda
+diferente a cada ano, então `geeAllowlist.ts` expande o intervalo no
+carregamento. Sem isso, navegar bate em 403 na primeira parada que não for o ano
+escrito em `asset.band`. O segundo é a unidade: a rota de série monta cada ano
+pelo `buildEeImage`, e não por expressão própria, justamente para herdar
+`multiplier`, `offset` e as máscaras de `validMin`/`validMax`. Uma implementação
+que lesse o valor cru mostraria o LST perto de 15000 no gráfico enquanto o mapa
+mostra graus Celsius.
+
+A régua de anos é `components/mapa/overlays/TemporalSlider.tsx`, e as paradas
+saem de `lib/mapa/temporal.ts`, compartilhado com o store.
+
 ## Estatísticas zonais
 
 Dois disparos, mesmo pipeline:
@@ -211,7 +242,7 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 - `POST /api/gee/tile`: recebe `{ asset, clipId, visParams, classify }` e devolve `{ tileUrl }` (e `breaks` no modo Jenks). O servidor resolve o recorte localmente pelo `clipId` e cacheia o `tileUrl` (TTL 90 min).
 - `POST /api/gee/stats`: recebe `{ asset, geometry, colorType, classify, breaks }` e devolve `{ kind: "categorical", counts }` ou `{ kind: "continuous", stats }`. Os `breaks` do bioma (vindos do tile) mantêm as classes do gráfico iguais às cores do mapa.
-- `POST /api/gee/point` e `POST /api/gee/timeseries`: valor pontual e série temporal. A série fica dormente nesta fase.
+- `POST /api/gee/point` e `POST /api/gee/timeseries`: valor pontual e série anual. A série monta um ano por banda com o mesmo `buildEeImage` que serve o tile, e lê todas num `reduceRegion` só, de modo que o gráfico e o mapa saem na mesma unidade e com a mesma máscara.
 
 ## Identidade visual
 
@@ -258,12 +289,13 @@ Camadas e dados:
 - O inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md` traz o caminho errado para a ESA CCI Biomass. O asset correto, já em uso nas duas camadas `biomassa_esa_*`, é `projects/sat-io/open-datasets/ESA/ESA_CCI_AGB`. Corrigir no inventário.
 - A evapotranspiração do PML-V2 não fecha balanço hídrico sobre a Caatinga e por isso não entrou. Medido sobre o limite do bioma, a média de 18 anos (2003-2020) de `Ec+Es+Ei` dá 815 mm/ano contra 688 mm/ano de precipitação do CHIRPS, excesso de 18% sustentado em escala de bioma, com a transpiração isolada (`Ec`, 538 mm/ano) consumindo 78% da chuva num bioma caducifólio. Falta confrontar com a literatura se há superestimativa conhecida do PML-V2 em semiárido. Se for incluída, a ressalva tem que estar na ficha da camada.
 - A ET total exigiria somar as bandas `Ec`, `Es` e `Ei`, aritmética entre bandas que o servidor ainda não faz. É o mesmo obstáculo do AGB mais BGB do Spawn e Gibbs, então uma implementação resolve os dois. A transpiração `Ec` sozinha é banda única e sairia sem código novo.
-- A ESA CCI entrou só com 2022. A coleção cobre 2007, 2010 e 2015 a 2022, de modo que uma série temporal é viável quando o slider sair do estado dormente.
+- A ESA CCI agora vai de 2007 a 2022. A coleção tem lacuna (só 2007, 2010 e 2015 em diante), declarada em `gee.temporal.dates`.
 - A altura do dossel do Meta e WRI tem 1 m de resolução nativa, mas a estatística zonal roda a 30 m, para ficar comparável às demais camadas de 30 m e não estourar o tempo em municípios grandes. A média sobre o bioma praticamente não muda com isso; quem precisar do detalhe de árvore isolada deve baixar o dado direto.
 - Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
 - Fogo: a camada mostra `min: 0`, então áreas nunca queimadas aparecem na cor mais clara. Para mostrar só o que queimou, mascarar o valor 0 (edição no servidor).
 - Camadas do inventário ainda não incluídas: ERA5 e TerraClimate no bloco de clima e água, fenologia por Sentinel-2, gases e fluorescência (TROPOMI, SIF) e integridade de projetos. Ficam para fases seguintes. CHIRPS, NDVI e EVI, que constavam aqui, já estão na plataforma.
-- Camadas temporais (slider e série) estão fora do escopo desta fase. O código temporal foi deixado dormente, não removido.
+- O passo temporal é anual e só anual. Séries mensais e sazonais (composições de 8 ou 16 dias, CHIRPS diário) são agregadas ao ano pelo redutor da camada. Se a fenologia intra-anual virar escopo, o contrato precisa de um campo de granularidade e o gerador de paradas em `lib/mapa/temporal.ts` precisa saber gerar meses.
+- Seis camadas seguem estáticas por não terem série: `biomassa_gedi`, `altura_dossel`, `biomassa_spawn` e as três do GFW. As do GFW são cumulativas numa banda só e as demais são imagem única.
 
 Interface:
 

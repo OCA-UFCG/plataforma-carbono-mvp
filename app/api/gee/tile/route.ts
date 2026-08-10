@@ -140,6 +140,7 @@ export async function POST(req: Request) {
           // mesma banda e diferem só pelo unmask, colidiriam no cache.
           unmask: asset.unmaskValue,
           filterDate: asset.filterDate,
+          bandPattern: asset.bandPattern,
           clipId: body.clipId ?? null, clipBbox, temporalDate,
           vis: clientVis, classify,
         })

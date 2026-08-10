@@ -71,6 +71,12 @@ export interface RasterLayerConfig {
       scaleFactor?: number
       multiplier?:  number
       offset?:      number
+      unmaskValue?: number
+      // Séries cujo ano está no nome da banda, não em datas de uma coleção
+      // (MapBiomas grava `classification_1985` a `classification_2024` numa
+      // imagem só). Com isto, a data escolhida seleciona a banda do ano em vez
+      // de filtrar a coleção, e vale também para asset do tipo `image`.
+      bandPattern?: string          // "classification_{ano}"
     }
     visParams?: {
       min?:    number
@@ -85,9 +91,12 @@ export interface RasterLayerConfig {
       // Regenerate with `npm run breaks` after changing the data or numClasses.
       breaks?:    number[]
     }
+    // Presença deste bloco é o que torna a camada navegável no tempo. O passo é
+    // sempre anual: a camada num dado ano é o mesmo cálculo que a versão
+    // estática faz, só com o ano variando.
     temporal?: {
-      dateRange: [string, string]   // ["2024-01-01", "2026-02-01"]
-      step:      'month'            // granularity (only 'month' for now)
+      dateRange: [string, string]   // ["1985-01-01", "2024-01-01"], sempre 1 de janeiro
+      dates?:    string[]           // paradas explícitas, para séries com lacuna (ESA CCI)
     }
   }
 }

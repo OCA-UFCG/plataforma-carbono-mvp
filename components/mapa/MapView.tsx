@@ -48,6 +48,7 @@ import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
 import DrawToolbar from './overlays/DrawToolbar'
 import CursorCoordinates from './overlays/CursorCoordinates'
+import TemporalSlider from './overlays/TemporalSlider'
 import FloatingSearchBar from './overlays/FloatingSearchBar'
 
 // Minimal initial style
@@ -1500,6 +1501,7 @@ useEffect(() => {
             onClose={() => setDrawOpen(false)}
           />
           <FloatingLegend theme={theme} rightOffset={rightOffset} />
+          <TemporalSlider theme={theme} />
           <CursorCoordinates mapRef={mapRef} theme={theme} />
         </>
       )}

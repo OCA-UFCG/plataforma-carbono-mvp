@@ -27,6 +27,18 @@ export interface GeeAssetConfig {
   // 40,86 vs 26,50 Mg/ha em 2022). `unmaskValue: 0` restores the territorial
   // reading. Leave undefined to keep the asset's own masking.
   unmaskValue?: number
+  // Séries cujo ano está no nome da banda em vez de estar em datas de uma
+  // coleção. O MapBiomas grava `classification_1985` a `classification_2024`
+  // numa imagem só, e o Fogo grava a frequência acumulada em
+  // `fire_frequency_1985_1985` a `fire_frequency_1985_2023`. Com este campo o
+  // ano pedido seleciona a banda, o que também traz os assets do tipo `image`
+  // para o caminho temporal. Substitui `band` enquanto o modo temporal roda.
+  bandPattern?: string
+}
+
+/** Nome da banda de um ano, a partir do padrão configurado. */
+export function bandaDoAno(bandPattern: string, ano: string): string {
+  return bandPattern.replace('{ano}', ano)
 }
 
 /**
@@ -63,18 +75,38 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     return out
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reduzir = (col: any) => {
+    switch (asset.reducer ?? 'mean') {
+      case 'median': return col.median()
+      case 'min':    return col.min()
+      case 'max':    return col.max()
+      case 'first':  return col.first()
+      case 'sum':    return col.sum()
+      default:       return col.mean()
+    }
+  }
+
+  // Modo temporal por banda: o ano está no nome da banda, então a imagem é
+  // única e o filtro de data não se aplica. Vem antes do desvio por tipo
+  // porque vale igualmente para `image` e para `imageCollection`.
+  if (temporalDate && asset.bandPattern) {
+    const banda = bandaDoAno(asset.bandPattern, temporalDate.slice(0, 4))
+    return transform(maskValid(ee.Image(asset.id).select(banda)))
+  }
+
   if (asset.type === 'imageCollection') {
     let col = ee.ImageCollection(asset.id)
 
-    // Temporal mode: filter to a single month, take first image (no reducer)
+    // Modo temporal por data: a janela é o ano pedido, e o redutor é o mesmo
+    // da camada estática. Usar `first()` aqui, como fazia antes, quebraria o
+    // CHIRPS, cujo `sum` é o que transforma chuva diária em total do ano.
     if (temporalDate) {
-      const start = new Date(temporalDate)
-      const end = new Date(start)
-      end.setMonth(end.getMonth() + 1)
-      const endStr = end.toISOString().split('T')[0]
-      col = col.filterDate(temporalDate, endStr)
+      const ano = Number(temporalDate.slice(0, 4))
+      col = col.filterDate(`${ano}-01-01`, `${ano + 1}-01-01`)
       if (asset.band) col = col.select(asset.band)
-      return transform(maskValid(col.first()))
+      if (hasValidRange) col = col.map(maskValid)
+      return transform(reduzir(col))
     }
 
     // Non-temporal: use configured date range + reducer
@@ -86,15 +118,7 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     }
     // Mask each image before reducing, or fill values would skew the result.
     if (hasValidRange) col = col.map(maskValid)
-    const reducer = asset.reducer ?? 'mean'
-    switch (reducer) {
-      case 'median': return transform(col.median())
-      case 'min':    return transform(col.min())
-      case 'max':    return transform(col.max())
-      case 'first':  return transform(col.first())
-      case 'sum':    return transform(col.sum())
-      default:       return transform(col.mean())
-    }
+    return transform(reduzir(col))
   }
 
   // Single image asset
