@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Libre_Franklin } from 'next/font/google'
+import { redirect } from 'next/navigation'
 import '../mapa.css'
+import { AuthProvider } from '@/components/auth/AuthProvider'
+import { getAuthenticatedSession } from '@/lib/auth'
 
 // Layout raiz do módulo de mapas e análises: tela cheia, sem o header/rodapé de
 // marketing. Como é um layout raiz irmão do de (marketing), o mapa.css (que zera
@@ -18,15 +21,18 @@ export const metadata: Metadata = {
   icons: { icon: '/logos/logo_oca.png' },
 }
 
-export default function MapaLayout({
+export default async function MapaLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getAuthenticatedSession()
+  if (!session) redirect('/login?redirect=/mapa')
+
   return (
     <html lang="pt-BR" className={libreFranklin.variable}>
       <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100dvh' }}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )
