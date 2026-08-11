@@ -16,7 +16,8 @@
       "visible": true,
       "opacity": 70,
       "color": "#5f7030",
-      "hoverLabelField": "Bioma"
+      "hoverLabelField": "Bioma",
+      "group": "territorio"
     },
     {
       "id": "estados",
@@ -26,7 +27,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#414141",
-      "hoverLabelField": "abbrev_state"
+      "hoverLabelField": "abbrev_state",
+      "group": "territorio"
     },
     {
       "id": "municipios",
@@ -36,7 +38,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#6b6a60",
-      "hoverLabelField": "name_muni"
+      "hoverLabelField": "name_muni",
+      "group": "territorio"
     },
     {
       "id": "terras_indigenas",
@@ -46,7 +49,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#a0522d",
-      "hoverLabelField": "name_indigenous_land"
+      "hoverLabelField": "name_indigenous_land",
+      "group": "territorio"
     },
     {
       "id": "quilombolas",
@@ -56,7 +60,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#8c6d1f",
-      "hoverLabelField": "name_quilombo"
+      "hoverLabelField": "name_quilombo",
+      "group": "territorio"
     },
     {
       "id": "assentamentos",
@@ -66,7 +71,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#ce8b44",
-      "hoverLabelField": "nome_proje"
+      "hoverLabelField": "nome_proje",
+      "group": "territorio"
     },
     {
       "id": "estoque_carbono",
@@ -127,11 +133,182 @@
       "visible": false,
       "opacity": 80,
       "colorType": "continuous",
-      "unit": "t C/ha"
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "estoque_c_agb",
+      "name": "Biomassa acima do solo (Quarto Inventário)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b2",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 90,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "estoque_c_bgb",
+      "name": "Biomassa abaixo do solo (Quarto Inventário)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b3",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 40,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "estoque_c_dw",
+      "name": "Madeira morta (Quarto Inventário)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b4",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 20,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "estoque_c_litter",
+      "name": "Serrapilheira (Quarto Inventário)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b5",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 20,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "estoque_c_solo",
+      "name": "Carbono orgânico do solo (Quarto Inventário)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b6",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 50,
+          "palette": [
+            "#fff7ec",
+            "#fee8c8",
+            "#fdd49e",
+            "#fdbb84",
+            "#fc8d59",
+            "#ef6548",
+            "#d7301f",
+            "#7f0000"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha",
+      "group": "estoques"
     },
     {
       "id": "solo_carbono",
-      "name": "Carbono Orgânico do Solo (0-30 cm)",
+      "name": "Carbono Orgânico do Solo (MapBiomas)",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -171,7 +348,235 @@
         0,
         80
       ],
-      "unit": "t C/ha"
+      "unit": "t C/ha",
+      "group": "estoques"
+    },
+    {
+      "id": "biomassa_gedi",
+      "name": "Biomassa Aérea (GEDI L4B)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "LARSE/GEDI/GEDI04_B_002",
+          "band": "MU",
+          "scale": 1000
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha",
+      "group": "biomassa"
+    },
+    {
+      "id": "altura_dossel",
+      "name": "Altura do Dossel (Meta e WRI 2023)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/facebook/meta-canopy-height",
+          "band": "cover_code",
+          "reducer": "mean",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 15,
+          "palette": [
+            "#f7fcf5",
+            "#e5f5e0",
+            "#c7e9c0",
+            "#a1d99b",
+            "#74c476",
+            "#41ab5d",
+            "#238b45",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        15
+      ],
+      "unit": "m",
+      "group": "biomassa"
+    },
+    {
+      "id": "biomassa_esa_lenhosa",
+      "name": "Biomassa Aérea, vegetação lenhosa (ESA CCI)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
+          "band": "AGB",
+          "filterDate": [
+            "2022-01-01",
+            "2023-01-01"
+          ],
+          "reducer": "first",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2007-01-01",
+            "2022-01-01"
+          ],
+          "dates": [
+            "2007-01-01",
+            "2010-01-01",
+            "2015-01-01",
+            "2016-01-01",
+            "2017-01-01",
+            "2018-01-01",
+            "2019-01-01",
+            "2020-01-01",
+            "2021-01-01",
+            "2022-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha",
+      "group": "biomassa"
+    },
+    {
+      "id": "biomassa_esa_territorial",
+      "name": "Biomassa Aérea, média territorial (ESA CCI)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
+          "band": "AGB",
+          "filterDate": [
+            "2022-01-01",
+            "2023-01-01"
+          ],
+          "reducer": "first",
+          "scale": 100,
+          "unmaskValue": 0
+        },
+        "visParams": {
+          "min": 0,
+          "max": 120,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2007-01-01",
+            "2022-01-01"
+          ],
+          "dates": [
+            "2007-01-01",
+            "2010-01-01",
+            "2015-01-01",
+            "2016-01-01",
+            "2017-01-01",
+            "2018-01-01",
+            "2019-01-01",
+            "2020-01-01",
+            "2021-01-01",
+            "2022-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        120
+      ],
+      "unit": "Mg/ha",
+      "group": "biomassa"
+    },
+    {
+      "id": "biomassa_spawn",
+      "name": "Carbono na Biomassa Aérea (Spawn & Gibbs 2010)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "NASA/ORNL/biomass_carbon_density/v1",
+          "band": "agb",
+          "reducer": "first",
+          "scale": 300
+        },
+        "visParams": {
+          "min": 0,
+          "max": 100,
+          "palette": [
+            "#ffffcc",
+            "#c2e699",
+            "#78c679",
+            "#31a354",
+            "#006837"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        100
+      ],
+      "unit": "Mg C/ha",
+      "group": "biomassa"
     },
     {
       "id": "gpp_modis",
@@ -250,7 +655,8 @@
           "label": "Muito alto",
           "color": "#1a9850"
         }
-      ]
+      ],
+      "group": "produtividade"
     },
     {
       "id": "npp_modis",
@@ -329,7 +735,8 @@
           "label": "Muito alto",
           "color": "#1a9850"
         }
-      ]
+      ],
+      "group": "produtividade"
     },
     {
       "id": "gpp_pml",
@@ -374,229 +781,8 @@
       "visible": false,
       "opacity": 80,
       "colorType": "continuous",
-      "unit": "g C/m²/ano"
-    },
-    {
-      "id": "biomassa_gedi",
-      "name": "Biomassa Aérea (GEDI L4B)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "image",
-          "id": "LARSE/GEDI/GEDI04_B_002",
-          "band": "MU",
-          "scale": 1000
-        },
-        "visParams": {
-          "min": 0,
-          "max": 120,
-          "palette": [
-            "#ffffcc",
-            "#c2e699",
-            "#78c679",
-            "#31a354",
-            "#006837"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        120
-      ],
-      "unit": "Mg/ha"
-    },
-    {
-      "id": "altura_dossel",
-      "name": "Altura do Dossel (Meta e WRI 2023)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "projects/sat-io/open-datasets/facebook/meta-canopy-height",
-          "band": "cover_code",
-          "reducer": "mean",
-          "scale": 30
-        },
-        "visParams": {
-          "min": 0,
-          "max": 15,
-          "palette": [
-            "#f7fcf5",
-            "#e5f5e0",
-            "#c7e9c0",
-            "#a1d99b",
-            "#74c476",
-            "#41ab5d",
-            "#238b45",
-            "#005a32"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        15
-      ],
-      "unit": "m"
-    },
-    {
-      "id": "biomassa_esa_lenhosa",
-      "name": "Biomassa Aérea, vegetação lenhosa (ESA CCI)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
-          "band": "AGB",
-          "filterDate": [
-            "2022-01-01",
-            "2023-01-01"
-          ],
-          "reducer": "first",
-          "scale": 100
-        },
-        "visParams": {
-          "min": 0,
-          "max": 120,
-          "palette": [
-            "#ffffcc",
-            "#c2e699",
-            "#78c679",
-            "#31a354",
-            "#006837"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2007-01-01",
-            "2022-01-01"
-          ],
-          "dates": [
-            "2007-01-01",
-            "2010-01-01",
-            "2015-01-01",
-            "2016-01-01",
-            "2017-01-01",
-            "2018-01-01",
-            "2019-01-01",
-            "2020-01-01",
-            "2021-01-01",
-            "2022-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        120
-      ],
-      "unit": "Mg/ha"
-    },
-    {
-      "id": "biomassa_esa_territorial",
-      "name": "Biomassa Aérea, média territorial (ESA CCI)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
-          "band": "AGB",
-          "filterDate": [
-            "2022-01-01",
-            "2023-01-01"
-          ],
-          "reducer": "first",
-          "scale": 100,
-          "unmaskValue": 0
-        },
-        "visParams": {
-          "min": 0,
-          "max": 120,
-          "palette": [
-            "#ffffcc",
-            "#c2e699",
-            "#78c679",
-            "#31a354",
-            "#006837"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2007-01-01",
-            "2022-01-01"
-          ],
-          "dates": [
-            "2007-01-01",
-            "2010-01-01",
-            "2015-01-01",
-            "2016-01-01",
-            "2017-01-01",
-            "2018-01-01",
-            "2019-01-01",
-            "2020-01-01",
-            "2021-01-01",
-            "2022-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        120
-      ],
-      "unit": "Mg/ha"
-    },
-    {
-      "id": "biomassa_spawn",
-      "name": "Carbono na Biomassa Aérea (Spawn & Gibbs 2010)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "NASA/ORNL/biomass_carbon_density/v1",
-          "band": "agb",
-          "reducer": "first",
-          "scale": 300
-        },
-        "visParams": {
-          "min": 0,
-          "max": 100,
-          "palette": [
-            "#ffffcc",
-            "#c2e699",
-            "#78c679",
-            "#31a354",
-            "#006837"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        100
-      ],
-      "unit": "Mg C/ha"
+      "unit": "g C/m²/ano",
+      "group": "produtividade"
     },
     {
       "id": "gfw_netflux",
@@ -632,7 +818,8 @@
         -100,
         300
       ],
-      "unit": "Mg CO2e/ha"
+      "unit": "Mg CO2e/ha",
+      "group": "produtividade"
     },
     {
       "id": "gfw_emissions",
@@ -666,7 +853,8 @@
         0,
         500
       ],
-      "unit": "Mg CO2e/ha"
+      "unit": "Mg CO2e/ha",
+      "group": "produtividade"
     },
     {
       "id": "gfw_removals",
@@ -700,7 +888,211 @@
         0,
         200
       ],
-      "unit": "Mg CO2/ha"
+      "unit": "Mg CO2/ha",
+      "group": "produtividade"
+    },
+    {
+      "id": "ndvi_modis",
+      "name": "NDVI (MODIS)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD13Q1",
+          "band": "NDVI",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 250,
+          "validMin": -2000,
+          "validMax": 10000,
+          "multiplier": 0.0001
+        },
+        "visParams": {
+          "min": 0,
+          "max": 0.8,
+          "palette": [
+            "#d73027",
+            "#f46d43",
+            "#fdae61",
+            "#fee08b",
+            "#d9ef8b",
+            "#a6d96a",
+            "#66bd63",
+            "#1a9850"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2001-01-01",
+            "2024-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        0.8
+      ],
+      "unit": "NDVI",
+      "group": "clima"
+    },
+    {
+      "id": "evi_modis",
+      "name": "EVI (MODIS)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD13Q1",
+          "band": "EVI",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 250,
+          "validMin": -2000,
+          "validMax": 10000,
+          "multiplier": 0.0001
+        },
+        "visParams": {
+          "min": 0,
+          "max": 0.6,
+          "palette": [
+            "#d73027",
+            "#f46d43",
+            "#fdae61",
+            "#fee08b",
+            "#d9ef8b",
+            "#a6d96a",
+            "#66bd63",
+            "#1a9850"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2001-01-01",
+            "2024-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        0.6
+      ],
+      "unit": "EVI",
+      "group": "clima"
+    },
+    {
+      "id": "chirps_precip",
+      "name": "Precipitação Anual (CHIRPS)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "UCSB-CHG/CHIRPS/DAILY",
+          "band": "precipitation",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "sum",
+          "scale": 5566
+        },
+        "visParams": {
+          "min": 200,
+          "max": 1400,
+          "palette": [
+            "#ffffd9",
+            "#edf8b1",
+            "#c7e9b4",
+            "#7fcdbb",
+            "#41b6c4",
+            "#1d91c0",
+            "#225ea8",
+            "#0c2c84"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1985-01-01",
+            "2024-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        200,
+        1400
+      ],
+      "unit": "mm/ano",
+      "group": "clima"
+    },
+    {
+      "id": "lst_modis",
+      "name": "Temperatura de Superfície (MODIS)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD11A2",
+          "band": "LST_Day_1km",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 1000,
+          "validMin": 7500,
+          "multiplier": 0.02,
+          "offset": -273.15
+        },
+        "visParams": {
+          "min": 25,
+          "max": 40,
+          "palette": [
+            "#313695",
+            "#74add1",
+            "#e0f3f8",
+            "#fee090",
+            "#f46d43",
+            "#a50026"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2001-01-01",
+            "2024-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        25,
+        40
+      ],
+      "unit": "°C",
+      "group": "clima"
     },
     {
       "id": "lulc_mapbiomas",
@@ -959,7 +1351,8 @@
           "label": "Aquicultura",
           "color": "#091077"
         }
-      ]
+      ],
+      "group": "pressoes"
     },
     {
       "id": "fogo_frequencia",
@@ -1000,206 +1393,8 @@
         0,
         15
       ],
-      "unit": "anos com fogo"
-    },
-    {
-      "id": "ndvi_modis",
-      "name": "NDVI (MODIS)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "MODIS/061/MOD13Q1",
-          "band": "NDVI",
-          "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
-          ],
-          "reducer": "mean",
-          "scale": 250,
-          "validMin": -2000,
-          "validMax": 10000,
-          "multiplier": 0.0001
-        },
-        "visParams": {
-          "min": 0,
-          "max": 0.8,
-          "palette": [
-            "#d73027",
-            "#f46d43",
-            "#fdae61",
-            "#fee08b",
-            "#d9ef8b",
-            "#a6d96a",
-            "#66bd63",
-            "#1a9850"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2001-01-01",
-            "2024-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        0.8
-      ],
-      "unit": "NDVI"
-    },
-    {
-      "id": "evi_modis",
-      "name": "EVI (MODIS)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "MODIS/061/MOD13Q1",
-          "band": "EVI",
-          "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
-          ],
-          "reducer": "mean",
-          "scale": 250,
-          "validMin": -2000,
-          "validMax": 10000,
-          "multiplier": 0.0001
-        },
-        "visParams": {
-          "min": 0,
-          "max": 0.6,
-          "palette": [
-            "#d73027",
-            "#f46d43",
-            "#fdae61",
-            "#fee08b",
-            "#d9ef8b",
-            "#a6d96a",
-            "#66bd63",
-            "#1a9850"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2001-01-01",
-            "2024-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        0.6
-      ],
-      "unit": "EVI"
-    },
-    {
-      "id": "chirps_precip",
-      "name": "Precipitação Anual (CHIRPS)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "UCSB-CHG/CHIRPS/DAILY",
-          "band": "precipitation",
-          "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
-          ],
-          "reducer": "sum",
-          "scale": 5566
-        },
-        "visParams": {
-          "min": 200,
-          "max": 1400,
-          "palette": [
-            "#ffffd9",
-            "#edf8b1",
-            "#c7e9b4",
-            "#7fcdbb",
-            "#41b6c4",
-            "#1d91c0",
-            "#225ea8",
-            "#0c2c84"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "1985-01-01",
-            "2024-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        200,
-        1400
-      ],
-      "unit": "mm/ano"
-    },
-    {
-      "id": "lst_modis",
-      "name": "Temperatura de Superfície (MODIS)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "MODIS/061/MOD11A2",
-          "band": "LST_Day_1km",
-          "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
-          ],
-          "reducer": "mean",
-          "scale": 1000,
-          "validMin": 7500,
-          "multiplier": 0.02,
-          "offset": -273.15
-        },
-        "visParams": {
-          "min": 25,
-          "max": 40,
-          "palette": [
-            "#313695",
-            "#74add1",
-            "#e0f3f8",
-            "#fee090",
-            "#f46d43",
-            "#a50026"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2001-01-01",
-            "2024-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        25,
-        40
-      ],
-      "unit": "°C"
+      "unit": "anos com fogo",
+      "group": "pressoes"
     }
   ]
 }
