@@ -82,8 +82,10 @@ export default function StockReportView({ report, theme, caption }: Props) {
         <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{caption}</p>
       )}
 
+      {/* A área não entra aqui: o cartão "Área analisada" do painel já a traz, e
+          as duas divergem um pouco, porque nem todo hectare da feição tem dado
+          de estoque. Repetir número parecido com significado diferente confunde. */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <Cartao theme={theme} rotulo="Área" valor={nf1.format(report.areaHa)} unidade="ha" />
         <Cartao
           theme={theme}
           rotulo="Estoque total"
@@ -91,11 +93,13 @@ export default function StockReportView({ report, theme, caption }: Props) {
           unidade={formatarTc(total).unidade}
           destaque
         />
+        <Cartao
+          theme={theme}
+          rotulo="Por hectare"
+          valor={nf1.format(densidade)}
+          unidade="t C/ha"
+        />
       </div>
-
-      <p style={{ fontSize: 11, color: c.caption, margin: 0 }}>
-        Densidade média de {nf1.format(densidade)} t C/ha
-      </p>
 
       <Rosca titulo="Por reservatório" fatias={porPool} total={total} theme={theme} />
       <Rosca titulo="Por fitofisionomia" fatias={porClasse} total={total} theme={theme} />
