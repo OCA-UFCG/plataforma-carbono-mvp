@@ -42,7 +42,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
           <span style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 9, background: '#5f7030', color: '#fff' }}>O</span>
           Carbono Caatinga
         </div>
-        <h1 style={{ margin: '36px 0 8px', color: '#26241d', fontSize: 28, lineHeight: 1.15 }}>Acesse os mapas</h1>
+        <h1 style={{ margin: '36px 0 8px', color: '#26241d', fontSize: 28, lineHeight: 1.15 }}>Acesse a plataforma de carbono</h1>
         <p style={{ margin: '0 0 28px', color: '#6b6a60', fontSize: 15, lineHeight: 1.5 }}>Entre com as credenciais fornecidas pela equipe da plataforma.</p>
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 18 }}>
           <label style={{ display: 'grid', gap: 7, color: '#39382f', fontSize: 13, fontWeight: 700 }}>
