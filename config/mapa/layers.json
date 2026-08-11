@@ -69,6 +69,67 @@
       "hoverLabelField": "nome_proje"
     },
     {
+      "id": "estoque_carbono",
+      "name": "Estoque de Carbono (Quarto Inventário Nacional)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/caatinga_estoques",
+          "band": "b1",
+          "scale": 100
+        },
+        "visParams": {
+          "min": 0,
+          "max": 160,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        },
+        "stocks": {
+          "pools": [
+            {
+              "band": "b2",
+              "label": "Biomassa acima do solo"
+            },
+            {
+              "band": "b3",
+              "label": "Biomassa abaixo do solo"
+            },
+            {
+              "band": "b4",
+              "label": "Madeira morta"
+            },
+            {
+              "band": "b5",
+              "label": "Serrapilheira"
+            },
+            {
+              "band": "b6",
+              "label": "Carbono orgânico do solo"
+            }
+          ],
+          "classAsset": "projects/ee-arturlourenco/assets/caatinga_fitofisionomia",
+          "classBand": "b1",
+          "legend": "fitofisionomia.json",
+          "unit": "t C"
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "unit": "t C/ha"
+    },
+    {
       "id": "solo_carbono",
       "name": "Carbono Orgânico do Solo (0-30 cm)",
       "type": "raster",

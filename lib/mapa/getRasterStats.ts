@@ -51,6 +51,9 @@ async function getGeeStats(
     // match the map colors instead of being recomputed per feature.
     breaks:    useStore.getState().jenksBreaks[layer.id],
     colorType: layer.colorType,
+    // Camada de estoque: o servidor resolve a configuração pelo id e devolve o
+    // relatório em vez da estatística da banda visível.
+    layerId:   layer.gee.stocks ? layer.id : undefined,
   })
 
   const existing = inFlightStats.get(body)
@@ -69,6 +72,9 @@ async function getGeeStats(
     }
 
     const payload = await res.json()
+    if (payload.kind === 'stocks') {
+      return { kind: 'stocks', report: payload.report }
+    }
     if (payload.kind === 'categorical') {
       return { kind: 'categorical', areas: payload.areas }
     }

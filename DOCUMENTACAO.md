@@ -140,6 +140,7 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 
 | id | Nome | Asset e banda | Estatística | Unidade |
 |---|---|---|---|---|
+| `estoque_carbono` | Estoque de Carbono (Quarto Inventário Nacional) | `ee-arturlourenco/assets/caatinga_estoques`, banda `b1` | contínua | t C/ha |
 | `solo_carbono` | Carbono Orgânico do Solo (0-30 cm) | `mapbiomas-public/.../soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm`, banda `prediction_2023` | contínua | t C/ha |
 | `gpp_modis` | Produtividade Primária Bruta (GPP) | `MODIS/061/MOD17A2HGF`, banda `Gpp`, 2023 | Jenks 5 classes | kg C/m2/8d |
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
@@ -188,6 +189,45 @@ outra fonte. Como partem do mesmo `id::band`, a flag entra na chave do cache de
 tiles em `app/api/gee/tile/route.ts`, sem o que as duas serviriam o mesmo tile.
 
 Todos os asset IDs foram confirmados no catálogo do GEE por `scripts/verify-assets.mjs`.
+
+### Relatório de estoque de carbono
+
+A camada `estoque_carbono` é a única cujo clique abre um relatório em vez da
+estatística da banda visível. Ligada ela, clicar numa feição ou desenhar um
+polígono devolve o total em t C decomposto em dois eixos, por reservatório e
+por fitofisionomia, e os dois têm que somar o mesmo total.
+
+O que aciona isso é o bloco `gee.stocks` na configuração da camada, que declara
+quais bandas são reservatórios, qual asset traz o código de fitofisionomia e
+qual arquivo de legenda traduz o código em sigla. O padrão é o mesmo de
+`gee.temporal` e `gee.classify`: a rota ramifica pela presença do bloco.
+
+O cálculo vive em `lib/mapa/stockReport.ts` e sai numa consulta só, com
+`Reducer.sum().repeat(n).group()` sobre uma imagem que empilha os
+reservatórios, a área do pixel e a classe. A conta é densidade vezes
+`ee.Image.pixelArea()`, que devolve área geodésica no elipsoide; assumir área
+constante superestimaria o total em cerca de 0,7% num bioma que atravessa 13
+graus de latitude.
+
+Só o id da camada trafega do cliente para o servidor. Aceitar o bloco `stocks`
+vindo do cliente abriria exatamente o buraco que a allowlist fecha, porque
+`classAsset` poderia apontar para qualquer asset e usar a service account para
+lê-lo. O servidor resolve a configuração em `lib/mapa/stocksRegistry.ts` e
+recusa com 400 quando o `layerId` não corresponde ao asset enviado.
+
+Os dados vêm do Quarto Inventário Nacional
+(`Produtos_12_32_Caatinga_Final_08042020`), rasterizados a 100 m pelos scripts
+`scripts/rasterizar_estoques.py` e `scripts/rasterizar_fitofisionomia.py` e
+empilhados por `scripts/empilhar_estoques.py`. São dois assets porque o Earth
+Engine aplica uma política de pirâmide por asset, e densidade contínua e código
+de classe pedem políticas diferentes. A fitofisionomia é o campo `c_pret`, a
+cobertura pretérita, com 32 classes codificadas de 1 a 32 por estoque
+decrescente no bioma, o que mantém a legenda estável entre reprocessamentos.
+
+A rasterização a 100 m é praticamente não enviesada: o total do bioma dá
+4.760,1 MtC contra 4.761,37 MtC do vetor, desvio de 0,03%. A distribuição é
+muito assimétrica, com `Ta` sozinha respondendo por 44% do carbono e doze
+classes abaixo de 0,1% cada, por isso a rosca agrupa a cauda em "outras".
 
 ### Navegação no tempo
 

@@ -18,6 +18,9 @@ export const LAYER_META: Record<string, LayerMeta> = {
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
 
+  // Única camada cujo clique abre relatório, e não estatística da banda: o
+  // total exibido se decompõe em cinco reservatórios e em fitofisionomia.
+  estoque_carbono:  { description: 'estoque de carbono dos cinco reservatórios, decomposto por reservatório e por fitofisionomia ao clicar numa área', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },

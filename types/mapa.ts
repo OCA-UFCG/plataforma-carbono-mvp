@@ -98,6 +98,17 @@ export interface RasterLayerConfig {
       dateRange: [string, string]   // ["1985-01-01", "2024-01-01"], sempre 1 de janeiro
       dates?:    string[]           // paradas explícitas, para séries com lacuna (ESA CCI)
     }
+    // Presença deste bloco troca a estatística zonal comum pelo relatório de
+    // estoque: em vez da média da banda visível, o servidor devolve o total em
+    // tC decomposto por reservatório e por fitofisionomia. A camada exibida é
+    // a soma dos reservatórios; as demais bandas só entram na decomposição.
+    stocks?: {
+      pools:      { band: string; label: string }[]  // bandas somadas, na ordem de exibição
+      classAsset: string        // asset de código de classe, alinhado ao de estoque
+      classBand:  string
+      legend:     string        // arquivo de legenda em config/mapa/
+      unit:       string        // unidade do total, ex.: "t C"
+    }
   }
 }
 
@@ -146,11 +157,36 @@ export interface TimeSeriesPoint {
   value: number | null  // null = nodata
 }
 
+/** Total de um reservatório de carbono sobre a geometria consultada. */
+export interface StockPool {
+  band:  string
+  label: string
+  tc:    number
+}
+
+/** Total de uma fitofisionomia, decomposto pelos mesmos reservatórios. */
+export interface StockClass {
+  codigo: number
+  sigla:  string
+  tc:     number
+  areaHa: number
+  porPool: Record<string, number>
+}
+
+export interface StockReport {
+  totalTc:  number
+  areaHa:   number
+  unit:     string
+  pools:    StockPool[]
+  classes:  StockClass[]   // ordenadas por estoque decrescente
+}
+
 export type RasterStatsResult =
   // `areas` = area in m² per class code (converted to hectares in the UI).
   | { kind: 'categorical'; areas: Record<string, number> }
   | { kind: 'continuous';  stats:  ContinuousStats; unit?: string }
   | { kind: 'timeseries';  series: TimeSeriesPoint[] }
+  | { kind: 'stocks';      report: StockReport }
 
 // Basemap (raster XYZ tiles)
 
