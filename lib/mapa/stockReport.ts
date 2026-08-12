@@ -27,6 +27,43 @@ interface GrupoBruto {
   sum:    number[]   // um total por reservatório, na ordem de `pools`
 }
 
+export function summarizeStockGroups(
+  groups: GrupoBruto[] | undefined,
+  cfg: StocksConfig,
+  legenda: LegendaClasse[],
+) {
+  const bands = cfg.pools.map((p) => p.band)
+  const porSigla = new Map(legenda.map((c) => [c.codigo, c.sigla]))
+  const totalPorPool = new Map(bands.map((b) => [b, 0]))
+  let totalTc = 0
+  let areaHa = 0
+
+  const classes = (groups ?? []).map((g) => {
+    const porPool: Record<string, number> = {}
+    let tc = 0
+    bands.forEach((b, i) => {
+      const v = Number(g.sum[i]) || 0
+      porPool[b] = v
+      tc += v
+      totalPorPool.set(b, (totalPorPool.get(b) ?? 0) + v)
+    })
+    const ha = Number(g.sum[bands.length]) || 0
+    totalTc += tc
+    areaHa += ha
+    const codigo = Math.trunc(Number(g.classe))
+    return { codigo, sigla: porSigla.get(codigo) ?? String(codigo), tc, areaHa: ha, porPool }
+  })
+
+  classes.sort((a, b) => b.tc - a.tc)
+  return {
+    totalTc,
+    areaHa,
+    unit: cfg.unit,
+    pools: cfg.pools.map((p) => ({ band: p.band, label: p.label, tc: totalPorPool.get(p.band) ?? 0 })),
+    classes,
+  }
+}
+
 /**
  * Cruza os reservatórios com a classe e devolve a tabela completa.
  *
@@ -69,44 +106,5 @@ export async function buildStockReport(
     }),
   )
 
-  const porSigla = new Map(legenda.map((c) => [c.codigo, c.sigla]))
-  const totalPorPool = new Map(bands.map((b) => [b, 0]))
-  let totalTc = 0
-  let areaHa = 0
-
-  const classes = (bruto?.groups ?? []).map((g) => {
-    const porPool: Record<string, number> = {}
-    let tc = 0
-    bands.forEach((b, i) => {
-      const v = Number(g.sum[i]) || 0
-      porPool[b] = v
-      tc += v
-      totalPorPool.set(b, (totalPorPool.get(b) ?? 0) + v)
-    })
-    const ha = Number(g.sum[bands.length]) || 0
-    totalTc += tc
-    areaHa += ha
-    const codigo = Math.trunc(Number(g.classe))
-    return {
-      codigo,
-      sigla:  porSigla.get(codigo) ?? String(codigo),
-      tc,
-      areaHa: ha,
-      porPool,
-    }
-  })
-
-  classes.sort((a, b) => b.tc - a.tc)
-
-  return {
-    totalTc,
-    areaHa,
-    unit:  cfg.unit,
-    pools: cfg.pools.map((p) => ({
-      band:  p.band,
-      label: p.label,
-      tc:    totalPorPool.get(p.band) ?? 0,
-    })),
-    classes,
-  }
+  return summarizeStockGroups(bruto?.groups, cfg, legenda)
 }

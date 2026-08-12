@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     // banda visível, não a complementa.
     const stocks = body.layerId ? getStocks(body.layerId) : null
     if (stocks) {
-      if (stocks.assetId !== asset.id) {
+      if (stocks.assetId !== asset.id || stocks.assetBand !== asset.band) {
         return NextResponse.json(
           { error: 'layerId does not match the asset' },
           { status: 400 },

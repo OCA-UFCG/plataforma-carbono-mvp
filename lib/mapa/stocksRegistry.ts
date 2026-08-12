@@ -19,6 +19,7 @@ export interface EntradaStocks {
   legenda: LegendaClasse[]
   /** Asset de estoque da própria camada, para o cálculo reusar. */
   assetId: string
+  assetBand?: string
   scale:   number
 }
 
@@ -30,7 +31,7 @@ export function getStocks(layerId: string): EntradaStocks | null {
   if (emCache !== undefined) return emCache
 
   const layer = appConfig.layers.find((l) => l.id === layerId) as
-    | { gee?: { asset?: { id?: string; scale?: number }; stocks?: StocksConfig } }
+    | { gee?: { asset?: { id?: string; band?: string; scale?: number }; stocks?: StocksConfig } }
     | undefined
   const stocks = layer?.gee?.stocks
   const assetId = layer?.gee?.asset?.id
@@ -41,7 +42,13 @@ export function getStocks(layerId: string): EntradaStocks | null {
     if (!legenda) {
       console.error(`[stocksRegistry] legenda "${stocks.legend}" não registrada`)
     } else {
-      entrada = { cfg: stocks, legenda, assetId, scale: layer?.gee?.asset?.scale ?? 100 }
+      entrada = {
+        cfg: stocks,
+        legenda,
+        assetId,
+        assetBand: layer?.gee?.asset?.band,
+        scale: layer?.gee?.asset?.scale ?? 100,
+      }
     }
   }
   cache.set(layerId, entrada)
