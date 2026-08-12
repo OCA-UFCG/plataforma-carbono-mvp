@@ -1,19 +1,19 @@
 /**
  * POST /api/gee/timeseries
  *
- * Returns the per-date pixel-value time series of a GEE ImageCollection
- * sampled at a single [lon, lat]. A single call to `ee.ImageCollection
- * .getRegion()` fetches all dates in one server-side RPC, which is far
- * cheaper than one request per date.
+ * Devolve a série anual do valor de pixel num [lon, lat]. Cada ano é montado
+ * pelo mesmo `buildEeImage` que serve o tile e a estatística zonal, então o
+ * gráfico e o mapa mostram o mesmo número, na mesma unidade, com a mesma
+ * máscara. Os anos vão como bandas de uma imagem só e saem num `reduceRegion`
+ * único, em vez de uma requisição por ano.
  *
- * Used by the temporal-layer point interaction: when a user clicks or
- * draws a point while a temporal raster is active, the client calls
- * this route instead of `/api/gee/point` to render a time-series chart.
+ * Serve as duas formas de série que a plataforma tem: coleção filtrada por
+ * data e imagem com o ano no nome da banda (`bandPattern`).
  */
 
 import { NextResponse } from 'next/server'
 import { initGee, getEe } from '@/lib/mapa/geeAuth'
-import type { GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { evaluate } from '@/lib/mapa/geeEvaluate'
 import { isValidAsset, isValidLonLat, bodyTooLarge } from '@/lib/mapa/geeValidation'
 import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
@@ -23,25 +23,28 @@ import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Widest interval a single time-series request may span (~20 years).
-const MAX_RANGE_MS = 20 * 365 * 24 * 60 * 60 * 1000
+// Teto de anos por requisição. O MapBiomas cobre 1985 a 2024, quarenta paradas,
+// então o limite antigo de vinte anos deixaria metade da série de fora.
+const MAX_ANOS = 50
 
 interface ReqBody {
   asset:     GeeAssetConfig
   lon:       number
   lat:       number
-  dateRange: [string, string]  // ["2024-01-01", "2026-02-01"]
+  dateRange: [string, string]  // ["1985-01-01", "2024-01-01"]
 }
 
-/** Validate dateRange: two parseable ISO dates, start < end, bounded span. */
-function isValidDateRange(r: unknown): r is [string, string] {
-  if (!Array.isArray(r) || r.length !== 2) return false
+/** Valida o intervalo e devolve a lista de anos, ou null se estiver fora das regras. */
+function anosDoIntervalo(r: unknown): number[] | null {
+  if (!Array.isArray(r) || r.length !== 2) return null
   const [a, b] = r
-  if (typeof a !== 'string' || typeof b !== 'string') return false
-  const ta = Date.parse(a)
-  const tb = Date.parse(b)
-  if (!Number.isFinite(ta) || !Number.isFinite(tb)) return false
-  return ta < tb && tb - ta <= MAX_RANGE_MS
+  if (typeof a !== 'string' || typeof b !== 'string') return null
+  const ini = Number(a.slice(0, 4))
+  const fim = Number(b.slice(0, 4))
+  if (!Number.isInteger(ini) || !Number.isInteger(fim)) return null
+  if (ini < 1970 || fim > 2100 || ini > fim) return null
+  if (fim - ini + 1 > MAX_ANOS) return null
+  return Array.from({ length: fim - ini + 1 }, (_, i) => ini + i)
 }
 
 export async function POST(req: Request) {
@@ -74,9 +77,10 @@ export async function POST(req: Request) {
   if (!isValidLonLat(body.lon, body.lat)) {
     return NextResponse.json({ error: 'lon/lat must be finite and within range' }, { status: 400 })
   }
-  if (!isValidDateRange(body.dateRange)) {
+  const anos = anosDoIntervalo(body.dateRange)
+  if (!anos) {
     return NextResponse.json(
-      { error: 'dateRange must be two ISO dates with start < end within 20 years' },
+      { error: `dateRange must be two ISO dates spanning at most ${MAX_ANOS} years` },
       { status: 400 },
     )
   }
@@ -89,58 +93,54 @@ export async function POST(req: Request) {
   }
 
   const ee = getEe()
-  const { asset, lon, lat, dateRange } = body
+  const { asset, lon, lat } = body
 
   try {
-    let col = ee.ImageCollection(asset.id)
-      .filterDate(dateRange[0], dateRange[1])
-
-    if (asset.band) {
-      col = col.select(asset.band)
+    // Coleção com lacuna, como a do ESA CCI, que só tem 2007, 2010 e 2015 a
+    // 2022: pedir um ano vazio faz o redutor devolver imagem sem banda e a
+    // montagem inteira falhar. Uma consulta barata aos anos existentes evita
+    // isso e, de quebra, faz a série mostrar só as paradas reais.
+    let anosUteis = anos
+    if (!asset.bandPattern && asset.type === 'imageCollection') {
+      const disponiveis = await evaluate<number[]>(
+        ee.ImageCollection(asset.id)
+          .filterDate(`${anos[0]}-01-01`, `${anos[anos.length - 1] + 1}-01-01`)
+          .aggregate_array('system:time_start')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((t: any) => ee.Date(t).get('year'))
+          .distinct(),
+      )
+      const comDado = new Set(disponiveis ?? [])
+      anosUteis = anos.filter((a) => comDado.has(a))
+      if (anosUteis.length === 0) return NextResponse.json({ series: [] })
     }
+
+    // Um ano por banda, cada uma construída pelo mesmo caminho que serve o
+    // tile, o que garante a mesma unidade e a mesma máscara no gráfico e no mapa.
+    const porAno = anosUteis.map((ano) =>
+      buildEeImage(ee, asset, `${ano}-01-01`).rename(`a${ano}`),
+    )
 
     const point = ee.Geometry.Point([lon, lat])
     const scale = asset.scale ?? 500
 
-    // getRegion returns all pixel values at a point across the entire
-    // collection in a single RPC call. Result shape:
-    //   [ ['id', 'longitude', 'latitude', 'time', 'bandName'],
-    //     ['img1', lon, lat, timestamp_ms, value],
-    //     ['img2', lon, lat, timestamp_ms, value],
-    //     ... ]
-    const raw = await evaluate<unknown[][]>(col.getRegion(point, scale))
+    const valores = await evaluate<Record<string, unknown>>(
+      ee.Image.cat(porAno).reduceRegion({
+        reducer:   ee.Reducer.first(),
+        geometry:  point,
+        scale,
+        // O teto conta uma leitura por banda, e aqui há uma banda por ano.
+        maxPixels: anosUteis.length,
+      }),
+    )
 
-    if (!raw || raw.length < 2) {
-      return NextResponse.json({ series: [] })
-    }
-
-    // Parse header row to find column indices
-    const header = raw[0] as string[]
-    const timeIdx = header.indexOf('time')
-    // Band value is the last column (or the first non-standard column after 'time')
-    const valueIdx = header.length - 1
-
-    const series: { date: string; value: number | null }[] = []
-
-    for (let i = 1; i < raw.length; i++) {
-      const row = raw[i]
-      const timestamp = row[timeIdx] as number
-      const rawVal = row[valueIdx]
-
-      // Convert epoch ms -> "YYYY-MM-01" (first of month)
-      const d = new Date(timestamp)
-      const yyyy = d.getUTCFullYear()
-      const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-      const date = `${yyyy}-${mm}-01`
-
-      const value =
-        typeof rawVal === 'number' && Number.isFinite(rawVal) ? rawVal : null
-
-      series.push({ date, value })
-    }
-
-    // Sort by date
-    series.sort((a, b) => a.date.localeCompare(b.date))
+    const series = anosUteis.map((ano) => {
+      const bruto = valores?.[`a${ano}`]
+      return {
+        date:  `${ano}-01-01`,
+        value: typeof bruto === 'number' && Number.isFinite(bruto) ? bruto : null,
+      }
+    })
 
     return NextResponse.json({ series })
   } catch (err) {

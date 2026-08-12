@@ -9,6 +9,7 @@ import type {
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
+import { paradaInicial } from '@/lib/mapa/temporal'
 
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
@@ -243,7 +244,7 @@ export const useStore = create<MapaStore>((set, get) => ({
 
       // 2. Determine if this is a temporal layer
       const temporal = layer.gee.temporal
-      const temporalDate = temporal ? temporal.dateRange[0] : undefined
+      const temporalDate = temporal ? paradaInicial(temporal) : undefined
 
       // 3. Call the generic tile endpoint
       const res = await fetch('/api/gee/tile', {

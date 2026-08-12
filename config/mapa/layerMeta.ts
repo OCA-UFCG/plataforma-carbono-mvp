@@ -21,6 +21,10 @@ export const LAYER_META: Record<string, LayerMeta> = {
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },
+  // Segunda estimativa de GPP, para medir a divergência entre bases. Sai
+  // contínua e anual de propósito: a versão classificada do MOD17 devolve
+  // percentual por classe na estatística zonal, e não um valor comparável.
+  gpp_pml:          { description: 'produtividade primária bruta anual, estimativa independente da do MODIS', source: 'PML-V2 v018, 500 m', kind: 'Raster contínuo' },
   biomassa_gedi:    { description: 'biomassa aérea',                 source: 'GEDI L4B, 1 km',      kind: 'Raster contínuo' },
   biomassa_spawn:   { description: 'carbono da biomassa aérea',      source: 'Spawn & Gibbs, 300 m', kind: 'Raster contínuo' },
   // O par abaixo sai do mesmo asset e difere só no tratamento dos pixels sem
