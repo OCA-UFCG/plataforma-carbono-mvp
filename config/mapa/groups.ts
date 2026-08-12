@@ -19,6 +19,7 @@ export interface GroupInfo {
   id:    GroupId
   label: string
   color: string
+  image: string
   /** Mês da rampa sazonal de onde a cor veio, para rastrear a escolha. */
   origem: string
 }
@@ -28,36 +29,42 @@ export const GROUPS: GroupInfo[] = [
     id: 'territorio',
     label: 'Recortes territoriais',
     color: '#597636',
+    image: '/images/cards/recortes-territoriais.png',
     origem: 'verde da marca',
   },
   {
     id: 'estoques',
     label: 'Estoques de carbono',
     color: '#4F791E',
+    image: '/images/cards/estoques-carbono.png',
     origem: 'abril, pico verde',
   },
   {
     id: 'biomassa',
     label: 'Biomassa e estrutura',
     color: '#577B14',
+    image: '/images/cards/biomassa-estrutura.png',
     origem: 'março',
   },
   {
     id: 'produtividade',
     label: 'Produtividade e fluxos',
     color: '#778100',
+    image: '/images/cards/produtividade-fluxos.png',
     origem: 'janeiro',
   },
   {
     id: 'clima',
     label: 'Clima e fenologia',
     color: '#A78400',
+    image: '/images/cards/clima-fenologia.png',
     origem: 'julho, transição',
   },
   {
     id: 'pressoes',
     label: 'Pressões e mudanças',
     color: '#DD8637',
+    image: '/images/cards/pressoes-mudancas.png',
     origem: 'outubro, fundo seco',
   },
 ]

@@ -201,14 +201,15 @@ function ThemeSection({
         onClick={onToggle}
         aria-expanded={open}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-          padding: '9px 11px', cursor: 'pointer', textAlign: 'left',
-          // O fundo é a cor do grupo, discreta quando fechado e firme quando
-          // aberto. É onde a foto entra depois.
-          background: open ? `${grupo.color}22` : `${grupo.color}12`,
+          width: '100%', minHeight: 128, display: 'flex', alignItems: 'center', gap: 9,
+          padding: '10px 11px', cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
+          // A sobreposição mantém os controles legíveis sem esconder a ilustração.
+          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${grupo.color}22 100%), url(${grupo.image})`,
+          backgroundPosition: 'center, center 62%',
+          backgroundSize: 'cover, cover',
           border: `1px solid ${open ? `${grupo.color}66` : c.border}`,
           borderRadius: 11,
-          transition: 'background .16s, border-color .16s',
+          transition: 'border-color .16s, filter .16s',
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>
