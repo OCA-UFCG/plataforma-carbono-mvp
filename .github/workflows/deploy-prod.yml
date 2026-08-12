@@ -37,6 +37,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/arm64
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
