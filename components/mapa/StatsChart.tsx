@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useStore } from '@/lib/mapa/store'
+import StockReportView from './StockReportView'
 import type {
   RasterLayerConfig,
   PlatformTheme,
@@ -46,6 +47,9 @@ export default function StatsChart({ theme }: Props) {
     return null
   }
 
+  if (rasterStats.kind === 'stocks') {
+    return <StockReportView report={rasterStats.report} theme={theme} caption={caption} />
+  }
   if (rasterStats.kind === 'timeseries') {
     return <TimeSeriesChart series={rasterStats.series} layers={layers} theme={theme} caption={caption} />
   }

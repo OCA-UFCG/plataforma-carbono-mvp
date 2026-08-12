@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import {
-  IcLayers, IcBox, IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft, IcSearch,
+  IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft, IcSearch, IcGrip,
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { resolveMonth, PHASES } from '@/lib/phenology'
+import { GROUPS, type GroupInfo } from '@/config/mapa/groups'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -17,22 +17,41 @@ interface Props {
 
 export default function Sidebar({ theme, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
-  const monthPref = useStore((s) => s.month)
   const [infoId, setInfoId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 
   const normalizedQuery = normalizeSearch(query.trim())
-  const matchesQuery = (layer: LayerConfig) => {
-    if (!normalizedQuery) return true
+  const matchesQuery = (layer: LayerConfig, q = normalizedQuery) => {
+    if (!q) return true
+    // Descrição e fonte saíram da lista, mas seguem sendo buscáveis: quem
+    // procura por "MODIS" espera achar, mesmo sem a palavra aparecer na linha.
     const meta = LAYER_META[layer.id]
     return [layer.name, layer.type, meta?.description, meta?.source, meta?.kind]
       .filter((value): value is string => Boolean(value))
-      .some((value) => normalizeSearch(value).includes(normalizedQuery))
+      .some((value) => normalizeSearch(value).includes(q))
   }
-  const vectors = layers.filter((l) => l.type === 'vector' && matchesQuery(l))
-  const rasters = layers.filter((l) => l.type === 'raster' && matchesQuery(l))
+  const visiveis = layers.filter((l) => matchesQuery(l))
+  const porGrupo = GROUPS
+    .map((g) => ({ grupo: g, itens: visiveis.filter((l) => l.group === g.id) }))
+    .filter((s) => s.itens.length > 0)
   const activeCount = layers.filter((l) => l.visible).length
-  const month = resolveMonth(monthPref)
+
+  // Um card aberto por vez.
+  const [abertoId, setAbertoId] = useState<string | null>(GROUPS[0]?.id ?? null)
+
+  // Buscar leva ao primeiro grupo com resultado, senão a busca acharia camadas
+  // que continuam escondidas em cards fechados. Isto acontece na digitação, e
+  // não no render: derivar o card aberto a partir da busca travava o botão,
+  // porque o clique mudava o estado e o render o descartava.
+  const aoBuscar = (valor: string) => {
+    setQuery(valor)
+    const q = normalizeSearch(valor.trim())
+    if (!q) return
+    const primeiro = GROUPS.find((g) =>
+      layers.some((l) => l.group === g.id && matchesQuery(l, q)),
+    )
+    setAbertoId(primeiro?.id ?? null)
+  }
 
   const c = theme.colors
 
@@ -85,7 +104,7 @@ export default function Sidebar({ theme, onCollapse }: Props) {
             <IcSearch size={15} color={c.textDim} style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => aoBuscar(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Escape') setQuery('')
               }}
@@ -104,26 +123,25 @@ export default function Sidebar({ theme, onCollapse }: Props) {
               </button>
             )}
           </div>
-          {normalizedQuery && vectors.length + rasters.length === 0 ? (
+          {normalizedQuery && porGrupo.length === 0 ? (
             <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 12.5, textAlign: 'center' }}>
               Nenhuma camada encontrada.
             </div>
           ) : (
-            <>
-              <ThemeSection theme={theme} title="Recortes territoriais" count={vectors.length}
-                icon={<IcBox size={15} />} iconColor="#5f7030" layers={vectors} onInfo={setInfoId} defaultOpen />
-              <ThemeSection theme={theme} title="Carbono e ambiente" count={rasters.length}
-                icon={<IcLayers size={15} />} iconColor={c.terracota} layers={rasters} onInfo={setInfoId} defaultOpen />
-            </>
+            porGrupo.map(({ grupo, itens }) => (
+              <ThemeSection
+                key={grupo.id}
+                theme={theme}
+                grupo={grupo}
+                layers={itens}
+                onInfo={setInfoId}
+                open={abertoId === grupo.id}
+                onToggle={() => setAbertoId((atual) => (atual === grupo.id ? null : grupo.id))}
+              />
+            ))
           )}
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '10px 14px', borderTop: `1px solid ${c.border}`, flex: 'none' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
-            Mês da interface: <strong style={{ color: c.text, fontWeight: 700 }}>{month.label}</strong>, {PHASES[month.phase].label.toLowerCase()}. As cores acompanham a variação sazonal do bioma, e a dos próprios dados.
-          </div>
-        </div>
       </div>
 
       {infoId && <LayerInfoCard theme={theme} layerId={infoId} narrow={narrow} onClose={() => setInfoId(null)} />}
@@ -134,12 +152,12 @@ export default function Sidebar({ theme, onCollapse }: Props) {
 // Section (accordion)
 
 function ThemeSection({
-  theme, title, count, icon, iconColor, layers, onInfo, defaultOpen,
+  theme, grupo, layers, onInfo, open, onToggle,
 }: {
-  theme: PlatformTheme; title: string; count: number; icon: React.ReactNode; iconColor: string
-  layers: LayerConfig[]; onInfo: (id: string) => void; defaultOpen?: boolean
+  theme: PlatformTheme; grupo: GroupInfo
+  layers: LayerConfig[]; onInfo: (id: string) => void
+  open: boolean; onToggle: () => void
 }) {
-  const [open, setOpen] = useState(!!defaultOpen)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const allLayers = useStore((s) => s.layers)
@@ -173,23 +191,59 @@ function ThemeSection({
     clearDrag()
   }
 
+  // Camada ligada dentro de card fechado sumiria de vista, então o número
+  // aparece no cabeçalho.
+  const ativas = layers.filter((l) => l.visible).length
+
   return (
     <div>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={onToggle}
         aria-expanded={open}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '4px 2px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+        style={{
+          width: '100%', minHeight: 128, display: 'flex', alignItems: 'center', gap: 9,
+          padding: '10px 11px', cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
+          // A sobreposição mantém os controles legíveis sem esconder a ilustração.
+          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${grupo.color}22 100%), url(${grupo.image})`,
+          backgroundPosition: 'center, center 62%',
+          backgroundSize: 'cover, cover',
+          border: `1px solid ${open ? `${grupo.color}66` : c.border}`,
+          borderRadius: 11,
+          transition: 'border-color .16s, filter .16s',
+        }}
       >
-        <span style={{ color: iconColor, display: 'flex' }}>{icon}</span>
-        <span style={{ fontSize: 12, fontWeight: 800, color: c.text, letterSpacing: '.02em' }}>{title}</span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px' }}>{count}</span>
-        <span style={{ marginLeft: 'auto', color: c.textDim, display: 'flex' }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>
+          {grupo.label}
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>
+          {layers.length}
+        </span>
+        {ativas > 0 && (
+          <span
+            style={{
+              fontSize: 10, fontWeight: 800, color: '#fff', flexShrink: 0,
+              background: grupo.color, borderRadius: 999, padding: '1px 7px',
+            }}
+          >
+            {ativas} ativa{ativas === 1 ? '' : 's'}
+          </span>
+        )}
+        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>
+          {open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}
+        </span>
       </button>
       {open && (
         <div
           onDragOver={onDragOver}
           onDrop={onDrop}
-          style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 7, paddingBottom: 24 }}
+          // Recuo mais trilho na cor do grupo: sem isso as linhas de camada,
+          // que também são caixas arredondadas, passam a leitura de que outros
+          // cards abriram abaixo em vez de conteúdo do card aberto.
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 4,
+            margin: '2px 0 10px 9px', paddingLeft: 11,
+            borderLeft: `2px solid ${grupo.color}44`,
+          }}
         >
           {layers.map((layer) => {
             const index = allLayers.findIndex((item) => item.id === layer.id)
@@ -261,7 +315,6 @@ function LayerRow({
   const errorMsg        = useStore((s) => s.layerErrors[layer.id])
 
   const c = theme.colors
-  const meta = LAYER_META[layer.id]
   const unit = layer.type === 'raster' ? (layer as RasterLayerConfig).unit : undefined
 
   return (
@@ -269,42 +322,53 @@ function LayerRow({
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      // Peso visual menor que o do cabeçalho do card: sem borda e com raio
+      // pequeno, para a lista ler como conteúdo e não como outro card.
       style={{
-      background: layer.visible ? c.accentBg : c.bgCard,
-      border: `1px solid ${layer.visible ? c.accentBd : c.border}`,
-      borderRadius: 11, padding: '9px 10px', transition: 'background .15s, border-color .15s',
+      background: layer.visible ? c.accentBg : 'transparent',
+      border: `1px solid ${layer.visible ? c.accentBd : 'transparent'}`,
+      borderRadius: 7, padding: '5px 7px', transition: 'background .15s, border-color .15s',
     }}>
-      {/* line 1: name + description + toggle */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={layer.name}>{layer.name}</div>
-          {meta && <div style={{ fontSize: 11.5, fontWeight: 500, color: c.dim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{meta.description}</div>}
-        </div>
+      {/* Nome, unidade, ficha e chave, tudo numa linha. Descrição e fonte
+          saíram: já estão na ficha, atrás do botão de informação. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span
+          aria-hidden="true"
+          title="Arraste para reordenar"
+          style={{ color: c.caption, display: 'flex', flexShrink: 0, cursor: 'grab' }}
+        >
+          <IcGrip size={13} />
+        </span>
+        <span
+          style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          title={layer.name}
+        >
+          {layer.name}
+        </span>
+        {unit && (
+          <span style={{ fontSize: 9.5, fontWeight: 600, color: c.textDim, background: c.chip, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {unit}
+          </span>
+        )}
+        <button
+          onClick={() => onInfo(layer.id)}
+          aria-label={`Ficha da camada ${layer.name}`}
+          style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 999, border: 'none', background: 'transparent', color: c.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+        >
+          <IcInfo size={13} />
+        </button>
         {isLoading ? (
-          <span style={{ fontSize: 9.5, fontWeight: 700, color: c.dim, textTransform: 'uppercase', letterSpacing: '.06em', flexShrink: 0, paddingTop: 4 }}>carregando...</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: c.dim, textTransform: 'uppercase', letterSpacing: '.06em', flexShrink: 0 }}>...</span>
         ) : (
           <button
             role="switch" aria-checked={layer.visible}
             aria-label={`${layer.visible ? 'Ocultar' : 'Exibir'} camada ${layer.name}`}
             onClick={() => toggleLayer(layer.id)}
-            style={{ flexShrink: 0, width: 36, height: 21, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, position: 'relative', background: layer.visible ? c.accent : '#d8d5c9', transition: 'background .2s' }}
+            style={{ flexShrink: 0, width: 32, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, position: 'relative', background: layer.visible ? c.accent : '#d8d5c9', transition: 'background .2s' }}
           >
-            <span style={{ position: 'absolute', top: 2, left: 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: 'transform .2s', transform: layer.visible ? 'translateX(15px)' : 'translateX(0)' }} />
+            <span style={{ position: 'absolute', top: 2, left: 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'transform .2s', transform: layer.visible ? 'translateX(14px)' : 'translateX(0)' }} />
           </button>
         )}
-      </div>
-
-      {/* line 2: source chip + unit chip + info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7 }}>
-        {meta && <span style={{ fontSize: 10, fontWeight: 600, color: c.textDim, background: c.chip, borderRadius: 5, padding: '2px 7px', whiteSpace: 'nowrap' }}>{meta.source}</span>}
-        {unit && <span style={{ fontSize: 10, fontWeight: 600, color: c.accentInk, background: c.accentBg, borderRadius: 5, padding: '2px 7px', whiteSpace: 'nowrap' }}>{unit}</span>}
-        <button
-          onClick={() => onInfo(layer.id)}
-          aria-label={`Ficha da camada ${layer.name}`}
-          style={{ marginLeft: 'auto', flexShrink: 0, width: 24, height: 24, borderRadius: 999, border: `1px solid ${c.border}`, background: 'transparent', color: c.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <IcInfo size={13} />
-        </button>
       </div>
 
       {/* error */}

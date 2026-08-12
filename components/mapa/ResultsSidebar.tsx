@@ -143,9 +143,10 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         zIndex: 10,
         ...(narrow
           ? { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0' }
-            // Cap height so a tall result never grows down over the bottom-right
-            // control cluster (zoom + view/tool pills).
-          : { right: 16, top: 16, width: 368, maxHeight: 'calc(100% - 300px)', borderRadius: 16 }),
+            // Vai até a borda inferior do mapa. Os controles e a legenda saem da
+            // frente sozinhos: `rightOffset` os desloca para a esquerda enquanto
+            // o painel está aberto.
+          : { right: 16, top: 16, width: 368, maxHeight: 'calc(100% - 32px)', borderRadius: 16 }),
         background: c.glassBg,
         backdropFilter: 'blur(11px)',
         WebkitBackdropFilter: 'blur(11px)',
@@ -154,12 +155,14 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'var(--font-app), sans-serif',
-        overflowY: 'auto',
+        // O recorte fica no contêiner e a rolagem no corpo, para o cabeçalho e o
+        // nome da feição não saírem de vista ao rolar um resultado longo.
+        overflow: 'hidden',
         padding: '14px 14px',
       }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 10px', flexShrink: 0 }}>
         <span style={{ ...eyebrow, fontSize: 11 }}>Resultados</span>
         <button
           onClick={() => onSetCollapsed(true)}
@@ -180,7 +183,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
 
       {/* Cut chip + feature name */}
       {(analysisKind || analysisLabel) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 10px', flexShrink: 0 }}>
           {analysisKind && (
             <span style={{
               fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
@@ -195,6 +198,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           )}
         </div>
       )}
+
+      {/* Corpo rolável: o cabeçalho e o nome da feição ficam sempre à vista. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
       {/* Área analisada (hero) */}
       {drawnArea !== null && (
@@ -267,6 +273,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           Estatística zonal, Google Earth Engine
         </div>
       )}
+      </div>
     </div>
   )
 }
