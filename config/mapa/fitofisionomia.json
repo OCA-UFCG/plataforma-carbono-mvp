@@ -1,0 +1,264 @@
+{
+  "campo": "c_pret",
+  "fonte": "Quarto Inventário Nacional de Emissões, Produtos_12_32_Caatinga_Final_08042020",
+  "nodata": 0,
+  "biomaTcTotal": 4761371454.0,
+  "classes": [
+    {
+      "codigo": 1,
+      "sigla": "Ta",
+      "cor": "#597636",
+      "biomaTc": 2094273414.3,
+      "biomaAreaHa": 49418417.7,
+      "biomaPctTc": 43.985
+    },
+    {
+      "codigo": 2,
+      "sigla": "TN",
+      "cor": "#D08C53",
+      "biomaTc": 611802467.9,
+      "biomaAreaHa": 6756144.1,
+      "biomaPctTc": 12.849
+    },
+    {
+      "codigo": 3,
+      "sigla": "Td",
+      "cor": "#8a9b4a",
+      "biomaTc": 386550218.6,
+      "biomaAreaHa": 5702695.1,
+      "biomaPctTc": 8.118
+    },
+    {
+      "codigo": 4,
+      "sigla": "Fs",
+      "cor": "#a66a2e",
+      "biomaTc": 309141152.6,
+      "biomaAreaHa": 1855915.3,
+      "biomaPctTc": 6.493
+    },
+    {
+      "codigo": 5,
+      "sigla": "Sa",
+      "cor": "#6b7d34",
+      "biomaTc": 268168276.0,
+      "biomaAreaHa": 3778007.3,
+      "biomaPctTc": 5.632
+    },
+    {
+      "codigo": 6,
+      "sigla": "ST",
+      "cor": "#9c3a3a",
+      "biomaTc": 171100808.3,
+      "biomaAreaHa": 3286807.9,
+      "biomaPctTc": 3.594
+    },
+    {
+      "codigo": 7,
+      "sigla": "Tp",
+      "cor": "#74b487",
+      "biomaTc": 156796566.4,
+      "biomaAreaHa": 4626030.8,
+      "biomaPctTc": 3.293
+    },
+    {
+      "codigo": 8,
+      "sigla": "Cs",
+      "cor": "#5d2f7f",
+      "biomaTc": 150817986.6,
+      "biomaAreaHa": 1483517.6,
+      "biomaPctTc": 3.168
+    },
+    {
+      "codigo": 9,
+      "sigla": "Fm",
+      "cor": "#8b834b",
+      "biomaTc": 92546361.8,
+      "biomaAreaHa": 675780.2,
+      "biomaPctTc": 1.944
+    },
+    {
+      "codigo": 10,
+      "sigla": "SN",
+      "cor": "#63b5c5",
+      "biomaTc": 86134573.8,
+      "biomaAreaHa": 822234.4,
+      "biomaPctTc": 1.809
+    },
+    {
+      "codigo": 11,
+      "sigla": "Pm",
+      "cor": "#713d59",
+      "biomaTc": 77301343.9,
+      "biomaAreaHa": 452539.5,
+      "biomaPctTc": 1.624
+    },
+    {
+      "codigo": 12,
+      "sigla": "Cm",
+      "cor": "#529c3a",
+      "biomaTc": 73676407.0,
+      "biomaAreaHa": 852518.0,
+      "biomaPctTc": 1.547
+    },
+    {
+      "codigo": 13,
+      "sigla": "As",
+      "cor": "#7774b4",
+      "biomaTc": 46684008.7,
+      "biomaAreaHa": 273437.9,
+      "biomaPctTc": 0.98
+    },
+    {
+      "codigo": 14,
+      "sigla": "Pf",
+      "cor": "#7f492f",
+      "biomaTc": 46044785.5,
+      "biomaAreaHa": 222152.3,
+      "biomaPctTc": 0.967
+    },
+    {
+      "codigo": 15,
+      "sigla": "Fa",
+      "cor": "#4b8b73",
+      "biomaTc": 34608481.7,
+      "biomaAreaHa": 265464.3,
+      "biomaPctTc": 0.727
+    },
+    {
+      "codigo": 16,
+      "sigla": "Sp",
+      "cor": "#bd63c5",
+      "biomaTc": 33880714.7,
+      "biomaAreaHa": 759336.1,
+      "biomaPctTc": 0.712
+    },
+    {
+      "codigo": 17,
+      "sigla": "Pa",
+      "cor": "#66713d",
+      "biomaTc": 32171746.2,
+      "biomaAreaHa": 284514.0,
+      "biomaPctTc": 0.676
+    },
+    {
+      "codigo": 18,
+      "sigla": "Rm",
+      "cor": "#3a6b9c",
+      "biomaTc": 28726878.2,
+      "biomaAreaHa": 530962.5,
+      "biomaPctTc": 0.603
+    },
+    {
+      "codigo": 19,
+      "sigla": "Sg",
+      "cor": "#b47481",
+      "biomaTc": 14132443.4,
+      "biomaAreaHa": 236664.8,
+      "biomaPctTc": 0.297
+    },
+    {
+      "codigo": 20,
+      "sigla": "Dm",
+      "cor": "#2f7f36",
+      "biomaTc": 13214628.1,
+      "biomaAreaHa": 58585.7,
+      "biomaPctTc": 0.278
+    },
+    {
+      "codigo": 21,
+      "sigla": "Ds",
+      "cor": "#634b8b",
+      "biomaTc": 7909241.1,
+      "biomaAreaHa": 34446.7,
+      "biomaPctTc": 0.166
+    },
+    {
+      "codigo": 22,
+      "sigla": "Tg",
+      "cor": "#c5a563",
+      "biomaTc": 5916297.1,
+      "biomaAreaHa": 217467.9,
+      "biomaPctTc": 0.124
+    },
+    {
+      "codigo": 23,
+      "sigla": "Sd",
+      "cor": "#3d716f",
+      "biomaTc": 5609689.6,
+      "biomaAreaHa": 52489.7,
+      "biomaPctTc": 0.118
+    },
+    {
+      "codigo": 24,
+      "sigla": "Fb",
+      "cor": "#9c3a84",
+      "biomaTc": 4716863.8,
+      "biomaAreaHa": 34622.3,
+      "biomaPctTc": 0.099
+    },
+    {
+      "codigo": 25,
+      "sigla": "Da",
+      "cor": "#91b474",
+      "biomaTc": 4260300.1,
+      "biomaAreaHa": 18586.1,
+      "biomaPctTc": 0.089
+    },
+    {
+      "codigo": 26,
+      "sigla": "Dn",
+      "cor": "#2f3c7f",
+      "biomaTc": 2158070.2,
+      "biomaAreaHa": 62753.7,
+      "biomaPctTc": 0.045
+    },
+    {
+      "codigo": 27,
+      "sigla": "Am",
+      "cor": "#8b534b",
+      "biomaTc": 1607249.5,
+      "biomaAreaHa": 11647.3,
+      "biomaPctTc": 0.034
+    },
+    {
+      "codigo": 28,
+      "sigla": "Ca",
+      "cor": "#63c58c",
+      "biomaTc": 1011725.1,
+      "biomaAreaHa": 6612.4,
+      "biomaPctTc": 0.021
+    },
+    {
+      "codigo": 29,
+      "sigla": "Aa",
+      "cor": "#623d71",
+      "biomaTc": 268770.7,
+      "biomaAreaHa": 3357.5,
+      "biomaPctTc": 0.006
+    },
+    {
+      "codigo": 30,
+      "sigla": "Cb",
+      "cor": "#9c9c3a",
+      "biomaTc": 120891.0,
+      "biomaAreaHa": 1211.3,
+      "biomaPctTc": 0.003
+    },
+    {
+      "codigo": 31,
+      "sigla": "Ab",
+      "cor": "#74a1b4",
+      "biomaTc": 12171.2,
+      "biomaAreaHa": 133.9,
+      "biomaPctTc": 0.0
+    },
+    {
+      "codigo": 32,
+      "sigla": "Ar",
+      "cor": "#7f2f50",
+      "biomaTc": 6920.9,
+      "biomaAreaHa": 641.6,
+      "biomaPctTc": 0.0
+    }
+  ]
+}

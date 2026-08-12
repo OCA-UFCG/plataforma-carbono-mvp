@@ -18,6 +18,15 @@ export const LAYER_META: Record<string, LayerMeta> = {
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
 
+  // Única camada cujo clique abre relatório, e não estatística da banda: o
+  // total exibido se decompõe em cinco reservatórios e em fitofisionomia.
+  estoque_carbono:  { description: 'estoque de carbono dos cinco reservatórios, decomposto por reservatório e por fitofisionomia ao clicar numa área', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  // Os cinco reservatórios que somam a camada acima, cada um em banda própria.
+  estoque_c_agb:    { description: 'carbono na biomassa acima do solo',  source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_bgb:    { description: 'carbono na biomassa abaixo do solo, raízes', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_dw:     { description: 'carbono na madeira morta',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_litter: { description: 'carbono na serrapilheira',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_solo:   { description: 'carbono orgânico do solo, segunda estimativa ao lado da do MapBiomas', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },

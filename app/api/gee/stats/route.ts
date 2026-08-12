@@ -11,6 +11,8 @@ import {
 } from '@/lib/mapa/geeValidation'
 import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
+import { getStocks } from '@/lib/mapa/stocksRegistry'
+import { buildStockReport } from '@/lib/mapa/stockReport'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 
 export const runtime = 'nodejs'
@@ -32,6 +34,10 @@ interface ReqBody {
   // as the map colors and legend, instead of recomputing breaks per feature.
   breaks?:   number[]
   colorType?: 'categorical' | 'continuous'
+  // Id da camada. Quando ela declara `gee.stocks`, a resposta é o relatório de
+  // estoque em vez da estatística da banda visível. Só o id trafega: a
+  // configuração é resolvida no servidor.
+  layerId?:  string
 }
 
 export async function POST(req: Request) {
@@ -90,6 +96,24 @@ export async function POST(req: Request) {
     const image  = buildEeImage(ee, asset, temporalDate)
     const region = ee.Geometry(geometry)
     const scale  = asset.scale ?? 500
+
+    // Relatório de estoque: a camada declara quais bandas são reservatórios e
+    // qual asset traz a fitofisionomia, e o resultado é o total decomposto nos
+    // dois eixos. Vem antes dos demais ramos porque substitui a estatística da
+    // banda visível, não a complementa.
+    const stocks = body.layerId ? getStocks(body.layerId) : null
+    if (stocks) {
+      if (stocks.assetId !== asset.id || stocks.assetBand !== asset.band) {
+        return NextResponse.json(
+          { error: 'layerId does not match the asset' },
+          { status: 400 },
+        )
+      }
+      const report = await buildStockReport(
+        ee, ee.Image(stocks.assetId), region, stocks.cfg, stocks.legenda, stocks.scale,
+      )
+      return NextResponse.json({ kind: 'stocks', report })
+    }
 
     // Resolve band name
     let bandName = temporalDate && asset.bandPattern
