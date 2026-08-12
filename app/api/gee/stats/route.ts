@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { initGee, getEe } from '@/lib/mapa/geeAuth'
-import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { bandaDoAno, buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { jenksBreaks } from '@/lib/mapa/jenks'
 import { evaluate } from '@/lib/mapa/geeEvaluate'
 import {
@@ -89,7 +89,9 @@ export async function POST(req: Request) {
     const scale  = asset.scale ?? 500
 
     // Resolve band name
-    let bandName = asset.band
+    let bandName = temporalDate && asset.bandPattern
+      ? bandaDoAno(asset.bandPattern, temporalDate.slice(0, 4))
+      : asset.band
     if (!bandName) {
       const bands = await evaluate<string[]>(image.bandNames())
       bandName = bands?.[0]

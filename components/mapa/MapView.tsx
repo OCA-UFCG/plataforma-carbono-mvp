@@ -541,6 +541,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         setAnalysisKind('Área desenhada')
         clearSelectedFeature()
         selectedGeomRef.current = null
+        prevStatsContextRef.current = null
 
         if (feature.geometry.type === 'Polygon') {
           setDrawnArea(turfArea(feature) / 1_000_000)
@@ -552,13 +553,22 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
             )
           if (!activeRaster) return
 
+          const tempDate = useStore.getState().temporalDate[activeRaster.id]
+          // Keep drawn areas in the same reactive path as vector selections,
+          // so their result is recalculated when the temporal layer changes.
+          selectedGeomRef.current = {
+            vectorLayerId: 'drawn-area',
+            geometry: feature.geometry,
+            geometryType: 'polygon',
+          }
+          prevStatsContextRef.current = `${activeRaster.id}:${tempDate ?? 'static'}`
           setStatsLoading(true)
           try {
             const stats = await getRasterStats(activeRaster, {
               type: 'Feature',
               geometry: feature.geometry as { type: 'Polygon'; coordinates: number[][][] },
               properties: {},
-            })
+            }, tempDate)
             if (seq !== statsSeqRef.current) return
             setRasterStats(stats)
           } catch (err) {
@@ -632,6 +642,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       map.on('draw.update', handleDrawCommit)
       map.on('draw.delete', () => {
         if (draw.getAll().features.length === 0) {
+          // A deleted drawing must not be recomputed after a temporal change.
+          statsSeqRef.current++
+          selectedGeomRef.current = null
+          prevStatsContextRef.current = null
           setDrawnArea(null)
           setDrawnLength(null)
           setRasterStats(null)
@@ -1254,7 +1268,6 @@ useEffect(() => {
     // Build a key representing the current stats context
     const contextKey = `${activeRasterId}:${activeTemporalDateKey ?? 'static'}`
     if (contextKey === prevStatsContextRef.current) return
-    prevStatsContextRef.current = contextKey
 
     const raster = layers.find((l) => l.id === activeRasterId) as RasterLayerConfig | undefined
     if (!raster || !raster.visible) return
@@ -1265,9 +1278,21 @@ useEffect(() => {
       const hasUrl = activeTemporalDateKey
         ? !!store.temporalTileUrls[raster.id]?.[activeTemporalDateKey]
         : !!store.fetchedTileUrls[raster.id]
-      if (!hasUrl) return
+      if (!hasUrl) {
+        // Do not leave the previous year's result visible while the new tile
+        // is loading. Point series cover all years and do not need this reset.
+        if (geom.geometryType === 'polygon') {
+          statsSeqRef.current++
+          setRasterStats(null)
+          setStatsError(null)
+          setStatsLoading(true)
+        }
+        return
+      }
     }
 
+    // eslint-disable-next-line react-hooks/immutability
+    prevStatsContextRef.current = contextKey
     const tempDate = activeTemporalDateKey
     const store = useStore.getState()
     // Switching raster/date supersedes any earlier in-flight stats response.
@@ -1342,7 +1367,7 @@ useEffect(() => {
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRasterId, activeTemporalDateKey, layers])
+  }, [activeRasterId, activeTemporalDateKey, layers, temporalTileUrls])
 
   // Sync draw mode
   // Switching to a drawing mode clears any previous feature + measurements.
