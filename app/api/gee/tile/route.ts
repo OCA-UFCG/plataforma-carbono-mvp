@@ -15,6 +15,7 @@ import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getClip } from '@/lib/mapa/clipRegistry'
 import { getTileCache, setTileCache } from '@/lib/mapa/tileCache'
+import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -64,6 +65,8 @@ function promisifyGetMap(image: any, visParams: Record<string, unknown>): Promis
 }
 
 export async function POST(req: Request) {
+  if (!await getAuthenticatedRequest(req)) return unauthorizedResponse()
+
   const rl = rateLimit(clientIp(req))
   if (!rl.ok) {
     return NextResponse.json(

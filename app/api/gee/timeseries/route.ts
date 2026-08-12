@@ -18,6 +18,7 @@ import { evaluate } from '@/lib/mapa/geeEvaluate'
 import { isValidAsset, isValidLonLat, bodyTooLarge } from '@/lib/mapa/geeValidation'
 import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
+import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -47,6 +48,8 @@ function anosDoIntervalo(r: unknown): number[] | null {
 }
 
 export async function POST(req: Request) {
+  if (!await getAuthenticatedRequest(req)) return unauthorizedResponse()
+
   const rl = rateLimit(clientIp(req))
   if (!rl.ok) {
     return NextResponse.json(

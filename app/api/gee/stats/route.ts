@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { initGee, getEe } from '@/lib/mapa/geeAuth'
-import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { bandaDoAno, buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { jenksBreaks } from '@/lib/mapa/jenks'
 import { evaluate } from '@/lib/mapa/geeEvaluate'
 import {
@@ -13,6 +13,7 @@ import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getStocks } from '@/lib/mapa/stocksRegistry'
 import { buildStockReport } from '@/lib/mapa/stockReport'
+import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -40,6 +41,8 @@ interface ReqBody {
 }
 
 export async function POST(req: Request) {
+  if (!await getAuthenticatedRequest(req)) return unauthorizedResponse()
+
   const rl = rateLimit(clientIp(req))
   if (!rl.ok) {
     return NextResponse.json(
@@ -113,7 +116,9 @@ export async function POST(req: Request) {
     }
 
     // Resolve band name
-    let bandName = asset.band
+    let bandName = temporalDate && asset.bandPattern
+      ? bandaDoAno(asset.bandPattern, temporalDate.slice(0, 4))
+      : asset.band
     if (!bandName) {
       const bands = await evaluate<string[]>(image.bandNames())
       bandName = bands?.[0]

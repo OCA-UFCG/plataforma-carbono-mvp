@@ -1,36 +1,27 @@
-name: Deploy Beta
+name: Deploy Prod
 
 on:
-  workflow_run:
-    workflows:
-      - CI
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    tags: ["**"]
 
 permissions:
   contents: read
 
 jobs:
   build-image:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out validated revision
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Update Docker metadata with the tag
         uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ${{ vars.DOCKER_IMAGE_BETA }}
+          images: ${{ vars.DOCKER_IMAGE }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -46,6 +37,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/arm64
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -57,21 +49,20 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   push-beta:
-    if: github.event.workflow_run.conclusion == 'success'
     needs: build-image
-    runs-on: sap-beta-runner
+    runs-on: carbono-prod-runner
 
     steps:
       - name: Pull the latest image
-        run: sudo docker pull ${{ vars.DOCKER_IMAGE_BETA }}:latest
+        run: sudo docker pull ${{ vars.DOCKER_IMAGE }}:latest
 
       - name: Stop existing container
-        run: sudo docker rm -f ${{ vars.CONTAINER_NAME_BETA }} || true
+        run: sudo docker rm -f ${{ vars.CONTAINER_NAME }} || true
 
       - name: Run new container
         run: |
           sudo docker run \
-            --name ${{ vars.CONTAINER_NAME_BETA }} \
+            --name ${{ vars.CONTAINER_NAME }} \
             --restart unless-stopped \
             -e PORT="${{ vars.CONTAINER_PORT }}" \
             -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gee-service-account.json \
@@ -81,10 +72,10 @@ jobs:
             -v "${{ vars.GEE_SERVICE_ACCOUNT_PATH_BETA }}:/run/secrets/gee-service-account.json:ro" \
             -p ${{ vars.HOST_PORT_BETA }}:${{ vars.CONTAINER_PORT }} \
             -d \
-            ${{ vars.DOCKER_IMAGE_BETA }}:latest
+            ${{ vars.DOCKER_IMAGE }}:latest
 
       - name: Connect to network
-        run: sudo docker network connect ${{ vars.NETWORK_NAME }} ${{ vars.CONTAINER_NAME_BETA }}
+        run: sudo docker network connect ${{ vars.NETWORK_NAME }} ${{ vars.CONTAINER_NAME }}
 
       - name: Verify application health
         run: |
@@ -94,7 +85,7 @@ jobs:
             fi
             sleep 2
           done
-          sudo docker logs ${{ vars.CONTAINER_NAME_BETA }}
+          sudo docker logs ${{ vars.CONTAINER_NAME }}
           exit 1
 
       - name: Prune unused Docker images

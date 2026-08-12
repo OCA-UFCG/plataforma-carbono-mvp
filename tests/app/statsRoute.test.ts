@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   buildEeImage: vi.fn(() => ({})),
   buildStockReport: vi.fn(async () => ({ totalTc: 12, areaHa: 1, unit: 't C', pools: [], classes: [] })),
+  getAuthenticatedRequest: vi.fn<() => Promise<{ uid: string } | null>>(async () => ({ uid: 'test-user' })),
 }))
 
 vi.mock('@/lib/mapa/geeAuth', () => ({
@@ -13,6 +14,10 @@ vi.mock('@/lib/mapa/geeImage', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/mapa/geeImage')>(), buildEeImage: mocks.buildEeImage,
 }))
 vi.mock('@/lib/mapa/stockReport', () => ({ buildStockReport: mocks.buildStockReport }))
+vi.mock('@/lib/auth', () => ({
+  getAuthenticatedRequest: mocks.getAuthenticatedRequest,
+  unauthorizedResponse: () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }),
+}))
 
 import { POST } from '@/app/api/gee/stats/route'
 
@@ -33,6 +38,15 @@ function request(body: unknown) {
 
 describe('POST /api/gee/stats stock branch', () => {
   beforeEach(() => vi.clearAllMocks())
+
+  it('requires an authenticated session', async () => {
+    mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
+
+    const response = await POST(request({ asset, geometry, layerId: 'estoque_carbono' }))
+
+    expect(response.status).toBe(401)
+    expect(mocks.buildStockReport).not.toHaveBeenCalled()
+  })
 
   it('returns a stock report only for the matching configured asset', async () => {
     const response = await POST(request({ asset, geometry, layerId: 'estoque_carbono' }))
