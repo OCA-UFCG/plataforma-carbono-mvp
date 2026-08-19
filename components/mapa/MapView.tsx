@@ -387,6 +387,11 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   const selectFeatureFromSearchRef = useRef<
     ((layerId: string, featureId: number, bbox: [number, number, number, number]) => void) | null
   >(null)
+  const pendingSearchSelectionRef = useRef<{
+    layerId: string
+    featureId: number
+    bbox: [number, number, number, number]
+  } | null>(null)
   const [mapReady, setMapReady] = useState(false)
   // Draw toolbar visibility (pencil in the control cluster toggles it).
   const [drawOpen, setDrawOpen] = useState(false)
@@ -766,6 +771,18 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       // Exposed to FloatingSearchBar via a ref so it can zoom + highlight
       // a feature from the search results dropdown.
       selectFeatureFromSearchRef.current = (layerId, featureId, bbox) => {
+        const layer = useStore.getState().layers.find((candidate) => candidate.id === layerId)
+        if (!layer || layer.type !== 'vector') return
+
+        // Hidden vectors have no MapLibre source yet. Request their display and
+        // defer the selection until the layer synchronization effect adds it.
+        if (!layer.visible) {
+          pendingSearchSelectionRef.current = { layerId, featureId, bbox }
+          useStore.getState().showLayer(layerId)
+          return
+        }
+        if (!map.getSource(layerId)) return
+
         clearSelectedFeature()
         draw.deleteAll()
         // Invalidate in-flight stats and drop any previously selected geometry
@@ -1064,6 +1081,18 @@ useEffect(() => {
       updateLayer(map, layer)
     }
   })
+
+  // A search can select a hidden vector layer. Once it has been added above,
+  // replay the request so feature-state is only set after its source exists.
+  const pendingSelection = pendingSearchSelectionRef.current
+  if (pendingSelection && map.getSource(pendingSelection.layerId)) {
+    pendingSearchSelectionRef.current = null
+    selectFeatureFromSearchRef.current?.(
+      pendingSelection.layerId,
+      pendingSelection.featureId,
+      pendingSelection.bbox,
+    )
+  }
 
   // 2 & 3. Resync z-order when a layer was just added (it lands on top and
   // must be repositioned) OR when the order changed. Skipped on opacity/

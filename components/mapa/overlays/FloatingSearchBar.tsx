@@ -53,16 +53,16 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
   >(new Map())
 
   // Derived
-  const visibleVectors = layers.filter(
-    (l): l is VectorLayerConfig => l.type === 'vector' && l.visible,
+  const searchableVectors = layers.filter(
+    (l): l is VectorLayerConfig => l.type === 'vector',
   )
-  const visibleKey = visibleVectors.map((l) => l.id).join(',')
+  const searchableKey = searchableVectors.map((l) => l.id).join(',')
 
-  // Whether any visible layer's GeoJSON is still downloading/indexing. This
+  // Whether any searchable layer's GeoJSON is still downloading/indexing. This
   // recomputes on each cacheVersion bump (setCacheVersion re-renders the
   // component), so the dropdown can show "Carregando..." instead of a false
   // "Nenhum resultado" while data is in flight.
-  const loadingData = visibleVectors.some((l) => !cacheRef.current.has(l.id))
+  const loadingData = searchableVectors.some((l) => !cacheRef.current.has(l.id))
 
   // Click-outside
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     return () => clearTimeout(t)
   }, [query])
 
-  // Cache-warming: fetch GeoJSON of visible vector layers
+  // Cache-warming: fetch GeoJSON of all searchable vector layers.
   // Only once the search is actually opened, no point downloading (and
   // re-parsing) the recorte GeoJSONs that MapLibre already fetched unless the
   // user is going to search.
@@ -107,7 +107,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     if (!open) return
     const controller = new AbortController()
 
-    for (const layer of visibleVectors) {
+    for (const layer of searchableVectors) {
       if (cacheRef.current.has(layer.id)) continue
       fetch(layer.url, { signal: controller.signal })
         .then((r) => r.json())
@@ -126,7 +126,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleKey, open])
+  }, [searchableKey, open])
 
   // Search logic
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     const found: SearchResult[] = []
     const seen = new Set<string>() // dedupe: layerId:featureIndex:fieldName
 
-    for (const layer of visibleVectors) {
+    for (const layer of searchableVectors) {
       const cached = cacheRef.current.get(layer.id)
       if (!cached) continue
 
@@ -190,7 +190,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     setResults(found.slice(0, MAX_RESULTS))
     setHighlightedIdx(-1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, visibleKey, cacheVersion])
+  }, [debouncedQuery, searchableKey, cacheVersion])
 
   // Handlers
 
@@ -401,7 +401,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
               </div>
             ))
           )}
-          {/* Scope note, the search only indexes currently-visible layers. */}
+          {/* Search includes every configured territorial vector layer. */}
           <div
             style={{
               padding: '6px 12px',
@@ -411,7 +411,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
               fontStyle: 'italic',
             }}
           >
-            Busca apenas nas camadas visíveis.
+            Busca em todos os recortes territoriais.
           </div>
         </div>
       )}

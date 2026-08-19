@@ -58,6 +58,7 @@ interface MapaStore {
   pixelCache: Record<string, PixelValueResult | null>
 
   toggleLayer:   (id: string) => void
+  showLayer:     (id: string) => void
   setOpacity:    (id: string, opacity: number) => void
   reorderLayer:  (id: string, toIndex: number) => void
 
@@ -157,6 +158,13 @@ export const useStore = create<MapaStore>((set, get) => ({
       ),
     }))
   },
+
+  showLayer: (id) =>
+    set((s) => ({
+      layers: s.layers.map((l) =>
+        l.id === id && !l.visible ? { ...l, visible: true } : l,
+      ),
+    })),
 
   setOpacity: (id, opacity) =>
     set((s) => ({
