@@ -7,7 +7,7 @@ import {
 import { useStore } from '@/lib/mapa/store'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { GROUPS, type GroupInfo } from '@/config/mapa/groups'
+import { THEMES, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -31,13 +31,19 @@ export default function Sidebar({ theme, onCollapse }: Props) {
       .some((value) => normalizeSearch(value).includes(q))
   }
   const visiveis = layers.filter((l) => matchesQuery(l))
-  const porGrupo = GROUPS
-    .map((g) => ({ grupo: g, itens: visiveis.filter((l) => l.group === g.id) }))
-    .filter((s) => s.itens.length > 0)
+  const porTema = THEMES
+    .map((tema) => ({
+      tema,
+      subtemas: tema.subthemes
+        .map((subtema) => ({ subtema, itens: visiveis.filter((l) => l.theme === tema.id && l.subtheme === subtema.id) }))
+        .filter(({ itens }) => itens.length > 0),
+    }))
+    .filter(({ subtemas }) => subtemas.length > 0)
   const activeCount = layers.filter((l) => l.visible).length
 
-  // Um card aberto por vez.
-  const [abertoId, setAbertoId] = useState<string | null>(GROUPS[0]?.id ?? null)
+  // Um tema e um subtema abertos por vez evitam uma lista longa demais.
+  const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
+  const [abertoSubtemaKey, setAbertoSubtemaKey] = useState<string | null>(null)
 
   // Buscar leva ao primeiro grupo com resultado, senão a busca acharia camadas
   // que continuam escondidas em cards fechados. Isto acontece na digitação, e
@@ -47,10 +53,10 @@ export default function Sidebar({ theme, onCollapse }: Props) {
     setQuery(valor)
     const q = normalizeSearch(valor.trim())
     if (!q) return
-    const primeiro = GROUPS.find((g) =>
-      layers.some((l) => l.group === g.id && matchesQuery(l, q)),
-    )
-    setAbertoId(primeiro?.id ?? null)
+    const primeiro = THEMES.flatMap((tema) => tema.subthemes.map((subtema) => ({ tema, subtema })))
+      .find(({ tema, subtema }) => layers.some((l) => l.theme === tema.id && l.subtheme === subtema.id && matchesQuery(l, q)))
+    setAbertoTemaId(primeiro?.tema.id ?? null)
+    setAbertoSubtemaKey(primeiro ? `${primeiro.tema.id}:${primeiro.subtema.id}` : null)
   }
 
   const c = theme.colors
@@ -123,20 +129,22 @@ export default function Sidebar({ theme, onCollapse }: Props) {
               </button>
             )}
           </div>
-          {normalizedQuery && porGrupo.length === 0 ? (
+          {normalizedQuery && porTema.length === 0 ? (
             <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 12.5, textAlign: 'center' }}>
               Nenhuma camada encontrada.
             </div>
           ) : (
-            porGrupo.map(({ grupo, itens }) => (
+            porTema.map(({ tema, subtemas }) => (
               <ThemeSection
-                key={grupo.id}
+                key={tema.id}
                 theme={theme}
-                grupo={grupo}
-                layers={itens}
+                tema={tema}
+                subtemas={subtemas}
                 onInfo={setInfoId}
-                open={abertoId === grupo.id}
-                onToggle={() => setAbertoId((atual) => (atual === grupo.id ? null : grupo.id))}
+                open={abertoTemaId === tema.id}
+                openSubthemeKey={abertoSubtemaKey}
+                onToggle={() => setAbertoTemaId((atual) => (atual === tema.id ? null : tema.id))}
+                onToggleSubtheme={(id) => setAbertoSubtemaKey((atual) => (atual === id ? null : id))}
               />
             ))
           )}
@@ -152,10 +160,51 @@ export default function Sidebar({ theme, onCollapse }: Props) {
 // Section (accordion)
 
 function ThemeSection({
-  theme, grupo, layers, onInfo, open, onToggle,
+  theme, tema, subtemas, onInfo, open, openSubthemeKey, onToggle, onToggleSubtheme,
 }: {
-  theme: PlatformTheme; grupo: GroupInfo
-  layers: LayerConfig[]; onInfo: (id: string) => void
+  theme: PlatformTheme; tema: ThemeInfo
+  subtemas: { subtema: SubthemeInfo; itens: LayerConfig[] }[]; onInfo: (id: string) => void
+  open: boolean; openSubthemeKey: string | null; onToggle: () => void; onToggleSubtheme: (id: string) => void
+}) {
+  const layers = subtemas.flatMap(({ itens }) => itens)
+  const c = theme.colors
+  const ativas = layers.filter((layer) => layer.visible).length
+
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        style={{
+          width: '100%', minHeight: 92, display: 'flex', alignItems: 'center', gap: 9,
+          padding: '10px 11px', cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
+          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${tema.color}22 100%), url(${tema.image})`,
+          backgroundPosition: 'center, center 62%', backgroundSize: 'cover, cover',
+          border: `1px solid ${open ? `${tema.color}66` : c.border}`, borderRadius: 11,
+          transition: 'border-color .16s, filter .16s',
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
+        {ativas > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '4px 0 10px 9px', paddingLeft: 11, borderLeft: `2px solid ${tema.color}44` }}>
+          {subtemas.map(({ subtema, itens }) => {
+            const key = `${tema.id}:${subtema.id}`
+            return <SubthemeSection key={key} theme={theme} subtheme={subtema} layers={itens} onInfo={onInfo} open={openSubthemeKey === key} onToggle={() => onToggleSubtheme(key)} />
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SubthemeSection({
+  theme, subtheme, layers, onInfo, open, onToggle,
+}: {
+  theme: PlatformTheme; subtheme: SubthemeInfo; layers: LayerConfig[]; onInfo: (id: string) => void
   open: boolean; onToggle: () => void
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -191,8 +240,6 @@ function ThemeSection({
     clearDrag()
   }
 
-  // Camada ligada dentro de card fechado sumiria de vista, então o número
-  // aparece no cabeçalho.
   const ativas = layers.filter((l) => l.visible).length
 
   return (
@@ -201,48 +248,24 @@ function ThemeSection({
         onClick={onToggle}
         aria-expanded={open}
         style={{
-          width: '100%', minHeight: 128, display: 'flex', alignItems: 'center', gap: 9,
-          padding: '10px 11px', cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
-          // A sobreposição mantém os controles legíveis sem esconder a ilustração.
-          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${grupo.color}22 100%), url(${grupo.image})`,
-          backgroundPosition: 'center, center 62%',
-          backgroundSize: 'cover, cover',
-          border: `1px solid ${open ? `${grupo.color}66` : c.border}`,
-          borderRadius: 11,
-          transition: 'border-color .16s, filter .16s',
+          width: '100%', minHeight: 34, display: 'flex', alignItems: 'center', gap: 7,
+          padding: '6px 8px', cursor: 'pointer', textAlign: 'left', background: open ? c.mist : 'transparent',
+          border: 'none', borderRadius: 7,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>
-          {grupo.label}
-        </span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>
-          {layers.length}
-        </span>
-        {ativas > 0 && (
-          <span
-            style={{
-              fontSize: 10, fontWeight: 800, color: '#fff', flexShrink: 0,
-              background: grupo.color, borderRadius: 999, padding: '1px 7px',
-            }}
-          >
-            {ativas} ativa{ativas === 1 ? '' : 's'}
-          </span>
-        )}
-        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>
-          {open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}
-        </span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim }}>{layers.length}</span>
+        {ativas > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={13} /> : <IcChevronDown size={13} />}</span>
       </button>
       {open && (
         <div
           onDragOver={onDragOver}
           onDrop={onDrop}
-          // Recuo mais trilho na cor do grupo: sem isso as linhas de camada,
-          // que também são caixas arredondadas, passam a leitura de que outros
-          // cards abriram abaixo em vez de conteúdo do card aberto.
           style={{
             display: 'flex', flexDirection: 'column', gap: 4,
             margin: '2px 0 10px 9px', paddingLeft: 11,
-            borderLeft: `2px solid ${grupo.color}44`,
+            borderLeft: `2px solid ${c.border}`,
           }}
         >
           {layers.map((layer) => {

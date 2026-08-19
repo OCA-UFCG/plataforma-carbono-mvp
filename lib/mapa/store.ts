@@ -10,9 +10,24 @@ import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
+import { isExclusiveSubtheme } from '@/config/mapa/groups'
 
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
+
+export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
+  const selected = layers.find((layer) => layer.id === id)
+  if (!selected) return layers
+
+  const exclusive = visible && isExclusiveSubtheme(selected.theme, selected.subtheme)
+  return layers.map((layer) => {
+    if (layer.id === id) return { ...layer, visible }
+    if (exclusive && layer.theme === selected.theme && layer.subtheme === selected.subtheme) {
+      return { ...layer, visible: false }
+    }
+    return layer
+  })
+}
 
 // Store shape
 
@@ -153,17 +168,13 @@ export const useStore = create<MapaStore>((set, get) => ({
     }
 
     set((s) => ({
-      layers: s.layers.map((l) =>
-        l.id === id ? { ...l, visible: !l.visible } : l
-      ),
+      layers: setLayerVisibility(s.layers, id, !layer?.visible),
     }))
   },
 
   showLayer: (id) =>
     set((s) => ({
-      layers: s.layers.map((l) =>
-        l.id === id && !l.visible ? { ...l, visible: true } : l,
-      ),
+      layers: setLayerVisibility(s.layers, id, true),
     })),
 
   setOpacity: (id, opacity) =>
@@ -293,14 +304,14 @@ export const useStore = create<MapaStore>((set, get) => ({
           },
           temporalDate:  { ...s.temporalDate, [id]: temporalDate },
           loadingLayers: omitKey(s.loadingLayers, id),
-          layers: s.layers.map((l) => (l.id === id ? { ...l, visible: true } : l)),
+          layers: setLayerVisibility(s.layers, id, true),
         }))
       } else {
         // Static: single cached URL
         set((s) => ({
           fetchedTileUrls: { ...s.fetchedTileUrls, [id]: tileUrl },
           loadingLayers:   omitKey(s.loadingLayers, id),
-          layers: s.layers.map((l) => (l.id === id ? { ...l, visible: true } : l)),
+          layers: setLayerVisibility(s.layers, id, true),
         }))
       }
     } catch (err) {

@@ -10,8 +10,9 @@ export interface VectorLayerConfig {
   id: string
   name: string
   type: 'vector'
-  /** Card do painel onde a camada aparece, definido em config/mapa/groups.ts. */
-  group?: string
+  /** Tema e subtema do painel, definidos em config/mapa/groups.ts. */
+  theme?: string
+  subtheme?: string
   url: string
   visible: boolean
   opacity: number          // 0-100
@@ -40,8 +41,9 @@ export interface RasterLayerConfig {
   id: string
   name: string
   type: 'raster'
-  /** Card do painel onde a camada aparece, definido em config/mapa/groups.ts. */
-  group?: string
+  /** Tema e subtema do painel, definidos em config/mapa/groups.ts. */
+  theme?: string
+  subtheme?: string
   // `url` is optional for dynamic sources (e.g. GEE) where the tile URL is
   // fetched on demand and cached in the store via `fetchedTileUrls[id]`.
   url?: string

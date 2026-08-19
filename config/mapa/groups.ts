@@ -1,72 +1,61 @@
-// Grupos do painel de camadas. A ordem do array é a ordem na tela, e segue a
-// mesma narrativa da landing: onde se está olhando, o que existe, o que ameaça.
-//
-// As cores não são escolha de paleta: são seis das doze cores medidas na série
-// NDFI 1985-2024 sobre a vegetação nativa, as mesmas que pintam o acento
-// sazonal da interface. Elas desenham um arco do verde de abril, o pico do
-// ano, ao terracota de outubro, o fundo seco, acompanhando o sentido dos
-// grupos. Quando entrarem as fotos de fundo, a cor por trás já será a certa.
+export interface SubthemeInfo {
+  id: string
+  label: string
+  /** Uma escolha substitui a camada anterior deste subtema. */
+  exclusive: boolean
+}
 
-export type GroupId =
-  | 'territorio'
-  | 'estoques'
-  | 'biomassa'
-  | 'produtividade'
-  | 'clima'
-  | 'pressoes'
-
-export interface GroupInfo {
-  id:    GroupId
+export interface ThemeInfo {
+  id: string
   label: string
   color: string
   image: string
-  /** Mês da rampa sazonal de onde a cor veio, para rastrear a escolha. */
-  origem: string
+  subthemes: SubthemeInfo[]
 }
 
-export const GROUPS: GroupInfo[] = [
+// A ordem desta estrutura define a navegação do painel. As camadas declaram
+// somente seus ids de tema e subtema em layers.json.
+export const THEMES: ThemeInfo[] = [
   {
-    id: 'territorio',
-    label: 'Recortes territoriais',
-    color: '#597636',
-    image: '/images/cards/recortes-territoriais.png',
-    origem: 'verde da marca',
+    id: 'territorio', label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',
+    subthemes: [
+      { id: 'limites', label: 'Limites de referência', exclusive: false },
+      { id: 'territorios', label: 'Territórios e assentamentos', exclusive: false },
+    ],
   },
   {
-    id: 'estoques',
-    label: 'Estoques de carbono',
-    color: '#4F791E',
-    image: '/images/cards/estoques-carbono.png',
-    origem: 'abril, pico verde',
+    id: 'carbono', label: 'Carbono', color: '#4F791E', image: '/images/cards/estoques-carbono.png',
+    subthemes: [
+      { id: 'estoques', label: 'Estoque total', exclusive: true },
+      { id: 'reservatorios', label: 'Reservatórios de carbono', exclusive: true },
+      { id: 'solo', label: 'Carbono do solo', exclusive: true },
+      { id: 'biomassa', label: 'Biomassa', exclusive: true },
+      { id: 'estrutura', label: 'Estrutura da vegetação', exclusive: true },
+      { id: 'gpp', label: 'Produtividade primária bruta (GPP)', exclusive: true },
+      { id: 'npp', label: 'Produtividade primária líquida (NPP)', exclusive: true },
+      { id: 'fluxos', label: 'Fluxos de carbono', exclusive: true },
+    ],
   },
   {
-    id: 'biomassa',
-    label: 'Biomassa e estrutura',
-    color: '#577B14',
-    image: '/images/cards/biomassa-estrutura.png',
-    origem: 'março',
+    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637', image: '/images/cards/pressoes-mudancas.png',
+    subthemes: [
+      { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
+      { id: 'fogo', label: 'Fogo', exclusive: true },
+    ],
   },
   {
-    id: 'produtividade',
-    label: 'Produtividade e fluxos',
-    color: '#778100',
-    image: '/images/cards/produtividade-fluxos.png',
-    origem: 'janeiro',
-  },
-  {
-    id: 'clima',
-    label: 'Clima e fenologia',
-    color: '#A78400',
-    image: '/images/cards/clima-fenologia.png',
-    origem: 'julho, transição',
-  },
-  {
-    id: 'pressoes',
-    label: 'Pressões e mudanças',
-    color: '#DD8637',
-    image: '/images/cards/pressoes-mudancas.png',
-    origem: 'outubro, fundo seco',
+    id: 'ambiente', label: 'Ambiente', color: '#A78400', image: '/images/cards/clima-fenologia.png',
+    subthemes: [
+      { id: 'vegetacao', label: 'Vegetação e fenologia', exclusive: true },
+      { id: 'clima', label: 'Clima', exclusive: true },
+    ],
   },
 ]
 
-export const GROUP_BY_ID = new Map(GROUPS.map((g) => [g.id, g]))
+export const SUBTHEME_BY_KEY = new Map(
+  THEMES.flatMap((theme) => theme.subthemes.map((subtheme) => [`${theme.id}:${subtheme.id}`, subtheme])),
+)
+
+export function isExclusiveSubtheme(theme?: string, subtheme?: string) {
+  return !!theme && !!subtheme && SUBTHEME_BY_KEY.get(`${theme}:${subtheme}`)?.exclusive
+}

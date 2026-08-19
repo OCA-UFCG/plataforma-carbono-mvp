@@ -17,7 +17,8 @@
       "opacity": 70,
       "color": "#5f7030",
       "hoverLabelField": "Bioma",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "limites"
     },
     {
       "id": "estados",
@@ -28,7 +29,8 @@
       "opacity": 80,
       "color": "#414141",
       "hoverLabelField": "abbrev_state",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "limites"
     },
     {
       "id": "municipios",
@@ -39,7 +41,8 @@
       "opacity": 80,
       "color": "#6b6a60",
       "hoverLabelField": "name_muni",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "limites"
     },
     {
       "id": "terras_indigenas",
@@ -50,7 +53,8 @@
       "opacity": 80,
       "color": "#a0522d",
       "hoverLabelField": "name_indigenous_land",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "territorios"
     },
     {
       "id": "quilombolas",
@@ -61,7 +65,8 @@
       "opacity": 80,
       "color": "#8c6d1f",
       "hoverLabelField": "name_quilombo",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "territorios"
     },
     {
       "id": "assentamentos",
@@ -72,7 +77,8 @@
       "opacity": 80,
       "color": "#ce8b44",
       "hoverLabelField": "nome_proje",
-      "group": "territorio"
+      "theme": "territorio",
+      "subtheme": "territorios"
     },
     {
       "id": "estoque_carbono",
@@ -134,7 +140,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "estoques"
     },
     {
       "id": "estoque_c_agb",
@@ -168,7 +175,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "reservatorios"
     },
     {
       "id": "estoque_c_bgb",
@@ -202,7 +210,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "reservatorios"
     },
     {
       "id": "estoque_c_dw",
@@ -236,7 +245,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "reservatorios"
     },
     {
       "id": "estoque_c_litter",
@@ -270,7 +280,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "reservatorios"
     },
     {
       "id": "estoque_c_solo",
@@ -304,7 +315,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "reservatorios"
     },
     {
       "id": "solo_carbono",
@@ -349,7 +361,8 @@
         80
       ],
       "unit": "t C/ha",
-      "group": "estoques"
+      "theme": "carbono",
+      "subtheme": "solo"
     },
     {
       "id": "biomassa_gedi",
@@ -384,7 +397,8 @@
         120
       ],
       "unit": "Mg/ha",
-      "group": "biomassa"
+      "theme": "carbono",
+      "subtheme": "biomassa"
     },
     {
       "id": "altura_dossel",
@@ -423,7 +437,8 @@
         15
       ],
       "unit": "m",
-      "group": "biomassa"
+      "theme": "carbono",
+      "subtheme": "estrutura"
     },
     {
       "id": "biomassa_esa_lenhosa",
@@ -481,7 +496,8 @@
         120
       ],
       "unit": "Mg/ha",
-      "group": "biomassa"
+      "theme": "carbono",
+      "subtheme": "biomassa"
     },
     {
       "id": "biomassa_esa_territorial",
@@ -540,7 +556,8 @@
         120
       ],
       "unit": "Mg/ha",
-      "group": "biomassa"
+      "theme": "carbono",
+      "subtheme": "biomassa"
     },
     {
       "id": "biomassa_spawn",
@@ -576,7 +593,8 @@
         100
       ],
       "unit": "Mg C/ha",
-      "group": "biomassa"
+      "theme": "carbono",
+      "subtheme": "biomassa"
     },
     {
       "id": "gpp_modis",
@@ -656,7 +674,8 @@
           "color": "#1a9850"
         }
       ],
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "gpp"
     },
     {
       "id": "npp_modis",
@@ -736,7 +755,8 @@
           "color": "#1a9850"
         }
       ],
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "npp"
     },
     {
       "id": "gpp_pml",
@@ -782,7 +802,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "g C/m²/ano",
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "gpp"
     },
     {
       "id": "gfw_netflux",
@@ -819,7 +840,8 @@
         300
       ],
       "unit": "Mg CO2e/ha",
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "fluxos"
     },
     {
       "id": "gfw_emissions",
@@ -854,7 +876,8 @@
         500
       ],
       "unit": "Mg CO2e/ha",
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "fluxos"
     },
     {
       "id": "gfw_removals",
@@ -889,7 +912,8 @@
         200
       ],
       "unit": "Mg CO2/ha",
-      "group": "produtividade"
+      "theme": "carbono",
+      "subtheme": "fluxos"
     },
     {
       "id": "ndvi_modis",
@@ -941,7 +965,8 @@
         0.8
       ],
       "unit": "NDVI",
-      "group": "clima"
+      "theme": "ambiente",
+      "subtheme": "vegetacao"
     },
     {
       "id": "evi_modis",
@@ -993,7 +1018,8 @@
         0.6
       ],
       "unit": "EVI",
-      "group": "clima"
+      "theme": "ambiente",
+      "subtheme": "vegetacao"
     },
     {
       "id": "chirps_precip",
@@ -1042,7 +1068,8 @@
         1400
       ],
       "unit": "mm/ano",
-      "group": "clima"
+      "theme": "ambiente",
+      "subtheme": "clima"
     },
     {
       "id": "lst_modis",
@@ -1092,7 +1119,8 @@
         40
       ],
       "unit": "°C",
-      "group": "clima"
+      "theme": "ambiente",
+      "subtheme": "clima"
     },
     {
       "id": "lulc_mapbiomas",
@@ -1352,7 +1380,8 @@
           "color": "#091077"
         }
       ],
-      "group": "pressoes"
+      "theme": "uso_solo",
+      "subtheme": "cobertura"
     },
     {
       "id": "fogo_frequencia",
@@ -1394,7 +1423,8 @@
         15
       ],
       "unit": "anos com fogo",
-      "group": "pressoes"
+      "theme": "uso_solo",
+      "subtheme": "fogo"
     }
   ]
 }
