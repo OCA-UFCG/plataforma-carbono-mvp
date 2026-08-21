@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Libre_Franklin } from 'next/font/google'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import { Analytics } from '@/components/Analytics'
 
 const libreFranklin = Libre_Franklin({
   subsets: ['latin'],
@@ -20,6 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={libreFranklin.variable}>
       <body style={{ margin: 0, minHeight: '100dvh', fontFamily: 'var(--font-app), sans-serif' }}>
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   )

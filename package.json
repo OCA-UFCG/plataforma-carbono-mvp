@@ -17,6 +17,7 @@
   "dependencies": {
     "@google/earthengine": "^1.7.21",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
+    "@next/third-parties": "^16.2.3",
     "@turf/area": "^7.3.4",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "firebase": "^12.17.0",

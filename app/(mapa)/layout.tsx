@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import '../mapa.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
+import { Analytics } from '@/components/Analytics'
 
 // Layout raiz do módulo de mapas e análises: tela cheia, sem o header/rodapé de
 // marketing. Como é um layout raiz irmão do de (marketing), o mapa.css (que zera
@@ -33,6 +34,7 @@ export default async function MapaLayout({
     <html lang="pt-BR" className={libreFranklin.variable}>
       <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100dvh' }}>
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
