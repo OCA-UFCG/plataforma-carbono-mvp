@@ -3,6 +3,7 @@ import { Raleway } from "next/font/google";
 import { redirect } from "next/navigation";
 import "../globals.css";
 import { getAuthenticatedSession } from "@/lib/auth";
+import { Analytics } from "@/components/Analytics";
 
 // Layout raiz das páginas de marketing. O módulo de mapas tem o seu próprio
 // layout raiz em app/(mapa)/, com outra fonte e outro CSS global, então nenhum
@@ -32,7 +33,10 @@ export default async function MarketingLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={raleway.variable}>{children}</body>
+      <body className={raleway.variable}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
