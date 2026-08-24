@@ -7,7 +7,7 @@ import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
 import Header from './Header'
 import Welcome from './Welcome'
-import { useStore } from '@/lib/mapa/store'
+import { useStore, camadasARestaurar } from '@/lib/mapa/store'
 import { buildTheme } from '@/config/mapa/platforms'
 import { resolveMonth } from '@/lib/phenology'
 import type { PlatformTheme } from '@/types/mapa'
@@ -47,6 +47,19 @@ export default function Mapa() {
   const [resultsCollapsed, setResultsCollapsed] = useState(false)
   // When the panel goes away entirely, reset collapse so it reopens expanded.
   useEffect(() => { if (!resultsVisible) setResultsCollapsed(false) }, [resultsVisible])
+
+  // Religa os rasters GEE que estavam ligados na sessão anterior. Eles voltam do
+  // localStorage apagados de propósito: o tile só é buscado por
+  // `activateDynamicLayer`, que também acende a camada ao concluir. Restaurá-los
+  // já visíveis os deixaria acesos no painel e ausentes do mapa.
+  useEffect(() => {
+    if (camadasARestaurar.length === 0) return
+    const { layers: atuais, activateDynamicLayer } = useStore.getState()
+    for (const id of camadasARestaurar) {
+      const camada = atuais.find((l) => l.id === id)
+      if (camada?.type === 'raster') void activateDynamicLayer(camada)
+    }
+  }, [])
 
   const resultsOpen = resultsVisible && !resultsCollapsed
 
