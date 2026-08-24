@@ -1,0 +1,180 @@
+import { describe, expect, it } from 'vitest'
+import { buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
+
+const base: AnalysisSnapshot = {
+  layerName: 'Carbono Orgânico do Solo (0-30 cm)',
+  analysisKind: 'Município',
+  analysisLabel: 'Petrolina',
+  drawnArea: null,
+  drawnLength: null,
+  pixelValue: null,
+  stats: null,
+  generatedAt: new Date('2026-08-24T15:00:00Z'),
+}
+
+describe('buildAnalysisCsv', () => {
+  it('writes continuous statistics as a labelled table in pt-BR numbers', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerUnit: 't C/ha',
+      stats: {
+        kind: 'continuous',
+        stats: { min: 1.5, max: 80, mean: 23.456789, median: 20, std: 4.25, count: 1200 },
+      },
+    })
+
+    expect(csv).toContain('estatistica;valor;unidade')
+    expect(csv).toContain('Média;23,4568;t C/ha')
+    expect(csv).toContain('Mínimo;1,5;t C/ha')
+    expect(csv).toContain('Contagem de pixels;1200;')
+  })
+
+  it('writes categorical areas in hectares with class labels and share', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerName: 'Uso e Cobertura (MapBiomas 2024)',
+      layerClasses: [
+        { value: 3, label: 'Formação Florestal', color: '#1f8d49' },
+        { value: 15, label: 'Pastagem', color: '#edde8e' },
+      ],
+      stats: { kind: 'categorical', areas: { '3': 750_000, '15': 250_000 } },
+    })
+
+    expect(csv).toContain('classe;area_ha;percentual')
+    expect(csv).toContain('Formação Florestal;75;75')
+    expect(csv).toContain('Pastagem;25;25')
+  })
+
+  it('buckets class codes missing from the layer config so the shares still sum to 100', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerClasses: [{ value: 3, label: 'Formação Florestal', color: '#1f8d49' }],
+      stats: { kind: 'categorical', areas: { '3': 500_000, '99': 500_000 } },
+    })
+
+    expect(csv).toContain('Não classificadas;50;50')
+  })
+
+  it('writes a time series as one row per year, keeping nodata blank', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerUnit: 'mm/ano',
+      stats: {
+        kind: 'timeseries',
+        series: [
+          { date: '2021-01-01', value: 688.4 },
+          { date: '2022-01-01', value: null },
+          { date: '2023-01-01', value: 712 },
+        ],
+      },
+    })
+
+    expect(csv).toContain('ano;valor;unidade')
+    expect(csv).toContain('2021;688,4;mm/ano')
+    expect(csv).toContain('2022;;mm/ano')
+  })
+
+  it('writes the stock report as a pool table followed by a phytophysiognomy table', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerName: 'Estoque de Carbono (Quarto Inventário Nacional)',
+      stats: {
+        kind: 'stocks',
+        report: {
+          totalTc: 2752237.6,
+          areaHa: 12480,
+          unit: 't C',
+          pools: [
+            { band: 'b1', label: 'Biomassa aérea', tc: 1840233.5 },
+            { band: 'b2', label: 'Biomassa subterrânea', tc: 912004.1 },
+          ],
+          classes: [
+            { codigo: 1, sigla: 'Ta', tc: 1204880.2, areaHa: 5490, porPool: {} },
+          ],
+        },
+      },
+    })
+
+    expect(csv).toContain('reservatorio;estoque;unidade')
+    expect(csv).toContain('Biomassa aérea;1840233,5;t C')
+    expect(csv).toContain('fitofisionomia;estoque;area_ha;unidade')
+    expect(csv).toContain('Ta;1204880,2;5490;t C')
+    expect(csv).toContain('Total;2752237,6;12480;t C')
+  })
+
+  it('heads the file with provenance metadata as comment lines', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      year: '2023',
+      stats: { kind: 'continuous', stats: { min: 0, max: 1, mean: 0.5, count: 10 } },
+    })
+
+    expect(csv).toContain('# Camada: Carbono Orgânico do Solo (0-30 cm)')
+    expect(csv).toContain('# Recorte: Município - Petrolina')
+    expect(csv).toContain('# Ano: 2023')
+    expect(csv).toContain('# Gerado em: 2026-08-24')
+    expect(csv).toContain('# Fonte: Estatística zonal, Google Earth Engine')
+  })
+
+  it('omits metadata lines that have no value instead of writing empty ones', () => {
+    const { csv } = buildAnalysisCsv({ ...base, analysisLabel: null, analysisKind: null })
+
+    expect(csv).not.toContain('# Recorte:')
+    expect(csv).not.toContain('# Ano:')
+  })
+
+  it('writes drawn measurements and the sampled pixel value as their own block', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerUnit: 't C/ha',
+      drawnArea: 12.48,
+      drawnLength: 3.2,
+      pixelValue: { value: 38.25, label: 'Formação Florestal' },
+    })
+
+    expect(csv).toContain('medida;valor;unidade')
+    expect(csv).toContain('Área analisada;12,48;km²')
+    expect(csv).toContain('Área analisada;1248;ha')
+    expect(csv).toContain('Comprimento;3,2;km')
+    expect(csv).toContain('Valor do pixel;38,25;t C/ha')
+    expect(csv).toContain('Classe do pixel;Formação Florestal;')
+  })
+
+  it('quotes values carrying the delimiter so the columns do not shift', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerClasses: [{ value: 3, label: 'Pastagem; plantada', color: '#000000' }],
+      stats: { kind: 'categorical', areas: { '3': 10_000 } },
+    })
+
+    expect(csv).toContain('"Pastagem; plantada";1;100')
+  })
+
+  it('starts with a UTF-8 BOM and separates rows with CRLF so Excel opens it clean', () => {
+    const { csv } = buildAnalysisCsv({ ...base })
+
+    expect(csv.startsWith('\ufeff')).toBe(true)
+    expect(csv).toContain('\r\n')
+    expect(csv).not.toMatch(/[^\r]\n/)
+  })
+
+  it('names the file after the layer, the cut and the date', () => {
+    const { filename } = buildAnalysisCsv({ ...base })
+
+    expect(filename).toBe(
+      'carbono-caatinga_carbono-organico-do-solo-0-30-cm_petrolina_2026-08-24.csv',
+    )
+  })
+
+  it('falls back to the cut kind when the feature has no name', () => {
+    const { filename } = buildAnalysisCsv({
+      ...base,
+      layerName: 'Estoque de Carbono',
+      analysisKind: 'Área desenhada',
+      analysisLabel: null,
+    })
+
+    expect(filename).toBe('carbono-caatinga_estoque-de-carbono_area-desenhada_2026-08-24.csv')
+  })
+})
+

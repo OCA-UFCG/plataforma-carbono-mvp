@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { IcX, IcBarChart } from './icons'
+import { IcX, IcBarChart, IcDownload } from './icons'
 import { useStore } from '@/lib/mapa/store'
-import type { PlatformTheme } from '@/types/mapa'
+import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
+import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -44,6 +45,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
   const analysisLabel = useStore((s) => s.analysisLabel)
   const analysisKind  = useStore((s) => s.analysisKind)
   const layers        = useStore((s) => s.layers)
+  const temporalDate  = useStore((s) => s.temporalDate)
 
   const c = theme.colors
 
@@ -56,7 +58,36 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     statsError !== null
 
   // Onboarding hint when a raster is active but nothing was analysed yet.
-  const activeRaster = layers.find((l) => l.type === 'raster' && l.visible)
+  const activeRaster = layers.find((l) => l.type === 'raster' && l.visible) as
+    | RasterLayerConfig
+    | undefined
+
+  // Baixar a análise. O CSV é montado inteiramente no cliente por
+  // `buildAnalysisCsv`, a partir do que o painel já tem em mãos.
+  const canDownload = hasContent && !statsLoading && statsError === null
+
+  function handleDownload() {
+    const { filename, csv } = buildAnalysisCsv({
+      layerName: activeRaster?.name ?? 'Análise',
+      layerUnit: activeRaster?.unit,
+      layerClasses: activeRaster?.classes,
+      year: activeRaster ? temporalDate[activeRaster.id]?.slice(0, 4) : undefined,
+      analysisKind,
+      analysisLabel,
+      drawnArea,
+      drawnLength,
+      pixelValue,
+      stats: rasterStats,
+      generatedAt: new Date(),
+    })
+
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
   const showEmptyHint = !hasContent && !!activeRaster
 
   // Below 768px the panel becomes a bottom drawer over the map.
@@ -264,10 +295,41 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         </div>
       )}
 
+      {/* Baixar a análise */}
+      {canDownload && (
+        <button
+          className="ui-press"
+          onClick={handleDownload}
+          title="Baixar esta análise em CSV"
+          style={{
+            // `auto` empurra o botão e o rodapé para a base do painel, papel que
+            // era do rodapé antes de existir algo abaixo do conteúdo rolável.
+            marginTop: 'auto',
+            width: '100%',
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 7,
+            background: c.accentBg,
+            border: `1px solid ${c.accentBd}`,
+            borderRadius: 10,
+            cursor: 'pointer',
+            color: c.accentInk,
+            fontFamily: 'var(--font-app), sans-serif',
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          <IcDownload size={14} />
+          Baixar CSV
+        </button>
+      )}
+
       {/* Provenance footer */}
       {hasContent && (
         <div style={{
-          marginTop: 'auto', paddingTop: 10, borderTop: `1px solid ${c.border}`,
+          marginTop: canDownload ? 10 : 'auto', paddingTop: 10, borderTop: `1px solid ${c.border}`,
           fontSize: 10, fontWeight: 600, color: c.caption, textAlign: 'center',
         }}>
           Estatística zonal, Google Earth Engine
