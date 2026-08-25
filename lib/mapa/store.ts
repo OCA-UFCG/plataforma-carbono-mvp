@@ -11,9 +11,25 @@ import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
 import { isExclusiveSubtheme } from '@/config/mapa/groups'
+import {
+  readPersisted,
+  writePersisted,
+  type PersistedView,
+} from '@/lib/mapa/persistState'
 
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
+
+// Estado da sessão anterior, conferido contra o layers.json de hoje. Lido uma
+// vez, na carga do módulo, para os valores iniciais do store abaixo.
+const restaurado = readPersisted(appConfig.layers as LayerConfig[])
+
+/**
+ * Rasters GEE que estavam ligados quando o usuário saiu. Eles voltam apagados:
+ * só `toggleLayer` busca o tile, então religá-los tem que passar por
+ * `activateDynamicLayer`, o que o Mapa faz na montagem.
+ */
+export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 
 export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
   const selected = layers.find((layer) => layer.id === id)
@@ -51,6 +67,10 @@ interface MapaStore {
   clearSignal: number
   basemapId: string
   darkMode: boolean
+  // Enquadramento e desenho corrente. Ficam no store para a persistência ter um
+  // ponto de leitura só; o MapView os consome na montagem e os alimenta depois.
+  view: PersistedView | null
+  drawing: GeoJSON.Feature | null
   // Mes que veste a interface ('auto' segue a data) + flag de welcome visto.
   month: MonthPref
   welcomeSeen: boolean
@@ -87,6 +107,8 @@ interface MapaStore {
   setAnalysisLabel: (v: string | null) => void
   setAnalysisKind:  (v: string | null) => void
   setBasemap:     (id: string) => void
+  setView:        (v: PersistedView) => void
+  setDrawing:     (f: GeoJSON.Feature | null) => void
   toggleDarkMode: () => void
   setMonth:       (m: MonthPref) => void
   setWelcomeSeen: (v: boolean) => void
@@ -101,7 +123,7 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json
-  layers: appConfig.layers as LayerConfig[],
+  layers: restaurado?.layers ?? (appConfig.layers as LayerConfig[]),
   drawMode: null,
   drawnArea: null,
   drawnLength: null,
@@ -112,7 +134,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   analysisLabel: null,
   analysisKind: null,
   clearSignal: 0,
-  basemapId: defaultBasemapId,
+  basemapId: restaurado?.basemapId ?? defaultBasemapId,
   // Modo escuro: hidrata do localStorage no cliente e, sem nenhuma marca
   // guardada, acompanha a preferencia do sistema operacional.
   // LEGADO: ate 2026-07 a chave era 'websig-dark-mode'. Ela ainda e lida uma
@@ -138,12 +160,15 @@ export const useStore = create<MapaStore>((set, get) => ({
   welcomeSeen: typeof window !== 'undefined'
     && window.localStorage?.getItem('cc_welcome_v1') === '1',
 
+  view:    restaurado?.view ?? null,
+  drawing: restaurado?.drawing ?? null,
+
   fetchedTileUrls:  {},
   loadingLayers:    {},
   layerErrors:      {},
   jenksBreaks:      {},
   temporalTileUrls: {},
-  temporalDate:     {},
+  temporalDate:     restaurado?.temporalDate ?? {},
   statsCache:       {},
   pixelCache:       {},
 
@@ -224,8 +249,11 @@ export const useStore = create<MapaStore>((set, get) => ({
     if (typeof window !== 'undefined') window.localStorage?.setItem('cc_welcome_v1', v ? '1' : '0')
     set({ welcomeSeen: v })
   },
+  setView:    (v) => set({ view: v }),
+  setDrawing: (f) => set({ drawing: f }),
   clearDrawings:  ()       =>
     set((s) => ({
+      drawing: null,
       drawnArea: null,
       drawnLength: null,
       drawMode: null,
@@ -396,3 +424,24 @@ function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
 
 // Export map config so MapView can read center/zoom/basemap
 export const mapConfig = appConfig.map
+
+// Persistência: um observador só, em vez de um setItem espalhado por
+// toggleLayer, setOpacity, reorderLayer, setBasemap e setTemporalDate. Cinco
+// pontos de escrita saem de sincronia; um observador não. O debounce evita
+// gravar a cada quadro enquanto o usuário arrasta o mapa ou a opacidade.
+if (typeof window !== 'undefined') {
+  let pendente: ReturnType<typeof setTimeout> | undefined
+
+  useStore.subscribe((s) => {
+    clearTimeout(pendente)
+    pendente = setTimeout(() => {
+      writePersisted({
+        layers: s.layers,
+        basemapId: s.basemapId,
+        temporalDate: s.temporalDate,
+        view: s.view,
+        drawing: s.drawing,
+      })
+    }, 400)
+  })
+}

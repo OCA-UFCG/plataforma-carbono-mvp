@@ -438,11 +438,14 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     const pmProtocol = new PMTilesProtocol()
     maplibregl.addProtocol('pmtiles', pmProtocol.tile)
 
+    // Enquadramento da sessão anterior, quando houver; senão, o centro do bioma.
+    const vistaSalva = useStore.getState().view
+
     const map = new maplibregl.Map({
       container:          containerRef.current,
       style:              EMPTY_STYLE,
-      center:             mapConfig.center as [number, number],
-      zoom:               mapConfig.zoom,
+      center:             vistaSalva?.center ?? (mapConfig.center as [number, number]),
+      zoom:               vistaSalva?.zoom ?? mapConfig.zoom,
       // Disable the default attribution so we can place it at bottom-left,
       // keeping the bottom-right corner clear for the FloatingLegend overlay.
       attributionControl: false,
@@ -467,6 +470,14 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     })
 
     mapRef.current = map
+
+    // Guarda o enquadramento. O store faz o debounce antes de tocar no
+    // localStorage, então um arrasto longo não vira uma gravação por quadro.
+    const guardarVista = () => {
+      const c = map.getCenter()
+      useStore.getState().setView({ center: [c.lng, c.lat], zoom: map.getZoom() })
+    }
+    map.on('moveend', guardarVista)
 
     // Zoom / geolocate / fullscreen / north are provided by the custom
     // MapControls cluster (glass pills, top-right, dynamic offset) so we skip
@@ -537,6 +548,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // A fresh draw invalidates any in-flight stats and any previously
         // selected feature (whose reactive recompute must not resurrect it).
         const seq = ++statsSeqRef.current
+        useStore.getState().setDrawing(feature)
         setDrawnArea(null)
         setDrawnLength(null)
         setRasterStats(null)
@@ -645,10 +657,25 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
 
       map.on('draw.create', handleDrawCommit)
       map.on('draw.update', handleDrawCommit)
+
+      // Desenho da sessão anterior. `draw.add` não emite `draw.create`, então o
+      // handler é chamado à mão: restaurar e desenhar percorrem o mesmo caminho,
+      // e a estatística é refeita no GEE em vez de voltar de um cache velho.
+      const desenhoSalvo = useStore.getState().drawing
+      if (desenhoSalvo) {
+        try {
+          draw.add(desenhoSalvo)
+          void handleDrawCommit({ features: [desenhoSalvo] })
+        } catch (err) {
+          console.error('[draw.restore] falha ao restaurar o desenho', err)
+          useStore.getState().setDrawing(null)
+        }
+      }
       map.on('draw.delete', () => {
         if (draw.getAll().features.length === 0) {
           // A deleted drawing must not be recomputed after a temporal change.
           statsSeqRef.current++
+          useStore.getState().setDrawing(null)
           selectedGeomRef.current = null
           prevStatsContextRef.current = null
           setDrawnArea(null)
