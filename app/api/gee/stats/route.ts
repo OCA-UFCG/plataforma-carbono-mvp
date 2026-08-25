@@ -34,9 +34,9 @@ interface ReqBody {
   // as the map colors and legend, instead of recomputing breaks per feature.
   breaks?:   number[]
   colorType?: 'categorical' | 'continuous'
-  // Id da camada. Quando ela declara `gee.stocks`, a resposta é o relatório de
-  // estoque em vez da estatística da banda visível. Só o id trafega: a
-  // configuração é resolvida no servidor.
+  // Layer id. When it declares `gee.stocks`, the response is the stock report
+  // instead of the statistics of the visible band. Only the id travels: the
+  // configuration is resolved on the server.
   layerId?:  string
 }
 
@@ -97,10 +97,10 @@ export async function POST(req: Request) {
     const region = ee.Geometry(geometry)
     const scale  = asset.scale ?? 500
 
-    // Relatório de estoque: a camada declara quais bandas são reservatórios e
-    // qual asset traz a fitofisionomia, e o resultado é o total decomposto nos
-    // dois eixos. Vem antes dos demais ramos porque substitui a estatística da
-    // banda visível, não a complementa.
+    // Stock report: the layer declares which bands are pools and which asset
+    // brings the phytophysiognomy, and the result is the total broken down along
+    // both axes. It comes before the other branches because it replaces the
+    // statistics of the visible band, it does not complement them.
     const stocks = body.layerId ? getStocks(body.layerId) : null
     if (stocks) {
       if (stocks.assetId !== asset.id || stocks.assetBand !== asset.band) {

@@ -1,7 +1,7 @@
-// Aquece o cache de tile do servidor: dispara um POST /api/gee/tile para cada
-// camada raster, populando o cache em memória (lib/tileCache.ts) para que o
-// primeiro usuário real já pegue os tiles prontos. Rode com o servidor no ar
-// (após `npm run start`). Uso: node scripts/prewarm.mjs [baseUrl]
+// Warms up the server tile cache: fires a POST /api/gee/tile for each raster
+// layer, populating the in-memory cache (lib/tileCache.ts) so the first real
+// user already gets the tiles ready. Run it with the server up (after `npm run
+// start`). Usage: node scripts/prewarm.mjs [baseUrl]
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

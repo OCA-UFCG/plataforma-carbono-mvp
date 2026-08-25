@@ -438,7 +438,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     const pmProtocol = new PMTilesProtocol()
     maplibregl.addProtocol('pmtiles', pmProtocol.tile)
 
-    // Enquadramento da sessão anterior, quando houver; senão, o centro do bioma.
+    // Viewport from the previous session, when there is one; otherwise the biome center.
     const vistaSalva = useStore.getState().view
 
     const map = new maplibregl.Map({
@@ -471,8 +471,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
 
     mapRef.current = map
 
-    // Guarda o enquadramento. O store faz o debounce antes de tocar no
-    // localStorage, então um arrasto longo não vira uma gravação por quadro.
+    // Stores the viewport. The store debounces before touching localStorage, so
+    // a long drag does not become one write per frame.
     const guardarVista = () => {
       const c = map.getCenter()
       useStore.getState().setView({ center: [c.lng, c.lat], zoom: map.getZoom() })
@@ -658,9 +658,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       map.on('draw.create', handleDrawCommit)
       map.on('draw.update', handleDrawCommit)
 
-      // Desenho da sessão anterior. `draw.add` não emite `draw.create`, então o
-      // handler é chamado à mão: restaurar e desenhar percorrem o mesmo caminho,
-      // e a estatística é refeita no GEE em vez de voltar de um cache velho.
+      // Drawing from the previous session. `draw.add` does not emit `draw.create`,
+      // so the handler is called by hand: restoring and drawing go down the same
+      // path, and the statistics are recomputed in GEE instead of coming back from
+      // a stale cache.
       const desenhoSalvo = useStore.getState().drawing
       if (desenhoSalvo) {
         try {
@@ -1088,7 +1089,7 @@ useEffect(() => {
   const map = mapRef.current
   if (!map || !mapReady) return
 
-  // 1. Adiciona camadas novas / atualiza visibilidade e opacidade.
+  // 1. Adds new layers / updates visibility and opacity.
   //    addLayerToMap returns false when a dynamic (GEE) layer's tile URL
   //    isn't cached yet, in that case we skip marking it as added so the
   //    next store update (after activateDynamicLayer resolves) retries.

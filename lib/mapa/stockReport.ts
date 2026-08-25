@@ -1,10 +1,10 @@
-// Relatório de estoque de carbono sobre uma geometria: total, decomposição por
-// reservatório e por fitofisionomia, numa chamada só ao Earth Engine.
+// Carbon stock report over a geometry: total, breakdown by pool and by
+// phytophysiognomy, in a single call to Earth Engine.
 //
-// A conta é sempre densidade vezes área do pixel. O `pixelArea()` devolve área
-// geodésica real no elipsoide, o que importa num bioma que se estende por 13
-// graus de latitude: assumir área constante superestimaria o total em cerca de
-// 0,7% (medido contra o inventário).
+// The math is always density times pixel area. `pixelArea()` returns the real
+// geodesic area on the ellipsoid, which matters in a biome that spans 13
+// degrees of latitude: assuming a constant area would overestimate the total by
+// about 0.7% (measured against the inventory).
 
 import { evaluate } from './geeEvaluate'
 
@@ -24,7 +24,7 @@ export interface LegendaClasse {
 
 interface GrupoBruto {
   classe: number
-  sum:    number[]   // um total por reservatório, na ordem de `pools`
+  sum:    number[]   // one total per pool, in the order of `pools`
 }
 
 export function summarizeStockGroups(
@@ -65,9 +65,9 @@ export function summarizeStockGroups(
 }
 
 /**
- * Cruza os reservatórios com a classe e devolve a tabela completa.
+ * Crosses the pools with the class and returns the complete table.
  *
- * `ee` e `geometry` são `any` porque @google/earthengine não traz tipos.
+ * `ee` and `geometry` are `any` because @google/earthengine ships no types.
  */
 export async function buildStockReport(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,13 +84,13 @@ export async function buildStockReport(
   const classe = ee.Image(cfg.classAsset).select(cfg.classBand)
   const haPorPixel = ee.Image.pixelArea().divide(1e4)
 
-  // Densidade (t C/ha) x área (ha) = estoque (t C) por pixel.
+  // Density (t C/ha) x area (ha) = stock (t C) per pixel.
   const tcPorPixel = stockImage.select(bands).multiply(haPorPixel)
 
-  // Uma passada só: soma cada reservatório e a área, agrupando pela classe.
-  // A área entra como banda extra para o relatório poder mostrar densidade por
-  // fitofisionomia sem uma segunda consulta.
-  // O nome não pode começar com sublinhado: o Earth Engine recusa.
+  // A single pass: sums each pool and the area, grouping by class.
+  // The area goes in as an extra band so the report can show density per
+  // phytophysiognomy without a second query.
+  // The name cannot start with an underscore: Earth Engine rejects it.
   const empilhado = tcPorPixel.addBands(haPorPixel.rename('areaHa')).addBands(classe)
   const nSomas = bands.length + 1
 

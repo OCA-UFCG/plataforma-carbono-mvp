@@ -1,9 +1,9 @@
-/* Estilos das páginas de marketing. Carregado só por app/(marketing)/layout.tsx;
- * o módulo de mapas em /mapa usa app/mapa.css, com outro reset e outros tokens.
- * Nada aqui vale lá, e vice-versa, porque os dois grupos de rotas têm layouts
- * raiz irmãos e o Next.js separa o CSS por rota. */
+/* Marketing pages styles. Loaded only by app/(marketing)/layout.tsx; the maps
+ * module at /mapa uses app/mapa.css, with a different reset and different
+ * tokens. Nothing here applies there, and vice versa, because the two route
+ * groups have sibling root layouts and Next.js splits the CSS per route. */
 
-/* Design tokens (handoff Claude Design, paleta do logo OCA) */
+/* Design tokens (Claude Design handoff, OCA logo palette) */
 :root {
   --verde: #5f7030;
   --verde-hover: #4e5d26;
@@ -27,7 +27,7 @@
   --font-fallback: "Raleway", system-ui, sans-serif;
 }
 
-/* Reset e base */
+/* Reset and base */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -42,7 +42,7 @@ body {
   background: var(--branco);
   color: var(--texto);
   font-family: var(--font-sans, var(--font-fallback));
-  /* Raleway usa algarismos old-style por padrão; lnum alinha os números */
+  /* Raleway uses old-style figures by default; lnum aligns the numerals */
   font-feature-settings: "lnum" 1;
   font-size: clamp(15px, 0.4vw + 14px, 16px);
   line-height: 1.75;
@@ -76,7 +76,7 @@ section {
   width: 100%;
 }
 
-/* Botões (pill) */
+/* Buttons (pill) */
 .btn {
   display: inline-block;
   font-family: var(--font-sans, var(--font-fallback));
@@ -193,7 +193,7 @@ section {
   color: var(--verde);
 }
 
-/* Botão hamburger do header (visível só em mobile/tablet). */
+/* Header hamburger button (visible on mobile/tablet only). */
 .header-hamburguer {
   display: none;
   width: 44px;
@@ -298,7 +298,7 @@ section {
   padding: 3px 8px;
 }
 
-/* Seções */
+/* Sections */
 .secao {
   padding: clamp(52px, 8vw, 76px) clamp(22px, 5vw, 48px);
 }
@@ -318,7 +318,7 @@ section {
   color: var(--titulo);
 }
 
-/* A Caatinga em imagens (galeria) */
+/* The Caatinga in pictures (gallery) */
 .caatinga {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -373,7 +373,7 @@ section {
   color: var(--texto-2);
 }
 
-/* Selo de crédito sobre fotos */
+/* Credit badge over photos */
 .foto-credito {
   position: absolute;
   bottom: 8px;
@@ -387,7 +387,7 @@ section {
   pointer-events: none;
 }
 
-/* Cinco frentes */
+/* Five fronts */
 .frentes {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -431,7 +431,7 @@ section {
   color: var(--texto-2);
 }
 
-/* Mapas e análises */
+/* Maps and analysis */
 .mapa-grid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -472,7 +472,7 @@ section {
   margin-top: 26px;
 }
 
-/* Comunicação (cartilhas) */
+/* Communication (booklets) */
 .comunicacao {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -600,7 +600,7 @@ section {
   color: var(--texto-2);
 }
 
-/* Formação (carrossel de fotos) */
+/* Training (photo carousel) */
 .formacao .intro {
   font-size: 15px;
   line-height: 1.75;
@@ -712,7 +712,7 @@ section {
   transform: scale(1.25);
 }
 
-/* Faixa CTA */
+/* CTA band */
 .faixa-cta {
   position: relative;
   background: var(--laranja);
@@ -762,7 +762,7 @@ section {
   outline-color: var(--branco);
 }
 
-/* Rodapé */
+/* Footer */
 .rodape {
   padding: 44px clamp(22px, 5vw, 48px) 40px;
 }
@@ -802,7 +802,7 @@ section {
   color: var(--texto-3);
 }
 
-/* O potencial do bioma, por dimensão */
+/* The biome potential, by dimension */
 .dim-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -845,7 +845,7 @@ section {
   color: var(--texto-3);
 }
 
-/* As ameaças */
+/* The threats */
 .ameacas {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -899,7 +899,7 @@ section {
   margin-top: 8px;
 }
 
-/* Projeção de cenário, destacada por ser projeção e não medição */
+/* Scenario projection, set apart because it is a projection, not a measurement */
 .projecao {
   margin-top: 34px;
   border: 1px dashed var(--borda-tracejada);
@@ -918,7 +918,7 @@ section {
   margin-top: 12px;
 }
 
-/* Sazonalidade: os cinco atos do estudo de paleta */
+/* Seasonality: the five acts of the palette study */
 .sazonalidade {
   background: var(--fundo-secao);
   border-top: 1px solid var(--borda);
@@ -1014,7 +1014,7 @@ section {
   }
 }
 
-/* 12 linhas de mês por 40 colunas de ano; auto-flow column preenche ano a ano */
+/* 12 month rows by 40 year columns; auto-flow column fills year by year */
 .matriz-grade {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -1054,8 +1054,8 @@ section {
   border-radius: 0.5px;
   opacity: 0;
   transform: scaleY(0.3);
-  /* a cor leva mais tempo que a entrada: é ela que faz a troca de paleta ler
-     como dissolução de um ato para o outro, e não como corte */
+  /* the color takes longer than the entrance: it is what makes the palette
+     change read as a dissolve from one act to the next, not as a cut */
   transition: background-color 1.6s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.5s ease, transform 0.5s ease;
 }
@@ -1105,7 +1105,7 @@ section {
   opacity: 1;
 }
 
-/* área que troca de conteúdo a cada ato, com altura estável */
+/* area whose content changes with each act, at a stable height */
 .ato-slot {
   position: relative;
   min-height: 116px;
@@ -1318,12 +1318,12 @@ section {
   }
 }
 
-/* Responsivo
+/* Responsive
  * Breakpoints:
- *  - <=1024px: tablets em retrato/landscape, colapsa grids de duas colunas
- *  - <=900px:  tablets pequenos e moveis grandes, header vira hamburguer
- *  - <=640px:  moveis, empilha tudo, ajusta tipografia final
- * Estilos fluidos (clamp, auto-fit) cuidam dos casos intermediarios. */
+ *  - <=1024px: tablets in portrait/landscape, collapses two-column grids
+ *  - <=900px:  small tablets and large phones, header becomes a hamburger
+ *  - <=640px:  phones, stacks everything, final typography tweaks
+ * Fluid styles (clamp, auto-fit) cover the in-between cases. */
 
 @media (max-width: 1024px) {
   .mapa-grid {
@@ -1331,12 +1331,12 @@ section {
     gap: 36px;
   }
 
-  /* Empilhado, a imagem vem depois do texto */
+  /* Stacked, the image comes after the text */
   .mapa-quadro {
     order: 2;
   }
 
-  /* De 2 para 1 coluna na lista de ameaças, para a coluna não espremer o texto */
+  /* From 2 to 1 column in the threats list, so the column does not squeeze the text */
   .ameaca-lista {
     grid-template-columns: 1fr;
   }
@@ -1355,7 +1355,7 @@ section {
     max-width: 360px;
   }
 
-  /* A trilha de atos deita acima do palco e rola na horizontal. */
+  /* The act track lies above the stage and scrolls horizontally. */
   .ato-palco {
     grid-template-columns: minmax(0, 1fr);
     gap: 22px;
@@ -1382,7 +1382,7 @@ section {
   }
 }
 
-/* Header: abaixo de 900px hamburguer substitui os links inline */
+/* Header: below 900px a hamburger replaces the inline links */
 @media (max-width: 900px) {
   .header {
     flex-wrap: wrap;
@@ -1396,8 +1396,8 @@ section {
     display: inline-flex;
   }
 
-  /* Painel de navegação sobreposto, aberto pelo botão hamburguer.
-     .header-painel--aberto é alternado pelo SiteHeader. */
+  /* Overlay navigation panel, opened by the hamburger button.
+     .header-painel--aberto is toggled by SiteHeader. */
   .header-painel {
     position: fixed;
     top: 67px;
@@ -1442,7 +1442,7 @@ section {
     align-self: flex-start;
   }
 
-  /* Em tablet estreito (600-900) a galeria usa 2 colunas */
+  /* On narrow tablets (600-900) the gallery uses 2 columns */
   .galeria {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1474,7 +1474,7 @@ section {
     text-align: center;
   }
 
-  /* Remove duplicação de paddings (já aplicados via clamp() no base). */
+  /* Removes duplicated padding (already applied via clamp() in the base). */
   .ameaca-item {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -1505,7 +1505,7 @@ section {
     text-align: center;
   }
 
-  /* Capas das cartilhas: 2 colunas em móveis estreitos */
+  /* Booklet covers: 2 columns on narrow phones */
   .cartilhas-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -1515,7 +1515,7 @@ section {
     max-width: 100%;
   }
 
-  /* Faixa CTA empilhada e centralizada em móveis */
+  /* CTA band stacked and centered on phones */
   .faixa-cta .container {
     flex-direction: column;
     align-items: flex-start;
@@ -1526,7 +1526,7 @@ section {
     max-width: 100%;
   }
 
-  /* Carrossel: setas menores e mais próximas da borda */
+  /* Carousel: smaller arrows, closer to the edge */
   .carrossel-btn {
     width: 36px;
     height: 36px;
@@ -1541,7 +1541,7 @@ section {
     right: 8px;
   }
 
-  /* Sazonalidade em mobile */
+  /* Seasonality on mobile */
   .ato-dizer h3 {
     font-size: clamp(20px, 5.5vw, 25px);
   }
@@ -1550,7 +1550,7 @@ section {
     padding: 22px 18px;
   }
 
-  /* Abaixo de 640px a matriz de quarenta anos fica ilegível; rola na horizontal. */
+  /* Below 640px the forty-year matrix becomes unreadable; scroll it horizontally. */
   .matriz-grade {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1561,7 +1561,7 @@ section {
     min-width: 520px;
   }
 
-  /* Rodapé centralizado */
+  /* Centered footer */
   .rodape-logos {
     justify-content: center;
     gap: 28px;
@@ -1576,7 +1576,7 @@ section {
   }
 }
 
-/* Em telas muito estreitas, esconde as setas e deixa os dots + swipe. */
+/* On very narrow screens, hide the arrows and leave the dots + swipe. */
 @media (max-width: 380px) {
   .carrossel-btn {
     display: none;

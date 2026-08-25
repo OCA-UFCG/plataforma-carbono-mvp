@@ -21,10 +21,10 @@ const ALLOWED: ReadonlySet<string> = (() => {
     if (!asset?.id) continue
     set.add(assetKey(asset.id, asset.band))
 
-    // Camada temporal por banda pede uma banda diferente a cada ano
-    // (`classification_1985` ... `classification_2024`). Sem expandir o
-    // intervalo aqui, navegar no tempo bateria em 403 na primeira parada que
-    // não fosse o ano configurado em `asset.band`.
+    // A per-band temporal layer asks for a different band each year
+    // (`classification_1985` ... `classification_2024`). Without expanding the
+    // range here, navigating in time would hit a 403 on the first stop that was
+    // not the year configured in `asset.band`.
     if (asset.bandPattern && gee?.temporal) {
       const [ini, fim] = gee.temporal.dateRange.map((d) => Number(d.slice(0, 4)))
       for (let ano = ini; ano <= fim; ano++) {

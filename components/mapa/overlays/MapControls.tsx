@@ -19,10 +19,10 @@ interface Props {
 }
 
 /**
- * Cluster de controles do mapa (topo-direita, empilhado, pills de vidro 38px),
- * conforme o handoff: grupo de zoom (+/−), grupo de visão (geolocalizar /
- * tela-cheia / norte), seletor de basemap, e o botão de desenho (lápis). A
- * posição `right` é dinâmica e transiciona com a abertura do painel Resultados.
+ * Map control cluster (top-right, stacked, 38px glass pills), as in the
+ * handoff: zoom group (+/-), view group (geolocate / fullscreen / north),
+ * basemap selector, and the drawing button (pencil). The `right` position is
+ * dynamic and transitions with the opening of the Results panel.
  */
 export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onToggleDraw }: Props) {
   const c = theme.colors

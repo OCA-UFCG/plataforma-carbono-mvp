@@ -139,8 +139,8 @@ export async function POST(req: Request) {
       ? JSON.stringify({
           id: asset.id, band: asset.band, scale: asset.scale,
           vmin: asset.validMin, vmax: asset.validMax,
-          // Sem isto as duas camadas do ESA CCI, que partem do mesmo asset e da
-          // mesma banda e diferem só pelo unmask, colidiriam no cache.
+          // Without this the two ESA CCI layers, which start from the same asset
+          // and the same band and differ only by the unmask, would collide in the cache.
           unmask: asset.unmaskValue,
           filterDate: asset.filterDate,
           bandPattern: asset.bandPattern,

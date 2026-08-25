@@ -62,8 +62,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     | RasterLayerConfig
     | undefined
 
-  // Baixar a análise. O CSV é montado inteiramente no cliente por
-  // `buildAnalysisCsv`, a partir do que o painel já tem em mãos.
+  // Download the analysis. The CSV is built entirely on the client by
+  // `buildAnalysisCsv`, from what the panel already has at hand.
   const canDownload = hasContent && !statsLoading && statsError === null
 
   function handleDownload() {
@@ -174,9 +174,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         zIndex: 10,
         ...(narrow
           ? { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0' }
-            // Vai até a borda inferior do mapa. Os controles e a legenda saem da
-            // frente sozinhos: `rightOffset` os desloca para a esquerda enquanto
-            // o painel está aberto.
+            // Goes down to the bottom edge of the map. The controls and the legend
+            // get out of the way on their own: `rightOffset` shifts them left while
+            // the panel is open.
           : { right: 16, top: 16, width: 368, maxHeight: 'calc(100% - 32px)', borderRadius: 16 }),
         background: c.glassBg,
         backdropFilter: 'blur(11px)',
@@ -186,8 +186,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'var(--font-app), sans-serif',
-        // O recorte fica no contêiner e a rolagem no corpo, para o cabeçalho e o
-        // nome da feição não saírem de vista ao rolar um resultado longo.
+        // The clipping lives in the container and the scrolling in the body, so the
+        // header and the feature name do not go out of sight when scrolling a long result.
         overflow: 'hidden',
         padding: '14px 14px',
       }}
@@ -302,8 +302,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           onClick={handleDownload}
           title="Baixar esta análise em CSV"
           style={{
-            // `auto` empurra o botão e o rodapé para a base do painel, papel que
-            // era do rodapé antes de existir algo abaixo do conteúdo rolável.
+            // `auto` pushes the button and the footer to the bottom of the panel, a role
+            // that belonged to the footer before there was anything below the scrollable content.
             marginTop: 'auto',
             width: '100%',
             height: 36,

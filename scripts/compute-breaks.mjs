@@ -1,7 +1,7 @@
-// Computa os breaks de Jenks sobre o bioma para cada camada classificada e
-// grava em config/webgis/layers.json (gee.classify.breaks). Rode uma vez, ou sempre
-// que mudar o dado ou o numClasses, para a rota de tile pular a amostragem ao
-// vivo ("Jenks offline"). Uso: npm run breaks  (ou: node scripts/compute-breaks.mjs)
+// Computes the Jenks breaks over the biome for each classified layer and writes
+// them into config/webgis/layers.json (gee.classify.breaks). Run it once, or
+// whenever the data or numClasses changes, so the tile route can skip live
+// sampling ("Jenks offline"). Usage: npm run breaks  (or: node scripts/compute-breaks.mjs)
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -13,7 +13,7 @@ const ee = require('@google/earthengine')
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 
-// Tolerância de simplificação do recorte (deve casar com a da rota de tile).
+// Simplification tolerance of the clip (must match the tile route's).
 const CLIP_SIMPLIFY_M = 500
 
 // --- .env.local (GOOGLE_APPLICATION_CREDENTIALS) ---
@@ -28,7 +28,7 @@ function loadEnv() {
 }
 loadEnv()
 
-// --- Jenks (cópia de lib/jenks.ts) ---
+// --- Jenks (copy of lib/jenks.ts) ---
 function jenksBreaks(data, numClasses) {
   const sorted = data.filter((v) => Number.isFinite(v)).sort((a, b) => a - b)
   const n = sorted.length
@@ -69,7 +69,7 @@ function jenksBreaks(data, numClasses) {
   return breaks
 }
 
-// --- buildEeImage (réplica de lib/geeImage.ts, ramo não-temporal) ---
+// --- buildEeImage (replica of lib/geeImage.ts, non-temporal branch) ---
 function buildEeImage(asset) {
   const hasRange = asset.validMin !== undefined || asset.validMax !== undefined
   const maskValid = (img) => {
@@ -97,7 +97,7 @@ function buildEeImage(asset) {
   return maskValid(img)
 }
 
-// --- bbox de um GeoJSON (walk recursivo) ---
+// --- bbox of a GeoJSON (recursive walk) ---
 function computeBbox(geojson) {
   let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity
   const visit = (c) => {

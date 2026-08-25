@@ -10,7 +10,7 @@ export interface VectorLayerConfig {
   id: string
   name: string
   type: 'vector'
-  /** Tema e subtema do painel, definidos em config/mapa/groups.ts. */
+  /** Panel theme and subtheme, defined in config/mapa/groups.ts. */
   theme?: string
   subtheme?: string
   url: string
@@ -41,7 +41,7 @@ export interface RasterLayerConfig {
   id: string
   name: string
   type: 'raster'
-  /** Tema e subtema do painel, definidos em config/mapa/groups.ts. */
+  /** Panel theme and subtheme, defined in config/mapa/groups.ts. */
   theme?: string
   subtheme?: string
   // `url` is optional for dynamic sources (e.g. GEE) where the tile URL is
@@ -78,10 +78,10 @@ export interface RasterLayerConfig {
       multiplier?:  number
       offset?:      number
       unmaskValue?: number
-      // Séries cujo ano está no nome da banda, não em datas de uma coleção
-      // (MapBiomas grava `classification_1985` a `classification_2024` numa
-      // imagem só). Com isto, a data escolhida seleciona a banda do ano em vez
-      // de filtrar a coleção, e vale também para asset do tipo `image`.
+      // Series whose year is in the band name, not in the dates of a collection
+      // (MapBiomas writes `classification_1985` to `classification_2024` in a
+      // single image). With this, the chosen date selects the year's band instead
+      // of filtering the collection, and it also holds for `image` assets.
       bandPattern?: string          // "classification_{ano}"
     }
     visParams?: {
@@ -97,23 +97,23 @@ export interface RasterLayerConfig {
       // Regenerate with `npm run breaks` after changing the data or numClasses.
       breaks?:    number[]
     }
-    // Presença deste bloco é o que torna a camada navegável no tempo. O passo é
-    // sempre anual: a camada num dado ano é o mesmo cálculo que a versão
-    // estática faz, só com o ano variando.
+    // The presence of this block is what makes the layer time-navigable. The
+    // step is always yearly: the layer in a given year is the same computation
+    // the static version does, only with the year varying.
     temporal?: {
-      dateRange: [string, string]   // ["1985-01-01", "2024-01-01"], sempre 1 de janeiro
-      dates?:    string[]           // paradas explícitas, para séries com lacuna (ESA CCI)
+      dateRange: [string, string]   // ["1985-01-01", "2024-01-01"], always January 1st
+      dates?:    string[]           // explicit stops, for series with gaps (ESA CCI)
     }
-    // Presença deste bloco troca a estatística zonal comum pelo relatório de
-    // estoque: em vez da média da banda visível, o servidor devolve o total em
-    // tC decomposto por reservatório e por fitofisionomia. A camada exibida é
-    // a soma dos reservatórios; as demais bandas só entram na decomposição.
+    // The presence of this block swaps the ordinary zonal statistics for the
+    // stock report: instead of the mean of the visible band, the server returns
+    // the total in tC broken down by pool and by phytophysiognomy. The displayed
+    // layer is the sum of the pools; the other bands only feed the breakdown.
     stocks?: {
-      pools:      { band: string; label: string }[]  // bandas somadas, na ordem de exibição
-      classAsset: string        // asset de código de classe, alinhado ao de estoque
+      pools:      { band: string; label: string }[]  // summed bands, in display order
+      classAsset: string        // class code asset, aligned with the stock one
       classBand:  string
-      legend:     string        // arquivo de legenda em config/mapa/
-      unit:       string        // unidade do total, ex.: "t C"
+      legend:     string        // legend file in config/mapa/
+      unit:       string        // unit of the total, e.g. "t C"
     }
   }
 }
@@ -163,14 +163,14 @@ export interface TimeSeriesPoint {
   value: number | null  // null = nodata
 }
 
-/** Total de um reservatório de carbono sobre a geometria consultada. */
+/** Total of a carbon pool over the queried geometry. */
 export interface StockPool {
   band:  string
   label: string
   tc:    number
 }
 
-/** Total de uma fitofisionomia, decomposto pelos mesmos reservatórios. */
+/** Total of a phytophysiognomy, broken down by the same pools. */
 export interface StockClass {
   codigo: number
   sigla:  string
@@ -184,7 +184,7 @@ export interface StockReport {
   areaHa:   number
   unit:     string
   pools:    StockPool[]
-  classes:  StockClass[]   // ordenadas por estoque decrescente
+  classes:  StockClass[]   // sorted by decreasing stock
 }
 
 export type RasterStatsResult =

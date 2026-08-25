@@ -1,7 +1,7 @@
-// Arredonda as coordenadas dos GeoJSON de recorte para 5 casas decimais.
-// 5 casas valem ~1,1 m no equador, abaixo de um pixel em qualquer zoom que o
-// mapa alcanca, entao o traco na tela nao muda; o que cai e o peso do arquivo.
-// Nao simplifica geometria: nenhum vertice e removido. Uso: npm run trim
+// Rounds the coordinates of the clip GeoJSONs to 5 decimal places.
+// 5 places are worth ~1.1 m at the equator, below a pixel at any zoom the map
+// reaches, so the stroke on screen does not change; what drops is the file size.
+// It does not simplify geometry: no vertex is removed. Usage: npm run trim
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -11,17 +11,17 @@ const DECIMALS = 5
 
 const round = (n) => Math.round(n * 10 ** DECIMALS) / 10 ** DECIMALS
 
-// As coordenadas sao arrays aninhados de profundidade variavel conforme o tipo
-// de geometria (Point ate MultiPolygon), entao a recursao trata todos de uma vez.
+// Coordinates are nested arrays of varying depth depending on the geometry type
+// (Point up to MultiPolygon), so the recursion handles them all at once.
 function trimCoords(coords) {
   return typeof coords[0] === 'number'
     ? coords.map(round)
     : coords.map(trimCoords)
 }
 
-// GeometryCollection guarda `geometries` no lugar de `coordinates`, e o recorte
-// simplificado do bioma usa justamente esse tipo. Sem este ramo o arquivo passa
-// batido sem aviso.
+// GeometryCollection stores `geometries` instead of `coordinates`, and the
+// simplified clip of the biome uses exactly that type. Without this branch the
+// file would go through unnoticed.
 function trimGeometry(g) {
   if (!g) return
   if (g.type === 'GeometryCollection') g.geometries?.forEach(trimGeometry)

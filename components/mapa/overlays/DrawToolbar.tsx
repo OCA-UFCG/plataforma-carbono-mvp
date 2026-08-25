@@ -27,9 +27,9 @@ const HINT: Record<string, string> = {
 }
 
 /**
- * Toolbar de desenho horizontal (pill de vidro), ancorada à borda do painel
- * Temas (`left = leftEdge + 12`). Abre ao clicar no lápis do cluster de
- * controles. Ferramentas em texto (Polígono/Retângulo/Linha/Ponto) + Limpar.
+ * Horizontal drawing toolbar (glass pill), anchored to the edge of the Temas
+ * panel (`left = leftEdge + 12`). Opens on clicking the pencil in the control
+ * cluster. Tools as text (Polígono/Retângulo/Linha/Ponto) + Limpar.
  */
 export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
   const drawMode      = useStore((s) => s.drawMode)

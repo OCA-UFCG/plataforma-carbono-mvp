@@ -2,7 +2,7 @@ import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 import { defaultBasemapId, basemaps } from '@/config/mapa/basemaps'
 import { paradas } from '@/lib/mapa/temporal'
 
-/** Chave e versão do estado guardado. Payload de outra versão é descartado. */
+/** Key and version of the stored state. A payload from another version is discarded. */
 export const PERSIST_KEY = 'cc_mapa_v1'
 export const PERSIST_VERSION = 1
 
@@ -36,7 +36,7 @@ export interface LiveState {
 
 export interface RestoredState {
   layers: LayerConfig[]
-  /** Rasters GEE que estavam ligados, a religar por `activateDynamicLayer`. */
+  /** GEE rasters that were on, to be turned back on by `activateDynamicLayer`. */
   activateLayerIds: string[]
   basemapId: string
   temporalDate: Record<string, string>
@@ -61,9 +61,9 @@ function clampOpacity(v: unknown, fallback: number): number {
 }
 
 /**
- * Aplica visibilidade, opacidade e ordem guardadas sobre a configuração atual.
- * A ordem guardada manda, e camadas acrescentadas ao `layers.json` depois do
- * último acesso entram no fim, em vez de sumirem do painel.
+ * Applies the stored visibility, opacity and order on top of the current
+ * configuration. The stored order wins, and layers added to `layers.json`
+ * after the last visit go to the end instead of disappearing from the panel.
  */
 function restoreLayers(stored: unknown[], config: LayerConfig[]): LayerConfig[] {
   const porId = new Map(config.map((l) => [l.id, l]))
@@ -72,7 +72,7 @@ function restoreLayers(stored: unknown[], config: LayerConfig[]): LayerConfig[] 
   for (const entry of stored) {
     if (!isRecord(entry) || typeof entry.id !== 'string') continue
     const base = porId.get(entry.id)
-    if (!base) continue          // camada saiu do layers.json entre deploys
+    if (!base) continue          // layer left layers.json between deploys
     porId.delete(entry.id)
     out.push({
       ...base,
@@ -99,8 +99,8 @@ function restoreView(stored: unknown): PersistedView | null {
   return { center: [lon, lat], zoom }
 }
 
-// Confere só o formato. A geometria em si volta pelo mesmo handler que trata um
-// desenho novo, que já lida com polígono, linha e ponto.
+// Checks the shape only. The geometry itself comes back through the same handler
+// that handles a fresh drawing, which already deals with polygon, line and point.
 function restoreDrawing(stored: unknown): GeoJSON.Feature | null {
   if (!isRecord(stored)) return null
   if (stored.type !== 'Feature') return null
@@ -113,8 +113,9 @@ function isGeeRaster(l: LayerConfig): l is RasterLayerConfig {
 }
 
 /**
- * Conserva apenas anos que são parada real da camada. Um ano fora da série
- * pediria ao GEE um tile vazio, e a régua abriria numa posição inexistente.
+ * Keeps only years that are a real stop of the layer. A year outside the series
+ * would ask GEE for an empty tile, and the slider would open at a position that
+ * does not exist.
  */
 function restoreTemporalDate(
   stored: unknown,
@@ -139,9 +140,10 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * Traduz o payload guardado para um estado aplicável, conferindo tudo contra a
- * configuração atual. `layers.json` muda entre deploys, então nada que venha do
- * localStorage é aceito sem confronto com o que existe hoje.
+ * Translates the stored payload into an applicable state, checking everything
+ * against the current configuration. `layers.json` changes between deploys, so
+ * nothing coming from localStorage is accepted without being confronted with
+ * what exists today.
  */
 export function sanitizePersisted(raw: unknown, config: LayerConfig[]): RestoredState | null {
   if (!isRecord(raw)) return null
@@ -155,8 +157,9 @@ export function sanitizePersisted(raw: unknown, config: LayerConfig[]): Restored
 
   const layers = restoreLayers(raw.layers, config)
 
-  // Um raster GEE ligado precisa passar por `activateDynamicLayer` para ganhar
-  // tile; restaurá-lo já visível o deixaria aceso no painel e ausente do mapa.
+  // A GEE raster that is on has to go through `activateDynamicLayer` to get a
+  // tile; restoring it already visible would leave it lit in the panel and
+  // absent from the map.
   const activateLayerIds = layers.filter((l) => l.visible && isGeeRaster(l)).map((l) => l.id)
   const paraAtivar = new Set(activateLayerIds)
 
@@ -170,8 +173,8 @@ export function sanitizePersisted(raw: unknown, config: LayerConfig[]): Restored
   }
 }
 
-// Fronteira com o localStorage. Fica isolada aqui para o resto do módulo, que
-// é onde mora a lógica, continuar puro e verificável em teste.
+// Boundary with localStorage. It is isolated here so the rest of the module,
+// which is where the logic lives, stays pure and testable.
 
 export function readPersisted(config: LayerConfig[]): RestoredState | null {
   if (typeof window === 'undefined') return null
@@ -179,8 +182,8 @@ export function readPersisted(config: LayerConfig[]): RestoredState | null {
     const raw = window.localStorage?.getItem(PERSIST_KEY)
     return raw ? sanitizePersisted(JSON.parse(raw), config) : null
   } catch {
-    // JSON corrompido, ou localStorage bloqueado pelo navegador: abrir na
-    // configuração padrão é melhor do que quebrar o módulo.
+    // Corrupted JSON, or localStorage blocked by the browser: opening with the
+    // default configuration is better than breaking the module.
     return null
   }
 }
@@ -190,6 +193,6 @@ export function writePersisted(live: LiveState): void {
   try {
     window.localStorage?.setItem(PERSIST_KEY, JSON.stringify(buildPersisted(live)))
   } catch {
-    // Cota estourada ou modo privativo: perder a continuidade é aceitável.
+    // Quota exceeded or private mode: losing the continuity is acceptable.
   }
 }

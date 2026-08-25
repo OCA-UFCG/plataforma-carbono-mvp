@@ -1,6 +1,6 @@
-// Metadados de UI por camada (descrição de uma linha + rótulo de fonte + tipo),
-// consumidos pelo painel de temas (chips) e pela ficha da camada (ⓘ).
-// Separado de layers.json (dados/GEE) para não misturar apresentação com config.
+// Per-layer UI metadata (one-line description + source label + type), consumed
+// by the themes panel (chips) and by the layer info card (ⓘ). Kept separate
+// from layers.json (data/GEE) so presentation is not mixed with config.
 
 export type LayerKind = 'Raster contínuo' | 'Raster categórico' | 'Vetorial'
 
@@ -18,10 +18,10 @@ export const LAYER_META: Record<string, LayerMeta> = {
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
 
-  // Única camada cujo clique abre relatório, e não estatística da banda: o
-  // total exibido se decompõe em cinco reservatórios e em fitofisionomia.
+  // The only layer whose click opens a report, not the band statistics: the
+  // displayed total breaks down into five pools and into phytophysiognomy.
   estoque_carbono:  { description: 'estoque de carbono dos cinco reservatórios, decomposto por reservatório e por fitofisionomia ao clicar numa área', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
-  // Os cinco reservatórios que somam a camada acima, cada um em banda própria.
+  // The five pools that add up to the layer above, each one in its own band.
   estoque_c_agb:    { description: 'carbono na biomassa acima do solo',  source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_bgb:    { description: 'carbono na biomassa abaixo do solo, raízes', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_dw:     { description: 'carbono na madeira morta',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
@@ -30,15 +30,16 @@ export const LAYER_META: Record<string, LayerMeta> = {
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },
-  // Segunda estimativa de GPP, para medir a divergência entre bases. Sai
-  // contínua e anual de propósito: a versão classificada do MOD17 devolve
-  // percentual por classe na estatística zonal, e não um valor comparável.
+  // A second GPP estimate, to measure the divergence between sources. It comes
+  // out continuous and yearly on purpose: the classified version of MOD17
+  // returns a percentage per class in the zonal statistics, not a comparable value.
   gpp_pml:          { description: 'produtividade primária bruta anual, estimativa independente da do MODIS', source: 'PML-V2 v018, 500 m', kind: 'Raster contínuo' },
   biomassa_gedi:    { description: 'biomassa aérea',                 source: 'GEDI L4B, 1 km',      kind: 'Raster contínuo' },
   biomassa_spawn:   { description: 'carbono da biomassa aérea',      source: 'Spawn & Gibbs, 300 m', kind: 'Raster contínuo' },
-  // O par abaixo sai do mesmo asset e difere só no tratamento dos pixels sem
-  // lenhosa. Sobre a Caatinga a diferença é grande (média de 40,9 contra
-  // 26,5 Mg/ha em 2022), então as duas leituras aparecem separadas no painel.
+  // The pair below comes from the same asset and differs only in how pixels
+  // without woody cover are handled. Over the Caatinga the difference is large
+  // (mean of 40.9 against 26.5 Mg/ha in 2022), so the two readings appear
+  // separately in the panel.
   biomassa_esa_lenhosa:     { description: 'biomassa aérea medida apenas onde há vegetação lenhosa, com solo exposto e estrato herbáceo fora da conta', source: 'ESA CCI Biomass v6, 100 m', kind: 'Raster contínuo' },
   biomassa_esa_territorial: { description: 'a mesma biomassa distribuída por todo o território, contando como zero o que não é lenhoso', source: 'ESA CCI Biomass v6, 100 m', kind: 'Raster contínuo' },
   altura_dossel:    { description: 'altura da vegetação acima do solo, estimada por rede neural sobre imagem aérea', source: 'Meta e WRI, 1 m', kind: 'Raster contínuo' },

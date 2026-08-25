@@ -17,7 +17,7 @@ export default function Mapa() {
   const monthPref   = useStore((s) => s.month)
   const welcomeSeen = useStore((s) => s.welcomeSeen)
 
-  // Mes efetivo -> acento; darkMode -> neutros.
+  // Effective month -> accent; darkMode -> neutrals.
   const month = resolveMonth(monthPref)
   const theme = buildTheme(month, darkMode)
 
@@ -48,10 +48,10 @@ export default function Mapa() {
   // When the panel goes away entirely, reset collapse so it reopens expanded.
   useEffect(() => { if (!resultsVisible) setResultsCollapsed(false) }, [resultsVisible])
 
-  // Religa os rasters GEE que estavam ligados na sessão anterior. Eles voltam do
-  // localStorage apagados de propósito: o tile só é buscado por
-  // `activateDynamicLayer`, que também acende a camada ao concluir. Restaurá-los
-  // já visíveis os deixaria acesos no painel e ausentes do mapa.
+  // Turns back on the GEE rasters that were on in the previous session. They come
+  // back from localStorage off on purpose: the tile is only fetched by
+  // `activateDynamicLayer`, which also lights the layer up when it finishes.
+  // Restoring them already visible would leave them lit in the panel and absent from the map.
   useEffect(() => {
     if (camadasARestaurar.length === 0) return
     const { layers: atuais, activateDynamicLayer } = useStore.getState()
@@ -94,9 +94,10 @@ export default function Mapa() {
         position: 'relative',
         background: theme.colors.bg,
         transition: 'background .4s',
-        // As vars do acento saem daqui, e nao de blocos [data-month] no CSS:
-        // sao doze meses em dois modos, e o conjunto ja vem calculado no tema.
-        // Quem le var(--acc) (accent-color dos sliders, por exemplo) acompanha.
+        // The accent vars come from here, and not from [data-month] blocks in the
+        // CSS: there are twelve months in two modes, and the set already comes
+        // computed in the theme. Whoever reads var(--acc) (the sliders'
+        // accent-color, for example) follows along.
         ['--acc' as string]: theme.colors.accent,
         ['--accBg' as string]: theme.colors.accentBg,
         ['--accInk' as string]: theme.colors.accentInk,

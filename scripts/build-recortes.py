@@ -1,5 +1,5 @@
-# Baixa recortes territoriais (IBGE/FUNAI/INCRA via geobr), recorta ao bioma
-# Caatinga, simplifica e grava GeoJSON em public/data/vector. Uso: python scripts/build-recortes.py
+# Downloads territorial cuts (IBGE/FUNAI/INCRA via geobr), clips them to the
+# Caatinga biome, simplifies and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
 import os, json
 import geopandas as gpd
 import geobr
@@ -23,7 +23,7 @@ def pick_label(gdf, candidates):
 
 def process(name, gdf, label_candidates, tol):
     gdf = gdf.to_crs(4326)
-    # clip poligonal ao bioma
+    # polygonal clip to the biome
     clipped = gpd.clip(gdf, bioma_geom)
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
     label = pick_label(clipped, label_candidates)
@@ -32,7 +32,7 @@ def process(name, gdf, label_candidates, tol):
     clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
     path = os.path.join(OUT, name + ".geojson")
     clipped.to_file(path, driver="GeoJSON")
-    # reduz precisao de coordenadas reescrevendo compacto
+    # reduces coordinate precision by rewriting it compactly
     d = json.load(open(path, encoding="utf-8"))
     def rnd(x): return [rnd(v) for v in x] if isinstance(x, list) else round(x, 5)
     for f in d["features"]:

@@ -1,5 +1,5 @@
-// Paradas de uma camada navegável no tempo. Uma fonte só para o store, que
-// escolhe o ano de abertura, e para o controle de data, que desenha a régua.
+// Stops of a time-navigable layer. A single source for the store, which picks
+// the opening year, and for the date control, which draws the slider.
 
 export interface TemporalConfig {
   dateRange: [string, string]
@@ -7,8 +7,8 @@ export interface TemporalConfig {
 }
 
 /**
- * Anos disponíveis, em ordem crescente, como datas ISO de 1 de janeiro.
- * Séries com lacuna declaram `dates`; as demais preenchem o intervalo.
+ * Available years, in ascending order, as ISO dates of January 1st.
+ * Series with gaps declare `dates`; the rest fill the interval.
  */
 export function paradas(temporal: TemporalConfig): string[] {
   if (temporal.dates?.length) return [...temporal.dates].sort()
@@ -19,15 +19,15 @@ export function paradas(temporal: TemporalConfig): string[] {
 }
 
 /**
- * Ano em que a camada abre. É o mais recente, e não o primeiro, para que ligar
- * uma camada mostre o mesmo retrato que ela mostrava antes de ganhar o tempo.
+ * Year the layer opens on. It is the most recent one, not the first, so that
+ * turning a layer on shows the same picture it showed before it gained time.
  */
 export function paradaInicial(temporal: TemporalConfig): string | undefined {
   const lista = paradas(temporal)
   return lista[lista.length - 1]
 }
 
-/** Rótulo de uma parada. */
+/** Label of a stop. */
 export function ano(parada: string): string {
   return parada.slice(0, 4)
 }

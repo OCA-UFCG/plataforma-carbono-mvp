@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
-// Aplicação única: páginas de marketing (estáticas) e o módulo de mapas em /mapa,
-// que depende das rotas /api/gee/* rodando no servidor. Por causa delas o app
-// não pode usar output:'export'; o deploy precisa de um processo Node, seja a
-// imagem Docker deste repositório, seja um Web Service no Render.
+// Single application: marketing pages (static) and the maps module at /mapa,
+// which depends on the /api/gee/* routes running on the server. Because of them
+// the app cannot use output:'export'; the deploy needs a Node process, either
+// the Docker image of this repository or a Web Service on Render.
 const nextConfig: NextConfig = {
-  // Produz um servidor autocontido em .next/standalone para a imagem Docker.
+  // Produces a self-contained server in .next/standalone for the Docker image.
   output: "standalone",
 
   // Keep @google/earthengine out of the server bundle. It's a CommonJS package

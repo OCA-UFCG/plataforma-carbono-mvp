@@ -5,9 +5,9 @@ import "../globals.css";
 import { getAuthenticatedSession } from "@/lib/auth";
 import { Analytics } from "@/components/Analytics";
 
-// Layout raiz das páginas de marketing. O módulo de mapas tem o seu próprio
-// layout raiz em app/(mapa)/, com outra fonte e outro CSS global, então nenhum
-// dos dois carrega o estilo do outro.
+// Root layout of the marketing pages. The maps module has its own root layout
+// in app/(mapa)/, with a different font and a different global CSS, so neither
+// of the two loads the other's style.
 const raleway = Raleway({
   subsets: ["latin"],
   weight: ["300", "400", "600"],
