@@ -1,8 +1,8 @@
-// Gera versões grosseiras (poucos vértices) das bordas usadas como recorte
-// (clipToLayerId). O getMap do GEE paga ~50s processando a borda detalhada do
-// bioma (~105 mil vértices); com a borda simplificada offline cai para ~2s, e
-// no zoom do bioma o resultado é visualmente idêntico. Grava `<nome>_clip.geojson`
-// ao lado do original. Uso: npm run clip  (ou: node scripts/simplify-clip.mjs [tolerancia_m])
+// Generates coarse versions (few vertices) of the boundaries used as clips
+// (clipToLayerId). GEE's getMap spends ~50s processing the detailed boundary of
+// the biome (~105 thousand vertices); with the boundary simplified offline it
+// drops to ~2s, and at biome zoom the result is visually identical. Writes
+// `<name>_clip.geojson` next to the original. Usage: npm run clip  (or: node scripts/simplify-clip.mjs [tolerance_m])
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

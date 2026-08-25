@@ -9,13 +9,14 @@ interface Props {
   theme: PlatformTheme
 }
 
-/** Espera antes de buscar o tile enquanto a alça está sendo arrastada. */
+/** Wait before fetching the tile while the handle is being dragged. */
 const ESPERA_MS = 400
 
 /**
- * Régua de anos das camadas navegáveis no tempo. Aparece sozinha quando há uma
- * camada temporal visível e some quando não há. Fica acima da barra de desenho
- * e das coordenadas, que também ocupam o centro inferior do mapa.
+ * Year slider of the time-navigable layers. It shows up on its own when there
+ * is a visible temporal layer and disappears when there is none. It sits above
+ * the drawing toolbar and the coordinates, which also occupy the bottom center
+ * of the map.
  */
 export default function TemporalSlider({ theme }: Props) {
   const layers         = useStore((s) => s.layers)
@@ -24,21 +25,21 @@ export default function TemporalSlider({ theme }: Props) {
   const loadingLayers  = useStore((s) => s.loadingLayers)
   const c = theme.colors
 
-  // Primeira camada temporal visível, na ordem em que o painel as lista.
+  // First visible temporal layer, in the order the panel lists them.
   const camada = layers.find(
     (l): l is RasterLayerConfig =>
       l.type === 'raster' && l.visible && !!l.gee?.temporal,
   )
   const temporal = camada?.gee?.temporal
-  // Sem o memo, a lista nova a cada render desestabiliza o commit debounced.
+  // Without the memo, the new list on every render destabilizes the debounced commit.
   const anos = useMemo(() => (temporal ? paradas(temporal) : []), [temporal])
   const atual = camada ? temporalDate[camada.id] : undefined
-  // Enquanto a camada ainda não gravou a data, a régua acompanha o ano em que
-  // o store abre, que é o último, e não o primeiro.
+  // While the layer has not stored a date yet, the slider follows the year the
+  // store opens on, which is the last one, not the first.
   const achado = anos.indexOf(atual ?? '')
   const indiceReal = achado >= 0 ? achado : anos.length - 1
 
-  // Índice que a alça mostra enquanto arrasta, antes de o tile ser pedido.
+  // Index the handle shows while dragging, before the tile is requested.
   const [arrastando, setArrastando] = useState<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -51,7 +52,7 @@ export default function TemporalSlider({ theme }: Props) {
     [camada, anos, setTemporalDate],
   )
 
-  // Cancela um commit agendado se o componente sair antes de a espera vencer.
+  // Cancels a scheduled commit if the component unmounts before the wait elapses.
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   if (!camada || anos.length < 2) return null

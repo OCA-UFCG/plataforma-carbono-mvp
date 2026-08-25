@@ -1,14 +1,14 @@
 /**
  * POST /api/gee/timeseries
  *
- * Devolve a série anual do valor de pixel num [lon, lat]. Cada ano é montado
- * pelo mesmo `buildEeImage` que serve o tile e a estatística zonal, então o
- * gráfico e o mapa mostram o mesmo número, na mesma unidade, com a mesma
- * máscara. Os anos vão como bandas de uma imagem só e saem num `reduceRegion`
- * único, em vez de uma requisição por ano.
+ * Returns the yearly series of the pixel value at a [lon, lat]. Each year is
+ * built by the same `buildEeImage` that serves the tile and the zonal
+ * statistics, so the chart and the map show the same number, in the same unit,
+ * with the same mask. The years go as bands of a single image and come out of
+ * one `reduceRegion`, instead of one request per year.
  *
- * Serve as duas formas de série que a plataforma tem: coleção filtrada por
- * data e imagem com o ano no nome da banda (`bandPattern`).
+ * It serves the two forms of series the platform has: a collection filtered by
+ * date, and an image with the year in the band name (`bandPattern`).
  */
 
 import { NextResponse } from 'next/server'
@@ -23,8 +23,8 @@ import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Teto de anos por requisição. O MapBiomas cobre 1985 a 2024, quarenta paradas,
-// então o limite antigo de vinte anos deixaria metade da série de fora.
+// Cap of years per request. MapBiomas covers 1985 to 2024, forty stops, so the
+// old twenty-year limit would leave half of the series out.
 const MAX_ANOS = 50
 
 interface ReqBody {
@@ -34,7 +34,7 @@ interface ReqBody {
   dateRange: [string, string]  // ["1985-01-01", "2024-01-01"]
 }
 
-/** Valida o intervalo e devolve a lista de anos, ou null se estiver fora das regras. */
+/** Validates the range and returns the list of years, or null if it breaks the rules. */
 function anosDoIntervalo(r: unknown): number[] | null {
   if (!Array.isArray(r) || r.length !== 2) return null
   const [a, b] = r
@@ -96,10 +96,10 @@ export async function POST(req: Request) {
   const { asset, lon, lat } = body
 
   try {
-    // Coleção com lacuna, como a do ESA CCI, que só tem 2007, 2010 e 2015 a
-    // 2022: pedir um ano vazio faz o redutor devolver imagem sem banda e a
-    // montagem inteira falhar. Uma consulta barata aos anos existentes evita
-    // isso e, de quebra, faz a série mostrar só as paradas reais.
+    // A collection with gaps, like ESA CCI, which only has 2007, 2010 and 2015
+    // to 2022: asking for an empty year makes the reducer return an image with
+    // no band and the whole assembly fail. A cheap query for the existing years
+    // avoids that and, as a bonus, makes the series show only the real stops.
     let anosUteis = anos
     if (!asset.bandPattern && asset.type === 'imageCollection') {
       const disponiveis = await evaluate<number[]>(
@@ -115,8 +115,8 @@ export async function POST(req: Request) {
       if (anosUteis.length === 0) return NextResponse.json({ series: [] })
     }
 
-    // Um ano por banda, cada uma construída pelo mesmo caminho que serve o
-    // tile, o que garante a mesma unidade e a mesma máscara no gráfico e no mapa.
+    // One year per band, each built through the same path that serves the tile,
+    // which guarantees the same unit and the same mask in the chart and the map.
     const porAno = anosUteis.map((ano) =>
       buildEeImage(ee, asset, `${ano}-01-01`).rename(`a${ano}`),
     )
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
         reducer:   ee.Reducer.first(),
         geometry:  point,
         scale,
-        // O teto conta uma leitura por banda, e aqui há uma banda por ano.
+        // The cap counts one read per band, and here there is one band per year.
         maxPixels: anosUteis.length,
       }),
     )

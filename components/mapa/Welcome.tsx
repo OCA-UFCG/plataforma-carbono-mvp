@@ -102,8 +102,8 @@ export default function Welcome({ theme, month }: Props) {
                     style={{
                       position: 'relative', background: m.color, color: readableOn(m.color),
                       border: 'none', borderRadius: 3, cursor: 'pointer', padding: 0,
-                      // A altura acompanha o quanto a vegetação está enfolhada no mês:
-                      // a rampa é o próprio dado, alta em abril e baixa em outubro.
+                      // The height follows how leafed-out the vegetation is in the month:
+                      // the ramp is the data itself, high in April and low in October.
                       height: 26 + (m.ndfi + 0.6) * 34,
                       alignSelf: 'end',
                       outline: isCurrent ? `2px solid ${theme.colors.text}` : 'none', outlineOffset: 1,

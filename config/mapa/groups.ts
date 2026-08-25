@@ -1,7 +1,7 @@
 export interface SubthemeInfo {
   id: string
   label: string
-  /** Uma escolha substitui a camada anterior deste subtema. */
+  /** A choice replaces the previous layer of this subtheme. */
   exclusive: boolean
 }
 
@@ -13,8 +13,8 @@ export interface ThemeInfo {
   subthemes: SubthemeInfo[]
 }
 
-// A ordem desta estrutura define a navegação do painel. As camadas declaram
-// somente seus ids de tema e subtema em layers.json.
+// The order of this structure defines the panel navigation. Layers declare only
+// their theme and subtheme ids in layers.json.
 export const THEMES: ThemeInfo[] = [
   {
     id: 'territorio', label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',

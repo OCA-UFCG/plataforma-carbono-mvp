@@ -1,7 +1,7 @@
-/* Estilos do módulo de mapas e análises. Carregado só por app/(mapa)/layout.tsx; as páginas de
- * marketing usam app/globals.css. O `overflow: hidden` abaixo é a razão de os
- * dois viverem em layouts raiz separados: aplicado à landing, mataria a rolagem
- * da página. */
+/* Maps and analysis module styles. Loaded only by app/(mapa)/layout.tsx; the
+ * marketing pages use app/globals.css. The `overflow: hidden` below is the
+ * reason the two live in separate root layouts: applied to the landing page,
+ * it would kill its scrolling. */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -15,23 +15,23 @@ html, body {
 }
 
 /* Design tokens
- * Os neutros "mata branca" são fixos o ano inteiro; só o acento (--acc*) muda,
- * e muda a cada mês. Os valores abaixo são apenas o repouso: quem manda são as
- * vars que o módulo escreve inline na sua raiz, calculadas da cor do mês em
- * config/mapa/platforms.ts. São doze meses em dois modos, então listá-los aqui
- * seriam 24 blocos que sairiam de sincronia com o tema em JS na primeira edição.
- * O tema escuro deriva os neutros sobre as mesmas variáveis. */
+ * The "mata branca" neutrals are fixed all year; only the accent (--acc*)
+ * changes, and it changes every month. The values below are just the resting
+ * state: what rules are the vars the module writes inline on its root, derived
+ * from the month color in config/mapa/platforms.ts. Twelve months in two modes
+ * would be 24 blocks here, and they would drift out of sync with the JS theme
+ * on the first edit. Dark mode derives its neutrals from the same variables. */
 :root {
-  /* neutros fixos ("mata branca") */
-  --paper:     #f7f6f2;  /* papel / fundos de tela */
-  --mist:      #eceae3;  /* superfícies rebaixadas */
-  --silver:    #d8d5cb;  /* bordas / divisores */
-  --dry:       #a8a49a;  /* ícones apagados */
-  --trunk:     #6f6c63;  /* texto secundário */
-  --ink:       #26241d;  /* tinta / texto principal / header */
-  --terracota: #b5602f;  /* fixo: desenho, avisos quentes */
-  --acude:     #4a7fa5;  /* fixo: água, links, info */
-  /* auxiliares */
+  /* fixed neutrals ("mata branca") */
+  --paper:     #f7f6f2;  /* paper / screen backgrounds */
+  --mist:      #eceae3;  /* recessed surfaces */
+  --silver:    #d8d5cb;  /* borders / dividers */
+  --dry:       #a8a49a;  /* muted icons */
+  --trunk:     #6f6c63;  /* secondary text */
+  --ink:       #26241d;  /* ink / primary text / header */
+  --terracota: #b5602f;  /* fixed: drawing, warm warnings */
+  --acude:     #4a7fa5;  /* fixed: water, links, info */
+  /* auxiliary */
   --body:      #57544a;
   --dim:       #8a8776;
   --caption:   #95927f;
@@ -39,18 +39,18 @@ html, body {
   --card-hover:#faf9f4;
   --border-soft:#eceadf;
   --chip:      #f2f0e8;
-  /* superfícies flutuantes (glass) */
+  /* floating surfaces (glass) */
   --glass:     rgba(252, 252, 247, .96);
   --glass-bd:  rgba(60, 58, 48, .14);
-  /* elevação */
+  /* elevation */
   --sh-panel:  0 18px 50px -18px rgba(30, 28, 18, .4);
   --sh-pop:    0 24px 60px -20px rgba(30, 28, 18, .5);
   --sh-ctrl:   0 6px 20px -8px rgba(30, 28, 18, .35);
 
-  /* alias temporário, componentes ainda não migrados referenciam esta var */
+  /* temporary alias, components not migrated yet reference this var */
   --font-raleway: var(--font-app);
 
-  /* acento de repouso, sobrescrito inline pelo mês corrente */
+  /* resting accent, overridden inline by the current month */
   --acc:     #5f7030;
   --accBg:   #ecf0e0;
   --accInk:  #3c4a1e;
@@ -58,7 +58,7 @@ html, body {
   --accGrad: linear-gradient(135deg, #5f7030, #8aa04f);
 }
 
-/* dark mode, deriva os neutros sobre a mesma estrutura; acento sazonal segue */
+/* dark mode, derives the neutrals from the same structure; seasonal accent follows */
 [data-theme='dark'] {
   --paper:     #16150f;
   --mist:      #201e16;
@@ -86,7 +86,7 @@ body {
   background: var(--paper);
 }
 
-/* Números sempre tabulares e com figuras alinhadas (evita o "tremor" de dígitos) */
+/* Always tabular figures with lining numerals (avoids digit "jitter") */
 body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
 
 /* Maplibre canvas should fill its container */
@@ -112,13 +112,13 @@ body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
 .maplibregl-map.mode-direct_select.feature-feature.mouse-move .maplibregl-canvas-container.maplibregl-interactive { cursor: move; }
 .maplibregl-map.mode-static.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive { cursor: grab; }
 
-/* Scrollbar, neutra translúcida */
+/* Scrollbar, translucent neutral */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, .4); border-radius: 4px; }
 * { scrollbar-width: thin; scrollbar-color: rgba(128, 128, 128, .4) transparent; }
 
-/* Feedback de clique, leve escala no active */
+/* Click feedback, slight scale on active */
 .ui-press { transition: transform .12s ease, opacity .15s ease; }
 .ui-press:active { transform: scale(0.96); }
 
@@ -134,4 +134,4 @@ body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
   animation: skeleton-shimmer 1.3s ease-in-out infinite;
 }
 
-/* Sliders de opacidade: nativos, tomam a cor de accent-color inline (var(--acc)) */
+/* Opacity sliders: native, they take the inline accent-color (var(--acc)) */

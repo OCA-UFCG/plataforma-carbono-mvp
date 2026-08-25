@@ -1,8 +1,8 @@
-// Utilidades de cor para derivar o conjunto de acentos a partir de uma unica
-// cor-base. Sao doze cores de mes (ver phenology.ts) e cada uma precisa de fundo
-// suave, borda, tinta legivel e cor de texto sobre o solido; escrever 12 x 2
-// conjuntos a mao sairia inconsistente, entao aqui eles saem calculados, com o
-// contraste conferido contra a WCAG em vez de estimado no olho.
+// Color utilities to derive the set of accents from a single base color. There
+// are twelve month colors (see phenology.ts) and each one needs a soft
+// background, a border, readable ink and a text color over the solid; writing
+// 12 x 2 sets by hand would come out inconsistent, so here they come out
+// computed, with the contrast checked against WCAG instead of eyeballed.
 
 export type Rgb = [number, number, number]
 
@@ -17,14 +17,14 @@ export function rgbToHex([r, g, b]: Rgb): string {
   return `#${q(r)}${q(g)}${q(b)}`
 }
 
-/** Interpolacao linear em sRGB. `t` = 0 devolve `a`, `t` = 1 devolve `b`. */
+/** Linear interpolation in sRGB. `t` = 0 returns `a`, `t` = 1 returns `b`. */
 export function mix(a: string, b: string, t: number): string {
   const [ar, ag, ab] = hexToRgb(a)
   const [br, bg, bb] = hexToRgb(b)
   return rgbToHex([ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t])
 }
 
-/** Luminancia relativa da WCAG 2.1 (0 = preto, 1 = branco). */
+/** WCAG 2.1 relative luminance (0 = black, 1 = white). */
 export function luminance(hex: string): number {
   const channel = (v: number) => {
     const s = v / 255
@@ -34,7 +34,7 @@ export function luminance(hex: string): number {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-/** Razao de contraste da WCAG entre duas cores (1 a 21). */
+/** WCAG contrast ratio between two colors (1 to 21). */
 export function contrast(a: string, b: string): number {
   const la = luminance(a)
   const lb = luminance(b)
@@ -42,9 +42,10 @@ export function contrast(a: string, b: string): number {
 }
 
 /**
- * Aproxima `base` de `target` (preto ou branco) o suficiente para atingir a
- * razao de contraste pedida contra `bg`. Devolve a propria base quando ela ja
- * passa. Passo de 4%, teto de 25 iteracoes: para em 100% da mistura no pior caso.
+ * Moves `base` toward `target` (black or white) just enough to reach the
+ * requested contrast ratio against `bg`. Returns the base itself when it
+ * already passes. 4% step, 25-iteration cap: it stops at 100% of the mix in the
+ * worst case.
  */
 export function adjustContrast(base: string, bg: string, target: string, min: number): string {
   let color = base
@@ -55,13 +56,14 @@ export function adjustContrast(base: string, bg: string, target: string, min: nu
 }
 
 /**
- * Cor de texto legivel sobre um fundo solido. As cores de mes vao do verde-oliva
- * escuro ao laranja claro, entao nenhuma das duas opcoes serve para todas: a
- * escolha sai do contraste medido.
+ * Readable text color over a solid background. The month colors go from dark
+ * olive green to light orange, so neither of the two options works for all of
+ * them: the choice comes from the measured contrast.
  *
- * Ha meio-tons em que NENHUMA das duas candidatas chega ao minimo (o verde-oliva
- * de janeiro, #778100, para em 4,29:1 contra a tinta escura do tema). Nesse caso
- * a melhor candidata e empurrada ate o extremo, preto ou branco puro, ate passar.
+ * There are mid-tones where NEITHER candidate reaches the minimum (January's
+ * olive green, #778100, stops at 4.29:1 against the theme's dark ink). In that
+ * case the best candidate is pushed to the extreme, pure black or white, until
+ * it passes.
  */
 export function readableOn(bg: string, light = '#ffffff', dark = '#16150f', min = 4.5): string {
   const useLight = contrast(bg, light) >= contrast(bg, dark)

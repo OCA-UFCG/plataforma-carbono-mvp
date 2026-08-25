@@ -24,19 +24,19 @@ export interface GeeAssetConfig {
   // Fill masked pixels with a constant, applied after the collection reducer.
   // The ESA CCI AGB masks non-woody cover instead of writing 0, so a
   // territorial mean over the Caatinga comes out ~54% above reality (measured:
-  // 40,86 vs 26,50 Mg/ha em 2022). `unmaskValue: 0` restores the territorial
+  // 40,86 vs 26,50 Mg/ha in 2022). `unmaskValue: 0` restores the territorial
   // reading. Leave undefined to keep the asset's own masking.
   unmaskValue?: number
-  // Séries cujo ano está no nome da banda em vez de estar em datas de uma
-  // coleção. O MapBiomas grava `classification_1985` a `classification_2024`
-  // numa imagem só, e o Fogo grava a frequência acumulada em
-  // `fire_frequency_1985_1985` a `fire_frequency_1985_2023`. Com este campo o
-  // ano pedido seleciona a banda, o que também traz os assets do tipo `image`
-  // para o caminho temporal. Substitui `band` enquanto o modo temporal roda.
+  // Series whose year is in the band name instead of in the dates of a
+  // collection. MapBiomas writes `classification_1985` to `classification_2024`
+  // in a single image, and Fogo writes the accumulated frequency in
+  // `fire_frequency_1985_1985` to `fire_frequency_1985_2023`. With this field
+  // the requested year selects the band, which also brings `image` assets into
+  // the temporal path. Replaces `band` while temporal mode runs.
   bandPattern?: string
 }
 
-/** Nome da banda de um ano, a partir do padrão configurado. */
+/** Band name of a year, from the configured pattern. */
 export function bandaDoAno(bandPattern: string, ano: string): string {
   return bandPattern.replace('{ano}', ano)
 }
@@ -87,9 +87,9 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     }
   }
 
-  // Modo temporal por banda: o ano está no nome da banda, então a imagem é
-  // única e o filtro de data não se aplica. Vem antes do desvio por tipo
-  // porque vale igualmente para `image` e para `imageCollection`.
+  // Per-band temporal mode: the year is in the band name, so the image is a
+  // single one and the date filter does not apply. It comes before the branch
+  // by type because it holds equally for `image` and for `imageCollection`.
   if (temporalDate && asset.bandPattern) {
     const banda = bandaDoAno(asset.bandPattern, temporalDate.slice(0, 4))
     return transform(maskValid(ee.Image(asset.id).select(banda)))
@@ -98,9 +98,9 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
   if (asset.type === 'imageCollection') {
     let col = ee.ImageCollection(asset.id)
 
-    // Modo temporal por data: a janela é o ano pedido, e o redutor é o mesmo
-    // da camada estática. Usar `first()` aqui, como fazia antes, quebraria o
-    // CHIRPS, cujo `sum` é o que transforma chuva diária em total do ano.
+    // Per-date temporal mode: the window is the requested year, and the reducer
+    // is the same as the static layer's. Using `first()` here, as it used to,
+    // would break CHIRPS, whose `sum` is what turns daily rain into a yearly total.
     if (temporalDate) {
       const ano = Number(temporalDate.slice(0, 4))
       col = col.filterDate(`${ano}-01-01`, `${ano + 1}-01-01`)

@@ -3,17 +3,17 @@ import { resolveMonth, type MonthInfo } from '@/lib/phenology'
 import { mix, readableOn, adjustContrast } from '@/lib/color'
 
 /**
- * Tema = neutros fixos "mata branca" (claro ou escuro) mais o acento do mes.
- * So o acento muda ao longo do ano; os neutros sao o cromo fixo.
- * `buildTheme(month, dark)` compoe o PlatformTheme efetivo.
+ * Theme = fixed "mata branca" neutrals (light or dark) plus the month accent.
+ * Only the accent changes over the year; the neutrals are the fixed chrome.
+ * `buildTheme(month, dark)` composes the effective PlatformTheme.
  *
- * O conjunto de acentos sai calculado da cor do mes (ver lib/mapa/color.ts),
- * nao escrito a mao: sao doze meses em dois modos, e a tinta de texto precisa
- * passar em 4,5:1 contra o cartao tanto no verde-oliva de abril quanto no
- * laranja claro de outubro.
+ * The accent set comes out computed from the month color (see lib/mapa/color.ts),
+ * not written by hand: there are twelve months in two modes, and the text ink
+ * has to pass 4.5:1 against the card both in April's olive green and in
+ * October's light orange.
  */
 
-// Neutros fixos, mantidos em sincronia com as CSS vars em mapa.css.
+// Fixed neutrals, kept in sync with the CSS vars in mapa.css.
 const lightNeutrals = {
   bg: '#f7f6f2', mist: '#eceae3', border: '#d8d5cb', bgCard: '#ffffff',
   text: '#26241d', body: '#57544a', textDim: '#6f6c63', dim: '#8a8776', caption: '#95927f',
@@ -36,11 +36,11 @@ export interface AccentSet {
   onAccent: string
 }
 
-/** Deriva fundo suave, borda, tinta e cor sobre o solido a partir da cor do mes. */
+/** Derives soft background, border, ink and color over the solid from the month color. */
 export function buildAccent(base: string, dark: boolean): AccentSet {
   const card = dark ? darkNeutrals.bgCard : lightNeutrals.bgCard
-  // No escuro o proprio acento precisa clarear para sobreviver sobre o cartao;
-  // no claro a cor do mes ja passa como preenchimento e so a tinta e ajustada.
+  // In dark mode the accent itself has to lighten to survive over the card;
+  // in light mode the month color already works as a fill and only the ink is adjusted.
   const accent = dark ? adjustContrast(base, card, '#ffffff', 4.5) : base
   const bgMix = dark ? darkNeutrals.bg : '#ffffff'
 
@@ -67,5 +67,5 @@ export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
   }
 }
 
-/** Tema padrao para qualquer importador nao reativo. */
+/** Default theme for any non-reactive importer. */
 export const theme = buildTheme(resolveMonth('auto'), false)

@@ -1,4 +1,4 @@
-// Lista os filhos de diretórios de assets no GEE para achar caminhos exatos.
+// Lists the children of asset directories in GEE to find exact paths.
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)

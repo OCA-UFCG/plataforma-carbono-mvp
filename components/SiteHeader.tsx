@@ -5,8 +5,8 @@ import Link from "next/link";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { MAPA_URL } from "@/lib/config";
 
-// Links de navegação, compartilhados entre o nav inline (desktop) e o painel
-// sobreposto (mobile). Manter a ordem sincronizada com a das seções da landing.
+// Navigation links, shared between the inline nav (desktop) and the overlay
+// panel (mobile). Keep the order in sync with the landing page sections.
 const LINKS = [
   { href: "/#bioma", label: "O bioma" },
   { href: "/#ameacas", label: "Ameaças" },
@@ -18,8 +18,8 @@ const LINKS = [
 export default function SiteHeader() {
   const [aberto, setAberto] = useState(false);
 
-  // Fecha o painel ao redimensionar para fora da faixa mobile, evitando que
-  // ele fique aberto por cima do nav inline quando o usuário amplia a janela.
+  // Closes the panel when resizing out of the mobile range, so it does not stay
+  // open on top of the inline nav when the user widens the window.
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 901px)");
     const aoMudar = () => {
@@ -29,7 +29,7 @@ export default function SiteHeader() {
     return () => mq.removeEventListener("change", aoMudar);
   }, []);
 
-  // Trava a rolagem do body quando o painel está aberto, padrão de menus mobile.
+  // Locks body scrolling while the panel is open, the usual mobile menu pattern.
   useEffect(() => {
     if (!aberto) return;
     const original = document.body.style.overflow;
@@ -39,7 +39,7 @@ export default function SiteHeader() {
     };
   }, [aberto]);
 
-  // Fecha o painel com a tecla Escape.
+  // Closes the panel with the Escape key.
   useEffect(() => {
     if (!aberto) return;
     const aoTeclar = (e: KeyboardEvent) => {

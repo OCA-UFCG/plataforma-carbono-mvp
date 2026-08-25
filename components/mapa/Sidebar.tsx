@@ -23,8 +23,8 @@ export default function Sidebar({ theme, onCollapse }: Props) {
   const normalizedQuery = normalizeSearch(query.trim())
   const matchesQuery = (layer: LayerConfig, q = normalizedQuery) => {
     if (!q) return true
-    // Descrição e fonte saíram da lista, mas seguem sendo buscáveis: quem
-    // procura por "MODIS" espera achar, mesmo sem a palavra aparecer na linha.
+    // Description and source left the list, but stay searchable: whoever looks
+    // for "MODIS" expects to find it, even without the word showing in the row.
     const meta = LAYER_META[layer.id]
     return [layer.name, layer.type, meta?.description, meta?.source, meta?.kind]
       .filter((value): value is string => Boolean(value))
@@ -41,14 +41,14 @@ export default function Sidebar({ theme, onCollapse }: Props) {
     .filter(({ subtemas }) => subtemas.length > 0)
   const activeCount = layers.filter((l) => l.visible).length
 
-  // Um tema e um subtema abertos por vez evitam uma lista longa demais.
+  // One theme and one subtheme open at a time keep the list from getting too long.
   const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
   const [abertoSubtemaKey, setAbertoSubtemaKey] = useState<string | null>(null)
 
-  // Buscar leva ao primeiro grupo com resultado, senão a busca acharia camadas
-  // que continuam escondidas em cards fechados. Isto acontece na digitação, e
-  // não no render: derivar o card aberto a partir da busca travava o botão,
-  // porque o clique mudava o estado e o render o descartava.
+  // Searching leads to the first group with a result, otherwise the search would
+  // find layers that remain hidden in closed cards. This happens while typing,
+  // not on render: deriving the open card from the search froze the button,
+  // because the click changed the state and the render discarded it.
   const aoBuscar = (valor: string) => {
     setQuery(valor)
     const q = normalizeSearch(valor.trim())
@@ -345,8 +345,8 @@ function LayerRow({
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      // Peso visual menor que o do cabeçalho do card: sem borda e com raio
-      // pequeno, para a lista ler como conteúdo e não como outro card.
+      // Lighter visual weight than the card header: no border and a small radius,
+      // so the list reads as content and not as another card.
       style={{
       background: layer.visible ? c.accentBg : 'transparent',
       border: `1px solid ${layer.visible ? c.accentBd : 'transparent'}`,
@@ -417,7 +417,7 @@ function LayerRow({
   )
 }
 
-// Layer info card (ficha)
+// Layer info card
 
 function LayerInfoCard({ theme, layerId, narrow, onClose }: { theme: PlatformTheme; layerId: string; narrow: boolean; onClose: () => void }) {
   const layers = useStore((s) => s.layers)

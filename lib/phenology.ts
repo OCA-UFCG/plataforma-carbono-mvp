@@ -1,21 +1,22 @@
-// Ciclo fenologico da Caatinga: a interface veste a cor do mes corrente.
+// Phenological cycle of the Caatinga: the interface wears the color of the current month.
 //
-// As doze cores nao foram escolhidas no olho. Vieram da serie Landsat de 1985 a
-// 2024 sobre a vegetacao nativa do bioma, desmisturada em NDFI (Normalized
-// Difference Fraction Index, das fracoes GV, NPV, solo e sombra), com a mediana
-// de cada mes traduzida numa rampa ancorada nas duas cores do logo do OCA, o
-// verde #597636 e a terracota #D08C53. O estudo esta em prototipos/sazonalidade.html
-// e os scripts que produziram a serie em ../../gee.
+// The twelve colors were not picked by eye. They come from the Landsat series
+// from 1985 to 2024 over the native vegetation of the biome, unmixed into NDFI
+// (Normalized Difference Fraction Index, from the GV, NPV, soil and shade
+// fractions), with the median of each month translated into a ramp anchored on
+// the two colors of the OCA logo, the green #597636 and the terracotta #D08C53.
+// The study is in prototipos/sazonalidade.html and the scripts that produced the
+// series are in ../../gee.
 //
-// Abril e o pico verde (NDFI mediano +0,56) e outubro o fundo seco (-0,56). O
-// app abre sempre no mes de hoje; o usuario pode fixar outro mes para ver como a
-// interface fica nele, e a preferencia vale ate ser trocada.
+// April is the green peak (median NDFI +0.56) and October the dry bottom (-0.56).
+// The app always opens on today's month; the user can pin another month to see
+// how the interface looks in it, and the preference holds until it is changed.
 
 export type MonthId =
   | 'jan' | 'fev' | 'mar' | 'abr' | 'mai' | 'jun'
   | 'jul' | 'ago' | 'set' | 'out' | 'nov' | 'dez'
 
-/** 'auto' segue a data do visitante; qualquer outro valor fixa o mes. */
+/** 'auto' follows the visitor's date; any other value pins the month. */
 export type MonthPref = 'auto' | MonthId
 
 export type Phase = 'folha' | 'queda' | 'branca' | 'chuva'
@@ -35,14 +36,14 @@ export const PHASES: Record<Phase, PhaseInfo> = {
 
 export interface MonthInfo {
   id: MonthId
-  /** 0 a 11, na ordem do calendario e igual ao Date#getMonth. */
+  /** 0 to 11, in calendar order and the same as Date#getMonth. */
   i: number
   label: string
   short: string
-  /** Cor do mes na rampa sazonal, base de todo o acento da interface. */
+  /** Color of the month in the seasonal ramp, base of every interface accent. */
   color: string
   phase: Phase
-  /** NDFI mediano do mes na serie 1985-2024 sobre a vegetacao nativa. */
+  /** Median NDFI of the month in the 1985-2024 series over native vegetation. */
   ndfi: number
 }
 
@@ -65,26 +66,26 @@ export const MONTH_BY_ID: Record<MonthId, MonthInfo> = Object.fromEntries(
   MONTHS.map((m) => [m.id, m]),
 ) as Record<MonthId, MonthInfo>
 
-/** Mes efetivo a partir da preferencia: 'auto' deriva da data de hoje. */
+/** Effective month from the preference: 'auto' derives it from today's date. */
 export function resolveMonth(pref: MonthPref): MonthInfo {
   if (pref !== 'auto' && MONTH_BY_ID[pref]) return MONTH_BY_ID[pref]
   return MONTHS[new Date().getMonth()]
 }
 
-/** Aceita so os valores conhecidos; qualquer outro cai em 'auto'. */
+/** Accepts only the known values; anything else falls back to 'auto'. */
 export function isMonthPref(v: unknown): v is MonthPref {
   return v === 'auto' || (typeof v === 'string' && v in MONTH_BY_ID)
 }
 
-/** Posicao do marcador do mes na faixa do ciclo, no centro da sua fatia. */
+/** Position of the month marker on the cycle band, at the center of its slice. */
 export function cyclePosition(m: MonthInfo): string {
   return `${((m.i + 0.5) / 12) * 100}%`
 }
 
 /**
- * Faixa continua do ciclo anual, usada no header e no welcome. Os stops caem no
- * centro de cada fatia de mes, entao a faixa le como um degrade e nao como doze
- * blocos, e ainda assim a posicao de cada mes bate com a do marcador.
+ * Continuous band of the yearly cycle, used in the header and in the welcome.
+ * The stops fall at the center of each month slice, so the band reads as a
+ * gradient and not as twelve blocks, and each month still lines up with the marker.
  */
 export const CYCLE_GRADIENT = `linear-gradient(90deg,${MONTHS.map(
   (m) => `${m.color} ${(((m.i + 0.5) / 12) * 100).toFixed(2)}%`,

@@ -20,11 +20,11 @@ const HERO_FOTOS = [
   "/images/hero/hero5.jpg",
 ];
 
-// Os quatro primeiros cards descrevem funções ecológicas que o bioma desempenha
-// por processo próprio; os três seguintes, usos que a sociedade faz do seu
-// território. A ordem sustenta a distinção feita na introdução da seção e não
-// deve ser embaralhada. Números do levantamento em ../Caatinga_Panorama_Revisado.md
-// e do boletim temático em ../../boletim/Boletim_Carbono_Caatinga.docx.
+// The first four cards describe ecological functions the biome performs by its
+// own process; the next three, uses society makes of its territory. The order
+// supports the distinction made in the section introduction and must not be
+// shuffled. Figures from the survey in ../Caatinga_Panorama_Revisado.md and from
+// the thematic bulletin in ../../boletim/Boletim_Carbono_Caatinga.docx.
 const DIMENSOES = [
   {
     cor: "#5f7030",

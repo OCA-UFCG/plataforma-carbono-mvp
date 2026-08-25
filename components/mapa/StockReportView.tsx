@@ -10,11 +10,11 @@ interface Props {
   caption?: string
 }
 
-/** Fatias a mostrar antes de agrupar o resto. */
+/** Slices to show before grouping the rest. */
 const MAX_FATIAS = 7
 
-// Reservatórios seguem a ordem da configuração; a cor é a da marca, do verde
-// da parte viva ao terracota do solo.
+// Pools follow the configuration order; the color is the brand's, from the green
+// of the living part to the terracotta of the soil.
 const COR_POOL = ['#597636', '#6b7d34', '#8a9b4a', '#c9a227', '#a66a2e']
 
 const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
@@ -22,7 +22,7 @@ const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
 const nf = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
 
-/** Números grandes cansam de ler em tC; acima de mil passa a kt e Mt. */
+/** Large numbers are tiring to read in tC; above a thousand it moves to kt and Mt. */
 function formatarTc(tc: number): { valor: string; unidade: string } {
   if (Math.abs(tc) >= 1e6) return { valor: nf1.format(tc / 1e6), unidade: 'Mt C' }
   if (Math.abs(tc) >= 1e3) return { valor: nf1.format(tc / 1e3), unidade: 'kt C' }
@@ -35,7 +35,7 @@ interface Fatia {
   cor:  string
 }
 
-/** Agrupa a cauda em "outras", para a rosca não virar um pente de fatias. */
+/** Groups the tail into "outras", so the doughnut does not become a comb of slices. */
 function agrupar(fatias: Fatia[], corOutras: string): Fatia[] {
   if (fatias.length <= MAX_FATIAS) return fatias
   const cabeca = fatias.slice(0, MAX_FATIAS - 1)

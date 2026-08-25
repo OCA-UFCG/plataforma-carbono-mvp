@@ -51,8 +51,8 @@ async function getGeeStats(
     // match the map colors instead of being recomputed per feature.
     breaks:    useStore.getState().jenksBreaks[layer.id],
     colorType: layer.colorType,
-    // Camada de estoque: o servidor resolve a configuração pelo id e devolve o
-    // relatório em vez da estatística da banda visível.
+    // Stock layer: the server resolves the configuration by id and returns the
+    // report instead of the statistics of the visible band.
     layerId:   layer.gee.stocks ? layer.id : undefined,
   })
 

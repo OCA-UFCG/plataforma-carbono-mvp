@@ -1,8 +1,8 @@
 /**
- * Ícones lineares do handoff "Design profissional responsivo Caatinga".
- * SVGs Lucide/Feather (viewBox 24, stroke-width 2, cantos/pontas arredondados)
- * inlinados EXATAMENTE como no protótipo, para fidelidade independente da
- * versão do react-icons. Todos aceitam { size, color, strokeWidth, style }.
+ * Linear icons from the "Design profissional responsivo Caatinga" handoff.
+ * Lucide/Feather SVGs (viewBox 24, stroke-width 2, rounded corners/caps)
+ * inlined EXACTLY as in the prototype, for fidelity regardless of the
+ * react-icons version. All of them accept { size, color, strokeWidth, style }.
  */
 import type { CSSProperties, ReactNode } from 'react'
 
@@ -60,10 +60,10 @@ export const IcMapPin = line(<>
   <circle cx="12" cy="10" r="3" />
 </>)
 
-// "Recortes territoriais", caixa/gema (só o contorno, como no protótipo)
+// "Recortes territoriais", box/gem (outline only, as in the prototype)
 export const IcBox = line(<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />)
 
-// "Carbono e ambiente", camadas
+// "Carbono e ambiente", layers
 export const IcLayers = line(<>
   <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z" />
   <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
@@ -81,7 +81,7 @@ export const IcPlus  = line(<>
 </>)
 export const IcMinus = line(<path d="M5 12h14" />)
 
-// geolocalização (locate-fixed, como no protótipo: círculo r7 + 4 marcas)
+// geolocation (locate-fixed, as in the prototype: r7 circle + 4 ticks)
 export const IcLocate = line(<>
   <circle cx="12" cy="12" r="7" />
   <path d="M22 12h-3" />
@@ -90,7 +90,7 @@ export const IcLocate = line(<>
   <path d="M12 22v-3" />
 </>)
 
-// tela cheia (4 cantos)
+// fullscreen (4 corners)
 export const IcMaximize = line(<>
   <path d="M8 3H5a2 2 0 0 0-2 2v3" />
   <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
@@ -98,7 +98,7 @@ export const IcMaximize = line(<>
   <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
 </>)
 
-// norte, seta preenchida do protótipo (não é stroke)
+// north, filled arrow from the prototype (not a stroke)
 export function IcNorth({ size = 15, color = 'currentColor', style, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style} className={className} aria-hidden>
@@ -119,7 +119,7 @@ export const IcInfo = line(<>
   <path d="M12 8h.01" />
 </>)
 
-// alça de arrasto: só as camadas mudam de posição, os cards não
+// drag handle: only the layers change position, the cards do not
 export const IcGrip = line(<>
   <circle cx="9" cy="6" r="1" />
   <circle cx="9" cy="12" r="1" />
@@ -129,13 +129,13 @@ export const IcGrip = line(<>
   <circle cx="15" cy="18" r="1" />
 </>)
 
-// desenho (pen, como no protótipo)
+// drawing (pen, as in the prototype)
 export const IcPen = line(<>
   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
   <path d="m15 5 4 4" />
 </>)
 
-// mapa base
+// basemap
 export const IcMap = line(<>
   <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
   <path d="M15 5.764v15" />
@@ -147,7 +147,7 @@ export const IcList = line(<>
   <path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" />
 </>)
 
-// estatística (barras), aba recolhida do painel de resultados
+// statistics (bars), collapsed tab of the results panel
 export const IcBarChart = line(<>
   <path d="M3 3v16a2 2 0 0 0 2 2h16" />
   <path d="M18 17V9" />

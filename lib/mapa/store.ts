@@ -20,14 +20,14 @@ import {
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
-// Estado da sessão anterior, conferido contra o layers.json de hoje. Lido uma
-// vez, na carga do módulo, para os valores iniciais do store abaixo.
+// State from the previous session, checked against today's layers.json. Read
+// once, at module load, for the initial store values below.
 const restaurado = readPersisted(appConfig.layers as LayerConfig[])
 
 /**
- * Rasters GEE que estavam ligados quando o usuário saiu. Eles voltam apagados:
- * só `toggleLayer` busca o tile, então religá-los tem que passar por
- * `activateDynamicLayer`, o que o Mapa faz na montagem.
+ * GEE rasters that were on when the user left. They come back off: only
+ * `toggleLayer` fetches the tile, so turning them back on has to go through
+ * `activateDynamicLayer`, which Mapa does on mount.
  */
 export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 
@@ -67,11 +67,11 @@ interface MapaStore {
   clearSignal: number
   basemapId: string
   darkMode: boolean
-  // Enquadramento e desenho corrente. Ficam no store para a persistência ter um
-  // ponto de leitura só; o MapView os consome na montagem e os alimenta depois.
+  // Current viewport and drawing. They live in the store so persistence has a
+  // single read point; MapView consumes them on mount and feeds them afterwards.
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  // Mes que veste a interface ('auto' segue a data) + flag de welcome visto.
+  // Month dressing the interface ('auto' follows the date) + welcome-seen flag.
   month: MonthPref
   welcomeSeen: boolean
 
@@ -135,11 +135,11 @@ export const useStore = create<MapaStore>((set, get) => ({
   analysisKind: null,
   clearSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
-  // Modo escuro: hidrata do localStorage no cliente e, sem nenhuma marca
-  // guardada, acompanha a preferencia do sistema operacional.
-  // LEGADO: ate 2026-07 a chave era 'websig-dark-mode'. Ela ainda e lida uma
-  // vez para nao descartar a escolha de quem ja usava a plataforma; a partir do
-  // primeiro toque no botao, so a chave nova e escrita.
+  // Dark mode: hydrates from localStorage on the client and, with no stored
+  // mark, follows the operating system preference.
+  // LEGACY: until 2026-07 the key was 'websig-dark-mode'. It is still read once
+  // so we do not discard the choice of existing users; from the first tap on
+  // the button onwards, only the new key is written.
   darkMode: typeof window !== 'undefined'
     ? (() => {
         const stored = window.localStorage?.getItem(DARK_MODE_KEY)
@@ -149,9 +149,9 @@ export const useStore = create<MapaStore>((set, get) => ({
         return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
       })()
     : false,
-  // Chave nova (v2) porque a v1 guardava estacao ('chuva'/'transicao'/'seca'),
-  // que nao existe mais; isMonthPref descarta o valor velho em vez de aceitar
-  // um mes invalido vindo do localStorage.
+  // New key (v2) because v1 stored a season ('chuva'/'transicao'/'seca'), which
+  // no longer exists; isMonthPref discards the old value instead of accepting
+  // an invalid month coming from localStorage.
   month: (() => {
     if (typeof window === 'undefined') return 'auto'
     const stored = window.localStorage?.getItem('cc_month_v2')
@@ -425,10 +425,10 @@ function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
 // Export map config so MapView can read center/zoom/basemap
 export const mapConfig = appConfig.map
 
-// Persistência: um observador só, em vez de um setItem espalhado por
-// toggleLayer, setOpacity, reorderLayer, setBasemap e setTemporalDate. Cinco
-// pontos de escrita saem de sincronia; um observador não. O debounce evita
-// gravar a cada quadro enquanto o usuário arrasta o mapa ou a opacidade.
+// Persistence: a single subscriber, instead of a setItem scattered across
+// toggleLayer, setOpacity, reorderLayer, setBasemap and setTemporalDate. Five
+// write points drift out of sync; one subscriber does not. The debounce avoids
+// writing on every frame while the user drags the map or the opacity.
 if (typeof window !== 'undefined') {
   let pendente: ReturnType<typeof setTimeout> | undefined
 

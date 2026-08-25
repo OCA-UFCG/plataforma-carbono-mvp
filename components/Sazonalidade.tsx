@@ -6,23 +6,23 @@ import { MONTHS } from '@/lib/phenology'
 import { mix, readableOn } from '@/lib/color'
 import series from '@/lib/ndfi-series.json'
 
-// Cada paleta carrega os proprios limites, como no ggplot (oob = squish).
-// LANDSAT reproduz a figura original em R: mesmas cores, mesmos limites.
+// Each palette carries its own limits, as in ggplot (oob = squish).
+// LANDSAT reproduces the original figure in R: same colors, same limits.
 const LANDSAT = { cores: ['#8c7a5b', '#d9cdb0', '#f2efe4', '#a6c48a', '#3f7d3f'], min: -0.2, max: 1 }
-// CAMPO: as cores observadas pela camera instalada no bioma, ordenadas em CIELAB.
+// CAMPO: the colors observed by the camera installed in the biome, sorted in CIELAB.
 const CAMPO = {
   cores: ['#BAAF97', '#B6AC92', '#B3A98C', '#AFA687', '#A7A07F', '#969373',
           '#848667', '#747A5C', '#6C7754', '#6A784F', '#677A4A', '#647B44'],
   min: -0.7, max: 0.8,
 }
-// Paleta final, ancorada nas duas cores do logo do observatorio.
+// Final palette, anchored on the two colors of the observatory logo.
 const VIVA = {
   cores: ['#DD8637', '#D38526', '#C78511', '#BA8500', '#AD8500', '#9E8400',
           '#8F8400', '#818300', '#738100', '#667F00', '#5A7C10', '#4F791E'],
   min: -0.7, max: 0.8,
 }
 
-// Cor mediana de cada mes registrada pela camera de campo.
+// Median color of each month recorded by the field camera.
 const TIRA_CAMPO = ['#887e75', '#76844b', '#647b44', '#64784c', '#6f7f50', '#73855a',
                     '#6e7658', '#79895a', '#ada483', '#baaf97', '#8a7e76', '#93877f']
 
@@ -89,7 +89,7 @@ export default function Sazonalidade() {
     timers.current.push(setTimeout(fn, ms))
   }, [])
 
-  // Estado final, usado por quem pediu menos movimento e pelo fim da sequência.
+  // Final state, used by anyone who asked for less motion and by the end of the sequence.
   const final = useCallback(() => {
     limpar()
     setPaleta(VIVA)
@@ -105,27 +105,28 @@ export default function Sazonalidade() {
     setSecaVisivel(false)
     setAto(0)
 
-    // 1. A série se escreve ano a ano, nas cores da figura original do Landsat.
-    //    É o ato mais longo de propósito: são quarenta anos passando na tela.
+    // 1. The series writes itself year by year, in the colors of the original
+    //    Landsat figure. It is the longest act on purpose: forty years go by on screen.
     series.values.forEach((_, i) => em(400 + i * 88, () => setReveladas(i + 1)))
     em(4200, () => setSecaVisivel(true))
 
-    // 2. A câmera de campo entra e a matriz assume as cores medidas no chão.
+    // 2. The field camera comes in and the matrix takes on the colors measured on the ground.
     em(6400, () => { setAto(1); setPaleta(CAMPO) })
 
-    // 3. O símbolo do observatório aparece com as duas cores que já eram dele.
+    // 3. The observatory symbol appears with the two colors that were already its own.
     em(10000, () => setAto(2))
 
-    // 4. As duas cores se esticam na rampa sazonal.
+    // 4. The two colors stretch into the seasonal ramp.
     em(13400, () => setAto(3))
 
-    // 5. A mesma série troca de paleta e vira a interface da plataforma.
+    // 5. The same series changes palette and becomes the platform interface.
     em(16400, () => { setAto(4); setPaleta(VIVA) })
   }, [em, limpar])
 
-  // O gatilho é medida direta do retângulo na rolagem, e não IntersectionObserver:
-  // o observer depende do ciclo de renderização e, em aba oculta ou sem composição
-  // de quadros, não entrega o callback, deixando a seção parada.
+  // The trigger is a direct measurement of the rectangle on scroll, not an
+  // IntersectionObserver: the observer depends on the render cycle and, in a
+  // hidden tab or without frame composition, never delivers the callback,
+  // leaving the section frozen.
   useEffect(() => {
     const el = alvo.current
     if (!el) return
@@ -157,7 +158,7 @@ export default function Sazonalidade() {
   const anoInicio = series.yearStart
   const anoFim = series.yearEnd
   const nAnos = series.values.length
-  // Recorte da seca de 2012 a 2017, o período mais severo dos quarenta anos.
+  // Cut of the 2012 to 2017 drought, the most severe period of the forty years.
   const iSeca = 2012 - anoInicio
   const fSeca = 2017 - anoInicio
 

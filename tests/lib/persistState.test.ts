@@ -119,9 +119,10 @@ describe('sanitizePersisted', () => {
     expect(restored?.basemapId).toBe('carto-positron')
   })
 
-  // Só `toggleLayer` dispara `activateDynamicLayer`, que busca o tile no GEE.
-  // Restaurar um raster GEE já visível o deixaria ligado no painel e invisível
-  // no mapa, então ele volta apagado e é religado pelo caminho normal.
+  // Only `toggleLayer` triggers `activateDynamicLayer`, which fetches the tile
+  // from GEE. Restoring a GEE raster already visible would leave it on in the
+  // panel and invisible on the map, so it comes back off and is turned back on
+  // through the normal path.
   it('returns GEE rasters switched off, listing them for the normal activation path', () => {
     const restored = sanitizePersisted(
       {

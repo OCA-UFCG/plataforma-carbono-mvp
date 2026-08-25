@@ -1,13 +1,13 @@
 import type { PixelValueResult, RasterClass, RasterStatsResult } from '@/types/mapa'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 
-/** Tudo que uma análise precisa para virar arquivo, colhido do store. */
+/** Everything an analysis needs to become a file, gathered from the store. */
 export interface AnalysisSnapshot {
   layerName: string
   layerUnit?: string
-  /** Classes da camada categórica, para traduzir o código em rótulo. */
+  /** Classes of the categorical layer, to translate the code into a label. */
   layerClasses?: RasterClass[]
-  /** Ano da parada temporal em vigor, quando a camada é navegável no tempo. */
+  /** Year of the current temporal stop, when the layer is time-navigable. */
   year?: string
   analysisKind: string | null
   analysisLabel: string | null
@@ -20,17 +20,17 @@ export interface AnalysisSnapshot {
 
 const DELIM = ';'
 const EOL = '\r\n'
-// Sem o BOM o Excel lê o arquivo como Latin-1 e come todos os acentos.
+// Without the BOM Excel reads the file as Latin-1 and eats every accent.
 const BOM = '﻿'
 
-// Vírgula decimal e sem separador de milhar: o Excel em português lê assim, e a
-// ausência do ponto de milhar evita ambiguidade em quem importar por script.
+// Decimal comma and no thousands separator: Excel in Portuguese reads it this
+// way, and the missing thousands dot avoids ambiguity for script importers.
 function num(value: number): string {
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 4, useGrouping: false })
 }
 
-// Nomes de município e de classe contêm ponto-e-vírgula e aspas com frequência
-// suficiente para isto não ser hipotético; sem escapar, as colunas deslizam.
+// Municipality and class names contain semicolons and quotes often enough for
+// this not to be hypothetical; without escaping, the columns slide.
 function cell(value: string | number | null | undefined): string {
   if (typeof value === 'number') return num(value)
   const text = value ?? ''
@@ -62,9 +62,9 @@ function metadataRows(snap: AnalysisSnapshot): string[] {
   return out
 }
 
-// Área, comprimento e valor pontual: o que o painel mostra nos cards antes da
-// tabela de estatística. Hectare acompanha o km² porque é a unidade de trabalho
-// de quem lida com carbono e uso da terra.
+// Area, length and point value: what the panel shows in the cards above the
+// statistics table. Hectares go along with km2 because it is the working unit
+// of whoever deals with carbon and land use.
 function measurementRows(snap: AnalysisSnapshot): string[] {
   const out: string[] = []
   if (snap.drawnArea !== null) {
@@ -95,9 +95,9 @@ function continuousRows(s: RasterStatsResult & { kind: 'continuous' }, unit: str
   return out
 }
 
-// Espelha o gráfico de barras: área por classe em hectares e participação no
-// total. A cesta final recolhe códigos presentes no dado mas ausentes da
-// configuração da camada, sem a qual as participações não somariam 100%.
+// Mirrors the bar chart: area per class in hectares and share of the total. The
+// final bucket collects codes present in the data but absent from the layer
+// configuration, without which the shares would not add up to 100%.
 function categoricalRows(
   s: RasterStatsResult & { kind: 'categorical' },
   classes: RasterClass[],
@@ -123,14 +123,14 @@ function categoricalRows(
 function timeSeriesRows(s: RasterStatsResult & { kind: 'timeseries' }, unit: string): string[] {
   const out = [row(['ano', 'valor', 'unidade'])]
   for (const p of s.series) {
-    // Célula vazia para nodata: um zero aqui seria lido como medição real.
+    // Empty cell for nodata: a zero here would be read as a real measurement.
     out.push(row([p.date.slice(0, 4), p.value === null ? '' : p.value, unit]))
   }
   return out
 }
 
-// Dois blocos, na mesma decomposição que a rosca mostra na tela. Os dois somam
-// o mesmo total, e a linha "Total" fecha a conferência para quem abrir a planilha.
+// Two blocks, in the same breakdown the doughnut shows on screen. Both add up to
+// the same total, and the "Total" row closes the check for whoever opens the sheet.
 function stockRows(s: RasterStatsResult & { kind: 'stocks' }): string[] {
   const { report } = s
   const out = [row(['reservatorio', 'estoque', 'unidade'])]
@@ -157,8 +157,9 @@ function statsRows(snap: AnalysisSnapshot): string[] {
 }
 
 /**
- * Monta o CSV de uma análise. Função pura: recebe o retrato do store e devolve
- * texto, sem tocar em DOM nem em rede, para poder ser verificada em teste.
+ * Builds the CSV of an analysis. Pure function: it takes the snapshot of the
+ * store and returns text, touching neither DOM nor network, so it can be
+ * verified in tests.
  */
 export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; csv: string } {
   const blocks = [metadataRows(snap), measurementRows(snap), statsRows(snap)]

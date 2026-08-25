@@ -6,9 +6,10 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { Analytics } from '@/components/Analytics'
 
-// Layout raiz do módulo de mapas e análises: tela cheia, sem o header/rodapé de
-// marketing. Como é um layout raiz irmão do de (marketing), o mapa.css (que zera
-// o scroll do body e define os tokens do mapa) só carrega nas rotas deste grupo.
+// Root layout of the maps and analysis module: full screen, without the
+// marketing header/footer. Since it is a sibling root layout to (marketing)'s,
+// mapa.css (which zeroes the body scroll and defines the map tokens) loads only
+// on the routes of this group.
 const libreFranklin = Libre_Franklin({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],

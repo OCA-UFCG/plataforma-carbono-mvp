@@ -1,15 +1,15 @@
-// Resolve a configuração de estoque no servidor, a partir do id da camada.
+// Resolves the stock configuration on the server, from the layer id.
 //
-// O cliente manda só o id. Aceitar o bloco `stocks` vindo do cliente abriria
-// exatamente o buraco que a allowlist fecha: um chamador poderia apontar
-// `classAsset` para qualquer asset e usar a service account para lê-lo.
+// The client sends only the id. Accepting the `stocks` block from the client
+// would open exactly the hole the allowlist closes: a caller could point
+// `classAsset` at any asset and use the service account to read it.
 
 import appConfig from '@/config/mapa/layers.json'
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
 import type { StocksConfig, LegendaClasse } from './stockReport'
 
-// Legendas conhecidas, por nome de arquivo. Um mapa estático em vez de import
-// dinâmico porque o conjunto é fechado e o bundler resolve em tempo de build.
+// Known legends, by file name. A static map instead of a dynamic import because
+// the set is closed and the bundler resolves it at build time.
 const LEGENDAS: Record<string, LegendaClasse[]> = {
   'fitofisionomia.json': fitofisionomia.classes,
 }
@@ -17,7 +17,7 @@ const LEGENDAS: Record<string, LegendaClasse[]> = {
 export interface EntradaStocks {
   cfg:     StocksConfig
   legenda: LegendaClasse[]
-  /** Asset de estoque da própria camada, para o cálculo reusar. */
+  /** Stock asset of the layer itself, for the computation to reuse. */
   assetId: string
   assetBand?: string
   scale:   number
@@ -25,7 +25,7 @@ export interface EntradaStocks {
 
 const cache = new Map<string, EntradaStocks | null>()
 
-/** Configuração de estoque de uma camada, ou null se ela não tiver o bloco. */
+/** Stock configuration of a layer, or null if it has no such block. */
 export function getStocks(layerId: string): EntradaStocks | null {
   const emCache = cache.get(layerId)
   if (emCache !== undefined) return emCache
