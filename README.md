@@ -35,6 +35,18 @@ As credenciais `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` e `FIREBASE_PRIVA
 
 Após o Firebase validar o e-mail e senha, a aplicação cria uma cookie `session` com `HttpOnly`, `SameSite=Lax` e validade de 24 horas. O servidor verifica essa cookie antes de renderizar `/mapa` e antes de iniciar qualquer operação no Earth Engine.
 
+## Mapas base (CARTO)
+
+Os dois mapas base padrão, Positron (claro) e Dark Matter (escuro), vêm da CARTO. Desde agosto de 2026 a CARTO exige uma chave nos endpoints raster: a requisição sem chave ainda responde HTTP 200, mas o PNG chega estampado com a marca d'água "API KEY REQUIRED". A mudança é do provedor, não do código.
+
+1. Peça a chave em [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey). É gratuita para uso não comercial — pesquisa, ensino e organizações sem fins lucrativos —, sem fila de aprovação, com uso justo de 5 milhões de requisições de tile por mês.
+2. Preencha `NEXT_PUBLIC_CARTO_KEY` em `.env.local` e crie a variável de mesmo nome em **Settings -> Secrets and variables -> Actions**, para os workflows a passarem como build arg. No Render, defina-a em **Environment**.
+3. Como toda `NEXT_PUBLIC_*`, o valor é embutido no bundle durante `npm run build`. Trocar a chave exige um build novo, não só um restart.
+
+Sem a chave a aplicação continua de pé e os tiles continuam chegando, só marcados. `config/mapa/basemaps.ts` omite o parâmetro `key` quando não há valor, porque um `key=` vazio recebe exatamente o mesmo tile marcado. Os outros seis mapas base do seletor — OpenStreetMap, três da Esri e Google Satélite — não usam chave e não são afetados.
+
+A CARTO considera os mapas base raster em fim de vida, em favor do serviço vetorial. A mesma chave cobre os dois formatos, então migrar depois não pede credencial nova; pede tratar estilo vetorial no `MapView`, que hoje trata todo mapa base como raster XYZ uniforme.
+
 ## Docker
 
 A imagem usa Node 22 e a saída standalone do Next.js. Ela não contém credenciais: em produção, forneça o JSON da service account como um secret de arquivo e a variável `GOOGLE_APPLICATION_CREDENTIALS` com o caminho onde ele foi montado.
@@ -75,6 +87,7 @@ Configure estes valores em **Settings -> Secrets and variables -> Actions** do r
 | Variable | `CONTAINER_PORT` | Porta interna da aplicação, normalmente `3000` |
 | Variable | `NETWORK_NAME` | Rede Docker compartilhada com o proxy reverso |
 | Variable | `GEE_SERVICE_ACCOUNT_PATH_BETA` | Caminho absoluto, na VPS beta, para o JSON da service account |
+| Variable | `NEXT_PUBLIC_CARTO_KEY` | Chave dos mapas base da CARTO; sem ela os tiles saem com marca d'água |
 
 O arquivo da service account deve existir apenas na VPS beta e ser legível pelo Docker. Para imagens privadas, configure previamente o login no Docker Hub para o usuário do `beta-runner`, que executa o `docker pull`.
 

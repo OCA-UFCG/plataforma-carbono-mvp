@@ -50,7 +50,7 @@ components/mapa/
 config/mapa/
 ├ layers.json                  # 20 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
-├ basemaps.ts                  # mapas base
+├ basemaps.ts                  # mapas base (CARTO exige NEXT_PUBLIC_CARTO_KEY)
 └ layerMeta.ts                 # fichas das camadas
 lib/
 ├ config.ts                    # MAPA_URL
@@ -318,6 +318,7 @@ Um Web Service Node no Render serve o site inteiro, marketing e módulo de mapas
 1. `render.yaml` já traz `runtime: node`, `buildCommand: npm ci && npm run build` e `startCommand: npm run start`.
 2. No painel do serviço, Environment -> Secret Files: subir o JSON da service account com o nome `gee-service-account.json`. O Render monta em `/etc/secrets/`, caminho apontado por `GOOGLE_APPLICATION_CREDENTIALS` no `render.yaml`.
 3. `NEXT_PUBLIC_MAPA_URL` não precisa ser definida: sem ela, `MAPA_URL` resolve para a rota interna `/mapa`.
+4. `NEXT_PUBLIC_CARTO_KEY` precisa existir no momento do build, e não em tempo de execução. Sem ela os mapas base da CARTO chegam com a marca d'água "API KEY REQUIRED", exigida pelo provedor desde agosto de 2026. Ver a seção Mapas base (CARTO) do [`README.md`](README.md).
 
 O GEE: a service account precisa estar registrada no Earth Engine e com a Earth Engine API habilitada no projeto GCP. Os assets sat-io e mapbiomas-public são públicos.
 
