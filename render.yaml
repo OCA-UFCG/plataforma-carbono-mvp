@@ -25,3 +25,9 @@ services:
         value: "22"
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: /etc/secrets/gee-service-account.json
+      # Chave dos mapas base da CARTO, exigida desde agosto de 2026. Sem ela os
+      # tiles chegam com a marca d'agua "API KEY REQUIRED". Definir no painel,
+      # em Environment, porque nao vai em arquivo versionado. Por ser
+      # NEXT_PUBLIC_* ela e lida no build, nao em tempo de execucao.
+      - key: NEXT_PUBLIC_CARTO_KEY
+        sync: false
