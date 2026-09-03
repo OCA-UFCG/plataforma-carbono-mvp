@@ -80,6 +80,9 @@ jobs:
             -e FIREBASE_PROJECT_ID="${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" \
             -e FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}" \
             -e FIREBASE_PRIVATE_KEY_BASE64="${{ secrets.FIREBASE_PRIVATE_KEY_BASE64 }}" \
+            -e CONTENTFUL_SPACE_ID="${{ vars.CONTENTFUL_SPACE_ID }}" \
+            -e CONTENTFUL_PREVIEW=true \
+            -e CONTENTFUL_PREVIEW_TOKEN="${{ secrets.CONTENTFUL_PREVIEW_TOKEN }}" \
             -v "${{ vars.GEE_SERVICE_ACCOUNT_PATH_BETA }}:/run/secrets/gee-service-account.json:ro" \
             -p ${{ vars.HOST_PORT_BETA }}:${{ vars.CONTAINER_PORT }} \
             -d \
