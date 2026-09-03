@@ -12,7 +12,8 @@
     "clip": "node scripts/simplify-clip.mjs",
     "trim": "node scripts/trim-precision.mjs",
     "contrast": "tsx scripts/check-contrast.mts",
-    "prewarm": "node scripts/prewarm.mjs"
+    "prewarm": "node scripts/prewarm.mjs",
+    "contentful:provision": "node scripts/contentful-provision.mjs"
   },
   "dependencies": {
     "@google/earthengine": "^1.7.21",

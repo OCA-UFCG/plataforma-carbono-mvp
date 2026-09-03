@@ -11,6 +11,8 @@ import PhotoCarousel from "@/components/PhotoCarousel";
 import HeroBackground from "@/components/HeroBackground";
 import Sazonalidade from "@/components/Sazonalidade";
 import { MAPA_URL } from "@/lib/config";
+import { getContentfulClient } from "@/lib/contentful";
+import { getComunicacaoContent } from "@/lib/content/comunicacao";
 
 const HERO_FOTOS = [
   "/images/hero/hero1.jpg",
@@ -188,62 +190,6 @@ const FRENTES = [
   },
 ];
 
-const FOTOS_FORMACAO = [
-  {
-    src: "/images/formacao/f1.jpg",
-    caption: "Encontro em assentamento da reforma agrária",
-    alt: "Grupo de participantes reunido diante da sede de um assentamento",
-  },
-  {
-    src: "/images/formacao/f2.jpg",
-    caption: "Apresentação em evento",
-    alt: "Palestra com plateia e projeção de um mapa da América do Sul",
-  },
-  {
-    src: "/images/formacao/f3.jpg",
-    caption: "Oficina de formação",
-    alt: "Pessoa apresentando ao microfone para uma plateia, com projeção ao fundo",
-  },
-  {
-    src: "/images/formacao/f4.jpg",
-    caption: "Roda de diálogo",
-    alt: "Participantes sentados em círculo durante uma roda de conversa",
-  },
-  {
-    src: "/images/formacao/f6.jpg",
-    caption: "Participantes de um encontro de formação",
-    alt: "Foto de grupo dos participantes de um encontro",
-  },
-  {
-    src: "/images/formacao/f7.jpg",
-    caption: "Oficina com a sociedade civil",
-    alt: "Pessoa em pé conduzindo uma atividade com o grupo sentado à mesa",
-  },
-];
-
-const CARTILHAS = [
-  {
-    src: "/images/cartilhas/vol1.jpg",
-    vol: "Volume 1",
-    titulo: "O que é crédito de carbono?",
-  },
-  {
-    src: "/images/cartilhas/vol2.jpg",
-    vol: "Volume 2",
-    titulo: "Como funciona o mercado de carbono?",
-  },
-  {
-    src: "/images/cartilhas/vol3.jpg",
-    vol: "Volume 3",
-    titulo: "A Caatinga e o carbono: qual a relação?",
-  },
-  {
-    src: "/images/cartilhas/vol4.jpg",
-    vol: "Volume 4",
-    titulo: "Desafios e caminhos para um mercado de carbono que beneficia a todos",
-  },
-];
-
 const FOTOS_CAATINGA = [
   { src: "/images/galeria/cg1.jpg", alt: "Cachoeira entre rochas na mata verde da Caatinga" },
   { src: "/images/galeria/cg2.jpg", alt: "Flamboyant florido em vermelho ao lado de uma casa" },
@@ -266,7 +212,11 @@ const PARTNERS = [
   { src: "/logos/logo_sudene.png", alt: "SUDENE", height: 36 },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { cartilhas, boletim, fotosFormacao } = await getComunicacaoContent(
+    getContentfulClient(),
+  );
+
   return (
     <>
       <SiteHeader />
@@ -470,39 +420,55 @@ export default function LandingPage() {
             <div className="boletim">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/cartilhas/boletim.jpg"
-                alt="Capa do boletim temático A Aproximação do Mercado de Carbono Florestal no Bioma Caatinga"
+                src={boletim.cover}
+                alt={`Capa do boletim temático ${boletim.title}`}
               />
               <div className="boletim-texto">
                 <p className="subrotulo">Boletim temático</p>
-                <h3>
-                  A aproximação do mercado de carbono florestal no bioma
-                  Caatinga: desafios, ameaças e perspectivas
-                </h3>
-                <p>
-                  Reúne o que a ciência revela, o que a legislação estabelece e o
-                  que está em jogo para a Caatinga, em cinco seções que norteiam
-                  cidadãos, gestores públicos, organizações e investidores antes
-                  de se posicionarem no debate.
-                </p>
+                <h3>{boletim.title}</h3>
+                <p>{boletim.description}</p>
+                {boletim.pdf && (
+                  <a
+                    className="btn btn--primario"
+                    href={boletim.pdf}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Ler o boletim
+                  </a>
+                )}
               </div>
             </div>
 
             <p className="subrotulo subrotulo--secao">Coleção de cartilhas</p>
             <div className="cartilhas-grid">
-              {CARTILHAS.map((c) => (
-                <figure className="cartilha" key={c.vol}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={c.src}
-                    alt={`Capa da cartilha ${c.vol}: ${c.titulo}`}
-                  />
-                  <figcaption>
-                    <div className="cartilha-vol">{c.vol}</div>
-                    <div className="cartilha-titulo">{c.titulo}</div>
-                  </figcaption>
-                </figure>
-              ))}
+              {cartilhas.map((c) => {
+                const capa = (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={c.cover}
+                      alt={`Capa da cartilha ${c.volume}: ${c.title}`}
+                    />
+                    <figcaption>
+                      <div className="cartilha-vol">{c.volume}</div>
+                      <div className="cartilha-titulo">{c.title}</div>
+                    </figcaption>
+                  </>
+                );
+
+                return (
+                  <figure className="cartilha" key={c.volume}>
+                    {c.pdf ? (
+                      <a href={c.pdf} target="_blank" rel="noopener">
+                        {capa}
+                      </a>
+                    ) : (
+                      capa
+                    )}
+                  </figure>
+                );
+              })}
             </div>
             <div className="colecao">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -533,7 +499,7 @@ export default function LandingPage() {
               eventos e rodas de diálogo, escutando-se ao mesmo tempo a visão dos
               territórios quanto à conservação da Caatinga e ao uso da sua terra.
             </p>
-            <PhotoCarousel photos={FOTOS_FORMACAO} />
+            <PhotoCarousel photos={fotosFormacao} />
           </div>
         </section>
 
