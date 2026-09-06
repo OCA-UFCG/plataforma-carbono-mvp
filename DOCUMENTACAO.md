@@ -54,6 +54,8 @@ config/mapa/
 └ layerMeta.ts                 # fichas das camadas
 lib/
 ├ config.ts                    # MAPA_URL
+├ contentful.ts                # cliente GraphQL do Contentful (server-only)
+├ content/comunicacao.ts       # cartilhas, boletim e fotos da formação (+ padrão)
 └ mapa/
     ├ geeAuth.ts               # autenticação da service account (+ setDeadline)
     ├ geeImage.ts              # construção do ee.Image (máscara de fill, reducers)
@@ -118,6 +120,22 @@ npm run dev
 ```
 
 O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (centro `[-40, -9]`, zoom `5.2`). As camadas vetoriais carregam de `public/data`; as de carbono geram tiles do GEE ao serem ligadas.
+
+## Conteúdo editorial da landing
+
+Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o boletim em destaque e as fotos do carrossel da Formação cidadã. O restante da página segue no código, inclusive os cartões de números com as suas fontes, a seção de sazonalidade e as fotos do hero.
+
+O acesso é server-side (`lib/contentful.ts`, com `import 'server-only'`), pela API GraphQL de entrega, e as credenciais nunca levam o prefixo `NEXT_PUBLIC_`. O repositório `lib/content/comunicacao.ts` traduz as entries para o formato que a página consome e aplica o padrão por seção: se a coleção de cartilhas vier vazia, entram as quatro cartilhas do código; se a requisição falhar, entra o conteúdo padrão inteiro e o erro vai para o log. É o que permite ao `npm run build` do CI rodar sem qualquer variável do Contentful.
+
+Modelo de conteúdo, criado por `npm run contentful:provision` (IDs dos campos em inglês, como a query pede; nomes de exibição em português, que é o que o editor lê):
+
+| Content type | Campos |
+|---|---|
+| `cartilha` | `volume`, `title`, `cover` (imagem), `pdf` (opcional), `order` |
+| `boletim` | `title`, `description`, `cover` (imagem), `pdf` (opcional) |
+| `fotoFormacao` | `caption`, `alt`, `photo` (imagem), `order` |
+
+A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`), e não a data de criação da entry. O `pdf` é opcional: a capa da cartilha e o boletim só ganham link quando ele estiver publicado, o que é a forma de disponibilizar o material para download. `tests/scripts/contentfulProvision.test.ts` compara o modelo com a query e falha se um campo for renomeado em apenas um dos dois lados.
 
 ## Camadas
 
@@ -308,6 +326,7 @@ Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components
 - `npm run clip`: gera as versões simplificadas das bordas usadas como recorte.
 - `npm run prewarm`: aquece o cache de tile do servidor (rodar com o servidor no ar).
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
+- `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
 - `python scripts/build-recortes.py`: baixa os recortes (IBGE, FUNAI, INCRA via geobr), recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`. Requer `pip install geobr geopandas`.
 

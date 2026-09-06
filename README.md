@@ -47,6 +47,21 @@ Sem a chave a aplicação continua de pé e os tiles continuam chegando, só mar
 
 A CARTO considera os mapas base raster em fim de vida, em favor do serviço vetorial. A mesma chave cobre os dois formatos, então migrar depois não pede credencial nova; pede tratar estilo vetorial no `MapView`, que hoje trata todo mapa base como raster XYZ uniforme.
 
+## Conteúdo editorial (Contentful)
+
+A seção Comunicação (coleção de cartilhas e boletim em destaque) e o carrossel da Formação cidadã são lidos do Contentful pelo servidor. A integração é opcional: sem as variáveis abaixo, `lib/content/comunicacao.ts` devolve o conteúdo que acompanha o código, que é o mesmo hoje exibido na página. É assim que o build do CI roda.
+
+1. Em **Settings > API keys**, gere uma chave; ela entrega o Space ID, o Content Delivery token e o Content Preview token.
+2. Preencha `CONTENTFUL_SPACE_ID` e `CONTENTFUL_ACCESS_TOKEN` em `.env.local` e no ambiente do serviço em produção. `CONTENTFUL_ENVIRONMENT` é opcional e assume `master`.
+3. Para uma sessão de prévia do editor, use `CONTENTFUL_PREVIEW=true` junto de `CONTENTFUL_PREVIEW_TOKEN`. Sem o token de prévia a configuração é tratada como ausente, e a página volta ao conteúdo padrão.
+4. Crie os três content types com `CONTENTFUL_MANAGEMENT_TOKEN=... npm run contentful:provision -- --apply`. Sem `--apply` o comando só imprime o modelo, e sem o token do management ele imprime o modelo sem consultar o space.
+
+As credenciais do Contentful são exclusivas do servidor, como as do Firebase: o prefixo `NEXT_PUBLIC_` embutiria o token no bundle do navegador. Elas são lidas a cada requisição, com cache de 3600 s (60 s em prévia), e não são necessárias no build nem nos secrets do GitHub Actions. Isso muda se a landing deixar de exigir sessão e passar a ser gerada estaticamente: aí o build também vai precisar delas.
+
+`tests/lib/contentfulSpace.test.ts` consulta o space configurado pelo mesmo caminho de código da página e se ignora sozinho quando não há credencial, então `npm test` passa igual em máquina sem acesso e no CI.
+
+Publicar uma entry não basta: a imagem referenciada também precisa estar publicada. Uma referência pendente é registrada no log do servidor como `contentful_unresolvable_link` e a entry incompleta é descartada, mantendo a seção de pé com o restante.
+
 ## Docker
 
 A imagem usa Node 22 e a saída standalone do Next.js. Ela não contém credenciais: em produção, forneça o JSON da service account como um secret de arquivo e a variável `GOOGLE_APPLICATION_CREDENTIALS` com o caminho onde ele foi montado.
@@ -111,6 +126,8 @@ components/             SiteHeader, PhotoCarousel, HeroBackground, Sazonalidade
 components/mapa/        mapa, sidebars, gráficos, overlays
 config/mapa/            layers.json, platforms.ts, basemaps.ts, layerMeta.ts
 lib/config.ts           MAPA_URL (destino dos botões de acesso)
+lib/contentful.ts       cliente do Contentful (server-only)
+lib/content/            conteúdo editorial da landing, com padrão no código
 lib/auth.ts             validação de sessão e guard de requests
 lib/firebase*.ts        inicializadores Firebase cliente e Admin
 lib/phenology.ts        os 12 meses do ciclo e suas cores
