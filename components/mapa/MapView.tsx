@@ -793,8 +793,164 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         }
       }
 
-      // Exposed to FloatingSearchBar via a ref so it can zoom + highlight
-      // a feature from the search results dropdown.
+      // The analysis half of click-to-stats, lifted out so the search can run
+      // it too: picking a feature in the search behaves exactly as if the user
+      // had clicked it. `properties` and `fallbackGeometry` come from the
+      // rendered feature on a click, and from the source GeoJSON on a search,
+      // which has no rendered feature and so passes no fallback.
+      const runFeatureAnalysis = async (
+        vector: VectorLayerConfig,
+        featureId: number | string | undefined,
+        properties: GeoJSON.GeoJsonProperties,
+        fallbackGeometry?: GeoJSON.Geometry,
+      ) => {
+        const raster = pickStatsTarget({ vector })
+        if (!raster) return
+
+        // A new selection invalidates any in-flight stats response.
+        const seq = ++statsSeqRef.current
+
+        // Replace any existing drawing / measurement
+        draw.deleteAll()
+        setDrawnArea(null)
+        setDrawnLength(null)
+        setRasterStats(null)
+        setPixelValue(null)
+        setStatsError(null)
+
+        // Persistently highlight the selected feature (same visual as hover).
+        clearSelectedFeature()
+        if (featureId !== undefined && featureId !== null) {
+          selectedFeatureRef.current = {
+            source: vector.id,
+            id: featureId,
+            ...(vector.sourceLayer ? { sourceLayer: vector.sourceLayer } : {}),
+          }
+          map.setFeatureState(selectedFeatureRef.current, { selected: true })
+        }
+
+        // Name the analysis after the selected feature (from its hover label
+        // field) so the results card is never ambiguous about its source.
+        const labelField = vector.hoverLabelField
+        const featureName = labelField ? properties?.[labelField] : undefined
+        setAnalysisLabel(
+          featureName != null && featureName !== '' ? String(featureName) : vector.name,
+        )
+        setAnalysisKind(vector.name)
+
+        // Use the COMPLETE geometry from the source GeoJSON, not the
+        // tile-clipped one from queryRenderedFeatures, so area and zonal
+        // stats cover the whole feature.
+        const geom = (await fullFeatureGeometry(vector, featureId)) ?? fallbackGeometry
+        if (seq !== statsSeqRef.current) return // superseded while fetching source
+        // A click falls back to the rendered geometry when the source lookup
+        // fails; a search has no rendered feature, so there is nothing to
+        // measure and the zoom + highlight stand on their own.
+        if (!geom) return
+
+        // Resolve temporal date for GEE stats
+        const tempDate = useStore.getState().temporalDate[raster.id]
+        // Set context key so the reactive effect doesn't double-fire
+        prevStatsContextRef.current = `${raster.id}:${tempDate ?? 'static'}`
+
+        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+          selectedGeomRef.current = {
+            vectorLayerId: vector.id,
+            geometry: geom,
+            geometryType: 'polygon',
+          }
+          setDrawnArea(turfArea({ type: 'Feature', geometry: geom, properties: {} }) / 1_000_000)
+
+          const cacheKey = statsCacheKey(raster.id, tempDate, geom)
+          const cached = useStore.getState().statsCache[cacheKey]
+          if (cached) {
+            setRasterStats(cached)
+          } else {
+            setStatsLoading(true)
+            try {
+              const stats = await getRasterStats(raster, {
+                type: 'Feature',
+                geometry: geom as
+                  | { type: 'Polygon';      coordinates: number[][][] }
+                  | { type: 'MultiPolygon'; coordinates: number[][][][] },
+                properties: {},
+              }, tempDate)
+              useStore.setState((s) => ({
+                statsCache: { ...s.statsCache, [cacheKey]: stats },
+              }))
+              if (seq !== statsSeqRef.current) return
+              setRasterStats(stats)
+            } catch (err) {
+              console.error('[feature-analysis] getRasterStats failed', err)
+              if (seq === statsSeqRef.current) setStatsError('Falha ao calcular estatísticas. Tente novamente.')
+            } finally {
+              if (seq === statsSeqRef.current) setStatsLoading(false)
+            }
+          }
+        } else if (geom.type === 'Point') {
+          const [lon, lat] = geom.coordinates as [number, number]
+          selectedGeomRef.current = {
+            vectorLayerId: vector.id,
+            geometry: geom,
+            geometryType: 'point',
+            lon, lat,
+          }
+
+          const isTemporal = !!raster.gee?.temporal
+          if (isTemporal) {
+            // Temporal: fetch full time series at this point (single GEE call)
+            const tsCacheKey = `timeseries:${raster.id}:${lon}:${lat}`
+            const cachedTs = useStore.getState().statsCache[tsCacheKey]
+            if (cachedTs) {
+              setRasterStats(cachedTs)
+              setPixelValue(null)
+            } else {
+              setStatsLoading(true)
+              try {
+                const series = await getTemporalTimeSeries(raster, lon, lat)
+                const result: import('@/types/mapa').RasterStatsResult = { kind: 'timeseries', series }
+                useStore.setState((s) => ({
+                  statsCache: { ...s.statsCache, [tsCacheKey]: result },
+                }))
+                if (seq !== statsSeqRef.current) return
+                setRasterStats(result)
+                setPixelValue(null)
+              } catch (err) {
+                console.error('[feature-analysis] getTemporalTimeSeries failed', err)
+                if (seq === statsSeqRef.current) setStatsError('Falha ao calcular estatísticas. Tente novamente.')
+              } finally {
+                if (seq === statsSeqRef.current) setStatsLoading(false)
+              }
+            }
+          } else {
+            // Non-temporal: single pixel value
+            const cacheKey = statsCacheKey(raster.id, tempDate, geom)
+            const cachedPv = useStore.getState().pixelCache[cacheKey]
+            if (cachedPv !== undefined) {
+              setPixelValue(cachedPv)
+            } else {
+              setStatsLoading(true)
+              try {
+                const raw = await getRasterPointValue(raster, lon, lat, tempDate)
+                const pv = raw === null ? null : resolvePixelValue(raster, raw)
+                useStore.setState((s) => ({
+                  pixelCache: { ...s.pixelCache, [cacheKey]: pv },
+                }))
+                if (seq !== statsSeqRef.current) return
+                setPixelValue(pv)
+              } catch (err) {
+                console.error('[feature-analysis] getRasterPointValue failed', err)
+                if (seq === statsSeqRef.current) setStatsError('Falha ao obter o valor do pixel. Tente novamente.')
+              } finally {
+                if (seq === statsSeqRef.current) setStatsLoading(false)
+              }
+            }
+          }
+        }
+      }
+
+      // Exposed to FloatingSearchBar via a ref so it can zoom, highlight and
+      // analyse a feature from the search results dropdown.
       selectFeatureFromSearchRef.current = (layerId, featureId, bbox) => {
         const layer = useStore.getState().layers.find((candidate) => candidate.id === layerId)
         if (!layer || layer.type !== 'vector') return
@@ -810,8 +966,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
 
         clearSelectedFeature()
         draw.deleteAll()
-        // Invalidate in-flight stats and drop any previously selected geometry
-        // so the reactive recompute doesn't resurrect it after this search.
+        // Invalidate in-flight stats and drop the previously selected geometry
+        // so the reactive recompute can't resurrect it. runFeatureAnalysis
+        // below installs the searched feature in its place, when there is a
+        // raster to analyse it against.
         statsSeqRef.current++
         selectedGeomRef.current = null
         setDrawnArea(null)
@@ -827,6 +985,17 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           padding: 60,
           maxZoom: 13,
         })
+
+        // Analyse the searched feature as if the user had clicked it. The
+        // properties come from the source GeoJSON rather than from a rendered
+        // tile, so this does not have to wait for fitBounds to settle. With no
+        // raster visible runFeatureAnalysis returns immediately and the zoom +
+        // highlight above are the whole outcome, exactly like a click.
+        void (async () => {
+          const source = await loadVectorFeatureCollection(layer.url)
+          const properties = source?.features?.[featureId]?.properties ?? null
+          await runFeatureAnalysis(layer, featureId, properties)
+        })()
       }
 
       const processHover = (e: maplibregl.MapMouseEvent) => {
@@ -925,148 +1094,12 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           return
         }
 
-        const raster = pickStatsTarget(hit)
-        if (!raster) return
-
-        const feature = hit.feature
-
-        // A new selection invalidates any in-flight stats response.
-        const seq = ++statsSeqRef.current
-
-        // Replace any existing drawing / measurement
-        draw.deleteAll()
-        setDrawnArea(null)
-        setDrawnLength(null)
-        setRasterStats(null)
-        setPixelValue(null)
-        setStatsError(null)
-
-        // Persistently highlight the clicked feature (same visual as hover).
-        clearSelectedFeature()
-        if (feature.id !== undefined && feature.id !== null) {
-          selectedFeatureRef.current = {
-            source: hit.vector.id,
-            id: feature.id,
-            ...(hit.vector.sourceLayer ? { sourceLayer: hit.vector.sourceLayer } : {}),
-          }
-          map.setFeatureState(selectedFeatureRef.current, { selected: true })
-        }
-
-        // Name the analysis after the clicked feature (from its hover label
-        // field) so the results card is never ambiguous about its source.
-        const labelField = hit.vector.hoverLabelField
-        const featureName = labelField ? feature.properties?.[labelField] : undefined
-        setAnalysisLabel(
-          featureName != null && featureName !== '' ? String(featureName) : hit.vector.name,
+        await runFeatureAnalysis(
+          hit.vector,
+          hit.feature.id,
+          hit.feature.properties,
+          hit.feature.geometry,
         )
-        setAnalysisKind(hit.vector.name)
-
-        // Use the COMPLETE geometry from the source GeoJSON, not the
-        // tile-clipped one from queryRenderedFeatures, so area and zonal
-        // stats cover the whole feature. Falls back to the rendered geometry
-        // if the source lookup fails.
-        const geom = (await fullFeatureGeometry(hit.vector, feature.id)) ?? feature.geometry
-        if (seq !== statsSeqRef.current) return // superseded while fetching source
-
-        // Resolve temporal date for GEE stats
-        const tempDate = useStore.getState().temporalDate[raster.id]
-        // Set context key so the reactive effect doesn't double-fire
-        prevStatsContextRef.current = `${raster.id}:${tempDate ?? 'static'}`
-
-        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          selectedGeomRef.current = {
-            vectorLayerId: hit.vector.id,
-            geometry: geom,
-            geometryType: 'polygon',
-          }
-          setDrawnArea(turfArea({ type: 'Feature', geometry: geom, properties: {} }) / 1_000_000)
-
-          const cacheKey = statsCacheKey(raster.id, tempDate, geom)
-          const cached = useStore.getState().statsCache[cacheKey]
-          if (cached) {
-            setRasterStats(cached)
-          } else {
-            setStatsLoading(true)
-            try {
-              const stats = await getRasterStats(raster, {
-                type: 'Feature',
-                geometry: geom as
-                  | { type: 'Polygon';      coordinates: number[][][] }
-                  | { type: 'MultiPolygon'; coordinates: number[][][][] },
-                properties: {},
-              }, tempDate)
-              useStore.setState((s) => ({
-                statsCache: { ...s.statsCache, [cacheKey]: stats },
-              }))
-              if (seq !== statsSeqRef.current) return
-              setRasterStats(stats)
-            } catch (err) {
-              console.error('[click-to-stats] getRasterStats failed', err)
-              if (seq === statsSeqRef.current) setStatsError('Falha ao calcular estatísticas. Tente novamente.')
-            } finally {
-              if (seq === statsSeqRef.current) setStatsLoading(false)
-            }
-          }
-        } else if (geom.type === 'Point') {
-          const [lon, lat] = geom.coordinates as [number, number]
-          selectedGeomRef.current = {
-            vectorLayerId: hit.vector.id,
-            geometry: geom,
-            geometryType: 'point',
-            lon, lat,
-          }
-
-          const isTemporal = !!raster.gee?.temporal
-          if (isTemporal) {
-            // Temporal: fetch full time series at this point (single GEE call)
-            const tsCacheKey = `timeseries:${raster.id}:${lon}:${lat}`
-            const cachedTs = useStore.getState().statsCache[tsCacheKey]
-            if (cachedTs) {
-              setRasterStats(cachedTs)
-              setPixelValue(null)
-            } else {
-              setStatsLoading(true)
-              try {
-                const series = await getTemporalTimeSeries(raster, lon, lat)
-                const result: import('@/types/mapa').RasterStatsResult = { kind: 'timeseries', series }
-                useStore.setState((s) => ({
-                  statsCache: { ...s.statsCache, [tsCacheKey]: result },
-                }))
-                if (seq !== statsSeqRef.current) return
-                setRasterStats(result)
-                setPixelValue(null)
-              } catch (err) {
-                console.error('[click-to-stats] getTemporalTimeSeries failed', err)
-                if (seq === statsSeqRef.current) setStatsError('Falha ao calcular estatísticas. Tente novamente.')
-              } finally {
-                if (seq === statsSeqRef.current) setStatsLoading(false)
-              }
-            }
-          } else {
-            // Non-temporal: single pixel value
-            const cacheKey = statsCacheKey(raster.id, tempDate, geom)
-            const cachedPv = useStore.getState().pixelCache[cacheKey]
-            if (cachedPv !== undefined) {
-              setPixelValue(cachedPv)
-            } else {
-              setStatsLoading(true)
-              try {
-                const raw = await getRasterPointValue(raster, lon, lat, tempDate)
-                const pv = raw === null ? null : resolvePixelValue(raster, raw)
-                useStore.setState((s) => ({
-                  pixelCache: { ...s.pixelCache, [cacheKey]: pv },
-                }))
-                if (seq !== statsSeqRef.current) return
-                setPixelValue(pv)
-              } catch (err) {
-                console.error('[click-to-stats] getRasterPointValue failed', err)
-                if (seq === statsSeqRef.current) setStatsError('Falha ao obter o valor do pixel. Tente novamente.')
-              } finally {
-                if (seq === statsSeqRef.current) setStatsLoading(false)
-              }
-            }
-          }
-        }
       })
 
       setMapReady(true)
