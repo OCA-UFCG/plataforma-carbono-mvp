@@ -37,6 +37,7 @@ import { useStore, mapConfig } from '@/lib/mapa/store'
 import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
 import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
+import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { basemaps } from '@/config/mapa/basemaps'
 import type {
   LayerConfig,
@@ -715,39 +716,35 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       const queryableLayerIds = (vectorId: string): string[] =>
         [`${vectorId}-fill`, `${vectorId}-circle`].filter((lid) => map.getLayer(lid))
 
-      // Find the top-most visible vector feature under the cursor with a SINGLE
-      // queryRenderedFeatures call over all visible vector sublayers, then pick
-      // the hit belonging to the highest layer in store order (layers[0] =
-      // topmost). Avoids one spatial query per layer on every mouse event.
+      // Find the visible vector feature under the cursor with a SINGLE
+      // queryRenderedFeatures call over all visible vector sublayers, then let
+      // pickMostSpecific choose between overlapping recortes (the finer one
+      // wins; see lib/mapa/pickVector.ts). Avoids one spatial query per layer
+      // on every mouse event.
       const pickHoveredVector = (e: maplibregl.MapMouseEvent) => {
         const state = useStore.getState()
-        const sublayerToVector = new Map<string, VectorLayerConfig>()
-        const rank = new Map<string, number>()
+        const sublayerToVector = new Map<string, { vector: VectorLayerConfig; storeIndex: number }>()
         const querySublayers: string[] = []
         state.layers.forEach((layer, idx) => {
           if (layer.type !== 'vector' || !layer.visible) return
           const vec = layer as VectorLayerConfig
-          rank.set(vec.id, idx)
           for (const sl of queryableLayerIds(vec.id)) {
-            sublayerToVector.set(sl, vec)
+            sublayerToVector.set(sl, { vector: vec, storeIndex: idx })
             querySublayers.push(sl)
           }
         })
         if (querySublayers.length === 0) return null
 
         const feats = map.queryRenderedFeatures(e.point, { layers: querySublayers })
-        let best: { vector: VectorLayerConfig; feature: maplibregl.MapGeoJSONFeature } | null = null
-        let bestRank = Infinity
+        const candidates: VectorPickCandidate<maplibregl.MapGeoJSONFeature>[] = []
         for (const f of feats) {
-          const vec = f.layer?.id ? sublayerToVector.get(f.layer.id) : undefined
-          if (!vec) continue
-          const r = rank.get(vec.id) ?? Infinity
-          if (r < bestRank) {
-            bestRank = r
-            best = { vector: vec, feature: f }
-          }
+          const owner = f.layer?.id ? sublayerToVector.get(f.layer.id) : undefined
+          if (!owner) continue
+          candidates.push({ layer: owner.vector, storeIndex: owner.storeIndex, hit: f })
         }
-        return best
+
+        const best = pickMostSpecific(candidates)
+        return best ? { vector: best.layer, feature: best.hit } : null
       }
 
       // Click-to-stats needs the vector to be above a visible raster so

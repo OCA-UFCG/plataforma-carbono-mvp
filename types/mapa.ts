@@ -19,6 +19,12 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // Granularity of the recorte, used only to decide which layer wins a hover
+  // or click when several visible ones overlap (higher = finer = wins). The
+  // containment hierarchy runs bioma < estados < municipios < territories;
+  // without it the biome, which contains everything, would swallow every
+  // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
+  pickPriority?: number
   // Native GEE FeatureCollection asset id used to clip rasters to this region
   // (server-side). When set, the tile route clips to the indexed asset (fast,
   // full detail) instead of the local GeoJSON.
