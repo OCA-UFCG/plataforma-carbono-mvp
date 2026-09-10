@@ -213,7 +213,7 @@ const PARTNERS = [
 ];
 
 export default async function LandingPage() {
-  const { cartilhas, boletim, fotosFormacao } = await getComunicacaoContent(
+  const { cartilhas, caderno, fotosFormacao } = await getComunicacaoContent(
     getContentfulClient(),
   );
 
@@ -411,30 +411,30 @@ export default async function LandingPage() {
             <p className="rotulo">Comunicação</p>
             <h2>Materiais para levar o tema às comunidades</h2>
             <p className="intro">
-              O projeto produz um boletim temático e uma coleção de cartilhas em
+              O projeto produz um caderno temático e uma coleção de cartilhas em
               linguagem acessível, disseminando junto a agricultores familiares,
               assentamentos e demais territórios o entendimento sobre o mercado
               de carbono, de modo a mitigar a exposição a acordos desfavoráveis.
             </p>
 
-            <div className="boletim">
+            <div className="caderno">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={boletim.cover}
-                alt={`Capa do boletim temático ${boletim.title}`}
+                src={caderno.cover}
+                alt={`Capa do caderno temático ${caderno.title}`}
               />
-              <div className="boletim-texto">
-                <p className="subrotulo">Boletim temático</p>
-                <h3>{boletim.title}</h3>
-                <p>{boletim.description}</p>
-                {boletim.pdf && (
+              <div className="caderno-texto">
+                <p className="subrotulo">Caderno Temático</p>
+                <h3>{caderno.title}</h3>
+                <p>{caderno.description}</p>
+                {caderno.pdf && (
                   <a
                     className="btn btn--primario"
-                    href={boletim.pdf}
+                    href={caderno.pdf}
                     target="_blank"
                     rel="noopener"
                   >
-                    Ler o boletim
+                    Ler o caderno
                   </a>
                 )}
               </div>

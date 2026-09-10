@@ -34,7 +34,7 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
       'Volume 3',
       'Volume 4',
     ])
-    expect(content.boletim.title).toContain('A aproximação do mercado de carbono florestal')
+    expect(content.caderno.title).toContain('A aproximação do mercado de carbono florestal')
     expect(content.fotosFormacao).toHaveLength(6)
     expect(content.fotosFormacao[0].caption).toBe('Encontro em assentamento da reforma agrária')
 

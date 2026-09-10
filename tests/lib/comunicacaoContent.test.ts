@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  DEFAULT_BOLETIM,
+  DEFAULT_CADERNO,
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
   getComunicacaoContent,
@@ -16,8 +16,8 @@ describe('getComunicacaoContent without Contentful', () => {
       title: 'O que é crédito de carbono?',
       cover: '/images/cartilhas/vol1.jpg',
     })
-    expect(content.boletim.title).toContain('A aproximação do mercado de carbono florestal')
-    expect(content.boletim.cover).toBe('/images/cartilhas/boletim.jpg')
+    expect(content.caderno.title).toContain('A aproximação do mercado de carbono florestal')
+    expect(content.caderno.cover).toBe('/images/cartilhas/caderno.jpg')
     expect(content.fotosFormacao).toHaveLength(6)
     expect(content.fotosFormacao[0]).toEqual({
       src: '/images/formacao/f1.jpg',
@@ -38,12 +38,12 @@ const PUBLISHED = {
       },
     ],
   },
-  boletimCollection: {
+  cadernoCollection: {
     items: [
       {
-        title: 'Boletim 2027',
-        description: 'Segunda edição do boletim temático.',
-        cover: { url: 'https://images.ctfassets.net/boletim2027.jpg' },
+        title: 'Caderno 2027',
+        description: 'Segunda edição do caderno temático.',
+        cover: { url: 'https://images.ctfassets.net/caderno2027.jpg' },
         pdf: null,
       },
     ],
@@ -78,10 +78,10 @@ describe('getComunicacaoContent with published entries', () => {
         pdf: 'https://assets.ctfassets.net/vol5.pdf',
       },
     ])
-    expect(content.boletim).toEqual({
-      title: 'Boletim 2027',
-      description: 'Segunda edição do boletim temático.',
-      cover: 'https://images.ctfassets.net/boletim2027.jpg',
+    expect(content.caderno).toEqual({
+      title: 'Caderno 2027',
+      description: 'Segunda edição do caderno temático.',
+      cover: 'https://images.ctfassets.net/caderno2027.jpg',
     })
     expect(content.fotosFormacao).toEqual([
       {
@@ -116,7 +116,7 @@ describe('getComunicacaoContent when Contentful disappoints', () => {
     const content = await getComunicacaoContent(failing)
 
     expect(content.cartilhas).toEqual(DEFAULT_CARTILHAS)
-    expect(content.boletim).toEqual(DEFAULT_BOLETIM)
+    expect(content.caderno).toEqual(DEFAULT_CADERNO)
     expect(content.fotosFormacao).toEqual(DEFAULT_FOTOS_FORMACAO)
     expect(error).toHaveBeenCalledOnce()
   })
@@ -125,13 +125,13 @@ describe('getComunicacaoContent when Contentful disappoints', () => {
     const content = await getComunicacaoContent(
       clientReturning({
         cartilhaCollection: { items: [] },
-        boletimCollection: { items: [] },
+        cadernoCollection: { items: [] },
         fotoFormacaoCollection: PUBLISHED.fotoFormacaoCollection,
       }),
     )
 
     expect(content.cartilhas).toEqual(DEFAULT_CARTILHAS)
-    expect(content.boletim).toEqual(DEFAULT_BOLETIM)
+    expect(content.caderno).toEqual(DEFAULT_CADERNO)
     expect(content.fotosFormacao).toHaveLength(1)
   })
 
@@ -144,7 +144,7 @@ describe('getComunicacaoContent when Contentful disappoints', () => {
             ...PUBLISHED.cartilhaCollection.items,
           ],
         },
-        boletimCollection: PUBLISHED.boletimCollection,
+        cadernoCollection: PUBLISHED.cadernoCollection,
         fotoFormacaoCollection: {
           items: [
             { caption: 'Sem foto', alt: 'Sem foto', photo: { url: null } },

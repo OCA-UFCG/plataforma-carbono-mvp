@@ -23,7 +23,7 @@ Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", p
 |---|---|---|
 | `vol1.jpg` a `vol4.jpg` | `cartilhas/01.png` a `04.png` | Grade dos 4 volumes |
 | `colecao_banner.jpg` | recorte de `cartilhas/todas.png` (título + capas em leque, sem o bloco de QR) | Remate da seção |
-| `boletim.jpg` | `cartilhas/boletim.png` | Bloco de destaque do boletim temático |
+| `caderno.jpg` | `cartilhas/boletim.png` | Bloco de destaque do caderno temático |
 
 Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
 

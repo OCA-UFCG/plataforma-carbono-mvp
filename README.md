@@ -49,7 +49,7 @@ A CARTO considera os mapas base raster em fim de vida, em favor do serviço veto
 
 ## Conteúdo editorial (Contentful)
 
-A seção Comunicação (coleção de cartilhas e boletim em destaque) e o carrossel da Formação cidadã são lidos do Contentful pelo servidor. A integração é opcional: sem as variáveis abaixo, `lib/content/comunicacao.ts` devolve o conteúdo que acompanha o código, que é o mesmo hoje exibido na página. É assim que o build do CI roda.
+A seção Comunicação (coleção de cartilhas e caderno temático em destaque) e o carrossel da Formação cidadã são lidos do Contentful pelo servidor. A integração é opcional: sem as variáveis abaixo, `lib/content/comunicacao.ts` devolve o conteúdo que acompanha o código, que é o mesmo hoje exibido na página. É assim que o build do CI roda.
 
 1. Em **Settings > API keys**, gere uma chave; ela entrega o Space ID, o Content Delivery token e o Content Preview token.
 2. Preencha `CONTENTFUL_SPACE_ID` e `CONTENTFUL_ACCESS_TOKEN` em `.env.local` e no ambiente do serviço em produção. `CONTENTFUL_ENVIRONMENT` é opcional e assume `master`.
