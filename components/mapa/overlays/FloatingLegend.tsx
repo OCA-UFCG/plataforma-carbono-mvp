@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
+import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
@@ -239,28 +240,100 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
     fontVariantNumeric: 'tabular-nums',
   }
 
+  // A signed flux crosses zero somewhere along the bar, and that crossing is
+  // the whole reading: left of it the area removed carbon, right of it it
+  // emitted. So the ends lose the minus sign and name their direction, and a
+  // tick marks the equilibrium. The fraction is computed from min/max rather
+  // than hardcoded at the middle, because the calibrated range is asymmetric
+  // (-100 to 300 puts zero at a quarter of the way).
+  const signed = layer.signedFlux === true && min != null && max != null
+  const zero = signed ? zeroPosition(min, max) : null
+
   return (
     <div style={{ marginLeft: 0 }}>
-      <div style={{ height: 9, borderRadius: 99, background: gradient }} />
-      {(min != null || max != null || layer.unit) && (
+      <div style={{ position: 'relative', height: 9, borderRadius: 99, background: gradient }}>
+        {zero !== null && (
+          <span
+            aria-hidden
+            title="Equilíbrio: nem emissão nem sequestro"
+            style={{
+              position: 'absolute',
+              left: `${zero * 100}%`,
+              top: -2,
+              width: 1.5,
+              height: 13,
+              background: theme.colors.text,
+              opacity: 0.55,
+            }}
+          />
+        )}
+      </div>
+      {signed ? (
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'baseline',
+            alignItems: 'flex-start',
             gap: 4,
             marginTop: 2,
           }}
         >
-          <span style={endStyle}>{min != null ? fmt(min) : ''}</span>
+          <FluxEnd value={min} theme={theme} format={fmt} align="left" />
           {layer.unit && (
             <span style={{ fontSize: 10, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
               {layer.unit}
             </span>
           )}
-          <span style={endStyle}>{max != null ? fmt(max) : ''}</span>
+          <FluxEnd value={max} theme={theme} format={fmt} align="right" />
         </div>
+      ) : (
+        (min != null || max != null || layer.unit) && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              gap: 4,
+              marginTop: 2,
+            }}
+          >
+            <span style={endStyle}>{min != null ? fmt(min) : ''}</span>
+            {layer.unit && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
+                {layer.unit}
+              </span>
+            )}
+            <span style={endStyle}>{max != null ? fmt(max) : ''}</span>
+          </div>
+        )
       )}
     </div>
+  )
+}
+
+/** One end of a signed flux scale: the magnitude, then what that side means. */
+function FluxEnd({
+  value,
+  theme,
+  format,
+  align,
+}: {
+  value: number
+  theme: PlatformTheme
+  format: (n: number) => string
+  align: 'left' | 'right'
+}) {
+  const flux = describeFlux(value)
+  const ink = fluxInk(flux.direction, theme.colors)
+
+  return (
+    <span style={{ display: 'flex', flexDirection: 'column', alignItems: align === 'left' ? 'flex-start' : 'flex-end' }}>
+      <span style={{ fontSize: 10, fontWeight: 700, color: ink, fontVariantNumeric: 'tabular-nums' }}>
+        {format(flux.magnitude)}
+      </span>
+      {flux.noun && (
+        <span style={{ fontSize: 9, fontWeight: 700, color: ink }}>{flux.noun}</span>
+      )}
+    </span>
   )
 }

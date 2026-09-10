@@ -1,6 +1,6 @@
 import type { PlatformTheme } from '@/types/mapa'
-import { resolveMonth, type MonthInfo } from '@/lib/phenology'
-import { mix, readableOn, adjustContrast } from '@/lib/color'
+import { MONTHS, resolveMonth, type MonthInfo } from '@/lib/phenology'
+import { mix, readableOn, adjustContrast, luminance } from '@/lib/color'
 
 /**
  * Theme = fixed "mata branca" neutrals (light or dark) plus the month accent.
@@ -56,6 +56,44 @@ export function buildAccent(base: string, dark: boolean): AccentSet {
   }
 }
 
+/**
+ * Red for a net carbon source, green for a net sink. Fixed all year: the accent
+ * rotates monthly, but the meaning of these two must not.
+ *
+ * The bases are the endpoints of the `gfw_netflux` palette, so the number in
+ * the panel wears the same color as the extreme of the map it was read from.
+ */
+const FLUX_BASE = { emission: '#b2182b', removal: '#1b7837' }
+
+/**
+ * Worst card background of the year, per mode. These inks land on `accentBg`,
+ * which is the month color diluted into the surface, so what binds is the
+ * hardest of the twelve rather than the plain card: the lightest tint in dark
+ * mode, where the ink is light, and the darkest in light mode, where it is
+ * dark. Deriving against `bgCard` alone passes in light mode and fails in dark
+ * mode for the pale month colors.
+ */
+function worstAccentBg(dark: boolean): string {
+  return MONTHS.map((m) => buildAccent(m.color, dark).accentBg).reduce((worst, bg) =>
+    (dark ? luminance(bg) > luminance(worst) : luminance(bg) < luminance(worst)) ? bg : worst,
+  )
+}
+
+export interface FluxInkSet {
+  emissionInk: string
+  removalInk:  string
+}
+
+/** Derives the two flux inks to 4.5:1 over the worst surface they can land on. */
+export function buildFluxInks(dark: boolean): FluxInkSet {
+  const bg = worstAccentBg(dark)
+  const target = dark ? '#ffffff' : '#16150f'
+  return {
+    emissionInk: adjustContrast(FLUX_BASE.emission, bg, target, 4.5),
+    removalInk:  adjustContrast(FLUX_BASE.removal, bg, target, 4.5),
+  }
+}
+
 export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
   const neutrals = dark ? darkNeutrals : lightNeutrals
   return {
@@ -63,7 +101,7 @@ export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
     name: 'Carbono Caatinga',
     fullName: 'Observatório da Caatinga, OCA',
     footer: 'OCA / UFCG-INSA',
-    colors: { ...neutrals, ...buildAccent(month.color, dark) },
+    colors: { ...neutrals, ...buildAccent(month.color, dark), ...buildFluxInks(dark) },
   }
 }
 

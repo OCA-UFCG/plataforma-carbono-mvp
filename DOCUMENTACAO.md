@@ -180,6 +180,36 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
 
+O `gfw_netflux` é a única camada de valor com sinal: pela convenção
+atmosférica dos dados de origem, o fluxo líquido é negativo onde as remoções
+superam as emissões. Lido cru, portanto, um trecho que sequestrou carbono
+aparece com um menos na frente. A camada declara `signedFlux: true`, e com isso
+o painel de resultados descarta o sinal e leva a direção em três canais
+redundantes: a magnitude sem menos, uma seta, e a palavra ("sequestrou" em
+verde, "emitiu" em vermelho). O `lib/mapa/carbonFlux.ts` concentra essa regra.
+A palavra não é redundância decorativa: vermelho contra verde é o pior par
+possível para deuteranopia, e a WCAG 1.4.1 proíbe a cor como único portador de
+significado. As duas tintas saem derivadas em `buildFluxInks`, aferidas a 4,5:1
+contra o pior fundo dos doze meses nos dois modos, e o `npm run contrast`
+quebra o build se alguma cair abaixo disso.
+
+Nas estatísticas dessa camada, "Mínimo" e "Máximo" viram "Menor fluxo" e "Maior
+fluxo". Sem o sinal, um mínimo de 45,2 pintado de verde não se lê; e chamá-lo
+de "maior sequestro" seria falso sobre uma área que só emite, onde o próprio
+mínimo é positivo. O desvio padrão fica neutro, sem cor: é dispersão, não
+direção. O CSV exportado mantém o sinal, porque planilha precisa somar
+sumidouro contra fonte e a cor não viaja para o Excel; a convenção sai escrita
+numa linha de metadado do arquivo.
+
+A paleta do `gfw_netflux` é divergente de nove paradas, não sete, e essa
+contagem tem motivo. A faixa calibrada é assimétrica (−100 a 300), então o zero
+cai a um quarto do caminho, não no meio. Com paradas distribuídas
+uniformemente, nove colocam o neutro `#f7f7f7` exatamente na parada 2 = 25% = o
+zero real. Com as sete anteriores, o branco marcava +100 Mg CO2e/ha, isto é,
+emissão: a barra dizia "equilíbrio" onde o dado dizia fonte. O mesmo arranjo
+serve à legenda, que monta o gradiente CSS com as mesmas paradas uniformes, de
+modo que barra e mapa não podem divergir.
+
 O GPP do PML-V2 entra como segunda estimativa independente da mesma variável já
 coberta pelo MOD17, e não como camada nova de produtividade. A finalidade é
 sustentar, mais à frente, uma leitura do erro possível a partir de várias bases.

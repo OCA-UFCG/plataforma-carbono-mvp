@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { IcX, IcBarChart, IcDownload } from './icons'
+import FluxValue from './FluxValue'
 import { useStore } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
@@ -71,6 +72,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       layerName: activeRaster?.name ?? 'Análise',
       layerUnit: activeRaster?.unit,
       layerClasses: activeRaster?.classes,
+      signedFlux: activeRaster?.signedFlux,
       year: activeRaster ? temporalDate[activeRaster.id]?.slice(0, 4) : undefined,
       analysisKind,
       analysisLabel,
@@ -262,17 +264,27 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       {pixelValue !== null && (
         <div style={card}>
           <div style={{ ...eyebrow, marginBottom: 4 }}>Valor do pixel</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {pixelValue.color && (
-              <span style={{ width: 14, height: 14, borderRadius: 3, background: pixelValue.color, flexShrink: 0 }} />
-            )}
-            <span style={{ ...heroNumber, fontSize: 24 }}>
-              {pixelValue.value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
-            </span>
-            {pixelValue.label && (
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: c.dim }}>{pixelValue.label}</span>
-            )}
-          </div>
+          {activeRaster?.signedFlux ? (
+            <FluxValue
+              value={pixelValue.value}
+              unit={activeRaster.unit}
+              theme={theme}
+              size={24}
+              format={(m) => m.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
+            />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {pixelValue.color && (
+                <span style={{ width: 14, height: 14, borderRadius: 3, background: pixelValue.color, flexShrink: 0 }} />
+              )}
+              <span style={{ ...heroNumber, fontSize: 24 }}>
+                {pixelValue.value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
+              </span>
+              {pixelValue.label && (
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: c.dim }}>{pixelValue.label}</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
