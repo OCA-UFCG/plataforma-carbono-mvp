@@ -176,5 +176,42 @@ describe('buildAnalysisCsv', () => {
 
     expect(filename).toBe('carbono-caatinga_estoque-de-carbono_area-desenhada_2026-08-24.csv')
   })
+
+  it('states the sign convention in the metadata when the layer is a signed flux', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerName: 'Fluxo Líquido de Carbono Florestal (GFW)',
+      signedFlux: true,
+    })
+
+    expect(csv).toContain('# Convenção: valor negativo = sequestro, positivo = emissão')
+  })
+
+  it('omits the sign convention for a layer whose values carry no sign', () => {
+    const { csv } = buildAnalysisCsv({ ...base })
+
+    expect(csv).not.toContain('# Convenção')
+  })
+
+  // The panel hides the minus sign on purpose; the file must not. A spreadsheet
+  // has to be able to sum sinks against sources, and the color does not travel
+  // into Excel.
+  it('keeps the sign on the exported numbers so a spreadsheet can still sum them', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layerName: 'Fluxo Líquido de Carbono Florestal (GFW)',
+      layerUnit: 'Mg CO2e/ha',
+      signedFlux: true,
+      pixelValue: { value: -45.2 },
+      stats: {
+        kind: 'continuous',
+        stats: { min: -95.5, max: 240, mean: -12.25, count: 900 },
+      },
+    })
+
+    expect(csv).toContain('Valor do pixel;-45,2;Mg CO2e/ha')
+    expect(csv).toContain('Mínimo;-95,5;Mg CO2e/ha')
+    expect(csv).toContain('Média;-12,25;Mg CO2e/ha')
+  })
 })
 

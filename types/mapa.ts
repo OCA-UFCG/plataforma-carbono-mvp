@@ -57,6 +57,12 @@ export interface RasterLayerConfig {
   opacity: number   // 0-100
   nodata?: string | number
   colorType: 'categorical' | 'continuous'
+  // Values are a signed flux: negative where carbon was removed from the
+  // atmosphere, positive where it was emitted. The presence of this flag makes
+  // the panel drop the minus sign and carry the direction in a word, an arrow
+  // and a color instead (lib/mapa/carbonFlux.ts). A stock or a gross flux is
+  // one-directional and leaves it unset.
+  signedFlux?: boolean
   // categorical:
   classes?: RasterClass[]
   // continuous:
@@ -231,6 +237,8 @@ export interface PlatformColors {
   mist:      string   // recessed surfaces
   terracota: string   // fixed: draw tool, warm warnings
   acude:     string   // fixed: water, links, info
+  emissionInk: string // fixed: text of a net carbon source ("emitiu")
+  removalInk:  string // fixed: text of a net carbon sink ("sequestrou")
   glassBg:   string   // floating panel background (glass)
   glassBd:   string   // floating panel border
 }

@@ -9,6 +9,8 @@ export interface AnalysisSnapshot {
   layerClasses?: RasterClass[]
   /** Year of the current temporal stop, when the layer is time-navigable. */
   year?: string
+  /** Layer whose values are a signed flux, negative where carbon was removed. */
+  signedFlux?: boolean
   analysisKind: string | null
   analysisLabel: string | null
   drawnArea: number | null
@@ -55,6 +57,12 @@ function slug(value: string): string {
 function metadataRows(snap: AnalysisSnapshot): string[] {
   const recorte = [snap.analysisKind, snap.analysisLabel].filter(Boolean).join(' - ')
   const out = ['# Plataforma Carbono Caatinga', `# Camada: ${snap.layerName}`]
+  // The panel drops the minus sign and says "sequestrou" in green instead, but
+  // the file keeps the sign so a spreadsheet can sum sinks against sources.
+  // Spelling the convention out is what stops the two readings from clashing.
+  if (snap.signedFlux) {
+    out.push('# Convenção: valor negativo = sequestro, positivo = emissão')
+  }
   if (recorte) out.push(`# Recorte: ${recorte}`)
   if (snap.year) out.push(`# Ano: ${snap.year}`)
   out.push(`# Gerado em: ${isoDate(snap.generatedAt)}`)

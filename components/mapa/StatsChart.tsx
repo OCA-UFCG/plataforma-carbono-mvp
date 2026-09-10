@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { useStore } from '@/lib/mapa/store'
 import StockReportView from './StockReportView'
+import FluxValue from './FluxValue'
 import type {
   RasterLayerConfig,
   PlatformTheme,
@@ -36,7 +37,9 @@ export default function StatsChart({ theme }: Props) {
     layers.some((l) => l.type === 'raster' && l.visible && loadingLayers[l.id])
 
   // Caption naming what's being analysed: "<raster>, <feature>".
-  const activeRaster = layers.find((l) => l.type === 'raster' && l.visible)
+  const activeRaster = layers.find(
+    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
+  )
   const caption = activeRaster
     ? `${activeRaster.name}${analysisLabel ? `, ${analysisLabel}` : ''}`
     : undefined
@@ -56,7 +59,15 @@ export default function StatsChart({ theme }: Props) {
   if (rasterStats.kind === 'categorical') {
     return <CategoricalChart areas={rasterStats.areas} layers={layers} theme={theme} caption={caption} />
   }
-  return <ContinuousStatsView stats={rasterStats.stats} unit={rasterStats.unit} theme={theme} caption={caption} />
+  return (
+    <ContinuousStatsView
+      stats={rasterStats.stats}
+      unit={rasterStats.unit}
+      theme={theme}
+      caption={caption}
+      signedFlux={activeRaster?.signedFlux}
+    />
+  )
 }
 
 // Error card (stats request failed)
@@ -264,11 +275,13 @@ function ContinuousStatsView({
   unit,
   theme,
   caption,
+  signedFlux,
 }: {
   stats: ContinuousStats
   unit?: string
   theme: PlatformTheme
   caption?: string
+  signedFlux?: boolean
 }) {
   const fmt = (n: number | undefined): string => {
     if (n === undefined || !Number.isFinite(n)) return 'n/d'
@@ -277,11 +290,19 @@ function ContinuousStatsView({
   }
 
   // The mean gets a highlighted hero card; the rest fill a 2x2 grid (handoff).
-  const cells: { label: string; value: string }[] = [
-    { label: 'Mediana', value: fmt(stats.median) },
-    { label: 'Mínimo',  value: fmt(stats.min) },
-    { label: 'Máximo',  value: fmt(stats.max) },
-    { label: 'Desvio',  value: fmt(stats.std) },
+  //
+  // A signed flux has no meaningful "Mínimo": with the sign gone, a minimum of
+  // 45,2 painted green reads as nonsense, and naming it "Maior sequestro"
+  // would be false over an area that only emits, where `min` is itself
+  // positive. "Menor fluxo" / "Maior fluxo" hold either way, and each value
+  // states its own direction.
+  const cells: { label: string; value: number | undefined; directional: boolean }[] = [
+    { label: 'Mediana', value: stats.median, directional: true },
+    { label: signedFlux ? 'Menor fluxo' : 'Mínimo', value: stats.min, directional: true },
+    { label: signedFlux ? 'Maior fluxo' : 'Máximo', value: stats.max, directional: true },
+    // A deviation is a spread, not a direction. Painting it green would claim
+    // a sequestration the number never described.
+    { label: 'Desvio',  value: stats.std, directional: false },
   ]
 
   const c = theme.colors
@@ -311,12 +332,19 @@ function ContinuousStatsView({
       {/* Hero: mean */}
       <div style={{
         background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 10,
-        padding: '10px 12px', display: 'flex', alignItems: 'baseline', gap: 8,
+        padding: '10px 12px', display: 'flex', gap: 8,
+        alignItems: signedFlux ? 'flex-start' : 'baseline',
       }}>
-        <span style={{ fontSize: 32, fontWeight: 800, color: c.text, lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
-          {fmt(stats.mean)}
-        </span>
-        {unit && <span style={{ fontSize: 15, fontWeight: 700, color: c.accent }}>{unit}</span>}
+        {signedFlux ? (
+          <FluxValue value={stats.mean} unit={unit} theme={theme} size={32} format={fmt} />
+        ) : (
+          <>
+            <span style={{ fontSize: 32, fontWeight: 800, color: c.text, lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
+              {fmt(stats.mean)}
+            </span>
+            {unit && <span style={{ fontSize: 15, fontWeight: 700, color: c.accent }}>{unit}</span>}
+          </>
+        )}
         <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>
           média
         </span>
@@ -331,9 +359,13 @@ function ContinuousStatsView({
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: c.dim }}>
               {cell.label}
             </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: c.text, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
-              {cell.value}
-            </div>
+            {signedFlux && cell.directional && cell.value !== undefined ? (
+              <FluxValue value={cell.value} theme={theme} size={22} format={fmt} />
+            ) : (
+              <div style={{ fontSize: 22, fontWeight: 800, color: c.text, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
+                {fmt(cell.value)}
+              </div>
+            )}
           </div>
         ))}
       </div>
