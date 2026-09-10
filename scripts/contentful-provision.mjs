@@ -28,9 +28,9 @@ export const CONTENT_TYPES = [
     ],
   },
   {
-    id: 'boletim',
-    name: 'Boletim temático',
-    description: 'Boletim em destaque na seção Comunicação. A página usa a entrada mais recente.',
+    id: 'caderno',
+    name: 'Caderno Temático',
+    description: 'Caderno temático em destaque na seção Comunicação. A página usa a entrada mais recente.',
     displayField: 'title',
     fields: [
       { id: 'title', name: 'Título', type: 'Symbol', required: true },

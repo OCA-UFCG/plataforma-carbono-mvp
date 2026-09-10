@@ -12,7 +12,7 @@ export type Cartilha = {
   pdf?: string
 }
 
-export type Boletim = {
+export type Caderno = {
   title: string
   description: string
   cover: string
@@ -27,7 +27,7 @@ export type FormacaoPhoto = {
 
 export type ComunicacaoContent = {
   cartilhas: Cartilha[]
-  boletim: Boletim
+  caderno: Caderno
   fotosFormacao: FormacaoPhoto[]
 }
 
@@ -54,12 +54,12 @@ export const DEFAULT_CARTILHAS: Cartilha[] = [
   },
 ]
 
-export const DEFAULT_BOLETIM: Boletim = {
+export const DEFAULT_CADERNO: Caderno = {
   title:
     'A aproximação do mercado de carbono florestal no bioma Caatinga: desafios, ameaças e perspectivas',
   description:
     'Reúne o que a ciência revela, o que a legislação estabelece e o que está em jogo para a Caatinga, em cinco seções que norteiam cidadãos, gestores públicos, organizações e investidores antes de se posicionarem no debate.',
-  cover: '/images/cartilhas/boletim.jpg',
+  cover: '/images/cartilhas/caderno.jpg',
 }
 
 // The captions describe what is visible in each photo. IMAGENS.md records that
@@ -99,7 +99,7 @@ export const DEFAULT_FOTOS_FORMACAO: FormacaoPhoto[] = [
 
 const DEFAULT_CONTENT: ComunicacaoContent = {
   cartilhas: DEFAULT_CARTILHAS,
-  boletim: DEFAULT_BOLETIM,
+  caderno: DEFAULT_CADERNO,
   fotosFormacao: DEFAULT_FOTOS_FORMACAO,
 }
 
@@ -116,7 +116,7 @@ type ContentfulEntries = {
       pdf?: ContentfulAsset
     } | null>
   } | null
-  boletimCollection?: {
+  cadernoCollection?: {
     items: Array<{
       title?: string | null
       description?: string | null
@@ -145,7 +145,7 @@ export const COMUNICACAO_QUERY = `
         pdf { url }
       }
     }
-    boletimCollection(limit: 1, preview: $preview) {
+    cadernoCollection(limit: 1, preview: $preview) {
       items {
         title
         description
@@ -177,8 +177,8 @@ function mapCartilhas(entries: ContentfulEntries): Cartilha[] {
   })
 }
 
-function mapBoletim(entries: ContentfulEntries): Boletim | null {
-  const item = (entries.boletimCollection?.items ?? [])[0]
+function mapCaderno(entries: ContentfulEntries): Caderno | null {
+  const item = (entries.cadernoCollection?.items ?? [])[0]
   const cover = assetUrl(item?.cover)
 
   if (!item?.title || !item.description || !cover) return null
@@ -205,7 +205,7 @@ function withDefaults(entries: ContentfulEntries): ComunicacaoContent {
 
   return {
     cartilhas: cartilhas.length > 0 ? cartilhas : DEFAULT_CARTILHAS,
-    boletim: mapBoletim(entries) ?? DEFAULT_BOLETIM,
+    caderno: mapCaderno(entries) ?? DEFAULT_CADERNO,
     fotosFormacao: fotosFormacao.length > 0 ? fotosFormacao : DEFAULT_FOTOS_FORMACAO,
   }
 }

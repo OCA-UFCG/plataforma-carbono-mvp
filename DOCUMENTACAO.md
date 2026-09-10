@@ -55,7 +55,7 @@ config/mapa/
 lib/
 ├ config.ts                    # MAPA_URL
 ├ contentful.ts                # cliente GraphQL do Contentful (server-only)
-├ content/comunicacao.ts       # cartilhas, boletim e fotos da formação (+ padrão)
+├ content/comunicacao.ts       # cartilhas, caderno e fotos da formação (+ padrão)
 └ mapa/
     ├ geeAuth.ts               # autenticação da service account (+ setDeadline)
     ├ geeImage.ts              # construção do ee.Image (máscara de fill, reducers)
@@ -123,7 +123,7 @@ O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (
 
 ## Conteúdo editorial da landing
 
-Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o boletim em destaque e as fotos do carrossel da Formação cidadã. O restante da página segue no código, inclusive os cartões de números com as suas fontes, a seção de sazonalidade e as fotos do hero.
+Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o caderno temático em destaque e as fotos do carrossel da Formação cidadã. O restante da página segue no código, inclusive os cartões de números com as suas fontes, a seção de sazonalidade e as fotos do hero.
 
 O acesso é server-side (`lib/contentful.ts`, com `import 'server-only'`), pela API GraphQL de entrega, e as credenciais nunca levam o prefixo `NEXT_PUBLIC_`. O repositório `lib/content/comunicacao.ts` traduz as entries para o formato que a página consome e aplica o padrão por seção: se a coleção de cartilhas vier vazia, entram as quatro cartilhas do código; se a requisição falhar, entra o conteúdo padrão inteiro e o erro vai para o log. É o que permite ao `npm run build` do CI rodar sem qualquer variável do Contentful.
 
@@ -132,10 +132,10 @@ Modelo de conteúdo, criado por `npm run contentful:provision` (IDs dos campos e
 | Content type | Campos |
 |---|---|
 | `cartilha` | `volume`, `title`, `cover` (imagem), `pdf` (opcional), `order` |
-| `boletim` | `title`, `description`, `cover` (imagem), `pdf` (opcional) |
+| `caderno` | `title`, `description`, `cover` (imagem), `pdf` (opcional) |
 | `fotoFormacao` | `caption`, `alt`, `photo` (imagem), `order` |
 
-A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`), e não a data de criação da entry. O `pdf` é opcional: a capa da cartilha e o boletim só ganham link quando ele estiver publicado, o que é a forma de disponibilizar o material para download. `tests/scripts/contentfulProvision.test.ts` compara o modelo com a query e falha se um campo for renomeado em apenas um dos dois lados.
+A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`), e não a data de criação da entry. O `pdf` é opcional: a capa da cartilha e o caderno só ganham link quando ele estiver publicado, o que é a forma de disponibilizar o material para download. `tests/scripts/contentfulProvision.test.ts` compara o modelo com a query e falha se um campo for renomeado em apenas um dos dois lados.
 
 ## Camadas
 

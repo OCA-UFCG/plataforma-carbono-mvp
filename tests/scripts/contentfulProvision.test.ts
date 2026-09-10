@@ -7,7 +7,7 @@ import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
 // model and the query from drifting apart.
 const COLLECTIONS = {
   cartilhaCollection: 'cartilha',
-  boletimCollection: 'boletim',
+  cadernoCollection: 'caderno',
   fotoFormacaoCollection: 'fotoFormacao',
 }
 

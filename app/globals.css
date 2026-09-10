@@ -505,7 +505,7 @@ section {
   margin-bottom: 22px;
 }
 
-.boletim {
+.caderno {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
   gap: clamp(28px, 5vw, 48px);
@@ -515,12 +515,12 @@ section {
   border-bottom: 1px solid var(--borda);
 }
 
-.boletim img {
+.caderno img {
   width: 100%;
   border: 1px solid var(--borda);
 }
 
-.boletim-texto h3 {
+.caderno-texto h3 {
   margin-top: 12px;
   font-size: clamp(20px, 3vw, 24px);
   font-weight: 300;
@@ -528,7 +528,7 @@ section {
   color: var(--titulo);
 }
 
-.boletim-texto p {
+.caderno-texto p {
   margin-top: 16px;
   font-size: 15px;
   line-height: 1.75;
@@ -1346,12 +1346,12 @@ section {
     gap: 28px;
   }
 
-  .boletim {
+  .caderno {
     grid-template-columns: 1fr;
     gap: 24px;
   }
 
-  .boletim img {
+  .caderno img {
     max-width: 360px;
   }
 
@@ -1511,7 +1511,7 @@ section {
     gap: 16px;
   }
 
-  .boletim img {
+  .caderno img {
     max-width: 100%;
   }
 
