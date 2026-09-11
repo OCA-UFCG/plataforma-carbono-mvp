@@ -43,7 +43,7 @@ Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação
 
 ## Hero
 
-O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar `HERO_FOTOS` em `app/page.tsx`.
+O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar `HERO_FOTOS` em `app/(marketing)/page.tsx`.
 
 ## Tipografia
 
