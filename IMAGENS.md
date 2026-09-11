@@ -27,6 +27,8 @@ Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", p
 
 Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
 
+Observação: a arte da capa do caderno ainda traz o rótulo "Boletim temático", nome anterior da publicação. O rótulo na landing e o content type no Contentful já usam "Caderno Temático"; a imagem discorda porque o texto está embutido no design. Para alinhar, é preciso editar o original, regerar o JPEG e substituir o asset no Contentful — a página usa o asset do CMS, e o `caderno.jpg` só entra no fallback, então as duas cópias precisam ser trocadas.
+
 ## Formação (public/images/formacao/)
 
 Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos), usadas no carrossel da seção Formação. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).
@@ -41,7 +43,7 @@ Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação
 
 ## Hero
 
-O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar `HERO_FOTOS` em `app/page.tsx`.
+O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar `HERO_FOTOS` em `app/(marketing)/page.tsx`.
 
 ## Tipografia
 
