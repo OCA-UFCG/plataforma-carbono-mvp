@@ -138,7 +138,14 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
     }
 
     void Promise.all(Array.from({ length: CONCURRENCY }, worker))
-    return () => controller.abort()
+    return () => {
+      controller.abort()
+      // Clears the guard along with the abort, so React StrictMode's
+      // mount -> effect -> cleanup -> effect double-invocation in
+      // development restarts the queue on the second effect instead of
+      // finding a stale signature and never starting any worker.
+      startedRef.current = null
+    }
   }, [shell, camadas, query, fetchAnalysis])
 
   if (shellStatus === 'error') {
