@@ -109,14 +109,15 @@ export function buildReportShell(input: {
     throw new ReportBadRequestError('No layer was selected.')
   }
 
-  const recorte = resolveRecorte(recorteId, feicaoId)
-  const order = new Map(REPORT_LAYERS.map((entry) => [entry.layerId, entry.order]))
   const deduped = [...new Set(layerIds)]
   if (deduped.length > MAX_REPORT_LAYERS) {
     throw new ReportBadRequestError(
       `At most ${MAX_REPORT_LAYERS} layers can be selected.`,
     )
   }
+
+  const recorte = resolveRecorte(recorteId, feicaoId)
+  const order = new Map(REPORT_LAYERS.map((entry) => [entry.layerId, entry.order]))
   const selected = deduped.sort(
     (a, b) => (order.get(a) ?? Infinity) - (order.get(b) ?? Infinity),
   )

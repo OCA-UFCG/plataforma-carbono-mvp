@@ -32,7 +32,9 @@ function req(path: string, query: Record<string, string>) {
 
 const baseQuery = {
   recorte: 'municipios', feicao: 'campina-grande', ano: '2023',
-  camadas: 'estoque_carbono,solo_carbono',
+  // Sent reversed relative to curated order (estoque_carbono: 10, solo_carbono: 20),
+  // so the assertion below actually proves the route/service sorts them.
+  camadas: 'solo_carbono,estoque_carbono',
 }
 const analiseQuery = {
   recorte: 'municipios', feicao: 'campina-grande', ano: '2023', camada: 'solo_carbono',
