@@ -90,10 +90,14 @@ export async function computeSeries(ee: any, input: ZonalSeriesInput): Promise<T
         reducer:    ee.Reducer.mean(),
         geometry:   ee.Geometry(region.geometry),
         scale:      region.scale ?? asset.scale ?? 500,
-        maxPixels:  1e9,
+        // This is the reduction with one band per year, so it gets the same
+        // headroom as the other multi-band reduction in the codebase
+        // (stockReport.ts). With bestEffort this budget sets where scale
+        // coarsening begins, not where the call fails, so a tighter cap here
+        // would degrade a 40-year series harder than a single-band snapshot
+        // of the same layer.
+        maxPixels:  1e10,
         bestEffort: true,
-        // Forty bands over a state is a lot of tiles in flight; the same guard
-        // the stock report uses keeps the request inside the memory limit.
         tileScale:  4,
       }
 
