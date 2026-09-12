@@ -2,7 +2,8 @@
 // dois modos. Roda o codigo real (buildAccent), nao uma copia. Uso: npm run contrast
 import { MONTHS } from '@/lib/phenology'
 import { contrast } from '@/lib/color'
-import { buildAccent, buildFluxInks } from '@/config/mapa/platforms'
+import { buildAccent, buildFluxInks, buildReportTheme } from '@/config/mapa/platforms'
+import { REPORT_LAYERS } from '@/config/mapa/reportLayers'
 
 const CARD = { light: '#ffffff', dark: '#211f18' }
 const MIN = 4.5
@@ -54,6 +55,33 @@ for (const m of MONTHS) {
       ok ? '' : '  <-- FALHA',
     )
   }
+}
+
+// The report document does not rotate with the month: it wears the fixed OCA
+// accent on white paper, and each section heading is white text on its own
+// `sectionColor`. Both go through the same 4.5:1 gate as the monthly accents,
+// because a heading nobody can read is a heading nobody can read whether the
+// color came from a month or from a config file.
+console.log('\nrelatorio                     cor       vs branco')
+
+const reportTheme = buildReportTheme()
+const reportPairs: [string, string, string][] = [
+  ['accentInk', reportTheme.colors.accentInk, '#ffffff'],
+  ['onAccent', reportTheme.colors.onAccent, reportTheme.colors.accent],
+  ['emissionInk', reportTheme.colors.emissionInk, '#ffffff'],
+  ['removalInk', reportTheme.colors.removalInk, '#ffffff'],
+  ...REPORT_LAYERS.map((entry): [string, string, string] =>
+    [`secao ${entry.layerId}`, entry.sectionColor, '#ffffff']),
+]
+
+for (const [label, fg, bg] of reportPairs) {
+  const ratio = contrast(fg, bg)
+  const ok = ratio >= MIN
+  if (!ok) failures++
+  console.log(
+    label.padEnd(30), fg.padEnd(9), ratio.toFixed(2).padStart(9),
+    ok ? '' : '  <-- FALHA',
+  )
 }
 
 console.log(`\nfalhas de contraste abaixo de ${MIN}:1 -> ${failures}`)

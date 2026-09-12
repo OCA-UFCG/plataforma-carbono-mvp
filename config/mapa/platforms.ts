@@ -107,3 +107,23 @@ export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
 
 /** Default theme for any non-reactive importer. */
 export const theme = buildTheme(resolveMonth('auto'), false)
+
+/**
+ * Brand green of the OCA logo, the accent of the printed document.
+ *
+ * The document does not wear the month accent on purpose: the same report for
+ * the same municipality generated in March and in September has to be the same
+ * document, not two differently colored pieces in someone's archive. And it is
+ * always light mode, because the page is white paper.
+ */
+const OCA_OLIVE = '#5f7030'
+
+export function buildReportTheme(): PlatformTheme {
+  return {
+    id: 'carbono-relatorio',
+    name: 'Carbono Caatinga',
+    fullName: 'Observatório da Caatinga, OCA',
+    footer: 'OCA / UFCG-INSA',
+    colors: { ...lightNeutrals, ...buildAccent(OCA_OLIVE, false), ...buildFluxInks(false) },
+  }
+}
