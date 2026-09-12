@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { IcList } from './icons'
+import { IcList, IcBarChart } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
+import ReportForm from './overlays/ReportForm'
 import Header from './Header'
 import Welcome from './Welcome'
 import { useStore, camadasARestaurar } from '@/lib/mapa/store'
@@ -26,6 +27,9 @@ export default function Mapa() {
     if (typeof window === 'undefined') return true
     return window.innerWidth >= 1180
   })
+
+  // The report form overlay, opened by the trigger near the panel toggle.
+  const [reportOpen, setReportOpen] = useState(false)
 
   // Results panel visibility (drives the dynamic control/legend offset)
   // Same condition ResultsSidebar renders on: any measurement/stat content OR
@@ -143,7 +147,42 @@ export default function Mapa() {
           </button>
         )}
 
+        {/* Report trigger: sits next to the panel toggle and shifts with it. */}
+        <button
+          className="ui-press"
+          onClick={() => setReportOpen(true)}
+          title="Gerar relatório territorial"
+          aria-label="Gerar relatório territorial"
+          style={{
+            position: 'absolute',
+            top: 16,
+            left: leftEdge + 12,
+            zIndex: 12,
+            height: 40,
+            padding: '0 14px',
+            borderRadius: 11,
+            background: theme.colors.glassBg,
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: `1px solid ${theme.colors.glassBd}`,
+            boxShadow: 'var(--sh-ctrl)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            color: theme.colors.text,
+            transition: 'left .3s',
+          }}
+        >
+          <IcBarChart size={15} />
+          Relatório
+        </button>
+
         <ResultsSidebar theme={theme} collapsed={resultsCollapsed} onSetCollapsed={setResultsCollapsed} />
+
+        <ReportForm theme={theme} open={reportOpen} onClose={() => setReportOpen(false)} />
       </div>
 
       {!welcomeSeen && <Welcome theme={theme} month={month} />}
