@@ -19,6 +19,11 @@ export interface ReportMapPreviewProps {
 const GEE_SOURCE_ID = 'relatorio-gee'
 const GEE_LAYER_ID = 'relatorio-gee-layer'
 
+// The primary line of defense against a stuck capture: shorter than the
+// queue's own backstop timeout, and owned by the component that can still
+// show a placeholder and advance the queue through the normal onCapture path.
+const CAPTURE_TIMEOUT_MS = 20_000
+
 /** Tile URLs are shared across sections and survive a re-render. */
 const tileUrlCache = new Map<string, string | null>()
 
@@ -95,9 +100,18 @@ export default function ReportMapPreview({
     let map: maplibregl.Map | null = null
     let cancelled = false
 
+    // A map that never reaches `idle` — a tile route failure, a lost WebGL
+    // context — must not hold this section blank forever: this timer finishes
+    // with the visible placeholder and advances the queue through the normal
+    // onCapture path. `finish`'s own `capturedRef` guard makes a late `idle`
+    // after this fires a harmless no-op. Declared before `finish` so the
+    // handle exists for `finish` to clear.
+    const timeoutId = setTimeout(() => finish(null), CAPTURE_TIMEOUT_MS)
+
     const finish = (src: string | null) => {
       if (cancelled || capturedRef.current) return
       capturedRef.current = true
+      clearTimeout(timeoutId)
       if (!src) setFailed(true)
       onCaptureRef.current(src)
       map?.remove()
@@ -165,6 +179,7 @@ export default function ReportMapPreview({
 
     return () => {
       cancelled = true
+      clearTimeout(timeoutId)
       controller.abort()
       map?.remove()
     }
