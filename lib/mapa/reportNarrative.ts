@@ -55,7 +55,11 @@ function situationContinuous(input: NarrativeInput, stats: { mean: number; min: 
     // convention, so the document and the panel say the same word.
     const flux = describeFlux(stats.mean)
     if (!flux.label) return null
-    return `Em ${recorte.featureName}, o ${layerName} indica que a área ${flux.label}, em média, ${withUnit(flux.magnitude, unit, 2)}${atYear(effectiveYear)}.`
+    // 'emitiu'/'sequestrou' are verbs and read fine after "a área"; 'em
+    // equilíbrio' is an adjectival phrase and needs the copula the other two
+    // already carry within themselves.
+    const copula = flux.direction === 'neutral' ? 'está ' : ''
+    return `Em ${recorte.featureName}, o ${layerName} indica que a área ${copula}${flux.label}, em média, ${withUnit(flux.magnitude, unit, 2)}${atYear(effectiveYear)}.`
   }
 
   return `Em ${recorte.featureName}, o ${layerName} tem média de ${withUnit(stats.mean, unit)}${atYear(effectiveYear)}, variando de ${numero(stats.min)} a ${withUnit(stats.max, unit)}.`
@@ -104,10 +108,17 @@ function buildSituation(input: NarrativeInput): string | null {
 }
 
 function buildTrend(input: NarrativeInput): string | null {
-  const { config, unit, effectiveYear, series } = input
+  const { config, unit, signedFlux, effectiveYear, series } = input
   // No vocabulary means the layer's series cannot carry a trend: either it is
   // static, or its mean is not a quantity (see `seriesKind` in the config).
   if (!config.trend || !effectiveYear) return null
+  // The series here is a raw zonal mean, not the sign-dropped magnitude
+  // `describeFlux` produces for the situation sentence. Under the atmospheric
+  // convention a raw delta's direction is the opposite of what it means (a
+  // flux growing more negative is more sequestration, which reads as
+  // "redução" from a bare subtraction), so stating no trend for a signed flux
+  // is safer than stating an inverted one until this is implemented properly.
+  if (signedFlux) return null
 
   const index = series.findIndex((p) => p.date.slice(0, 4) === effectiveYear)
   if (index < 1) return null

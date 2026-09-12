@@ -64,6 +64,24 @@ describe('buildNarrative situation', () => {
     expect(situation).not.toContain('-1,23')
   })
 
+  it('adds the copula for a neutral flux, since "em equilíbrio" is not a verb', () => {
+    const { situation } = buildNarrative(input({
+      layerName: 'Fluxo Líquido de Carbono Florestal (GFW)',
+      unit: 'Mg CO2e/ha',
+      signedFlux: true,
+      config: getReportLayer('gfw_netflux')!,
+      effectiveYear: null,
+      snapshot: {
+        kind: 'continuous',
+        stats: { min: -1, max: 1, mean: 0, count: 900 },
+      },
+    }))
+
+    expect(situation).toBe(
+      'Em Campina Grande, o Fluxo Líquido de Carbono Florestal (GFW) indica que a área está em equilíbrio, em média, 0,00 Mg CO2e/ha.',
+    )
+  })
+
   it('names the dominant class and its share for a categorical layer', () => {
     const { situation } = buildNarrative(input({
       layerName: 'Uso e Cobertura (MapBiomas 2024)',
@@ -171,6 +189,20 @@ describe('buildNarrative trend', () => {
       snapshot: { kind: 'categorical', areas: { '15': 10 } },
       effectiveYear: '2024',
       series: [{ date: '2023-01-01', value: 9 }, { date: '2024-01-01', value: 10 }],
+    })).trend).toBeNull()
+  })
+
+  it('declines to state a trend for a signed flux, even with a trend config', () => {
+    // A raw delta's direction is the opposite of its meaning under the
+    // atmospheric sign convention: no future temporal signed-flux layer should
+    // get a "redução" sentence for a flux that grew more negative (more
+    // sequestration). solo_carbono's trend config stands in for a
+    // hypothetical one here, since no shipped signed-flux layer is temporal.
+    expect(buildNarrative(input({
+      unit: 'Mg CO2e/ha',
+      signedFlux: true,
+      config: getReportLayer('solo_carbono')!,
+      series,
     })).trend).toBeNull()
   })
 })
