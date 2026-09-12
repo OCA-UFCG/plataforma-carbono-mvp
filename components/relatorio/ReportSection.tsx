@@ -239,6 +239,10 @@ export default function ReportSection({
                   stats={{ kind: 'timeseries', series: analysis.series }}
                   unit={analysis.unit}
                   signedFlux={analysis.signedFlux}
+                  // Printing with animation on comes out blank: recharts
+                  // animates by mutating SVG attributes from JS, which a
+                  // print stylesheet cannot interrupt.
+                  animate={false}
                 />
               </div>
             </div>

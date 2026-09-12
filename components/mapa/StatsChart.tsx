@@ -31,6 +31,14 @@ export interface StatsChartViewProps {
   unit?:       string
   signedFlux?: boolean
   caption?:    string
+  /**
+   * Whether the yearly-series line animates in. Defaults to true so the
+   * map's results panel (StatsChart below) keeps its existing feel; the
+   * report path passes false because recharts animates by mutating SVG
+   * attributes from JS, which a print stylesheet cannot interrupt, and a
+   * chart mid-animation at the moment print captures the page prints blank.
+   */
+  animate?:    boolean
 }
 
 /**
@@ -40,13 +48,21 @@ export interface StatsChartViewProps {
  * its own layer, where "the visible raster" the store exposes means nothing.
  */
 export function StatsChartView({
-  theme, stats, classes, unit, signedFlux, caption,
+  theme, stats, classes, unit, signedFlux, caption, animate = true,
 }: StatsChartViewProps) {
   if (stats.kind === 'stocks') {
     return <StockReportView report={stats.report} theme={theme} caption={caption} />
   }
   if (stats.kind === 'timeseries') {
-    return <TimeSeriesChart series={stats.series} classes={classes} theme={theme} caption={caption} />
+    return (
+      <TimeSeriesChart
+        series={stats.series}
+        classes={classes}
+        theme={theme}
+        caption={caption}
+        animate={animate}
+      />
+    )
   }
   if (stats.kind === 'categorical') {
     return <CategoricalChart areas={stats.areas} classes={classes} theme={theme} caption={caption} />
@@ -439,11 +455,13 @@ function TimeSeriesChart({
   classes,
   theme,
   caption,
+  animate = true,
 }: {
   series: TimeSeriesPoint[]
   classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
+  animate?: boolean
 }) {
   const hasClasses = Boolean(classes?.length)
 
@@ -505,6 +523,7 @@ function TimeSeriesChart({
               strokeWidth={1}
               strokeOpacity={0.4}
               connectNulls={false}
+              isAnimationActive={animate}
               animationDuration={300}
               // Custom dot renderer, each point is colored by its class so
               // the reader sees both the trend (line) and the category (color).
