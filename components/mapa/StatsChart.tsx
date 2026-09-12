@@ -13,6 +13,8 @@ import StockReportView from './StockReportView'
 import FluxValue from './FluxValue'
 import type {
   RasterLayerConfig,
+  RasterClass,
+  RasterStatsResult,
   PlatformTheme,
   ContinuousStats,
   TimeSeriesPoint,
@@ -20,6 +22,44 @@ import type {
 
 interface Props {
   theme: PlatformTheme
+}
+
+export interface StatsChartViewProps {
+  theme:       PlatformTheme
+  stats:       RasterStatsResult
+  classes?:    RasterClass[]
+  unit?:       string
+  signedFlux?: boolean
+  caption?:    string
+}
+
+/**
+ * The charts with no store behind them: one result, one layer's metadata.
+ *
+ * The report needs this shape because it renders N sections at once, each with
+ * its own layer, where "the visible raster" the store exposes means nothing.
+ */
+export function StatsChartView({
+  theme, stats, classes, unit, signedFlux, caption,
+}: StatsChartViewProps) {
+  if (stats.kind === 'stocks') {
+    return <StockReportView report={stats.report} theme={theme} caption={caption} />
+  }
+  if (stats.kind === 'timeseries') {
+    return <TimeSeriesChart series={stats.series} classes={classes} theme={theme} caption={caption} />
+  }
+  if (stats.kind === 'categorical') {
+    return <CategoricalChart areas={stats.areas} classes={classes} theme={theme} caption={caption} />
+  }
+  return (
+    <ContinuousStatsView
+      stats={stats.stats}
+      unit={stats.unit ?? unit}
+      theme={theme}
+      caption={caption}
+      signedFlux={signedFlux}
+    />
+  )
 }
 
 export default function StatsChart({ theme }: Props) {
@@ -50,22 +90,14 @@ export default function StatsChart({ theme }: Props) {
     return null
   }
 
-  if (rasterStats.kind === 'stocks') {
-    return <StockReportView report={rasterStats.report} theme={theme} caption={caption} />
-  }
-  if (rasterStats.kind === 'timeseries') {
-    return <TimeSeriesChart series={rasterStats.series} layers={layers} theme={theme} caption={caption} />
-  }
-  if (rasterStats.kind === 'categorical') {
-    return <CategoricalChart areas={rasterStats.areas} layers={layers} theme={theme} caption={caption} />
-  }
   return (
-    <ContinuousStatsView
-      stats={rasterStats.stats}
-      unit={rasterStats.unit}
+    <StatsChartView
       theme={theme}
-      caption={caption}
+      stats={rasterStats}
+      classes={activeRaster?.classes}
+      unit={activeRaster?.unit}
       signedFlux={activeRaster?.signedFlux}
+      caption={caption}
     />
   )
 }
@@ -191,25 +223,21 @@ interface CategoricalRow {
 
 function CategoricalChart({
   areas,
-  layers,
+  classes,
   theme,
   caption,
 }: {
   areas: Record<string, number>  // area in m² per class code
-  layers: ReturnType<typeof useStore.getState>['layers']
+  classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
 }) {
-  const raster = layers.find(
-    (l): l is RasterLayerConfig =>
-      l.type === 'raster' && l.visible && Array.isArray(l.classes),
-  )
-  if (!raster || !raster.classes) return null
+  if (!classes?.length) return null
 
   const totalM2 = Object.values(areas).reduce((a, b) => a + b, 0)
   if (totalM2 === 0) return null
 
-  const rows: CategoricalRow[] = raster.classes
+  const rows: CategoricalRow[] = classes
     .map((cls) => {
       const m2 = areas[String(cls.value)] ?? 0
       return { ...cls, areaHa: m2 / 10_000, pct: (m2 / totalM2) * 100 }
@@ -220,7 +248,7 @@ function CategoricalChart({
   // layer's `classes` config, otherwise those areas render on the map (via
   // the GEE palette) but silently vanish from the chart, so the bars wouldn't
   // sum to 100%.
-  const knownM2 = raster.classes.reduce((a, cls) => a + (areas[String(cls.value)] ?? 0), 0)
+  const knownM2 = classes.reduce((a, cls) => a + (areas[String(cls.value)] ?? 0), 0)
   const unmappedM2 = totalM2 - knownM2
   if (unmappedM2 > 0) {
     rows.push({
@@ -408,26 +436,22 @@ interface TimeSeriesRow extends TimeSeriesPoint {
 
 function TimeSeriesChart({
   series,
-  layers,
+  classes,
   theme,
   caption,
 }: {
   series: TimeSeriesPoint[]
-  layers: ReturnType<typeof useStore.getState>['layers']
+  classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
 }) {
-  const raster = layers.find(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  ) as RasterLayerConfig | undefined
-
-  const hasClasses = raster?.classes && raster.classes.length > 0
+  const hasClasses = Boolean(classes?.length)
 
   if (series.length === 0) return null
 
   // Domain max: class max (categorical) or data max (continuous)
   const maxVal = hasClasses
-    ? Math.max(...raster!.classes!.map((c) => c.value))
+    ? Math.max(...classes!.map((c) => c.value))
     : Math.max(...series.filter((p) => p.value !== null).map((p) => p.value!), 1)
 
   // Pre-resolve class metadata so the tooltip and cell fills can share it
@@ -435,7 +459,7 @@ function TimeSeriesChart({
     const intVal = pt.value !== null ? Math.trunc(pt.value) : null
     const cls =
       hasClasses && intVal !== null
-        ? raster!.classes!.find((c) => c.value === intVal)
+        ? classes!.find((c) => c.value === intVal)
         : null
     return {
       ...pt,
