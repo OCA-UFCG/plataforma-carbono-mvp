@@ -1,0 +1,95 @@
+/*
+ * Styles of the printable report. Sibling of mapa.css and globals.css: it
+ * loads only under app/(relatorio), so nothing here can reach the map or the
+ * landing page.
+ *
+ * The palette is fixed, not monthly. The same report for the same municipality
+ * generated in March and in September has to be the same document.
+ */
+
+:root {
+  --paper: #f7f6f2;
+  --card: #ffffff;
+  --silver: #d8d5cb;
+  --ink: #26241d;
+  --body: #57544a;
+  --trunk: #6f6c63;
+  --acc: #5f7030;
+  --accBg: #eff1ea;
+  --mist: #eceae3;
+
+  /* A4 minus the printed margins, so the screen preview is the printed width. */
+  --page-width: 180mm;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-app), system-ui, sans-serif;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
+  line-height: 1.5;
+}
+
+.report-paper {
+  width: min(100%, var(--page-width));
+  margin: 24px auto;
+  padding: 14mm 15mm;
+  background: var(--card);
+  border: 1px solid var(--silver);
+}
+
+.report-section { break-inside: avoid-page; margin-top: 32px; }
+.report-block { break-inside: avoid; }
+.report-heading { break-after: avoid; }
+
+.report-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--silver);
+}
+
+.report-visual-grid { display: grid; gap: 0; }
+
+@media screen and (min-width: 768px) {
+  .report-visual-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 15mm;
+  }
+
+  /* The @page margin is the printed one, so the element drops its own. */
+  .report-paper {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  /* Toolbar, retry buttons and anything else interactive leave the paper. */
+  .report-no-print { display: none !important; }
+
+  body { background: #ffffff; }
+
+  /* Print reflows the container, and a two-column visual pair collapsed into
+   * one column wastes half a page. */
+  .report-visual-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  /* Recharts draws into an SVG that scales, but a captured map is a bitmap and
+   * has to be told not to overflow the narrower printed column. */
+  .report-map-frame img { max-width: 100%; height: auto; }
+}

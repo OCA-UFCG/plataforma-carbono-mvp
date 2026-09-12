@@ -49,3 +49,21 @@ export function unauthorizedResponse() {
     { status: 401, headers: { 'Cache-Control': 'no-store' } },
   )
 }
+
+/**
+ * Post-login destination, restricted to the app's own routes.
+ *
+ * An allowlist rather than a "starts with /" check: `//evil.com` is a
+ * protocol-relative URL that a naive prefix test lets through. Each entry is
+ * matched exactly, or with the separator that has to follow it, so
+ * `/relatoriofalso` does not pass as `/relatorio`.
+ */
+export function safeRedirect(value: string | string[] | undefined): string {
+  if (typeof value !== 'string') return '/'
+  for (const base of ['/mapa', '/relatorio']) {
+    if (value === base || value.startsWith(`${base}/`) || value.startsWith(`${base}?`)) {
+      return value
+    }
+  }
+  return '/'
+}
