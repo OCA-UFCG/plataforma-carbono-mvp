@@ -228,9 +228,17 @@ Two behavior-preserving extractions come first.
    `ResultsSidebar` keeps its current call site. `StockReportView.tsx` already
    takes props and is reused untouched.
 
-4. The pt-BR number helpers currently private to `lib/mapa/exportAnalysis.ts`
-   move to `lib/mapa/formatNumber.ts`, shared by the CSV, the narrative and the
-   document, so the three agree on decimal comma, digits and unit suffix.
+4. The pt-BR formatting helpers currently private to
+   `lib/mapa/exportAnalysis.ts` (`num`, `slug`, `isoDate`) move to
+   `lib/mapa/format.ts`, shared by the CSV, the narrative and the document.
+
+   One distinction the shared module has to keep: `num` sets
+   `useGrouping: false` on purpose, because a thousands dot makes a script
+   importer ambiguous. Prose needs the opposite. So the module exports
+   `numeroCsv` (decimal comma, no grouping — what `exportAnalysis` keeps using)
+   and `numero` (decimal comma with grouping — for the narrative and the
+   document). Sharing a single function would silently strip the thousands dot
+   from every sentence.
 
 ## Service — `lib/mapa/reportService.ts` (new file, server-only)
 
@@ -308,7 +316,7 @@ contradicting the panel:
 - Layers with `signedFlux` take their vocabulary from `lib/mapa/carbonFlux.ts`
   (`describeFlux` → `"sequestrou"` / `"emitiu"`, magnitude with no sign), not a
   raw minus sign in a sentence.
-- Number formatting comes from `lib/mapa/formatNumber.ts` (see refactor 4).
+- Number formatting comes from `lib/mapa/format.ts` (see refactor 4).
 
 ## Client document
 
@@ -441,7 +449,7 @@ lib/mapa/reportNarrative.ts
 lib/mapa/reportCache.ts
 lib/mapa/zonalStats.ts          (extracted)
 lib/mapa/zonalSeries.ts         (extracted)
-lib/mapa/formatNumber.ts        (extracted)
+lib/mapa/format.ts              (extracted)
 app/api/mapa/relatorio/base/route.ts
 app/api/mapa/relatorio/analise/route.ts
 app/api/mapa/relatorio/feicoes/route.ts
