@@ -1,5 +1,5 @@
 import type { PixelValueResult, RasterClass, RasterStatsResult } from '@/types/mapa'
-import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { isoDate, numeroCsv, slug } from '@/lib/mapa/format'
 
 /** Everything an analysis needs to become a file, gathered from the store. */
 export interface AnalysisSnapshot {
@@ -25,33 +25,16 @@ const EOL = '\r\n'
 // Without the BOM Excel reads the file as Latin-1 and eats every accent.
 const BOM = '﻿'
 
-// Decimal comma and no thousands separator: Excel in Portuguese reads it this
-// way, and the missing thousands dot avoids ambiguity for script importers.
-function num(value: number): string {
-  return value.toLocaleString('pt-BR', { maximumFractionDigits: 4, useGrouping: false })
-}
-
 // Municipality and class names contain semicolons and quotes often enough for
 // this not to be hypothetical; without escaping, the columns slide.
 function cell(value: string | number | null | undefined): string {
-  if (typeof value === 'number') return num(value)
+  if (typeof value === 'number') return numeroCsv(value)
   const text = value ?? ''
   return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 
 function row(cells: (string | number | null | undefined)[]): string {
   return cells.map(cell).join(DELIM)
-}
-
-function isoDate(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
-
-function slug(value: string): string {
-  return normalizeSearch(value)
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 }
 
 function metadataRows(snap: AnalysisSnapshot): string[] {

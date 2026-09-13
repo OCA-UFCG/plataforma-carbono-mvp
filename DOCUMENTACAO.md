@@ -159,7 +159,7 @@ Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o 
 | id | Nome | Asset e banda | Estatística | Unidade |
 |---|---|---|---|---|
 | `estoque_carbono` | Estoque de Carbono (Quarto Inventário Nacional) | `ee-arturlourenco/assets/caatinga_estoques`, banda `b1` | contínua | t C/ha |
-| `solo_carbono` | Carbono Orgânico do Solo (0-30 cm) | `mapbiomas-public/.../soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm`, banda `prediction_2023` | contínua | t C/ha |
+| `solo_carbono` | Carbono Orgânico do Solo (MapBiomas) | `mapbiomas-public/.../soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm`, banda `prediction_2023` | contínua | t C/ha |
 | `gpp_modis` | Produtividade Primária Bruta (GPP) | `MODIS/061/MOD17A2HGF`, banda `Gpp`, 2023 | Jenks 5 classes | kg C/m2/8d |
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
 | `gpp_pml` | Produtividade Primária Bruta (GPP, PML-V2 2023) | `CAS/IGSNRR/PML/V2_v018`, banda `GPP`, 2023, média ×365 | contínua | g C/m2/ano |
@@ -322,9 +322,73 @@ Dois tipos de resultado, conforme a camada:
 
 Os resultados são cacheados por chave `camada:estático:hashDaGeometria`, então reclicar a mesma feição é instantâneo.
 
+## Relatório territorial
+
+A unidade do relatório é fixa: uma feição de um recorte territorial, um ano de
+referência, e até 8 das dez variáveis curadas em `config/mapa/reportLayers.ts`.
+O formulário que gera esse link vive no mapa (`components/mapa/overlays/ReportForm.tsx`),
+mas o documento em si é gerado e servido pela própria rota `/relatorio`, sem
+depender do módulo de mapas estar aberto — o link pode ser copiado e colado em
+outra aba, ou compartilhado.
+
+O ponto que decidiu boa parte do desenho é que este projeto não tem nada
+pré-computado. Seis variáveis significam por volta de doze reduções ao vivo no
+Earth Engine (uma para a estatística e, para a maioria delas, outra para a
+série anual). Isso não cabe numa única requisição sem estourar timeout do
+servidor, ao contrário do projeto irmão que inspirou este (o SAP-frontend),
+que lê agregações municipais já calculadas de antemão. A saída foi inverter a
+granularidade: o cliente dispara uma requisição por análise (uma por
+variável), não uma para o documento inteiro, e cada seção do relatório
+resolve, renderiza e pode falhar de forma independente das outras.
+
+O id de feição que entra na URL (`feicao=`) não é o código oficial do
+IBGE/FUNAI/INCRA — é o slug do rótulo da feição com um sufixo ordinal, porque
+os GeoJSONs de `public/data/vector` só carregam o rótulo como propriedade, e o
+rótulo não é único (34 municípios homônimos, 213 assentamentos). O sufixo é
+atribuído pela ordem do arquivo, então regenerar os vetores em outra ordem
+(um novo `python scripts/build-recortes.py`, por exemplo) pode migrar o
+sufixo de uma feição para outra e invalidar links antigos. O conserto de
+verdade é preservar `code_muni` (e o equivalente para os demais recortes) no
+script e indexar pelo código oficial em vez do slug; fica registrado em TODOs.
+
+O relatório mora em `app/(relatorio)/`, o quarto layout raiz do repositório.
+Não dá para reaproveitar o layout de `(mapa)`: `mapa.css` zera o scroll do
+`body` e fixa a altura na viewport para o MapLibre, e o relatório é um
+documento longo, feito para rolar e para imprimir. Por ser um layout raiz
+irmão, o link que o formulário do mapa abre cruza fronteira de grupo de rotas
+e por isso é `window.open`, nunca `next/link` — um carregamento de página
+inteiro, não uma navegação client-side.
+
+O documento não usa o acento mensal do resto da plataforma. A cor do mês muda
+o ano inteiro (é a cor do NDFI mediano daquele mês na série de 40 anos), então
+o mesmo relatório gerado em janeiro e em julho, com a mesma feição e o mesmo
+ano de referência, viraria dois documentos visualmente diferentes por um
+acidente de quando alguém clicou em "Gerar relatório" — nada que tenha a ver
+com o conteúdo analisado. O relatório usa uma paleta fixa por seção
+(`sectionColor` em `reportLayers.ts`), independente do mês.
+
+Nem toda variável curada ganha gráfico de série: `estoque_carbono` e
+`gfw_netflux` são estáticas (a primeira não tem `gee.temporal`; a segunda é
+cumulativa numa banda só), então a seção delas mostra só o retrato do ano
+pedido. `lulc_mapbiomas` tem série de anos, mas declara `seriesKind: 'none'`
+de propósito: a média zonal dos códigos de classe do MapBiomas não é uma
+grandeza — a média entre a classe 3 e a classe 15 dá 9, que é uma terceira
+classe sem sentido nenhum. Uma série de participação por classe seria a
+resposta certa ali, e fica como TODO.
+
+Quando a série existe, ela roda numa escala mais grosseira que o retrato do
+ano: `seriesScale` em `reportLayers.ts` é um piso, nunca um valor fixo — a
+escala efetiva é `max(seriesScale ?? 0, asset.scale ?? 500)`, então só pode
+engrossar o pixel, nunca afiná-lo. Isso existe porque quarenta paradas
+reduzidas em resolução nativa sobre um recorte grande (um estado inteiro, por
+exemplo) não retornam a tempo. Perder a série por timeout ou por
+indisponibilidade não derruba a seção inteira: o retrato do ano pedido já
+veio numa chamada separada, e a seção aparece sem o gráfico em vez de não
+aparecer.
+
 ## Rotas de API
 
-Todas `POST`, runtime Node, `force-dynamic`. Autenticam via `initGee()` (`lib/mapa/geeAuth.ts`). Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
+As rotas de GEE (`/api/gee/*`) são todas `POST`, runtime Node, `force-dynamic`, e autenticam via `initGee()` (`lib/mapa/geeAuth.ts`); as três rotas do relatório (`/api/mapa/relatorio/{base,analise,feicoes}`) são `GET`, pelos motivos documentados em `app/api/mapa/relatorio/base/route.ts`. Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
 
 Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate limiting por IP, teto de `numClasses`, validação de geometria/`lon`/`lat`/`visParams`, timeout nas chamadas GEE e mensagens de erro genéricas (não vazam o caminho das credenciais).
 
@@ -386,6 +450,9 @@ Camadas e dados:
 - Camadas do inventário ainda não incluídas: ERA5 e TerraClimate no bloco de clima e água, fenologia por Sentinel-2, gases e fluorescência (TROPOMI, SIF) e integridade de projetos. Ficam para fases seguintes. CHIRPS, NDVI e EVI, que constavam aqui, já estão na plataforma.
 - O passo temporal é anual e só anual. Séries mensais e sazonais (composições de 8 ou 16 dias, CHIRPS diário) são agregadas ao ano pelo redutor da camada. Se a fenologia intra-anual virar escopo, o contrato precisa de um campo de granularidade e o gerador de paradas em `lib/mapa/temporal.ts` precisa saber gerar meses.
 - Seis camadas seguem estáticas por não terem série: `biomassa_gedi`, `altura_dossel`, `biomassa_spawn` e as três do GFW. As do GFW são cumulativas numa banda só e as demais são imagem única.
+- Preservar `code_muni`/`abbrev_state` em `scripts/build-recortes.py`, dar um código estável para `assentamentos`, e passar a identidade de feição do relatório a usar o código oficial em vez do sufixo ordinal do slug.
+- Uma série de participação por classe para `lulc_mapbiomas`, que custaria uma redução agrupada por ano.
+- Medir a série zonal sobre um estado inteiro com as quarenta paradas. Se a escala-piso somada ao `bestEffort` não bastar, a série vira um artefato cacheado à parte em vez de fazer parte da chamada de análise.
 
 Interface:
 

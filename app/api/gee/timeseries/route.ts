@@ -13,38 +13,21 @@
 
 import { NextResponse } from 'next/server'
 import { initGee, getEe } from '@/lib/mapa/geeAuth'
-import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
-import { evaluate } from '@/lib/mapa/geeEvaluate'
+import { type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { isValidAsset, isValidLonLat, bodyTooLarge } from '@/lib/mapa/geeValidation'
 import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
+import { anosDoIntervalo, computeSeries, MAX_ANOS } from '@/lib/mapa/zonalSeries'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-// Cap of years per request. MapBiomas covers 1985 to 2024, forty stops, so the
-// old twenty-year limit would leave half of the series out.
-const MAX_ANOS = 50
 
 interface ReqBody {
   asset:     GeeAssetConfig
   lon:       number
   lat:       number
   dateRange: [string, string]  // ["1985-01-01", "2024-01-01"]
-}
-
-/** Validates the range and returns the list of years, or null if it breaks the rules. */
-function anosDoIntervalo(r: unknown): number[] | null {
-  if (!Array.isArray(r) || r.length !== 2) return null
-  const [a, b] = r
-  if (typeof a !== 'string' || typeof b !== 'string') return null
-  const ini = Number(a.slice(0, 4))
-  const fim = Number(b.slice(0, 4))
-  if (!Number.isInteger(ini) || !Number.isInteger(fim)) return null
-  if (ini < 1970 || fim > 2100 || ini > fim) return null
-  if (fim - ini + 1 > MAX_ANOS) return null
-  return Array.from({ length: fim - ini + 1 }, (_, i) => ini + i)
 }
 
 export async function POST(req: Request) {
@@ -93,55 +76,13 @@ export async function POST(req: Request) {
   }
 
   const ee = getEe()
-  const { asset, lon, lat } = body
 
   try {
-    // A collection with gaps, like ESA CCI, which only has 2007, 2010 and 2015
-    // to 2022: asking for an empty year makes the reducer return an image with
-    // no band and the whole assembly fail. A cheap query for the existing years
-    // avoids that and, as a bonus, makes the series show only the real stops.
-    let anosUteis = anos
-    if (!asset.bandPattern && asset.type === 'imageCollection') {
-      const disponiveis = await evaluate<number[]>(
-        ee.ImageCollection(asset.id)
-          .filterDate(`${anos[0]}-01-01`, `${anos[anos.length - 1] + 1}-01-01`)
-          .aggregate_array('system:time_start')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((t: any) => ee.Date(t).get('year'))
-          .distinct(),
-      )
-      const comDado = new Set(disponiveis ?? [])
-      anosUteis = anos.filter((a) => comDado.has(a))
-      if (anosUteis.length === 0) return NextResponse.json({ series: [] })
-    }
-
-    // One year per band, each built through the same path that serves the tile,
-    // which guarantees the same unit and the same mask in the chart and the map.
-    const porAno = anosUteis.map((ano) =>
-      buildEeImage(ee, asset, `${ano}-01-01`).rename(`a${ano}`),
-    )
-
-    const point = ee.Geometry.Point([lon, lat])
-    const scale = asset.scale ?? 500
-
-    const valores = await evaluate<Record<string, unknown>>(
-      ee.Image.cat(porAno).reduceRegion({
-        reducer:   ee.Reducer.first(),
-        geometry:  point,
-        scale,
-        // The cap counts one read per band, and here there is one band per year.
-        maxPixels: anosUteis.length,
-      }),
-    )
-
-    const series = anosUteis.map((ano) => {
-      const bruto = valores?.[`a${ano}`]
-      return {
-        date:  `${ano}-01-01`,
-        value: typeof bruto === 'number' && Number.isFinite(bruto) ? bruto : null,
-      }
+    const series = await computeSeries(ee, {
+      asset: body.asset,
+      anos,
+      region: { kind: 'point', lon: body.lon, lat: body.lat },
     })
-
     return NextResponse.json({ series })
   } catch (err) {
     console.error('[/api/gee/timeseries] error:', err)

@@ -13,6 +13,8 @@ import StockReportView from './StockReportView'
 import FluxValue from './FluxValue'
 import type {
   RasterLayerConfig,
+  RasterClass,
+  RasterStatsResult,
   PlatformTheme,
   ContinuousStats,
   TimeSeriesPoint,
@@ -20,6 +22,73 @@ import type {
 
 interface Props {
   theme: PlatformTheme
+}
+
+export interface StatsChartViewProps {
+  theme:       PlatformTheme
+  stats:       RasterStatsResult
+  classes?:    RasterClass[]
+  unit?:       string
+  signedFlux?: boolean
+  caption?:    string
+  /**
+   * Whether the yearly-series line animates in. Defaults to true so the
+   * map's results panel (StatsChart below) keeps its existing feel; the
+   * report path passes false because recharts animates by mutating SVG
+   * attributes from JS, which a print stylesheet cannot interrupt, and a
+   * chart mid-animation at the moment print captures the page prints blank.
+   */
+  animate?:    boolean
+  /**
+   * A fixed pixel width for the yearly-series chart, replacing
+   * `ResponsiveContainer`. Undefined (the default) keeps the map panel's
+   * existing `ResponsiveContainer`-driven behaviour exactly as it is today.
+   *
+   * The report path passes a fixed width for the same reason it passes
+   * `animate={false}`: the content column is ~150mm on screen and 180mm in
+   * print, a 20% change a `ResizeObserver`-driven SVG does not reliably pick
+   * up before the print snapshot. A concrete pixel size sidesteps the
+   * observer entirely.
+   */
+  width?:      number
+}
+
+/**
+ * The charts with no store behind them: one result, one layer's metadata.
+ *
+ * The report needs this shape because it renders N sections at once, each with
+ * its own layer, where "the visible raster" the store exposes means nothing.
+ */
+export function StatsChartView({
+  theme, stats, classes, unit, signedFlux, caption, animate = true, width,
+}: StatsChartViewProps) {
+  if (stats.kind === 'stocks') {
+    return <StockReportView report={stats.report} theme={theme} caption={caption} />
+  }
+  if (stats.kind === 'timeseries') {
+    return (
+      <TimeSeriesChart
+        series={stats.series}
+        classes={classes}
+        theme={theme}
+        caption={caption}
+        animate={animate}
+        width={width}
+      />
+    )
+  }
+  if (stats.kind === 'categorical') {
+    return <CategoricalChart areas={stats.areas} classes={classes} theme={theme} caption={caption} />
+  }
+  return (
+    <ContinuousStatsView
+      stats={stats.stats}
+      unit={stats.unit ?? unit}
+      theme={theme}
+      caption={caption}
+      signedFlux={signedFlux}
+    />
+  )
 }
 
 export default function StatsChart({ theme }: Props) {
@@ -50,22 +119,14 @@ export default function StatsChart({ theme }: Props) {
     return null
   }
 
-  if (rasterStats.kind === 'stocks') {
-    return <StockReportView report={rasterStats.report} theme={theme} caption={caption} />
-  }
-  if (rasterStats.kind === 'timeseries') {
-    return <TimeSeriesChart series={rasterStats.series} layers={layers} theme={theme} caption={caption} />
-  }
-  if (rasterStats.kind === 'categorical') {
-    return <CategoricalChart areas={rasterStats.areas} layers={layers} theme={theme} caption={caption} />
-  }
   return (
-    <ContinuousStatsView
-      stats={rasterStats.stats}
-      unit={rasterStats.unit}
+    <StatsChartView
       theme={theme}
-      caption={caption}
+      stats={rasterStats}
+      classes={activeRaster?.classes}
+      unit={activeRaster?.unit}
       signedFlux={activeRaster?.signedFlux}
+      caption={caption}
     />
   )
 }
@@ -191,25 +252,21 @@ interface CategoricalRow {
 
 function CategoricalChart({
   areas,
-  layers,
+  classes,
   theme,
   caption,
 }: {
   areas: Record<string, number>  // area in m² per class code
-  layers: ReturnType<typeof useStore.getState>['layers']
+  classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
 }) {
-  const raster = layers.find(
-    (l): l is RasterLayerConfig =>
-      l.type === 'raster' && l.visible && Array.isArray(l.classes),
-  )
-  if (!raster || !raster.classes) return null
+  if (!classes?.length) return null
 
   const totalM2 = Object.values(areas).reduce((a, b) => a + b, 0)
   if (totalM2 === 0) return null
 
-  const rows: CategoricalRow[] = raster.classes
+  const rows: CategoricalRow[] = classes
     .map((cls) => {
       const m2 = areas[String(cls.value)] ?? 0
       return { ...cls, areaHa: m2 / 10_000, pct: (m2 / totalM2) * 100 }
@@ -220,7 +277,7 @@ function CategoricalChart({
   // layer's `classes` config, otherwise those areas render on the map (via
   // the GEE palette) but silently vanish from the chart, so the bars wouldn't
   // sum to 100%.
-  const knownM2 = raster.classes.reduce((a, cls) => a + (areas[String(cls.value)] ?? 0), 0)
+  const knownM2 = classes.reduce((a, cls) => a + (areas[String(cls.value)] ?? 0), 0)
   const unmappedM2 = totalM2 - knownM2
   if (unmappedM2 > 0) {
     rows.push({
@@ -334,6 +391,9 @@ function ContinuousStatsView({
         background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 10,
         padding: '10px 12px', display: 'flex', gap: 8,
         alignItems: signedFlux ? 'flex-start' : 'baseline',
+        // Same reason as FluxValue's own row: a long unit moves to its own line
+        // whole rather than breaking inside itself.
+        flexWrap: 'wrap',
       }}>
         {signedFlux ? (
           <FluxValue value={stats.mean} unit={unit} theme={theme} size={32} format={fmt} />
@@ -342,7 +402,11 @@ function ContinuousStatsView({
             <span style={{ fontSize: 32, fontWeight: 800, color: c.text, lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
               {fmt(stats.mean)}
             </span>
-            {unit && <span style={{ fontSize: 15, fontWeight: 700, color: c.accent }}>{unit}</span>}
+            {unit && (
+              <span style={{ fontSize: 15, fontWeight: 700, color: c.accent, whiteSpace: 'nowrap' }}>
+                {unit}
+              </span>
+            )}
           </>
         )}
         <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>
@@ -350,8 +414,11 @@ function ContinuousStatsView({
         </span>
       </div>
 
-      {/* Median / min / max / deviation */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+      {/* Median / min / max / deviation. `minmax(0, 1fr)` rather than `1fr`,
+          for the reason StockReportView documents: a bare `1fr` floors the
+          column at its content's min-content width, which overflows a column
+          narrower than the results panel — such as the report's. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 6 }}>
         {cells.map((cell) => (
           <div key={cell.label} style={{
             background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 8, padding: '7px 10px',
@@ -408,26 +475,26 @@ interface TimeSeriesRow extends TimeSeriesPoint {
 
 function TimeSeriesChart({
   series,
-  layers,
+  classes,
   theme,
   caption,
+  animate = true,
+  width,
 }: {
   series: TimeSeriesPoint[]
-  layers: ReturnType<typeof useStore.getState>['layers']
+  classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
+  animate?: boolean
+  width?: number
 }) {
-  const raster = layers.find(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  ) as RasterLayerConfig | undefined
-
-  const hasClasses = raster?.classes && raster.classes.length > 0
+  const hasClasses = Boolean(classes?.length)
 
   if (series.length === 0) return null
 
   // Domain max: class max (categorical) or data max (continuous)
   const maxVal = hasClasses
-    ? Math.max(...raster!.classes!.map((c) => c.value))
+    ? Math.max(...classes!.map((c) => c.value))
     : Math.max(...series.filter((p) => p.value !== null).map((p) => p.value!), 1)
 
   // Pre-resolve class metadata so the tooltip and cell fills can share it
@@ -435,7 +502,7 @@ function TimeSeriesChart({
     const intVal = pt.value !== null ? Math.trunc(pt.value) : null
     const cls =
       hasClasses && intVal !== null
-        ? raster!.classes!.find((c) => c.value === intVal)
+        ? classes!.find((c) => c.value === intVal)
         : null
     return {
       ...pt,
@@ -447,64 +514,78 @@ function TimeSeriesChart({
   // Sample ticks so the axis doesn't overcrowd for long series (every Nth month)
   const tickInterval = rows.length > 12 ? Math.ceil(rows.length / 6) : 0
 
+  // `ResponsiveContainer` measures its parent via `ResizeObserver`, which is
+  // what the report path opts out of by passing a fixed `width` — see the
+  // prop's doc comment on `StatsChartViewProps`. Either way it is the same
+  // `LineChart`; only the wrapper, and whether the chart itself carries an
+  // explicit size, differs.
+  const chart = (
+      <LineChart
+        data={rows}
+        width={width}
+        height={width ? 220 : undefined}
+        margin={{ top: 8, right: 12, left: -24, bottom: 4 }}
+      >
+        <XAxis
+          dataKey="date"
+          tickFormatter={formatTickDate}
+          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          stroke={theme.colors.border}
+          tickLine={false}
+          interval={tickInterval}
+        />
+        <YAxis
+          domain={[0, maxVal]}
+          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          stroke={theme.colors.border}
+          tickLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip
+          cursor={{ stroke: theme.colors.textDim, strokeDasharray: '3 3', opacity: 0.5 }}
+          content={<TimeSeriesTooltip theme={theme} />}
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke={theme.colors.textDim}
+          strokeWidth={1}
+          strokeOpacity={0.4}
+          connectNulls={false}
+          isAnimationActive={animate}
+          animationDuration={300}
+          // Custom dot renderer, each point is colored by its class so
+          // the reader sees both the trend (line) and the category (color).
+          dot={(props: DotProps) => {
+            const { cx, cy, payload } = props
+            if (cx == null || cy == null || !payload || payload.value === null) {
+              return <g key={payload?.date ?? String(cx)} />
+            }
+            return (
+              <circle
+                key={payload.date}
+                cx={cx}
+                cy={cy}
+                r={4}
+                fill={payload.color}
+                stroke="#fff"
+                strokeWidth={1.5}
+              />
+            )
+          }}
+          activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+        />
+      </LineChart>
+  )
+
   return (
     <CardBox title="Valor ao longo do tempo" caption={caption} theme={theme}>
-      <div style={{ width: '100%', height: 220, minWidth: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={rows}
-            margin={{ top: 8, right: 12, left: -24, bottom: 4 }}
-          >
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatTickDate}
-              tick={{ fontSize: 9, fill: theme.colors.textDim }}
-              stroke={theme.colors.border}
-              tickLine={false}
-              interval={tickInterval}
-            />
-            <YAxis
-              domain={[0, maxVal]}
-              tick={{ fontSize: 9, fill: theme.colors.textDim }}
-              stroke={theme.colors.border}
-              tickLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip
-              cursor={{ stroke: theme.colors.textDim, strokeDasharray: '3 3', opacity: 0.5 }}
-              content={<TimeSeriesTooltip theme={theme} />}
-            />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={theme.colors.textDim}
-              strokeWidth={1}
-              strokeOpacity={0.4}
-              connectNulls={false}
-              animationDuration={300}
-              // Custom dot renderer, each point is colored by its class so
-              // the reader sees both the trend (line) and the category (color).
-              dot={(props: DotProps) => {
-                const { cx, cy, payload } = props
-                if (cx == null || cy == null || !payload || payload.value === null) {
-                  return <g key={payload?.date ?? String(cx)} />
-                }
-                return (
-                  <circle
-                    key={payload.date}
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill={payload.color}
-                    stroke="#fff"
-                    strokeWidth={1.5}
-                  />
-                )
-              }}
-              activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <div style={{ width: width ?? '100%', height: 220, minWidth: 0 }}>
+        {width ? chart : (
+          <ResponsiveContainer width="100%" height="100%">
+            {chart}
+          </ResponsiveContainer>
+        )}
       </div>
     </CardBox>
   )

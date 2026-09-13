@@ -22,8 +22,19 @@ const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
 const nf = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
 
-/** Large numbers are tiring to read in tC; above a thousand it moves to kt and Mt. */
-function formatarTc(tc: number): { valor: string; unidade: string } {
+/**
+ * Large numbers are tiring to read in tC; above a thousand it moves to kt and
+ * Mt.
+ *
+ * Exported so ReportSection's hero card agrees with this exact formatting:
+ * before this fix, the hero printed the raw `t C` total (`12.345.678 t C`)
+ * while this view showed the same number scaled (`12,3 Mt C`), side by side
+ * in section 1 of every default report. This scaled form reads better at
+ * inventory scale — a state's or a biome's stock in bare tC is a long string
+ * of digits nobody parses at a glance — so the hero now calls this too rather
+ * than the other way around.
+ */
+export function formatarTc(tc: number): { valor: string; unidade: string } {
   if (Math.abs(tc) >= 1e6) return { valor: nf1.format(tc / 1e6), unidade: 'Mt C' }
   if (Math.abs(tc) >= 1e3) return { valor: nf1.format(tc / 1e3), unidade: 'kt C' }
   return { valor: nf.format(tc), unidade: 't C' }
@@ -85,7 +96,11 @@ export default function StockReportView({ report, theme, caption }: Props) {
       {/* A área não entra aqui: o cartão "Área analisada" do painel já a traz, e
           as duas divergem um pouco, porque nem todo hectare da feição tem dado
           de estoque. Repetir número parecido com significado diferente confunde. */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {/* `minmax(0, 1fr)`, not `1fr`: a bare `1fr` is `minmax(auto, 1fr)`, whose
+          minimum is the content's min-content width. The value here is 19px and
+          bold, so the pair refuses to shrink below it and overflows any column
+          narrower than the results panel it was first written for. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
         <Cartao
           theme={theme}
           rotulo="Estoque total"
@@ -177,7 +192,10 @@ function Rosca({
           </ResponsiveContainer>
         </div>
 
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, display: 'grid', gap: 3 }}>
+        {/* `minWidth: 0` because a flex item's default `min-width` is `auto`,
+            i.e. its min-content width — without it the legend cannot shrink and
+            pushes the whole row past its container. */}
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, minWidth: 0, display: 'grid', gap: 3 }}>
           {fatias.map((f) => (
             <li key={f.nome} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
               <span
@@ -186,9 +204,13 @@ function Rosca({
                   background: f.cor, flexShrink: 0,
                 }}
               />
+              {/* The ellipsis needs `minWidth: 0` to engage at all: without it
+                  this flex item keeps its min-content width — the whole label,
+                  unbroken — and truncation never happens. */}
               <span
+                title={f.nome}
                 style={{
-                  color: c.text, flex: 1,
+                  color: c.text, flex: 1, minWidth: 0,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}
               >
