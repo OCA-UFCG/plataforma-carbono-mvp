@@ -172,8 +172,13 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
           </select>
         </label>
 
+        {/* "Área", not "feição": the latter is the codebase's term for a vector
+            feature and reads correctly in DOCUMENTACAO.md and in the identifiers,
+            but it is GIS jargon above a box where someone types "Campina Grande".
+            Generic on purpose — the value is a município, a state, a terra
+            indígena, a settlement or the biome, depending on the recorte above. */}
         <label style={{ display: 'block', marginTop: 14, fontSize: 13, fontWeight: 600, color: c.textDim }}>
-          Feição
+          Área
           <input
             value={chosen ? chosen.name : query}
             onChange={(e) => { setQuery(e.target.value); setFeicaoId('') }}

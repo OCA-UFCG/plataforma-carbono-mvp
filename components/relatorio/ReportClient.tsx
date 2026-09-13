@@ -33,7 +33,9 @@ type Status = 'loading' | 'ready' | 'error'
  */
 function messageForStatus(status: number): string {
   if (status === 400) return 'O pedido do relatório está incompleto ou inválido.'
-  if (status === 404) return 'Recorte, feição ou camada não encontrados.'
+  // "Área" here for the same reason the form's label uses it: "feição" is the
+  // codebase's word for a vector feature, not a word to show a reader.
+  if (status === 404) return 'Recorte, área ou camada não encontrados.'
   if (status === 429) return 'Muitas requisições no momento. Aguarde um instante e tente novamente.'
   return 'Não foi possível concluir esta operação. Tente novamente.'
 }
