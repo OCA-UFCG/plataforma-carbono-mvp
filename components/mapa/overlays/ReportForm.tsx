@@ -50,6 +50,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
   // Starts true: the first time the dialog opens, the effect below fetches
   // for the default recorte without any onChange to set it — see OVERRIDE 1.
   const [loadingFeicoes, setLoadingFeicoes] = useState(true)
+  const [feicoesError, setFeicoesError] = useState(false)
   const [query, setQuery] = useState('')
   const [feicaoId, setFeicaoId] = useState('')
   const [year, setYear] = useState(() => years[0] ?? '')
@@ -69,9 +70,26 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     fetch(`/api/mapa/relatorio/feicoes?recorte=${encodeURIComponent(recorteId)}`, {
       signal: controller.signal,
     })
-      .then((res) => (res.ok ? res.json() : { feicoes: [] }))
-      .then((body: { feicoes?: Feicao[] }) => setFeicoes(body.feicoes ?? []))
-      .catch(() => { if (!controller.signal.aborted) setFeicoes([]) })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json() as Promise<{ feicoes?: Feicao[] }>
+      })
+      .then((body) => {
+        setFeicoes(body.feicoes ?? [])
+        // Only cleared on a successful fetch settling after the await, not
+        // synchronously at the top of the effect body
+        // (react-hooks/set-state-in-effect): the recorte select's own
+        // onChange handler below already resets it for the case that starts
+        // a fresh attempt.
+        setFeicoesError(false)
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return
+        // A failed fetch must not look like "nothing typed yet": the ordinary
+        // empty state and a broken request need different placeholders.
+        setFeicoes([])
+        setFeicoesError(true)
+      })
       .finally(() => { if (!controller.signal.aborted) setLoadingFeicoes(false) })
 
     return () => controller.abort()
@@ -144,6 +162,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             onChange={(e) => {
               setRecorteId(e.target.value)
               setLoadingFeicoes(true)
+              setFeicoesError(false)
               setFeicaoId('')
               setQuery('')
             }}
@@ -162,6 +181,12 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             style={{ display: 'block', width: '100%', marginTop: 6, padding: 8, font: 'inherit' }}
           />
         </label>
+
+        {feicoesError && (
+          <p style={{ margin: '6px 0 0', fontSize: 12, color: c.dim }}>
+            Não foi possível carregar a lista de feições. Tente novamente.
+          </p>
+        )}
 
         {!chosen && matches.length > 0 && (
           <ul
@@ -207,6 +232,14 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
               const layer = (appConfig.layers as RasterLayerConfig[]).find((l) => l.id === entry.layerId)
               const checked = selected.has(entry.layerId)
               const full = !checked && selected.size >= MAX_REPORT_LAYERS
+              // The form offers the union of every curated layer's years, so
+              // a layer whose own series stops earlier than the chosen year
+              // is a legitimate, common selection — it just says so in its
+              // own section instead of producing a number. Surfacing the
+              // mismatch here, before Gerar, beats discovering it in the
+              // document.
+              const stops = layer?.gee?.temporal ? paradas(layer.gee.temporal).map(ano) : []
+              const missesYear = checked && stops.length > 0 && !stops.includes(year)
               return (
                 <label
                   key={entry.layerId}
@@ -224,6 +257,11 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
                   <span>
                     <strong style={{ fontWeight: 600 }}>{layer?.name ?? entry.layerId}</strong>
                     <span style={{ color: c.dim }}> — {LAYER_META[entry.layerId]?.description ?? ''}</span>
+                    {missesYear && (
+                      <span style={{ display: 'block', marginTop: 2, color: c.dim, fontSize: 11.5 }}>
+                        Sem dado para {year} — anos disponíveis: {stops.join(', ')}.
+                      </span>
+                    )}
                   </span>
                 </label>
               )

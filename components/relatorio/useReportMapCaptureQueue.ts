@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 /**
  * A capture that never settles must not stall every section behind it.
@@ -28,12 +28,6 @@ export function useReportMapCaptureQueue(
   isReady: (layerId: string) => boolean,
 ) {
   const [finished, setFinished] = useState<Set<string>>(new Set())
-
-  // `isReady` closes over the analyses map and changes identity on every
-  // arrival, which would make a dependency on it re-run the timeout effect
-  // constantly. The ref keeps the latest without being a dependency.
-  const isReadyRef = useRef(isReady)
-  useEffect(() => { isReadyRef.current = isReady }, [isReady])
 
   const activeKey = useMemo(
     () => layerIds.find((id) => isReady(id) && !finished.has(id)) ?? null,

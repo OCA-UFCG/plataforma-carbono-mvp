@@ -388,7 +388,7 @@ aparecer.
 
 ## Rotas de API
 
-Todas `POST`, runtime Node, `force-dynamic`. Autenticam via `initGee()` (`lib/mapa/geeAuth.ts`). Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
+As rotas de GEE (`/api/gee/*`) são todas `POST`, runtime Node, `force-dynamic`, e autenticam via `initGee()` (`lib/mapa/geeAuth.ts`); as três rotas do relatório (`/api/mapa/relatorio/{base,analise,feicoes}`) são `GET`, pelos motivos documentados em `app/api/mapa/relatorio/base/route.ts`. Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
 
 Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate limiting por IP, teto de `numClasses`, validação de geometria/`lon`/`lat`/`visParams`, timeout nas chamadas GEE e mensagens de erro genéricas (não vazam o caminho das credenciais).
 
