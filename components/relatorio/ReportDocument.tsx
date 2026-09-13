@@ -45,23 +45,47 @@ export default function ReportDocument({
     (a) => analyses.has(a.layerId) || errors.has(a.layerId),
   ).length
 
+  // Only an available analysis renders a map, so only those are waited on. A
+  // section that came back unavailable or year_not_found shows no frame and
+  // would otherwise hold the button forever.
+  const withMap = shell.analyses.filter(
+    (a) => analyses.get(a.layerId)?.status === 'available',
+  )
+  // `has`, not a truthy value: a failed capture stores null and is still
+  // settled — the frame carries its own message and the document prints.
+  const mapsDone = withMap.filter((a) => captured.has(a.layerId)).length
+  const analysesReady = done === shell.analyses.length
+  const ready = analysesReady && mapsDone === withMap.length
+
+  const progress = !analysesReady
+    ? `${done} de ${shell.analyses.length} análises prontas`
+    : withMap.length === 0
+      ? 'Nenhum mapa a gerar'
+      : ready
+        ? `${shell.analyses.length} análises e ${withMap.length} mapas prontos`
+        : `${mapsDone} de ${withMap.length} mapas gerados`
+
   return (
     <>
       <div className="report-toolbar report-no-print">
-        <span style={{ fontSize: 14, color: c.textDim }}>
-          {done} de {shell.analyses.length} análises prontas
+        <span style={{ fontSize: 14, color: c.textDim }} aria-live="polite">
+          {progress}
         </span>
         <span style={{ display: 'flex', gap: 12 }}>
           <a href="/mapa" style={{ color: c.accentInk, fontSize: 14 }}>Voltar aos mapas</a>
           <button
             type="button"
             onClick={() => window.print()}
-            disabled={done < shell.analyses.length}
+            disabled={!ready}
+            // Printing before the captures finish would put blank frames on
+            // paper, so the reason for the wait is spelled out rather than
+            // leaving a greyed button with no explanation.
+            title={ready ? undefined : 'Disponível quando todas as análises e mapas terminarem'}
             style={{
               padding: '6px 14px', font: 'inherit', fontSize: 14, borderRadius: 4,
-              border: 'none', cursor: done < shell.analyses.length ? 'default' : 'pointer',
+              border: 'none', cursor: ready ? 'pointer' : 'default',
               color: c.onAccent, background: c.accent,
-              opacity: done < shell.analyses.length ? 0.5 : 1,
+              opacity: ready ? 1 : 0.5,
             }}
           >
             Imprimir ou salvar em PDF

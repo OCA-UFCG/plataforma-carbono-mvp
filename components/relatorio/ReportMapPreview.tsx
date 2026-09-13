@@ -98,17 +98,20 @@ export default function ReportMapPreview({
   useEffect(() => {
     // Only the section the queue points at mounts a map, and only once.
     if (!active || imageSrc || capturedRef.current) return
-    const container = containerRef.current
-    if (!container) return
 
-    // Known synchronously from the `layer` memo above — release the queue
-    // slot without touching local state; `layerUnavailable` already drives
-    // the "indisponível" render for this case.
+    // Before the container check, not after: an unavailable layer renders no
+    // container at all, so testing the ref first would return early and leave
+    // the queue slot held forever — and the print button waits on that queue.
+    // Known synchronously from the `layer` memo above; `layerUnavailable`
+    // already drives the "indisponível" render for this case.
     if (!layer?.gee?.asset) {
       capturedRef.current = true
       onCaptureRef.current(null)
       return
     }
+
+    const container = containerRef.current
+    if (!container) return
 
     const controller = new AbortController()
     let map: maplibregl.Map | null = null
@@ -227,18 +230,48 @@ export default function ReportMapPreview({
   }
 
   const unavailable = failed || layerUnavailable
+  // The captures are serialised, so a section spends most of its life waiting
+  // for its turn rather than drawing. Saying which of the two is happening is
+  // the difference between "this is slow" and "this is broken".
+  const status = unavailable
+    ? 'Imagem do mapa indisponível.'
+    : active
+      ? 'Gerando a imagem do mapa…'
+      : 'Aguardando a vez na fila…'
 
   return (
     <div
-      ref={containerRef}
       className="report-map-frame"
-      style={{
-        display: unavailable ? 'flex' : 'block',
-        alignItems: 'center', justifyContent: 'center',
-        height: FRAME_HEIGHT, fontSize: 13, color: '#6f6c63',
-      }}
+      style={{ position: 'relative', height: FRAME_HEIGHT }}
     >
-      {unavailable && 'Imagem do mapa indisponível.'}
+      {/* The MapLibre container is a sibling of the message, not its parent:
+          the library owns its element's contents. Keeping the message outside
+          also keeps it out of the capture, which reads the WebGL canvas and
+          never the DOM around it. */}
+      {!unavailable && (
+        <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      )}
+      <div
+        role="status"
+        style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 8, fontSize: 13, color: '#6f6c63',
+          // Transparent over the live map so the tiles show through as they
+          // arrive; the text sits on a chip of its own to stay legible.
+          pointerEvents: 'none',
+        }}
+      >
+        <span
+          style={{
+            padding: '5px 10px', borderRadius: 999,
+            background: 'rgba(252,252,247,.92)',
+            border: '1px solid rgba(60,58,48,.14)',
+          }}
+        >
+          {status}
+        </span>
+      </div>
     </div>
   )
 }
