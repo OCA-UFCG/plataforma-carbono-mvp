@@ -92,6 +92,20 @@ export default function ReportSection({
   const c = theme.colors
   const year = descriptor.effectiveYear ?? descriptor.requestedYear
   const hero = analysis ? heroValue(analysis, layer) : null
+  /**
+   * The stock report is a two-axis breakdown — by pool and by fitofisionomia,
+   * each a doughnut with its own legend — so it takes the full width instead of
+   * sharing the row with the map. At half the content column the legend labels
+   * are cut to about thirteen characters, and the map's own cell is mostly
+   * empty anyway because its frame is a fixed height. The other snapshot kinds
+   * are a bar list or a numeric grid and read fine beside the map.
+   *
+   * Dropping the class rather than overriding `grid-template-columns` inline:
+   * the print rule in `app/relatorio.css` carries `!important`, which a normal
+   * inline declaration cannot beat, so the two-column layout would come back on
+   * paper only.
+   */
+  const stackedVisuals = analysis?.snapshot?.kind === 'stocks'
 
   return (
     <section className="report-section">
@@ -209,10 +223,14 @@ export default function ReportSection({
               Retrato espacial e distribuição
             </h3>
             <div
-              className="report-visual-grid"
+              className={stackedVisuals ? undefined : 'report-visual-grid'}
               style={{ marginTop: 10, border: `1px solid ${c.border}` }}
             >
-              <div style={{ borderRight: `1px solid ${c.border}` }}>
+              <div
+                style={stackedVisuals
+                  ? { borderBottom: `1px solid ${c.border}` }
+                  : { borderRight: `1px solid ${c.border}` }}
+              >
                 <div
                   style={{
                     padding: '8px 14px', textAlign: 'center', fontSize: 13, fontWeight: 600,

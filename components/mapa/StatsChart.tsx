@@ -407,8 +407,11 @@ function ContinuousStatsView({
         </span>
       </div>
 
-      {/* Median / min / max / deviation */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+      {/* Median / min / max / deviation. `minmax(0, 1fr)` rather than `1fr`,
+          for the reason StockReportView documents: a bare `1fr` floors the
+          column at its content's min-content width, which overflows a column
+          narrower than the results panel — such as the report's. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 6 }}>
         {cells.map((cell) => (
           <div key={cell.label} style={{
             background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 8, padding: '7px 10px',
