@@ -146,7 +146,14 @@ export default function ReportMapPreview({
         style: {
           version: 8,
           sources: {
-            base: { type: 'raster', tiles: [basemap.url], tileSize: 256, attribution: basemap.attribution },
+            base: {
+              type: 'raster', tiles: [basemap.url], tileSize: 256,
+              attribution: basemap.attribution,
+              // As MapView.tsx does for the same basemap: without it, a small
+              // quilombo or terra indígena fitted into this 230px frame
+              // requests tiles past z19, which CARTO does not have.
+              maxzoom: basemap.maxZoom,
+            },
             [GEE_SOURCE_ID]: { type: 'raster', tiles: [tileUrl], tileSize: 256 },
           },
           layers: [
@@ -161,7 +168,18 @@ export default function ReportMapPreview({
         fitBoundsOptions: { padding: 16 },
       })
 
-      map.on('error', () => finish(null))
+      // MapLibre emits 'error' for every individual tile fetch failure, not
+      // only for fatal errors — a single 404 must not replace the whole
+      // section's map. A tile-fetch failure carries `sourceId` and/or `tile`
+      // on the event (added as the error propagates up from the source, see
+      // TileManager -> Style -> Map in maplibre-gl); the type only declares
+      // `error`, so this reads the runtime-only fields through a cast.
+      // MapView.tsx registers no handler at all and tolerates exactly this.
+      map.on('error', (e) => {
+        const { sourceId, tile } = e as maplibregl.ErrorEvent & { sourceId?: string; tile?: unknown }
+        if (sourceId || tile) return
+        finish(null)
+      })
       // `idle` fires when every tile in view has finished loading and nothing
       // is animating, which is the first moment the canvas holds the whole
       // picture.

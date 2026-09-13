@@ -39,6 +39,18 @@ export interface StatsChartViewProps {
    * chart mid-animation at the moment print captures the page prints blank.
    */
   animate?:    boolean
+  /**
+   * A fixed pixel width for the yearly-series chart, replacing
+   * `ResponsiveContainer`. Undefined (the default) keeps the map panel's
+   * existing `ResponsiveContainer`-driven behaviour exactly as it is today.
+   *
+   * The report path passes a fixed width for the same reason it passes
+   * `animate={false}`: the content column is ~150mm on screen and 180mm in
+   * print, a 20% change a `ResizeObserver`-driven SVG does not reliably pick
+   * up before the print snapshot. A concrete pixel size sidesteps the
+   * observer entirely.
+   */
+  width?:      number
 }
 
 /**
@@ -48,7 +60,7 @@ export interface StatsChartViewProps {
  * its own layer, where "the visible raster" the store exposes means nothing.
  */
 export function StatsChartView({
-  theme, stats, classes, unit, signedFlux, caption, animate = true,
+  theme, stats, classes, unit, signedFlux, caption, animate = true, width,
 }: StatsChartViewProps) {
   if (stats.kind === 'stocks') {
     return <StockReportView report={stats.report} theme={theme} caption={caption} />
@@ -61,6 +73,7 @@ export function StatsChartView({
         theme={theme}
         caption={caption}
         animate={animate}
+        width={width}
       />
     )
   }
@@ -456,12 +469,14 @@ function TimeSeriesChart({
   theme,
   caption,
   animate = true,
+  width,
 }: {
   series: TimeSeriesPoint[]
   classes?: RasterClass[]
   theme: PlatformTheme
   caption?: string
   animate?: boolean
+  width?: number
 }) {
   const hasClasses = Boolean(classes?.length)
 
@@ -489,65 +504,78 @@ function TimeSeriesChart({
   // Sample ticks so the axis doesn't overcrowd for long series (every Nth month)
   const tickInterval = rows.length > 12 ? Math.ceil(rows.length / 6) : 0
 
+  // `ResponsiveContainer` measures its parent via `ResizeObserver`, which is
+  // what the report path opts out of by passing a fixed `width` — see the
+  // prop's doc comment on `StatsChartViewProps`. Either way it is the same
+  // `LineChart`; only the wrapper, and whether the chart itself carries an
+  // explicit size, differs.
+  const chart = (
+      <LineChart
+        data={rows}
+        width={width}
+        height={width ? 220 : undefined}
+        margin={{ top: 8, right: 12, left: -24, bottom: 4 }}
+      >
+        <XAxis
+          dataKey="date"
+          tickFormatter={formatTickDate}
+          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          stroke={theme.colors.border}
+          tickLine={false}
+          interval={tickInterval}
+        />
+        <YAxis
+          domain={[0, maxVal]}
+          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          stroke={theme.colors.border}
+          tickLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip
+          cursor={{ stroke: theme.colors.textDim, strokeDasharray: '3 3', opacity: 0.5 }}
+          content={<TimeSeriesTooltip theme={theme} />}
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke={theme.colors.textDim}
+          strokeWidth={1}
+          strokeOpacity={0.4}
+          connectNulls={false}
+          isAnimationActive={animate}
+          animationDuration={300}
+          // Custom dot renderer, each point is colored by its class so
+          // the reader sees both the trend (line) and the category (color).
+          dot={(props: DotProps) => {
+            const { cx, cy, payload } = props
+            if (cx == null || cy == null || !payload || payload.value === null) {
+              return <g key={payload?.date ?? String(cx)} />
+            }
+            return (
+              <circle
+                key={payload.date}
+                cx={cx}
+                cy={cy}
+                r={4}
+                fill={payload.color}
+                stroke="#fff"
+                strokeWidth={1.5}
+              />
+            )
+          }}
+          activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+        />
+      </LineChart>
+  )
+
   return (
     <CardBox title="Valor ao longo do tempo" caption={caption} theme={theme}>
-      <div style={{ width: '100%', height: 220, minWidth: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={rows}
-            margin={{ top: 8, right: 12, left: -24, bottom: 4 }}
-          >
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatTickDate}
-              tick={{ fontSize: 9, fill: theme.colors.textDim }}
-              stroke={theme.colors.border}
-              tickLine={false}
-              interval={tickInterval}
-            />
-            <YAxis
-              domain={[0, maxVal]}
-              tick={{ fontSize: 9, fill: theme.colors.textDim }}
-              stroke={theme.colors.border}
-              tickLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip
-              cursor={{ stroke: theme.colors.textDim, strokeDasharray: '3 3', opacity: 0.5 }}
-              content={<TimeSeriesTooltip theme={theme} />}
-            />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={theme.colors.textDim}
-              strokeWidth={1}
-              strokeOpacity={0.4}
-              connectNulls={false}
-              isAnimationActive={animate}
-              animationDuration={300}
-              // Custom dot renderer, each point is colored by its class so
-              // the reader sees both the trend (line) and the category (color).
-              dot={(props: DotProps) => {
-                const { cx, cy, payload } = props
-                if (cx == null || cy == null || !payload || payload.value === null) {
-                  return <g key={payload?.date ?? String(cx)} />
-                }
-                return (
-                  <circle
-                    key={payload.date}
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill={payload.color}
-                    stroke="#fff"
-                    strokeWidth={1.5}
-                  />
-                )
-              }}
-              activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <div style={{ width: width ?? '100%', height: 220, minWidth: 0 }}>
+        {width ? chart : (
+          <ResponsiveContainer width="100%" height="100%">
+            {chart}
+          </ResponsiveContainer>
+        )}
       </div>
     </CardBox>
   )
