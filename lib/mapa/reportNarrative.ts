@@ -8,6 +8,13 @@
 // recorte types differ in gender and article — o município, a terra indígena,
 // o assentamento, o bioma — and a preposition table keyed by recorte type
 // drifts the moment a seventh recorte arrives.
+//
+// For the same reason, a layer's own name never takes a gendered article
+// either: "Biomassa Aérea", "Frequência de Fogo" and "Precipitação Anual" are
+// feminine while most curated layers are masculine, and a config of genders
+// keyed by layer name has the same drift problem the recorte table would.
+// "A camada <nome>" sidesteps it — "camada" is always feminine, so the
+// article never has to agree with the name that follows it.
 
 import { describeFlux } from '@/lib/mapa/carbonFlux'
 import { classShares } from '@/lib/mapa/classShares'
@@ -59,10 +66,10 @@ function situationContinuous(input: NarrativeInput, stats: { mean: number; min: 
     // equilíbrio' is an adjectival phrase and needs the copula the other two
     // already carry within themselves.
     const copula = flux.direction === 'neutral' ? 'está ' : ''
-    return `Em ${recorte.featureName}, o ${layerName} indica que a área ${copula}${flux.label}, em média, ${withUnit(flux.magnitude, unit, 2)}${atYear(effectiveYear)}.`
+    return `Em ${recorte.featureName}, a camada ${layerName} indica que a área ${copula}${flux.label}, em média, ${withUnit(flux.magnitude, unit, 2)}${atYear(effectiveYear)}.`
   }
 
-  return `Em ${recorte.featureName}, o ${layerName} tem média de ${withUnit(stats.mean, unit)}${atYear(effectiveYear)}, variando de ${numero(stats.min)} a ${withUnit(stats.max, unit)}.`
+  return `Em ${recorte.featureName}, a camada ${layerName} tem média de ${withUnit(stats.mean, unit)}${atYear(effectiveYear)}, variando de ${numero(stats.min)} a ${withUnit(stats.max, unit)}.`
 }
 
 function situationCategorical(input: NarrativeInput, areas: Record<string, number>) {
@@ -145,8 +152,16 @@ function buildTrend(input: NarrativeInput): string | null {
 }
 
 function buildContext(input: NarrativeInput): string | null {
-  const { config, unit, series } = input
+  const { config, unit, series, signedFlux } = input
   if (!config.trend) return null
+  // Same reasoning as buildTrend: the series here is the raw zonal mean, not
+  // describeFlux's sign-dropped magnitude, and under the atmospheric
+  // convention a raw extreme's direction is the opposite of what it means (the
+  // most negative value is the strongest sequestration, not the deepest
+  // emission). Printing "máximo"/"mínimo" straight off that series would be
+  // wrong in the same way a raw delta would be, so this declines too until
+  // that is implemented properly.
+  if (signedFlux) return null
 
   const measured = series.filter((p): p is { date: string; value: number } => p.value !== null)
   if (measured.length < 2) return null

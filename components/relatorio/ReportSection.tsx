@@ -1,6 +1,7 @@
 'use client'
 
 import { StatsChartView } from '@/components/mapa/StatsChart'
+import { formatarTc } from '@/components/mapa/StockReportView'
 import ReportMapPreview from './ReportMapPreview'
 import { classShares } from '@/lib/mapa/classShares'
 import { numero } from '@/lib/mapa/format'
@@ -31,16 +32,39 @@ function layerOf(layerId: string): RasterLayerConfig | undefined {
   return (appConfig.layers as RasterLayerConfig[]).find((l) => l.id === layerId)
 }
 
+/**
+ * Fixed pixel width for the yearly-series chart, replacing
+ * `ResponsiveContainer`'s `ResizeObserver`-driven sizing (see the `width`
+ * prop on `StatsChartViewProps` in `StatsChart.tsx`).
+ *
+ * Derived from the screen column, not the printed one, on purpose: sized to
+ * the printed (wider, 180mm) column, a fixed-width SVG would overflow the
+ * narrower on-screen preview, where nothing clips a horizontal overflow.
+ * Sized to the screen column instead, print gets a chart that is a bit
+ * narrower than the column it now has, with blank space to its right — a
+ * layout that stays intact beats one that is full-width but sometimes
+ * clipped or scrolled.
+ *
+ * `app/relatorio.css` puts this chart in a full-width block (not the
+ * two-column `.report-visual-grid`), inside a 12px-padded, 1px-bordered
+ * wrapper, inside a `CardBox` with 12px horizontal padding, inside
+ * `.report-paper`, whose on-screen width is `min(100%, 180mm)` minus its own
+ * 15mm side padding = 150mm, ~567px at 96dpi. 567 - 2*12 (block) - 2*1
+ * (border) - 2*12 (CardBox) = 517.
+ */
+const REPORT_CHART_WIDTH = 517
+
 /** The headline number of a section, or null when the shape has none. */
 function heroValue(analysis: ReportAnalysis, layer?: RasterLayerConfig) {
   const snapshot = analysis.snapshot
   if (!snapshot) return null
 
   if (snapshot.kind === 'stocks') {
-    return {
-      label: 'Estoque total',
-      value: `${numero(snapshot.report.totalTc, 0)} ${snapshot.report.unit}`,
-    }
+    // Same scaling StockReportView's own card uses for this exact number, so
+    // the hero and the doughnut section below it agree (`12,3 Mt C`, not
+    // `12,3 Mt C` beside a raw `12.345.678 t C`).
+    const { valor, unidade } = formatarTc(snapshot.report.totalTc)
+    return { label: 'Estoque total', value: `${valor} ${unidade}` }
   }
   if (snapshot.kind === 'categorical') {
     const dominant = classShares(snapshot.areas, layer?.classes ?? [])[0]
@@ -159,7 +183,9 @@ export default function ReportSection({
                   <dd style={{ margin: 0 }}>
                     {analysis.series.length > 1
                       ? `${analysis.series[0].date.slice(0, 4)}–${analysis.series[analysis.series.length - 1].date.slice(0, 4)}`
-                      : 'não se aplica'}
+                      : descriptor.seriesExpected
+                        ? 'não foi possível calcular'
+                        : 'não se aplica'}
                   </dd>
                 </div>
               </dl>
@@ -243,6 +269,11 @@ export default function ReportSection({
                   // animates by mutating SVG attributes from JS, which a
                   // print stylesheet cannot interrupt.
                   animate={false}
+                  // A fixed size instead of `ResponsiveContainer`: the content
+                  // column is ~150mm on screen and 180mm in print, a 20%
+                  // change a `ResizeObserver` does not reliably pick up before
+                  // the print snapshot.
+                  width={REPORT_CHART_WIDTH}
                 />
               </div>
             </div>

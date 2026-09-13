@@ -37,6 +37,13 @@ export interface ReportAnalysisDescriptor {
   /** null on the layers with no series. */
   requestedYear:  string | null
   effectiveYear:  string | null
+  /**
+   * Whether the analysis is expected to carry a yearly series once available:
+   * temporal, more than one stop, and `seriesKind !== 'none'`. Lets the
+   * section tell "this layer never has a series" (`false`) apart from "the
+   * series failed to compute" (`true` with an empty `series`).
+   */
+  seriesExpected: boolean
 }
 
 export interface ReportShell {

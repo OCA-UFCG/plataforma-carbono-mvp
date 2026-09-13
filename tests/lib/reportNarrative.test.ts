@@ -39,7 +39,7 @@ describe('buildNarrative situation', () => {
     }))
 
     expect(situation).toBe(
-      'Em Campina Grande, o Carbono Orgânico do Solo (0-30 cm) tem média de 24,3 t C/ha em 2023, variando de 11,2 a 48,9 t C/ha.',
+      'Em Campina Grande, a camada Carbono Orgânico do Solo (0-30 cm) tem média de 24,3 t C/ha em 2023, variando de 11,2 a 48,9 t C/ha.',
     )
   })
 
@@ -59,7 +59,7 @@ describe('buildNarrative situation', () => {
     }))
 
     expect(situation).toBe(
-      'Em Campina Grande, o Fluxo Líquido de Carbono Florestal (GFW) indica que a área sequestrou, em média, 1,23 Mg CO2e/ha.',
+      'Em Campina Grande, a camada Fluxo Líquido de Carbono Florestal (GFW) indica que a área sequestrou, em média, 1,23 Mg CO2e/ha.',
     )
     expect(situation).not.toContain('-1,23')
   })
@@ -78,7 +78,7 @@ describe('buildNarrative situation', () => {
     }))
 
     expect(situation).toBe(
-      'Em Campina Grande, o Fluxo Líquido de Carbono Florestal (GFW) indica que a área está em equilíbrio, em média, 0,00 Mg CO2e/ha.',
+      'Em Campina Grande, a camada Fluxo Líquido de Carbono Florestal (GFW) indica que a área está em equilíbrio, em média, 0,00 Mg CO2e/ha.',
     )
   })
 
@@ -204,6 +204,35 @@ describe('buildNarrative trend', () => {
       config: getReportLayer('solo_carbono')!,
       series,
     })).trend).toBeNull()
+  })
+
+  it('declines to state a context summary for a signed flux, for the same reason', () => {
+    expect(buildNarrative(input({
+      unit: 'Mg CO2e/ha',
+      signedFlux: true,
+      config: getReportLayer('solo_carbono')!,
+      series,
+    })).context).toBeNull()
+  })
+})
+
+describe('buildNarrative situation, feminine layer name', () => {
+  it('uses "a camada", which needs no article agreement with the layer name', () => {
+    // "Biomassa Aérea" is feminine, unlike most curated layer names, which is
+    // exactly the case the gendered "o <nome>" construction got wrong.
+    const { situation } = buildNarrative(input({
+      layerName: 'Biomassa Aérea, vegetação lenhosa (ESA CCI)',
+      unit: 't/ha',
+      config: getReportLayer('biomassa_esa_lenhosa')!,
+      snapshot: {
+        kind: 'continuous',
+        stats: { min: 5, max: 40, mean: 18.4, median: 17, std: 3.1, count: 500 },
+      },
+    }))
+
+    expect(situation).toBe(
+      'Em Campina Grande, a camada Biomassa Aérea, vegetação lenhosa (ESA CCI) tem média de 18,4 t/ha em 2023, variando de 5,0 a 40,0 t/ha.',
+    )
   })
 })
 
