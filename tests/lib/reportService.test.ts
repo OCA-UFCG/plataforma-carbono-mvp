@@ -166,6 +166,20 @@ describe('buildReportAnalysis', () => {
     expect(analysis.narrative).toEqual({ situation: null, trend: null, context: null })
   })
 
+  it('reports the analysis unavailable when computeZonalStats rejects instead of returning ok: false', async () => {
+    // The failure this one-analysis-per-request architecture was designed
+    // around: geeEvaluate.ts rejects on GEE_TIMEOUT_MS, near-certain for a
+    // large recorte. A throw here must become the same 'unavailable' status
+    // as an `{ ok: false }` return, not escape as an unhandled rejection.
+    mocks.computeZonalStats.mockRejectedValueOnce(new Error('ee.evaluate timed out after 65000ms'))
+
+    const analysis = await buildReportAnalysis({ ...base, feicaoId: 'sobral', layerId: 'solo_carbono' })
+
+    expect(analysis.status).toBe('unavailable')
+    expect(analysis.snapshot).toBeNull()
+    expect(analysis.narrative).toEqual({ situation: null, trend: null, context: null })
+  })
+
   it('reports year_not_found without calling Earth Engine at all', async () => {
     const analysis = await buildReportAnalysis({ ...base, feicaoId: 'petrolina', year: '1900', layerId: 'solo_carbono' })
 

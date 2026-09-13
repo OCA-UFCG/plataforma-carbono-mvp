@@ -92,6 +92,9 @@ function describe(layerId: string, requestedYear: string): ReportAnalysisDescrip
     effectiveYear:  isTemporal
       ? (availableYears.includes(requestedYear) ? requestedYear : null)
       : null,
+    // The same condition buildReportAnalysis uses to decide whether to call
+    // computeSeries at all.
+    seriesExpected: config.seriesKind !== 'none' && availableYears.length > 1,
   }
 }
 
@@ -172,19 +175,33 @@ export async function buildReportAnalysis(input: {
     return result
   }
 
-  await initGee()
-  const ee = getEe()
   const temporalDate = descriptor.effectiveYear ? `${descriptor.effectiveYear}-01-01` : undefined
 
-  const outcome = await computeZonalStats(ee, {
-    asset,
-    geometry:  feicao.geometry,
-    temporalDate,
-    classify:  layer.gee?.classify,
-    breaks:    layer.gee?.classify?.breaks,
-    colorType: layer.colorType,
-    layerId:   layer.gee?.stocks ? layerId : undefined,
-  })
+  // initGee() and computeZonalStats() can both reject rather than resolve
+  // with `{ ok: false }` — most notably on the GEE_TIMEOUT_MS timeout in
+  // geeEvaluate.ts, which is near-certain for a large recorte like `bioma`
+  // and is exactly the failure this one-analysis-per-request architecture
+  // was designed around. A throw here must become the same 'unavailable'
+  // status as an `{ ok: false }` return, not escape to the route as a 500.
+  let outcome: Awaited<ReturnType<typeof computeZonalStats>>
+  let ee: ReturnType<typeof getEe>
+  try {
+    await initGee()
+    ee = getEe()
+    outcome = await computeZonalStats(ee, {
+      asset,
+      geometry:  feicao.geometry,
+      temporalDate,
+      classify:  layer.gee?.classify,
+      breaks:    layer.gee?.classify?.breaks,
+      colorType: layer.colorType,
+      layerId:   layer.gee?.stocks ? layerId : undefined,
+    })
+  } catch (err) {
+    console.error(`[reportService] ${layerId}: ${err instanceof Error ? err.message : err}`)
+    // Not cached: the cause is usually transient, and the section offers a retry.
+    return empty('unavailable')
+  }
 
   if (!outcome.ok) {
     console.error(`[reportService] ${layerId}: ${outcome.error} (${outcome.status})`)
