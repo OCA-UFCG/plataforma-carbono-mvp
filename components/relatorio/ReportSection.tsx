@@ -226,10 +226,18 @@ export default function ReportSection({
               className={stackedVisuals ? undefined : 'report-visual-grid'}
               style={{ marginTop: 10, border: `1px solid ${c.border}` }}
             >
+              {/* A flex column so the map sits centred in whatever height the
+                  neighbouring panel imposes. The frame is a fixed 300px and the
+                  statistics beside it vary with the layer, so the leftover
+                  splits above and below instead of hanging under the map. */}
               <div
-                style={stackedVisuals
-                  ? { borderBottom: `1px solid ${c.border}` }
-                  : { borderRight: `1px solid ${c.border}` }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  ...(stackedVisuals
+                    ? { borderBottom: `1px solid ${c.border}` }
+                    : { borderRight: `1px solid ${c.border}` }),
+                }}
               >
                 <div
                   style={{
@@ -239,14 +247,16 @@ export default function ReportSection({
                 >
                   {year ? `Imagem de ${year}` : 'Imagem da camada'}
                 </div>
-                <ReportMapPreview
-                  layerId={descriptor.layerId}
-                  bbox={recorte.bbox}
-                  year={descriptor.effectiveYear}
-                  active={mapActive}
-                  imageSrc={mapSrc}
-                  onCapture={onMapCapture}
-                />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <ReportMapPreview
+                    layerId={descriptor.layerId}
+                    bbox={recorte.bbox}
+                    year={descriptor.effectiveYear}
+                    active={mapActive}
+                    imageSrc={mapSrc}
+                    onCapture={onMapCapture}
+                  />
+                </div>
               </div>
               <div>
                 <div

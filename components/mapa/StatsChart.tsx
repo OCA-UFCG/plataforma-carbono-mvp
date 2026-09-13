@@ -391,6 +391,9 @@ function ContinuousStatsView({
         background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 10,
         padding: '10px 12px', display: 'flex', gap: 8,
         alignItems: signedFlux ? 'flex-start' : 'baseline',
+        // Same reason as FluxValue's own row: a long unit moves to its own line
+        // whole rather than breaking inside itself.
+        flexWrap: 'wrap',
       }}>
         {signedFlux ? (
           <FluxValue value={stats.mean} unit={unit} theme={theme} size={32} format={fmt} />
@@ -399,7 +402,11 @@ function ContinuousStatsView({
             <span style={{ fontSize: 32, fontWeight: 800, color: c.text, lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
               {fmt(stats.mean)}
             </span>
-            {unit && <span style={{ fontSize: 15, fontWeight: 700, color: c.accent }}>{unit}</span>}
+            {unit && (
+              <span style={{ fontSize: 15, fontWeight: 700, color: c.accent, whiteSpace: 'nowrap' }}>
+                {unit}
+              </span>
+            )}
           </>
         )}
         <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>

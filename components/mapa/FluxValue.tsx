@@ -33,7 +33,10 @@ export default function FluxValue({ value, unit, theme, size, format }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+      {/* `flexWrap` so a unit that does not fit beside the figure moves to its
+          own line whole, instead of breaking inside itself — "Mg CO2e/ha" split
+          across two lines after "Mg" reads as two different units. */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexWrap: 'wrap' }}>
         {/* Hidden from assistive tech: the word right below already says it. */}
         {flux.arrow && (
           <span aria-hidden style={{ fontSize: size * 0.62, fontWeight: 800, color: ink, lineHeight: 1 }}>
@@ -50,6 +53,7 @@ export default function FluxValue({ value, unit, theme, size, format }: Props) {
           <span style={{
             fontSize: Math.max(11, Math.round(size * 0.47)),
             fontWeight: 700, color: theme.colors.accent,
+            whiteSpace: 'nowrap',
           }}>
             {unit}
           </span>

@@ -19,6 +19,20 @@ export interface ReportMapPreviewProps {
 const GEE_SOURCE_ID = 'relatorio-gee'
 const GEE_LAYER_ID = 'relatorio-gee-layer'
 
+/**
+ * Height of the map frame, and therefore of the captured bitmap.
+ *
+ * Fixed rather than filling its grid cell: the capture happens once, at the
+ * container's size when the map goes idle, and at that moment the neighbouring
+ * column still holds a loading placeholder. A frame that grew with its
+ * neighbour would capture short and then be stretched.
+ *
+ * 300 rather than the 230 this started at, because the statistics panel beside
+ * it runs to roughly 360px for a continuous layer, and the difference showed as
+ * a band of empty paper under the map.
+ */
+const FRAME_HEIGHT = 300
+
 // The primary line of defense against a stuck capture: shorter than the
 // queue's own backstop timeout, and owned by the component that can still
 // show a placeholder and advance the queue through the normal onCapture path.
@@ -150,7 +164,7 @@ export default function ReportMapPreview({
               type: 'raster', tiles: [basemap.url], tileSize: 256,
               attribution: basemap.attribution,
               // As MapView.tsx does for the same basemap: without it, a small
-              // quilombo or terra indígena fitted into this 230px frame
+              // quilombo or terra indígena fitted into this small frame
               // requests tiles past z19, which CARTO does not have.
               maxzoom: basemap.maxZoom,
             },
@@ -205,7 +219,7 @@ export default function ReportMapPreview({
 
   if (imageSrc) {
     return (
-      <div className="report-map-frame" style={{ height: 230, overflow: 'hidden' }}>
+      <div className="report-map-frame" style={{ height: FRAME_HEIGHT, overflow: 'hidden' }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- imageSrc is a captured data: URI, not an optimizable asset */}
         <img src={imageSrc} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
@@ -221,7 +235,7 @@ export default function ReportMapPreview({
       style={{
         display: unavailable ? 'flex' : 'block',
         alignItems: 'center', justifyContent: 'center',
-        height: 230, fontSize: 13, color: '#6f6c63',
+        height: FRAME_HEIGHT, fontSize: 13, color: '#6f6c63',
       }}
     >
       {unavailable && 'Imagem do mapa indisponível.'}
