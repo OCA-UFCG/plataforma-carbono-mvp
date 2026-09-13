@@ -143,6 +143,17 @@ describe('GET /api/mapa/relatorio/analise', () => {
     await expect(res.json()).resolves.toMatchObject({ status: 'unavailable' })
   })
 
+  it('sends a long-lived Cache-Control for an available analysis but no-store for an unavailable one', async () => {
+    const okRes = await getAnalise(req('/api/mapa/relatorio/analise', analiseQuery))
+    expect(okRes.headers.get('Cache-Control')).toBe('private, max-age=1800')
+
+    mocks.buildReportAnalysis.mockResolvedValueOnce({
+      layerId: 'solo_carbono', status: 'unavailable',
+    } as never)
+    const unavailableRes = await getAnalise(req('/api/mapa/relatorio/analise', analiseQuery))
+    expect(unavailableRes.headers.get('Cache-Control')).toBe('no-store')
+  })
+
   it('rejects a missing or malformed camada with 400', async () => {
     for (const query of [
       { recorte: 'municipios', feicao: 'campina-grande', ano: '2023' },

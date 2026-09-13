@@ -62,8 +62,16 @@ export async function GET(req: Request) {
 
   try {
     const analysis = await buildReportAnalysis({ recorteId, feicaoId, year, layerId })
+    // reportCache.ts deliberately refuses to cache an 'unavailable' analysis —
+    // caching it would hold a broken section for ninety minutes. Sending the
+    // browser the same 30-minute freshness header for that body defeats the
+    // point: the retry button re-requests the identical URL and the browser
+    // serves the stale failure without ever reaching the server.
+    const cacheControl = analysis.status === 'available'
+      ? 'private, max-age=1800'
+      : 'no-store'
     return NextResponse.json(analysis, {
-      headers: { 'Cache-Control': 'private, max-age=1800' },
+      headers: { 'Cache-Control': cacheControl },
     })
   } catch (err) {
     if (err instanceof ReportNotFoundError) {

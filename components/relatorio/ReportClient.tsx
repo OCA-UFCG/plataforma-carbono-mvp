@@ -24,6 +24,20 @@ const CONCURRENCY = 2
 
 type Status = 'loading' | 'ready' | 'error'
 
+/**
+ * Every report route answers in English (`'Invalid recorte.'`, `'Recorte not
+ * found.'`, …): those strings are for logs and for developers, not for the
+ * reader of a printable document. This maps the HTTP status to a Portuguese
+ * sentence instead; `payload.error` is still logged to the console for
+ * diagnosis, just never rendered.
+ */
+function messageForStatus(status: number): string {
+  if (status === 400) return 'O pedido do relatório está incompleto ou inválido.'
+  if (status === 404) return 'Recorte, feição ou camada não encontrados.'
+  if (status === 429) return 'Muitas requisições no momento. Aguarde um instante e tente novamente.'
+  return 'Não foi possível concluir esta operação. Tente novamente.'
+}
+
 export default function ReportClient({ recorteId, feicaoId, year, layerIds }: ReportClientProps) {
   const theme = useMemo(() => buildReportTheme(), [])
   const [shell, setShell] = useState<ReportShell | null>(null)
@@ -63,7 +77,8 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
         const res = await fetch(`/api/mapa/relatorio/base?${params}`, { signal: controller.signal })
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}))
-          throw new Error(payload?.error ?? `Erro ${res.status}`)
+          console.error('[ReportClient] /base failed:', res.status, payload?.error)
+          throw new Error(messageForStatus(res.status))
         }
         setShell(await res.json() as ReportShell)
         setShellStatus('ready')
@@ -97,7 +112,8 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
       }
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}))
-        throw new Error(payload?.error ?? `Erro ${res.status}`)
+        console.error(`[ReportClient] /analise (${layerId}) failed:`, res.status, payload?.error)
+        throw new Error(messageForStatus(res.status))
       }
       const analysis = await res.json() as ReportAnalysis
       setAnalyses((prev) => new Map(prev).set(layerId, analysis))

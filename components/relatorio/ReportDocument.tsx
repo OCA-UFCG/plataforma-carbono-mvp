@@ -37,7 +37,13 @@ export default function ReportDocument({
     (layerId) => analyses.get(layerId)?.status === 'available',
   )
   const generatedAt = new Date(shell.generatedAt).toLocaleDateString('pt-BR')
-  const done = shell.analyses.filter((a) => analyses.has(a.layerId)).length
+  // A section is settled once it has an analysis or a terminal error — not
+  // only on a 2xx. Counting only `analyses` would leave the print button
+  // disabled forever whenever a section ends in `errors`: the rest of the
+  // document stands and must still be printable.
+  const done = shell.analyses.filter(
+    (a) => analyses.has(a.layerId) || errors.has(a.layerId),
+  ).length
 
   return (
     <>
@@ -99,14 +105,14 @@ export default function ReportDocument({
               margin: '20px 0 0', border: `1px solid ${c.border}`, fontSize: 14,
             }}
           >
-            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.textDim, background: c.mist }}>
+            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
               Área de análise
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               <strong>{shell.recorte.featureName}</strong> — {shell.recorte.layerName}
             </dd>
 
-            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.textDim, background: c.mist }}>
+            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
               Área
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
@@ -116,21 +122,21 @@ export default function ReportDocument({
               )}
             </dd>
 
-            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.textDim, background: c.mist }}>
+            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
               Ano de referência
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {shell.requestedYear}
             </dd>
 
-            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.textDim, background: c.mist }}>
+            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
               Gerado em
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {generatedAt}
             </dd>
 
-            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.textDim, background: c.mist }}>
+            <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
               Variáveis
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
