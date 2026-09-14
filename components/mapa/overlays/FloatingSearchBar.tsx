@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { IcSearch, IcX } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
-import { matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
+import { contextIsUnique, matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
@@ -60,7 +60,12 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
   const cacheRef = useRef<
     Map<
       string,
-      { unitName: string; features: GeoJSON.Feature[] }
+      {
+        unitName: string
+        features: GeoJSON.Feature[]
+        /** Whether a bare context is a legitimate query for this layer. */
+        contextIdentifies: boolean
+      }
     >
   >(new Map())
 
@@ -124,9 +129,21 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       fetch(layer.url, { signal: controller.signal })
         .then((r) => r.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
+          const field = layer.contextField
           cacheRef.current.set(layer.id, {
             unitName: layer.unitName ?? layer.name,
             features: geojson.features,
+            // Derived from the file rather than declared: on the states layer
+            // the abbreviation is one per feature and typing "RN" should find
+            // Rio Grande do Norte, whose name does not contain those letters.
+            contextIdentifies: field
+              ? contextIsUnique(
+                  geojson.features.map((f) => {
+                    const value = f.properties?.[field]
+                    return typeof value === 'string' && value ? value : undefined
+                  }),
+                )
+              : false,
           })
           // bump version so the search effect re-runs
           setCacheVersion((v) => v + 1)
@@ -172,7 +189,9 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
           // under the heading "abbrev_state".
           if (key === contextField) continue
           if (typeof raw !== 'string' || raw === '') continue
-          const match = matchTerritory(q, raw, context)
+          const match = matchTerritory(q, raw, context, {
+            contextIdentifies: cached.contextIdentifies,
+          })
           if (!match) continue
 
           const dedupeKey = `${layer.id}:${fi}:${key}`

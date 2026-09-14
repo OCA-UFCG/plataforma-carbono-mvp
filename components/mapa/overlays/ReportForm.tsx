@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import appConfig from '@/config/mapa/layers.json'
 import { MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { matchTerritory } from '@/lib/mapa/searchMatch'
+import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { PlatformTheme, RasterLayerConfig, VectorLayerConfig } from '@/types/mapa'
 
@@ -109,14 +109,22 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     return () => document.removeEventListener('keydown', onEsc)
   }, [open, onClose])
 
+  // True on the states recorte, where the abbreviation is one per feature, so
+  // "mg" finds Minas Gerais; false on the municipalities, where it would offer
+  // every one of the 140 the clip holds in Piauí.
+  const contextIdentifies = useMemo(
+    () => contextIsUnique(feicoes.map((f) => f.context)),
+    [feicoes],
+  )
+
   const matches = useMemo(() => {
     if (!query.trim()) return feicoes.slice(0, MAX_SUGGESTIONS)
     // Same rule as the map's search bar, so "bom jesus pi" narrows to one here
     // too instead of listing three identical-looking options.
     return feicoes
-      .filter((f) => matchTerritory(query, f.name, f.context) !== null)
+      .filter((f) => matchTerritory(query, f.name, f.context, { contextIdentifies }))
       .slice(0, MAX_SUGGESTIONS)
-  }, [feicoes, query])
+  }, [feicoes, query, contextIdentifies])
 
   const chosen = feicoes.find((f) => f.id === feicaoId)
   const canGenerate = Boolean(feicaoId) && Boolean(year) && selected.size > 0

@@ -6,7 +6,7 @@ describe('listRecortes', () => {
     // No layer declares `labelField`; all six carry `hoverLabelField`.
     expect(listRecortes()).toEqual(expect.arrayContaining([
       { layerId: 'municipios', layerName: 'Municípios', labelField: 'name_muni' },
-      { layerId: 'estados', layerName: 'Estados', labelField: 'abbrev_state' },
+      { layerId: 'estados', layerName: 'Estados', labelField: 'name_state' },
       { layerId: 'bioma', layerName: 'Bioma Caatinga', labelField: 'Bioma' },
     ]))
   })
@@ -20,9 +20,11 @@ describe('listRecortes', () => {
 
 describe('listFeicoes', () => {
   it('slugifies the label into the id', () => {
+    // The states layer is labelled by the written-out name, so that a search
+    // for "Pernambuco" finds it; the abbreviation is its context.
     expect(listFeicoes('estados')).toEqual(expect.arrayContaining([
-      { id: 'pb', name: 'PB' },
-      { id: 'mg', name: 'MG' },
+      { id: 'paraiba', name: 'Paraíba', context: 'PB' },
+      { id: 'minas-gerais', name: 'Minas Gerais', context: 'MG' },
     ]))
   })
 
@@ -42,7 +44,8 @@ describe('listFeicoes', () => {
   })
 
   it('leaves the context out for a recorte that declares no contextField', () => {
-    expect(listFeicoes('estados').every((f) => f.context === undefined)).toBe(true)
+    // The biome is the one recorte with nothing to disambiguate against.
+    expect(listFeicoes('bioma').every((f) => f.context === undefined)).toBe(true)
   })
 
   it('never repeats an id within a recorte', () => {

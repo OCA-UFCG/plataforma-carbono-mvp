@@ -29,6 +29,12 @@ VECTOR_DIR = os.path.join(os.path.dirname(__file__), "..", "public", "data", "ve
 STATES_LAYER = "estados"
 STATE_FIELD = "abbrev_state"
 IBGE_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
+IBGE_STATES_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
+
+# Property written into estados.geojson. That file carries only the two-letter
+# abbreviation, so "Pernambuco" found nothing in the search; with the name the
+# abbreviation becomes the context and the name becomes the label.
+STATE_NAME_FIELD = "name_state"
 
 # Layers to enrich: the file, its label property as declared by
 # config/mapa/layers.json, and whether the IBGE list arbitrates the answer.
@@ -273,6 +279,17 @@ def resolve_municipality(name, votes, by_name):
     return voted, None
 
 
+def state_names_by_uf(payload):
+    """Abbreviation -> written-out name, from the IBGE state list."""
+    names = {}
+    for item in payload:
+        uf, name = item.get("sigla"), item.get("nome")
+        if not uf or not name:
+            raise LookupError(f"IBGE state entry is incomplete: {item}")
+        names[uf] = name
+    return names
+
+
 def uf_of_ibge_item(item):
     """The state of one entry of the IBGE municipality list.
 
@@ -291,14 +308,18 @@ def uf_of_ibge_item(item):
     raise LookupError(f'IBGE entry "{item.get("nome")}" names no state')
 
 
-def load_ibge_states_by_name(url=IBGE_URL):
-    """Normalized municipality name -> the set of states IBGE records it in."""
+def fetch_json(url):
     request = urllib.request.Request(url, headers={"Accept-Encoding": "gzip"})
     with urllib.request.urlopen(request, timeout=120) as response:
         raw = response.read()
     if raw[:2] == b"\x1f\x8b":  # the API gzips regardless of what we ask for
         raw = gzip.decompress(raw)
-    payload = json.loads(raw)
+    return json.loads(raw)
+
+
+def load_ibge_states_by_name(url=IBGE_URL):
+    """Normalized municipality name -> the set of states IBGE records it in."""
+    payload = fetch_json(url)
     by_name = defaultdict(set)
     for item in payload:
         by_name[normalize_name(item["nome"])].add(uf_of_ibge_item(item))
@@ -328,6 +349,21 @@ def main(argv):
 
     by_name = None
     problems = []
+
+    # The states file carries only the abbreviation, so a search for
+    # "Pernambuco" found nothing there. With the name written in, the name
+    # becomes the layer's label and the abbreviation its context.
+    print("fetching the IBGE state list...", flush=True)
+    names = state_names_by_uf(fetch_json(IBGE_STATES_URL))
+    for feature in states["features"]:
+        uf = feature["properties"][STATE_FIELD]
+        if uf not in names:
+            problems.append(f"estados: IBGE does not record the state \"{uf}\"")
+            continue
+        feature["properties"][STATE_NAME_FIELD] = names[uf]
+    covered = sum(1 for f in states["features"] if STATE_NAME_FIELD in f["properties"])
+    size = "dry-run" if dry_run else f"{write_geojson(STATES_LAYER, states)}KB"
+    print(f"estados: {covered}/{len(states['features'])} with {STATE_NAME_FIELD}  {size}\n")
 
     for layer, label_field, official in TARGETS:
         data = read_geojson(layer)

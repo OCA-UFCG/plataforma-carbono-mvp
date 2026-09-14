@@ -31,7 +31,8 @@
       "visible": false,
       "opacity": 80,
       "color": "#414141",
-      "hoverLabelField": "abbrev_state",
+      "hoverLabelField": "name_state",
+      "contextField": "abbrev_state",
       "pickPriority": 10,
       "theme": "territorio",
       "subtheme": "limites"

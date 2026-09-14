@@ -205,6 +205,23 @@ class TestUfOfIbgeItem(unittest.TestCase):
             enrich.uf_of_ibge_item({"nome": "Atlantida", "microrregiao": None})
 
 
+class TestStateNamesByUf(unittest.TestCase):
+    PAYLOAD = [
+        {"id": 26, "sigla": "PE", "nome": "Pernambuco"},
+        {"id": 31, "sigla": "MG", "nome": "Minas Gerais"},
+    ]
+
+    def test_maps_each_abbreviation_to_its_written_out_name(self):
+        self.assertEqual(
+            enrich.state_names_by_uf(self.PAYLOAD),
+            {"PE": "Pernambuco", "MG": "Minas Gerais"},
+        )
+
+    def test_rejects_an_entry_missing_either_half(self):
+        with self.assertRaises(LookupError):
+            enrich.state_names_by_uf([{"id": 26, "sigla": "PE"}])
+
+
 class TestNormalizeName(unittest.TestCase):
     def test_ignores_case_and_accents(self):
         self.assertEqual(

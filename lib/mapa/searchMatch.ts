@@ -66,10 +66,35 @@ function namesState(hint: string, context: string): boolean {
  * "São" in some state "Domingos". And a single word is never read as a state,
  * which is what stops a bare "PI" from listing all 180 municipalities of Piauí.
  */
+export interface MatchOptions {
+  /**
+   * Whether the context identifies a feature on its own, which makes a bare
+   * context a legitimate query. True for the states layer, where there is one
+   * feature per abbreviation, and false for every other: "PI" typed against the
+   * municipalities would otherwise list the 140 the clip holds. Derive it from
+   * the data with `contextIsUnique` rather than declaring it per layer, so it
+   * cannot drift away from what the GeoJSON actually contains.
+   */
+  contextIdentifies?: boolean
+}
+
+/**
+ * Whether these context values identify their features one to one.
+ *
+ * Empty counts as false: a layer with no features identifies nothing, and a
+ * layer where any feature lacks a context cannot rely on it either.
+ */
+export function contextIsUnique(contexts: (string | undefined)[]): boolean {
+  if (contexts.length === 0) return false
+  if (contexts.some((c) => !c)) return false
+  return new Set(contexts).size === contexts.length
+}
+
 export function matchTerritory(
   query: string,
   label: string,
   context?: string,
+  options: MatchOptions = {},
 ): LabelMatch | null {
   const normQuery = normalizeSearch(query).split(/\s+/).filter(Boolean).join(' ')
   if (!normQuery) return null
@@ -83,7 +108,15 @@ export function matchTerritory(
 
   if (!context) return null
   const words = normQuery.split(' ')
-  if (words.length < 2) return null
+
+  if (words.length < 2) {
+    // "RN" has to find Rio Grande do Norte, whose label does not contain those
+    // two letters. A zero-length run because nothing in the label matched.
+    if (options.contextIdentifies && namesState(normQuery, context)) {
+      return { start: 0, length: 0 }
+    }
+    return null
+  }
 
   const name = words.slice(0, -1).join(' ')
   const start = normLabel.indexOf(name)
