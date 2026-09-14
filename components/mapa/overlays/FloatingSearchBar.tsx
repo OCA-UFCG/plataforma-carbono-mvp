@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { IcSearch, IcX, IcChevronRight } from '../icons'
+import { IcSearch, IcX } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
@@ -11,7 +11,13 @@ import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 interface SearchResult {
   layerId: string
-  layerName: string
+  /** What one feature of the layer is called: "Município", not "Municípios". */
+  unitName: string
+  /**
+   * Property the match came from. Not shown -- it is a GeoJSON key -- but it
+   * keeps two properties of one feature from collapsing into a single row, and
+   * gives the row a stable React key.
+   */
   fieldName: string
   value: string
   /** The layer's `contextField` value, e.g. the state of a municipality. */
@@ -52,7 +58,10 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const cacheRef = useRef<
-    Map<string, { layerName: string; features: GeoJSON.Feature[] }>
+    Map<
+      string,
+      { unitName: string; features: GeoJSON.Feature[] }
+    >
   >(new Map())
 
   // Derived
@@ -116,7 +125,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
         .then((r) => r.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
           cacheRef.current.set(layer.id, {
-            layerName: layer.name,
+            unitName: layer.unitName ?? layer.name,
             features: geojson.features,
           })
           // bump version so the search effect re-runs
@@ -179,7 +188,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
           found.push({
             layerId: layer.id,
-            layerName: cached.layerName,
+            unitName: cached.unitName,
             fieldName: key,
             value: raw,
             context,
@@ -378,7 +387,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                   transition: 'background 0.1s',
                 }}
               >
-                {/* Layer > Field breadcrumb */}
+                {/* What kind of territory this row is */}
                 <div
                   style={{
                     fontSize: 10,
@@ -389,9 +398,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {r.layerName}
-                  <IcChevronRight size={9} style={{ margin: '0 3px', opacity: 0.5, verticalAlign: 'middle', display: 'inline-block' }} />
-                  {r.fieldName}
+                  {r.unitName}
                 </div>
                 {/* Matched value */}
                 <div

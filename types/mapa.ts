@@ -25,6 +25,13 @@ export interface VectorLayerConfig {
   // this value beside the label ("Bom Jesus · PI") and lets it be typed as the
   // last word of a query. It never becomes a search result of its own.
   contextField?: string
+  // What ONE feature of this layer is called, for the reader: "Município" for
+  // the layer named "Municípios". The search result descriptor used to be the
+  // layer name followed by the raw GeoJSON property key ("Municípios ›
+  // name_muni"), which named neither. Portuguese has no rule that turns
+  // "Territórios Quilombolas" into "Território Quilombola", so it is declared
+  // rather than derived. Falls back to `name`.
+  unitName?: string
   // Granularity of the recorte, used only to decide which layer wins a hover
   // or click when several visible ones overlap (higher = finer = wins). The
   // containment hierarchy runs bioma < estados < municipios < territories;
