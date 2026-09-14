@@ -19,6 +19,12 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // Property that tells homonymous features apart, written into the GeoJSONs by
+  // scripts/enrich-uf.py. Labels are not unique -- 34 municipality names repeat
+  // inside the Caatinga clip, 213 settlement names do -- so the search shows
+  // this value beside the label ("Bom Jesus · PI") and lets it be typed as the
+  // last word of a query. It never becomes a search result of its own.
+  contextField?: string
   // Granularity of the recorte, used only to decide which layer wins a hover
   // or click when several visible ones overlap (higher = finer = wins). The
   // containment hierarchy runs bioma < estados < municipios < territories;

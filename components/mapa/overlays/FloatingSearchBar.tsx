@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { IcSearch, IcX, IcChevronRight } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
-import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
@@ -14,9 +14,12 @@ interface SearchResult {
   layerName: string
   fieldName: string
   value: string
+  /** The layer's `contextField` value, e.g. the state of a municipality. */
+  context?: string
+  /** Run of `value` the query matched, for highlighting. */
+  match: LabelMatch
   featureIndex: number
   bbox: [number, number, number, number]
-  isPrefix: boolean // true if value starts with query (for sort priority)
 }
 
 interface Props {
@@ -137,7 +140,6 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       return
     }
 
-    const normQ = normalizeSearch(q)
     const found: SearchResult[] = []
     const seen = new Set<string>() // dedupe: layerId:featureIndex:fieldName
 
@@ -145,14 +147,24 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       const cached = cacheRef.current.get(layer.id)
       if (!cached) continue
 
+      // Property that tells homonymous features apart, shown beside the label
+      // and typed as the last word of a query ("bom jesus pi").
+      const contextField = layer.contextField
+
       for (let fi = 0; fi < cached.features.length; fi++) {
         const props = cached.features[fi].properties
         if (!props) continue
+        const rawContext = contextField ? props[contextField] : undefined
+        const context = typeof rawContext === 'string' ? rawContext : undefined
 
         for (const [key, raw] of Object.entries(props)) {
+          // The context narrows a search, it is never a result of its own:
+          // listing it would put one row per municipality of a whole state
+          // under the heading "abbrev_state".
+          if (key === contextField) continue
           if (typeof raw !== 'string' || raw === '') continue
-          const normVal = normalizeSearch(raw)
-          if (!normVal.includes(normQ)) continue
+          const match = matchTerritory(q, raw, context)
+          if (!match) continue
 
           const dedupeKey = `${layer.id}:${fi}:${key}`
           if (seen.has(dedupeKey)) continue
@@ -170,9 +182,10 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
             layerName: cached.layerName,
             fieldName: key,
             value: raw,
+            context,
+            match,
             featureIndex: fi,
             bbox,
-            isPrefix: normVal.startsWith(normQ),
           })
 
           if (found.length >= MAX_RESULTS * 2) break // collect extra for sorting
@@ -181,9 +194,11 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       }
     }
 
-    // Sort: prefix matches first, then alphabetical
+    // Sort: matches at the start of the label first, then alphabetical
     found.sort((a, b) => {
-      if (a.isPrefix !== b.isPrefix) return a.isPrefix ? -1 : 1
+      const aPrefix = a.match.start === 0
+      const bPrefix = b.match.start === 0
+      if (aPrefix !== bPrefix) return aPrefix ? -1 : 1
       return a.value.localeCompare(b.value, 'pt-BR')
     })
 
@@ -231,27 +246,19 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     [results, highlightedIdx, handleSelect],
   )
 
-  // Highlight matching portion of value
+  // Highlight the matching portion of the label. The offsets come from the
+  // match itself, so a query that ends in a state ("bom jesus pi") highlights
+  // only the name part -- the state filtered the list, it is not text in it.
 
-  const renderHighlighted = (value: string) => {
-    const q = query.trim()
-    if (!q) return value
-    const normVal = normalizeSearch(value)
-    const normQ = normalizeSearch(q)
-    const idx = normVal.indexOf(normQ)
-    if (idx < 0) return value
-    // Map normalized index back to original string positions
-    const before = value.slice(0, idx)
-    const match = value.slice(idx, idx + q.length)
-    const after = value.slice(idx + q.length)
-    return (
-      <>
-        {before}
-        <strong style={{ color: theme.colors.accent }}>{match}</strong>
-        {after}
-      </>
-    )
-  }
+  const renderHighlighted = (value: string, match: LabelMatch) => (
+    <>
+      {value.slice(0, match.start)}
+      <strong style={{ color: theme.colors.accent }}>
+        {value.slice(match.start, match.start + match.length)}
+      </strong>
+      {value.slice(match.start + match.length)}
+    </>
+  )
 
   // Render
 
@@ -294,7 +301,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Buscar feição..."
+          placeholder="Buscar território..."
           style={{
             flex: 1,
             border: 'none',
@@ -396,7 +403,13 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {renderHighlighted(r.value)}
+                  {renderHighlighted(r.value, r.match)}
+                  {r.context && (
+                    <span style={{ color: theme.colors.textDim }}>
+                      {' \u00b7 '}
+                      {r.context}
+                    </span>
+                  )}
                 </div>
               </div>
             ))
