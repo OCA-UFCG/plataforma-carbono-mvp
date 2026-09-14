@@ -14,19 +14,23 @@ const nextConfig: NextConfig = {
   // `require()` it at runtime instead.
   serverExternalPackages: ["@google/earthengine"],
 
-  // Cache the vector recortes aggressively. They're static boundary files that
-  // change only when build-recortes.py is re-run; a day of freshness plus a
-  // week of stale-while-revalidate avoids re-downloading ~4.85 MB per visit.
+  // Let the browser keep the vector recortes, but check with the server before
+  // using them. They are boundary files that change rarely -- and that is the
+  // trap: `max-age=86400, stale-while-revalidate=604800` served a whole day of
+  // stale data after the properties were enriched, and a further stale load
+  // after that. The map read a state's name as undefined and the search found
+  // nothing, with no error anywhere to explain it.
+  //
+  // `no-cache` stores the file and revalidates it; Next already sends ETag and
+  // Last-Modified, so an unchanged file costs a 304 of a few hundred bytes
+  // rather than the ~4.85 MB. Versioning the URLs instead would cache better,
+  // but `layer.url` is also the path the server reads from disk, and it has to
+  // be bumped by hand on every data change -- forgetting to is this same bug.
   async headers() {
     return [
       {
         source: "/data/vector/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=604800",
-          },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, no-cache" }],
       },
     ];
   },

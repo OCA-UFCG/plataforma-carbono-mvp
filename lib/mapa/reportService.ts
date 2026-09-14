@@ -57,6 +57,7 @@ function resolveRecorte(recorteId: string, feicaoId: string): ReportRecorte {
     layerName:   layer.name,
     featureId:   feicao.id,
     featureName: feicao.name,
+    ...(feicao.context ? { featureContext: feicao.context } : {}),
     areaHa:      feicao.areaHa,
     bbox:        feicao.bbox,
     boundary:    feicao.boundary,

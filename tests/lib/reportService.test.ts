@@ -47,7 +47,7 @@ describe('buildReportShell', () => {
     expect(shell.requestedYear).toBe('2023')
     expect(shell.recorte).toMatchObject({
       layerId: 'municipios', layerName: 'Municípios',
-      featureId: 'petrolina', featureName: 'Petrolina',
+      featureId: 'petrolina', featureName: 'Petrolina', featureContext: 'PE',
       boundary: 'full',
     })
     // estoque_carbono has the lowest `order`, whatever order the caller asked in.
