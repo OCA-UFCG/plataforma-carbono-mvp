@@ -72,6 +72,7 @@ lib/
     ├ drawRectangleMode.ts     # modo retângulo do mapbox-gl-draw
     ├ jenks.ts                 # classificação Jenks
     ├ searchMatch.ts           # regra de casamento da busca de territórios
+    ├ vectorDataUrl.ts         # versão na query dos GeoJSON (cache do navegador)
     └ store.ts                 # store Zustand
 lib/phenology.ts               # os 12 meses do ciclo, cores e NDFI mediano
 lib/color.ts                   # mistura, luminância e contraste WCAG
@@ -166,6 +167,43 @@ O contexto não vinha nos GeoJSONs originais, porque o `build-recortes.py`
 guardava só a coluna do rótulo. Quem o grava é `scripts/enrich-uf.py`. O
 `build-recortes.py` hoje preserva `abbrev_state` e `code_muni`, então uma
 regeração não desfaz mais isso.
+
+#### Entrega dos GeoJSON e cache do navegador
+
+Os arquivos de `public/data/vector/` são servidos com `public, no-cache`
+(`next.config.ts`): o navegador guarda o arquivo mas revalida antes de usá-lo, e
+como o Next já manda ETag e Last-Modified um arquivo inalterado custa um 304 em
+vez dos ~4,85 MB. O cabeçalho anterior era `max-age=86400,
+stale-while-revalidate=604800`, que presumia arquivos imutáveis.
+
+Trocar o cabeçalho não alcança o que os navegadores já guardaram sob o antigo:
+essas entradas seguem válidas por um dia sem consultar o servidor, e utilizáveis
+como stale por mais uma semana. Um redeploy também não as alcança — a cópia
+velha está no navegador, não no servidor. Foi por isso que, depois do
+`enrich-uf.py`, os estados continuaram sem nome mesmo em ambiente recém-buildado:
+a geometria é idêntica entre as duas versões, então a camada desenhava
+normalmente e só faltava `name_state`. Propriedade ausente não é erro em lugar
+nenhum, então cada caminho caía num fallback diferente — o popup some, a busca
+pula a feição, e o rótulo da análise e o relatório usam o nome da camada, com os
+dez estados lidos como "Estados".
+
+`lib/mapa/vectorDataUrl.ts` resolve isso anexando `?v=N` na URL. A query entra na
+chave de cache do navegador e em mais nada: em particular não chega ao sistema de
+arquivos, então `layer.url` continua sendo o caminho cru que `recorteRegistry` e
+`clipRegistry` leem do disco e o radical que a preferência por `_clip` reescreve.
+Essa dupla função é o que fazia o versionamento parecer inviável. Os três pontos
+que buscam vetor no cliente passam por ela: a source do MapLibre, o lookup de
+geometria completa (`MapView.tsx`) e o índice da busca (`FloatingSearchBar.tsx`);
+o servidor nunca usa.
+
+**A constante não deve ser incrementada a cada mudança de dado.** Com `no-cache`
+todo uso revalida, então um GeoJSON editado é pego pelo ETag na carga seguinte.
+A versão existe para desviar das entradas envenenadas pelo cabeçalho antigo, uma
+vez só; incrementá-la de novo só custaria a todo mundo um download completo.
+
+`tests/config/vectorLayerFields.test.ts` verifica que toda propriedade declarada
+no `layers.json` existe de fato nos arquivos entregues — a falha é silenciosa por
+natureza, e era a única classe de problema aqui sem nenhuma guarda.
 
 ### Carbono e ambiente (rasters GEE)
 
