@@ -133,12 +133,7 @@ export default function ReportDocument({
               Área de análise
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
-              {/* The state comes along when the recorte declares one: on its own
-                  "Bom Jesus" names three different municipalities of the Caatinga,
-                  and the document outlives the form that picked it. */}
-              <strong>{shell.recorte.featureName}</strong>
-              {shell.recorte.featureContext ? ` (${shell.recorte.featureContext})` : ''}
-              {' — '}{shell.recorte.layerName}
+              <strong>{shell.recorte.featureName}</strong> — {shell.recorte.layerName}
             </dd>
 
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>

@@ -6,7 +6,7 @@ describe('listRecortes', () => {
     // No layer declares `labelField`; all six carry `hoverLabelField`.
     expect(listRecortes()).toEqual(expect.arrayContaining([
       { layerId: 'municipios', layerName: 'Municípios', labelField: 'name_muni' },
-      { layerId: 'estados', layerName: 'Estados', labelField: 'name_state' },
+      { layerId: 'estados', layerName: 'Estados', labelField: 'abbrev_state' },
       { layerId: 'bioma', layerName: 'Bioma Caatinga', labelField: 'Bioma' },
     ]))
   })
@@ -20,11 +20,9 @@ describe('listRecortes', () => {
 
 describe('listFeicoes', () => {
   it('slugifies the label into the id', () => {
-    // The states layer is labelled by the written-out name, so that a search
-    // for "Pernambuco" finds it; the abbreviation is its context.
     expect(listFeicoes('estados')).toEqual(expect.arrayContaining([
-      { id: 'paraiba', name: 'Paraíba', context: 'PB' },
-      { id: 'minas-gerais', name: 'Minas Gerais', context: 'MG' },
+      { id: 'pb', name: 'PB' },
+      { id: 'mg', name: 'MG' },
     ]))
   })
 
@@ -35,17 +33,6 @@ describe('listFeicoes', () => {
     expect(saoDomingos.map((f) => f.id)).toEqual([
       'sao-domingos', 'sao-domingos-2', 'sao-domingos-3',
     ])
-  })
-
-  it('carries the state that tells homonyms apart', () => {
-    const saoDomingos = listFeicoes('municipios').filter((f) => f.name === 'São Domingos')
-
-    expect(saoDomingos.map((f) => f.context)).toEqual(['SE', 'BA', 'PB'])
-  })
-
-  it('leaves the context out for a recorte that declares no contextField', () => {
-    // The biome is the one recorte with nothing to disambiguate against.
-    expect(listFeicoes('bioma').every((f) => f.context === undefined)).toBe(true)
   })
 
   it('never repeats an id within a recorte', () => {
@@ -77,7 +64,6 @@ describe('getFeicao', () => {
     expect(feicao!.geometry.type).toMatch(/^(Polygon|MultiPolygon)$/)
     expect(feicao!.bbox).toHaveLength(4)
     expect(feicao!.boundary).toBe('full')
-    expect(feicao!.context).toBe('PB')
     // Campina Grande covers roughly 59.000 ha. The bound is loose on purpose:
     // it only has to catch a unit slip (m² left as m²) or a broken geometry.
     expect(feicao!.areaHa).toBeGreaterThan(20_000)
