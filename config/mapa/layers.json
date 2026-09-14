@@ -10,6 +10,7 @@
     {
       "id": "bioma",
       "name": "Bioma Caatinga",
+      "unitName": "Bioma",
       "type": "vector",
       "url": "/data/vector/limite_caatinga.geojson",
       "clipAsset": "projects/ee-arturlourenco/assets/limite_caatinga",
@@ -24,12 +25,14 @@
     {
       "id": "estados",
       "name": "Estados",
+      "unitName": "Estado",
       "type": "vector",
       "url": "/data/vector/estados.geojson",
       "visible": false,
       "opacity": 80,
       "color": "#414141",
-      "hoverLabelField": "abbrev_state",
+      "hoverLabelField": "name_state",
+      "contextField": "abbrev_state",
       "pickPriority": 10,
       "theme": "territorio",
       "subtheme": "limites"
@@ -37,12 +40,14 @@
     {
       "id": "municipios",
       "name": "Municípios",
+      "unitName": "Município",
       "type": "vector",
       "url": "/data/vector/municipios.geojson",
       "visible": false,
       "opacity": 80,
       "color": "#6b6a60",
       "hoverLabelField": "name_muni",
+      "contextField": "abbrev_state",
       "pickPriority": 20,
       "theme": "territorio",
       "subtheme": "limites"
@@ -50,12 +55,14 @@
     {
       "id": "terras_indigenas",
       "name": "Terras Indígenas",
+      "unitName": "Terra Indígena",
       "type": "vector",
       "url": "/data/vector/terras_indigenas.geojson",
       "visible": false,
       "opacity": 80,
       "color": "#a0522d",
       "hoverLabelField": "name_indigenous_land",
+      "contextField": "abbrev_state",
       "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "territorios"
@@ -63,12 +70,14 @@
     {
       "id": "quilombolas",
       "name": "Territórios Quilombolas",
+      "unitName": "Território Quilombola",
       "type": "vector",
       "url": "/data/vector/quilombolas.geojson",
       "visible": false,
       "opacity": 80,
       "color": "#8c6d1f",
       "hoverLabelField": "name_quilombo",
+      "contextField": "abbrev_state",
       "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "territorios"
@@ -76,12 +85,14 @@
     {
       "id": "assentamentos",
       "name": "Assentamentos (INCRA)",
+      "unitName": "Assentamento",
       "type": "vector",
       "url": "/data/vector/assentamentos.geojson",
       "visible": false,
       "opacity": 80,
       "color": "#ce8b44",
       "hoverLabelField": "nome_proje",
+      "contextField": "abbrev_state",
       "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "territorios"

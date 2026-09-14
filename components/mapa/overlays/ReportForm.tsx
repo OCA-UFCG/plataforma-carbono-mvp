@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import appConfig from '@/config/mapa/layers.json'
 import { MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { PlatformTheme, RasterLayerConfig, VectorLayerConfig } from '@/types/mapa'
 
@@ -14,7 +14,12 @@ export interface ReportFormProps {
   onClose: () => void
 }
 
-interface Feicao { id: string; name: string }
+interface Feicao { id: string; name: string; context?: string }
+
+/** How a feature reads in the picker: "Bom Jesus · PI", three of which exist. */
+function feicaoLabel(f: Feicao) {
+  return f.context ? `${f.name} \u00b7 ${f.context}` : f.name
+}
 
 /** How many matches the search list shows: 1210 municipalities do not fit. */
 const MAX_SUGGESTIONS = 40
@@ -104,11 +109,22 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     return () => document.removeEventListener('keydown', onEsc)
   }, [open, onClose])
 
+  // True on the states recorte, where the abbreviation is one per feature, so
+  // "mg" finds Minas Gerais; false on the municipalities, where it would offer
+  // every one of the 140 the clip holds in Piauí.
+  const contextIdentifies = useMemo(
+    () => contextIsUnique(feicoes.map((f) => f.context)),
+    [feicoes],
+  )
+
   const matches = useMemo(() => {
     if (!query.trim()) return feicoes.slice(0, MAX_SUGGESTIONS)
-    const needle = normalizeSearch(query)
-    return feicoes.filter((f) => normalizeSearch(f.name).includes(needle)).slice(0, MAX_SUGGESTIONS)
-  }, [feicoes, query])
+    // Same rule as the map's search bar, so "bom jesus pi" narrows to one here
+    // too instead of listing three identical-looking options.
+    return feicoes
+      .filter((f) => matchTerritory(query, f.name, f.context, { contextIdentifies }))
+      .slice(0, MAX_SUGGESTIONS)
+  }, [feicoes, query, contextIdentifies])
 
   const chosen = feicoes.find((f) => f.id === feicaoId)
   const canGenerate = Boolean(feicaoId) && Boolean(year) && selected.size > 0
@@ -180,7 +196,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
         <label style={{ display: 'block', marginTop: 14, fontSize: 13, fontWeight: 600, color: c.textDim }}>
           Área
           <input
-            value={chosen ? chosen.name : query}
+            value={chosen ? feicaoLabel(chosen) : query}
             onChange={(e) => { setQuery(e.target.value); setFeicaoId('') }}
             placeholder={loadingFeicoes ? 'Carregando…' : 'Buscar por nome'}
             style={{ display: 'block', width: '100%', marginTop: 6, padding: 8, font: 'inherit' }}
@@ -210,7 +226,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
                     font: 'inherit', background: 'none', border: 'none', cursor: 'pointer', color: c.text,
                   }}
                 >
-                  {f.name}
+                  {feicaoLabel(f)}
                 </button>
               </li>
             ))}
