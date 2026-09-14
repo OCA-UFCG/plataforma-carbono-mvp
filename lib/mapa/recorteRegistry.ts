@@ -33,6 +33,15 @@ export interface RecorteInfo {
 export interface FeicaoInfo {
   id:   string
   name: string
+  /**
+   * Value of the layer's `contextField`, the state for every recorte that
+   * declares one. Present because the name alone does not identify a feature:
+   * three municipalities here are called "Bom Jesus". Kept apart from `name`
+   * rather than folded into it, so the report narrative can still open a
+   * sentence with "Em Bom Jesus," while the picker and the document heading
+   * spell out which one.
+   */
+  context?: string
 }
 
 export interface FeicaoResolvida {
@@ -41,6 +50,8 @@ export interface FeicaoResolvida {
   geometry: Geometry
   bbox:     Bbox
   areaHa:   number
+  /** The layer's `contextField` value, as in FeicaoInfo. */
+  context?: string
   /** 'simplified' when it came from a `_clip` file; the document footnotes it. */
   boundary: 'full' | 'simplified'
 }
@@ -52,6 +63,7 @@ interface VectorEntry {
   url?:             string
   labelField?:      string
   hoverLabelField?: string
+  contextField?:    string
 }
 
 interface IndexedFeicao extends FeicaoInfo {
@@ -113,6 +125,7 @@ function buildIndex(recorteId: string): RecorteIndex | null {
   const layer = vectorLayers().find((l) => l.id === recorteId)
   const labelField = layer ? labelFieldOf(layer) : undefined
   if (!layer?.url || !labelField) return null
+  const contextField = layer.contextField
 
   // Prefer the pre-simplified `<name>_clip.geojson`, the same preference order
   // clipRegistry documents and for the same reason: the full biome boundary is
@@ -155,7 +168,15 @@ function buildIndex(recorteId: string): RecorteIndex | null {
     const count = (seen.get(base) ?? 0) + 1
     seen.set(base, count)
 
-    feicoes.push({ id: count === 1 ? base : `${base}-${count}`, name, geometry })
+    const rawContext = contextField ? feature.properties?.[contextField] : undefined
+    const context = typeof rawContext === 'string' && rawContext ? rawContext : undefined
+
+    feicoes.push({
+      id: count === 1 ? base : `${base}-${count}`,
+      name,
+      ...(context ? { context } : {}),
+      geometry,
+    })
   }
 
   return { feicoes, boundary: usesCoarse ? 'simplified' : 'full' }
@@ -171,7 +192,11 @@ function index(recorteId: string): RecorteIndex | null {
 
 /** Features of a recorte, for the report form's picker. */
 export function listFeicoes(recorteId: string): FeicaoInfo[] {
-  return (index(recorteId)?.feicoes ?? []).map(({ id, name }) => ({ id, name }))
+  return (index(recorteId)?.feicoes ?? []).map(({ id, name, context }) => ({
+    id,
+    name,
+    ...(context ? { context } : {}),
+  }))
 }
 
 /** One feature's geometry, bbox and geodesic area, or null when unknown. */
@@ -187,6 +212,7 @@ export function getFeicao(recorteId: string, feicaoId: string): FeicaoResolvida 
   return {
     id:       found.id,
     name:     found.name,
+    ...(found.context ? { context: found.context } : {}),
     geometry: found.geometry,
     bbox:     computeBbox(found.geometry),
     areaHa:   areaM2 / 10_000,

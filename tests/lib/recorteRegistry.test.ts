@@ -35,6 +35,16 @@ describe('listFeicoes', () => {
     ])
   })
 
+  it('carries the state that tells homonyms apart', () => {
+    const saoDomingos = listFeicoes('municipios').filter((f) => f.name === 'São Domingos')
+
+    expect(saoDomingos.map((f) => f.context)).toEqual(['SE', 'BA', 'PB'])
+  })
+
+  it('leaves the context out for a recorte that declares no contextField', () => {
+    expect(listFeicoes('estados').every((f) => f.context === undefined)).toBe(true)
+  })
+
   it('never repeats an id within a recorte', () => {
     for (const recorte of listRecortes()) {
       const ids = listFeicoes(recorte.layerId).map((f) => f.id)
@@ -64,6 +74,7 @@ describe('getFeicao', () => {
     expect(feicao!.geometry.type).toMatch(/^(Polygon|MultiPolygon)$/)
     expect(feicao!.bbox).toHaveLength(4)
     expect(feicao!.boundary).toBe('full')
+    expect(feicao!.context).toBe('PB')
     // Campina Grande covers roughly 59.000 ha. The bound is loose on purpose:
     // it only has to catch a unit slip (m² left as m²) or a broken geometry.
     expect(feicao!.areaHa).toBeGreaterThan(20_000)
