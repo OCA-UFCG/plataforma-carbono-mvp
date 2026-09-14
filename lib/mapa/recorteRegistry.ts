@@ -5,12 +5,12 @@
 // merged) so a raster can be clipped to it. The report needs the opposite:
 // one feature.
 //
-// The GeoJSONs in public/data/vector carry only a label as a property, and the
-// labels are not unique (34 homonymous municipalities, 213 settlements). So the
-// id is the slug of the label plus an ordinal suffix, in file order.
-// Regenerating the vectors in a different order can migrate a suffix; the fix
-// is to preserve `code_muni` in scripts/build-recortes.py and key on the
-// official code, recorded as a follow-up in the design doc.
+// Feature labels are not unique (34 homonymous municipalities, 213 settlements)
+// and the GeoJSONs in public/data/vector carry no official code. So the id is
+// the slug of the label plus an ordinal suffix, in file order. Regenerating the
+// vectors in a different order can migrate a suffix; the fix is to key on the
+// official code, which scripts/build-recortes.py now preserves but this
+// registry does not yet read. Recorded as a follow-up in the design doc.
 
 import 'server-only'
 
