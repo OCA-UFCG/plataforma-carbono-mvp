@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { IcSearch, IcX } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { contextIsUnique, matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
@@ -126,7 +127,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
     for (const layer of searchableVectors) {
       if (cacheRef.current.has(layer.id)) continue
-      fetch(layer.url, { signal: controller.signal })
+      fetch(vectorDataUrl(layer.url), { signal: controller.signal })
         .then((r) => r.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
           const field = layer.contextField

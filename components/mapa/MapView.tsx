@@ -38,6 +38,7 @@ import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats
 import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
+import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { basemaps } from '@/config/mapa/basemaps'
 import type {
   LayerConfig,
@@ -86,7 +87,7 @@ async function loadVectorFeatureCollection(url: string): Promise<GeoJSON.Feature
   const cached = vectorFeatureCache.get(url)
   if (cached) return cached
   try {
-    const res = await fetch(url)
+    const res = await fetch(vectorDataUrl(url))
     if (!res.ok) return null
     const fc = (await res.json()) as GeoJSON.FeatureCollection
     vectorFeatureCache.set(url, fc)
@@ -176,7 +177,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
         })
       } else {
         // generateId enables MapLibre's feature-state API for hover highlighting.
-        map.addSource(l.id, { type: 'geojson', data: l.url, generateId: true })
+        map.addSource(l.id, { type: 'geojson', data: vectorDataUrl(l.url), generateId: true })
       }
     }
 
