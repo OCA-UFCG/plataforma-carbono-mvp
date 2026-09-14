@@ -71,7 +71,6 @@ lib/
     ├ computeBbox.ts           # bbox de GeoJSON
     ├ drawRectangleMode.ts     # modo retângulo do mapbox-gl-draw
     ├ jenks.ts                 # classificação Jenks
-    ├ searchMatch.ts           # regra de casamento da busca de territórios
     └ store.ts                 # store Zustand
 lib/phenology.ts               # os 12 meses do ciclo, cores e NDFI mediano
 lib/color.ts                   # mistura, luminância e contraste WCAG
@@ -89,8 +88,7 @@ scripts/
 ├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
-├ build-recortes.py            # baixa e recorta os recortes ao bioma
-└ enrich-uf.py                 # grava a UF de cada feição dos recortes
+└ build-recortes.py            # baixa e recorta os recortes ao bioma
 next.config.ts                 # serverExternalPackages + Cache-Control dos GeoJSON
 render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
@@ -145,27 +143,16 @@ São 21 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToL
 
 ### Recortes territoriais (vetoriais)
 
-| id | Nome | Unidade | Rótulo (hover) | Contexto | Origem | Feições |
-|---|---|---|---|---|---|---|
-| `bioma` | Bioma Caatinga | Bioma | `Bioma` | — | `../vectors/limite_caatinga.geojson` | 1 |
-| `estados` | Estados | Estado | `name_state` | `abbrev_state` | IBGE via geobr | 10 |
-| `municipios` | Municípios | Município | `name_muni` | `abbrev_state` | IBGE via geobr | 1210 |
-| `terras_indigenas` | Terras Indígenas | Terra Indígena | `name_indigenous_land` | `abbrev_state` | FUNAI via geobr | 50 |
-| `quilombolas` | Territórios Quilombolas | Território Quilombola | `name_quilombo` | `abbrev_state` | INCRA via geobr | 86 |
-| `assentamentos` | Assentamentos (INCRA) | Assentamento | `nome_proje` | `abbrev_state` | INSA (assentamentos SAB) | 1923 |
+| id | Nome | Rótulo (hover) | Origem | Feições |
+|---|---|---|---|---|
+| `bioma` | Bioma Caatinga | `Bioma` | `../vectors/limite_caatinga.geojson` | 1 |
+| `estados` | Estados | `abbrev_state` | IBGE via geobr | 10 |
+| `municipios` | Municípios | `name_muni` | IBGE via geobr | 1210 |
+| `terras_indigenas` | Terras Indígenas | `name_indigenous_land` | FUNAI via geobr | 50 |
+| `quilombolas` | Territórios Quilombolas | `name_quilombo` | INCRA via geobr | 86 |
+| `assentamentos` | Assentamentos (INCRA) | `nome_proje` | INSA (assentamentos SAB) | 1923 |
 
 Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o clique em uma feição computar a estatística do raster abaixo.
-
-Duas colunas existem só para a busca. A `Unidade` é o `unitName`, substantivo no
-singular que descreve **uma** feição, usado como rótulo do resultado. O
-`Contexto` é o `contextField`, a propriedade que desempata homônimos: nunca vira
-resultado próprio, acompanha o rótulo e pode ser digitada junto dele. Ver
-"Busca de territórios".
-
-O contexto não vinha nos GeoJSONs originais, porque o `build-recortes.py`
-guardava só a coluna do rótulo. Quem o grava é `scripts/enrich-uf.py`. O
-`build-recortes.py` hoje preserva `abbrev_state` e `code_muni`, então uma
-regeração não desfaz mais isso.
 
 ### Carbono e ambiente (rasters GEE)
 
@@ -321,47 +308,6 @@ mostra graus Celsius.
 A régua de anos é `components/mapa/overlays/TemporalSlider.tsx`, e as paradas
 saem de `lib/mapa/temporal.ts`, compartilhado com o store.
 
-## Busca de territórios
-
-A barra de busca do mapa (`components/mapa/overlays/FloatingSearchBar.tsx`)
-varre as propriedades de texto de todos os recortes vetoriais. O problema que
-ela precisa resolver não é de desempenho, é de ambiguidade: o rótulo de uma
-feição não é único. Dentro do recorte da Caatinga há 34 nomes de município
-repetidos — três "Bom Jesus", em PI, RN e PB — e 213 nomes de assentamento.
-
-Daí o `contextField`. O resultado aparece como "Bom Jesus · PI", e a UF também
-pode ser digitada. A regra vive em `lib/mapa/searchMatch.ts` e aceita a consulta
-quando o rótulo a contém, ou quando a última palavra nomeia a UF (sigla ou nome
-por extenso) e o que vem antes está no rótulo: "bom jesus pi" e "bom jesus
-piauí" chegam a um resultado só.
-
-Uma palavra sozinha nunca é lida como UF. É essa restrição que impede um "PI"
-solto de despejar os 140 municípios do Piauí que o recorte contém — ela casa os
-110 nomes que contêm essas letras, Picos e Piripiri entre eles, e mais nada. Ler
-a consulta inteira como nome antes de tudo é o que mantém "São Domingos" um
-nome, e não um "São" num estado chamado "Domingos". O `contextField` é pulado no
-laço de propriedades, senão a própria UF viraria linha de resultado: uma linha
-escrita "PE" por município de Pernambuco.
-
-A exceção é a camada Estados, onde a sigla não é contexto de nada — ela é a
-feição. `contextIsUnique` deriva isso do próprio arquivo, em vez de declarar por
-camada onde poderia divergir do dado: só onde os valores de contexto são um por
-feição uma consulta de uma palavra casa o contexto. É o que faz "RN" encontrar
-Rio Grande do Norte, cujo nome não contém essas letras. Vale notar que "rn"
-devolve dois estados e os dois estão certos — o outro é Pernambuco, por
-"Pe[rn]ambuco".
-
-O descritor de cada linha é o `unitName`, o substantivo no singular para uma
-feição. É declarado porque o português não tem regra que transforme "Territórios
-Quilombolas" em "Território Quilombola". Antes ali aparecia o nome da camada
-seguido da chave crua do GeoJSON ("Municípios › name_muni"), que não nomeava nem
-uma coisa nem outra e ainda era informação nula: toda camada vetorial tem
-exatamente uma propriedade de texto buscável, então o campo era função constante
-da camada que já estava à esquerda dele.
-
-O seletor de área do formulário de relatório usa a mesma regra e o mesmo
-contexto, de modo que mapa e relatório respondem às mesmas consultas.
-
 ## Estatísticas zonais
 
 Dois disparos, mesmo pipeline:
@@ -396,21 +342,14 @@ variável), não uma para o documento inteiro, e cada seção do relatório
 resolve, renderiza e pode falhar de forma independente das outras.
 
 O id de feição que entra na URL (`feicao=`) não é o código oficial do
-IBGE/FUNAI/INCRA — é o slug do rótulo da feição com um sufixo ordinal, porque o
-rótulo não é único (34 municípios homônimos, 213 assentamentos) e os GeoJSONs de
-`public/data/vector` não carregam código oficial nenhum. O sufixo é
+IBGE/FUNAI/INCRA — é o slug do rótulo da feição com um sufixo ordinal, porque
+os GeoJSONs de `public/data/vector` só carregam o rótulo como propriedade, e o
+rótulo não é único (34 municípios homônimos, 213 assentamentos). O sufixo é
 atribuído pela ordem do arquivo, então regenerar os vetores em outra ordem
 (um novo `python scripts/build-recortes.py`, por exemplo) pode migrar o
 sufixo de uma feição para outra e invalidar links antigos. O conserto de
-verdade é indexar pelo código oficial em vez do slug. O `build-recortes.py` já
-preserva `code_muni` e `abbrev_state`, então o que falta é o registro passar a
-lê-los; fica em TODOs, junto com a ausência de um código estável para
-`assentamentos`.
-
-Os ids do recorte `estados` mudaram uma vez, quando o rótulo da camada passou de
-`abbrev_state` para `name_state` para que "Pernambuco" fosse encontrável na
-busca: `feicao=pb` virou `feicao=paraiba`. Foi uma quebra deliberada, restrita
-aos dez estados.
+verdade é preservar `code_muni` (e o equivalente para os demais recortes) no
+script e indexar pelo código oficial em vez do slug; fica registrado em TODOs.
 
 O relatório mora em `app/(relatorio)/`, o quarto layout raiz do repositório.
 Não dá para reaproveitar o layout de `(mapa)`: `mapa.css` zera o scroll do
@@ -483,8 +422,7 @@ Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
-- `python scripts/build-recortes.py`: baixa os recortes (IBGE, FUNAI, INCRA via geobr), recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`. Preserva `abbrev_state` e `code_muni` quando a fonte os traz. Requer `pip install geobr geopandas`.
-- `python scripts/enrich-uf.py`: grava a UF de cada feição dos recortes (`abbrev_state`) e o nome por extenso dos estados (`name_state`). Deriva a UF da geometria já em disco — cada feição vota com uma grade de pontos interiores contra `estados.geojson`, medindo área e não contorno, porque um vértice de feição de divisa É o contorno do estado, onde o ray cast é cara-ou-coroa. Para municípios a lista oficial do IBGE arbitra: nome registrado num único estado leva aquele estado, e nome que ela não conhece aborta a execução, porque UF errada é pior que UF nenhuma. Oito feições atravessam divisa de verdade e ficam como `PE/PB`; a busca aceita qualquer um dos lados. Só biblioteca padrão, mas precisa de rede. Idempotente: rodar de novo não muda os arquivos já enriquecidos.
+- `python scripts/build-recortes.py`: baixa os recortes (IBGE, FUNAI, INCRA via geobr), recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`. Requer `pip install geobr geopandas`.
 
 ## Deploy
 
@@ -512,7 +450,7 @@ Camadas e dados:
 - Camadas do inventário ainda não incluídas: ERA5 e TerraClimate no bloco de clima e água, fenologia por Sentinel-2, gases e fluorescência (TROPOMI, SIF) e integridade de projetos. Ficam para fases seguintes. CHIRPS, NDVI e EVI, que constavam aqui, já estão na plataforma.
 - O passo temporal é anual e só anual. Séries mensais e sazonais (composições de 8 ou 16 dias, CHIRPS diário) são agregadas ao ano pelo redutor da camada. Se a fenologia intra-anual virar escopo, o contrato precisa de um campo de granularidade e o gerador de paradas em `lib/mapa/temporal.ts` precisa saber gerar meses.
 - Seis camadas seguem estáticas por não terem série: `biomassa_gedi`, `altura_dossel`, `biomassa_spawn` e as três do GFW. As do GFW são cumulativas numa banda só e as demais são imagem única.
-- Dar um código estável para `assentamentos` e passar a identidade de feição do relatório a usar o código oficial em vez do sufixo ordinal do slug. O `build-recortes.py` já preserva `code_muni`/`abbrev_state`, então falta o `recorteRegistry.ts` indexar por eles — e migrar ou redirecionar os ids atuais.
+- Preservar `code_muni`/`abbrev_state` em `scripts/build-recortes.py`, dar um código estável para `assentamentos`, e passar a identidade de feição do relatório a usar o código oficial em vez do sufixo ordinal do slug.
 - Uma série de participação por classe para `lulc_mapbiomas`, que custaria uma redução agrupada por ano.
 - Medir a série zonal sobre um estado inteiro com as quarenta paradas. Se a escala-piso somada ao `bestEffort` não bastar, a série vira um artefato cacheado à parte em vez de fazer parte da chamada de análise.
 

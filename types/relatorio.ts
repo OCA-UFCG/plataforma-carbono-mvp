@@ -15,8 +15,6 @@ export interface ReportRecorte {
   layerName:   string   // 'Municípios'
   featureId:   string   // 'campina-grande'
   featureName: string   // 'Campina Grande'
-  /** Disambiguates a homonym, e.g. 'PI' for the "Bom Jesus" that is not in RN. */
-  featureContext?: string
   areaHa:      number
   bbox:        [number, number, number, number]
   /** 'simplified' when the boundary came from a `_clip` file. */
