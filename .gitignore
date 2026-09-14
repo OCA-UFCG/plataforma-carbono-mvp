@@ -11,3 +11,12 @@ next-env.d.ts
 # credenciais da service account do Google Earth Engine
 gen-lang-client-*.json
 service-account*.json
+
+# caches de bytecode do Python (scripts/)
+__pycache__/
+
+# saída do scripts/build-sif.py; baixada do Earthdata, não versionada
+data/sif-esdr/
+
+# documentos de referência mantidos só localmente
+*.docx
