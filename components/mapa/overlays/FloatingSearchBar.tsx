@@ -1,22 +1,32 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { IcSearch, IcX, IcChevronRight } from '../icons'
+import { IcSearch, IcX } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
-import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
+import { contextIsUnique, matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
 
 interface SearchResult {
   layerId: string
-  layerName: string
+  /** What one feature of the layer is called: "Município", not "Municípios". */
+  unitName: string
+  /**
+   * Property the match came from. Not shown -- it is a GeoJSON key -- but it
+   * keeps two properties of one feature from collapsing into a single row, and
+   * gives the row a stable React key.
+   */
   fieldName: string
   value: string
+  /** The layer's `contextField` value, e.g. the state of a municipality. */
+  context?: string
+  /** Run of `value` the query matched, for highlighting. */
+  match: LabelMatch
   featureIndex: number
   bbox: [number, number, number, number]
-  isPrefix: boolean // true if value starts with query (for sort priority)
 }
 
 interface Props {
@@ -49,7 +59,15 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const cacheRef = useRef<
-    Map<string, { layerName: string; features: GeoJSON.Feature[] }>
+    Map<
+      string,
+      {
+        unitName: string
+        features: GeoJSON.Feature[]
+        /** Whether a bare context is a legitimate query for this layer. */
+        contextIdentifies: boolean
+      }
+    >
   >(new Map())
 
   // Derived
@@ -109,12 +127,24 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
     for (const layer of searchableVectors) {
       if (cacheRef.current.has(layer.id)) continue
-      fetch(layer.url, { signal: controller.signal })
+      fetch(vectorDataUrl(layer.url), { signal: controller.signal })
         .then((r) => r.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
+          const field = layer.contextField
           cacheRef.current.set(layer.id, {
-            layerName: layer.name,
+            unitName: layer.unitName ?? layer.name,
             features: geojson.features,
+            // Derived from the file rather than declared: on the states layer
+            // the abbreviation is one per feature and typing "RN" should find
+            // Rio Grande do Norte, whose name does not contain those letters.
+            contextIdentifies: field
+              ? contextIsUnique(
+                  geojson.features.map((f) => {
+                    const value = f.properties?.[field]
+                    return typeof value === 'string' && value ? value : undefined
+                  }),
+                )
+              : false,
           })
           // bump version so the search effect re-runs
           setCacheVersion((v) => v + 1)
@@ -137,7 +167,6 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       return
     }
 
-    const normQ = normalizeSearch(q)
     const found: SearchResult[] = []
     const seen = new Set<string>() // dedupe: layerId:featureIndex:fieldName
 
@@ -145,14 +174,26 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       const cached = cacheRef.current.get(layer.id)
       if (!cached) continue
 
+      // Property that tells homonymous features apart, shown beside the label
+      // and typed as the last word of a query ("bom jesus pi").
+      const contextField = layer.contextField
+
       for (let fi = 0; fi < cached.features.length; fi++) {
         const props = cached.features[fi].properties
         if (!props) continue
+        const rawContext = contextField ? props[contextField] : undefined
+        const context = typeof rawContext === 'string' ? rawContext : undefined
 
         for (const [key, raw] of Object.entries(props)) {
+          // The context narrows a search, it is never a result of its own:
+          // listing it would put one row per municipality of a whole state
+          // under the heading "abbrev_state".
+          if (key === contextField) continue
           if (typeof raw !== 'string' || raw === '') continue
-          const normVal = normalizeSearch(raw)
-          if (!normVal.includes(normQ)) continue
+          const match = matchTerritory(q, raw, context, {
+            contextIdentifies: cached.contextIdentifies,
+          })
+          if (!match) continue
 
           const dedupeKey = `${layer.id}:${fi}:${key}`
           if (seen.has(dedupeKey)) continue
@@ -167,12 +208,13 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
 
           found.push({
             layerId: layer.id,
-            layerName: cached.layerName,
+            unitName: cached.unitName,
             fieldName: key,
             value: raw,
+            context,
+            match,
             featureIndex: fi,
             bbox,
-            isPrefix: normVal.startsWith(normQ),
           })
 
           if (found.length >= MAX_RESULTS * 2) break // collect extra for sorting
@@ -181,9 +223,11 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       }
     }
 
-    // Sort: prefix matches first, then alphabetical
+    // Sort: matches at the start of the label first, then alphabetical
     found.sort((a, b) => {
-      if (a.isPrefix !== b.isPrefix) return a.isPrefix ? -1 : 1
+      const aPrefix = a.match.start === 0
+      const bPrefix = b.match.start === 0
+      if (aPrefix !== bPrefix) return aPrefix ? -1 : 1
       return a.value.localeCompare(b.value, 'pt-BR')
     })
 
@@ -231,27 +275,19 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
     [results, highlightedIdx, handleSelect],
   )
 
-  // Highlight matching portion of value
+  // Highlight the matching portion of the label. The offsets come from the
+  // match itself, so a query that ends in a state ("bom jesus pi") highlights
+  // only the name part -- the state filtered the list, it is not text in it.
 
-  const renderHighlighted = (value: string) => {
-    const q = query.trim()
-    if (!q) return value
-    const normVal = normalizeSearch(value)
-    const normQ = normalizeSearch(q)
-    const idx = normVal.indexOf(normQ)
-    if (idx < 0) return value
-    // Map normalized index back to original string positions
-    const before = value.slice(0, idx)
-    const match = value.slice(idx, idx + q.length)
-    const after = value.slice(idx + q.length)
-    return (
-      <>
-        {before}
-        <strong style={{ color: theme.colors.accent }}>{match}</strong>
-        {after}
-      </>
-    )
-  }
+  const renderHighlighted = (value: string, match: LabelMatch) => (
+    <>
+      {value.slice(0, match.start)}
+      <strong style={{ color: theme.colors.accent }}>
+        {value.slice(match.start, match.start + match.length)}
+      </strong>
+      {value.slice(match.start + match.length)}
+    </>
+  )
 
   // Render
 
@@ -294,7 +330,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Buscar feição..."
+          placeholder="Buscar território..."
           style={{
             flex: 1,
             border: 'none',
@@ -371,7 +407,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                   transition: 'background 0.1s',
                 }}
               >
-                {/* Layer > Field breadcrumb */}
+                {/* What kind of territory this row is */}
                 <div
                   style={{
                     fontSize: 10,
@@ -382,9 +418,7 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {r.layerName}
-                  <IcChevronRight size={9} style={{ margin: '0 3px', opacity: 0.5, verticalAlign: 'middle', display: 'inline-block' }} />
-                  {r.fieldName}
+                  {r.unitName}
                 </div>
                 {/* Matched value */}
                 <div
@@ -396,7 +430,13 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {renderHighlighted(r.value)}
+                  {renderHighlighted(r.value, r.match)}
+                  {r.context && (
+                    <span style={{ color: theme.colors.textDim }}>
+                      {' \u00b7 '}
+                      {r.context}
+                    </span>
+                  )}
                 </div>
               </div>
             ))

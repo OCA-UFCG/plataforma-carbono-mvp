@@ -185,8 +185,10 @@ describe('GET /api/mapa/relatorio/feicoes', () => {
     const res = await getFeicoes(req('/api/mapa/relatorio/feicoes', { recorte: 'estados' }))
 
     expect(res.status).toBe(200)
-    const body = await res.json() as { feicoes: { id: string; name: string }[] }
-    expect(body.feicoes).toEqual(expect.arrayContaining([{ id: 'pb', name: 'PB' }]))
+    const body = await res.json() as { feicoes: { id: string; name: string; context?: string }[] }
+    expect(body.feicoes).toEqual(
+      expect.arrayContaining([{ id: 'paraiba', name: 'Paraíba', context: 'PB' }]),
+    )
   })
 
   it('returns 404 for an unknown recorte', async () => {
