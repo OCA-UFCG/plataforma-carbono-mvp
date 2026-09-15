@@ -395,8 +395,11 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     bbox: [number, number, number, number]
   } | null>(null)
   const [mapReady, setMapReady] = useState(false)
-  // Draw toolbar visibility (pencil in the control cluster toggles it).
-  const [drawOpen, setDrawOpen] = useState(false)
+  // Draw toolbar visibility. It opens with the map at every width: reaching the
+  // tools only through the pencil in the control cluster was too discreet a way
+  // in. On a narrow screen the five tools wrap onto a second line rather than
+  // staying hidden, which is the intended trade. The pencil still toggles it.
+  const [drawOpen, setDrawOpen] = useState(true)
 
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)

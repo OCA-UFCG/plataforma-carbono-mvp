@@ -28,8 +28,10 @@ const HINT: Record<string, string> = {
 
 /**
  * Horizontal drawing toolbar (glass pill), anchored to the edge of the Temas
- * panel (`left = leftEdge + 12`). Opens on clicking the pencil in the control
- * cluster. Tools as text (Polígono/Retângulo/Linha/Ponto) + Limpar.
+ * panel (`left = leftEdge + 12`) on the second row of the left cluster, under
+ * the Relatório button. It opens with the map; the pencil in the control
+ * cluster hides and shows it. Tools as text (Polígono/Retângulo/Linha/Ponto)
+ * + Limpar.
  */
 export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
   const drawMode      = useStore((s) => s.drawMode)
@@ -37,15 +39,19 @@ export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
   const clearDrawings = useStore((s) => s.clearDrawings)
   const c = theme.colors
 
-  // Esc closes the toolbar (and cancels the active tool).
+  // Esc escalates: it cancels the armed tool first, and only closes the toolbar
+  // when no tool is armed. Doing both at once would cost the user the toolbar
+  // every time they gave up on a polygon, and the toolbar now opens with the map.
   useEffect(() => {
     if (!open) return
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setDrawMode(null); onClose() }
+      if (e.key !== 'Escape') return
+      if (drawMode) setDrawMode(null)
+      else onClose()
     }
     document.addEventListener('keydown', onEsc)
     return () => document.removeEventListener('keydown', onEsc)
-  }, [open, setDrawMode, onClose])
+  }, [open, drawMode, setDrawMode, onClose])
 
   if (!open) return null
 
@@ -53,7 +59,9 @@ export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
     <>
       <div
         style={{
-          position: 'absolute', top: 14, left: leftEdge + 12, zIndex: 15,
+          // Second row: the Relatório button holds `top: 16` at this same
+          // `left`, so sharing a row would hide it under the toolbar.
+          position: 'absolute', top: 62, left: leftEdge + 12, zIndex: 15,
           maxWidth: `calc(100vw - ${leftEdge + 24}px)`,
           display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, padding: 4,
           background: c.glassBg, backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
