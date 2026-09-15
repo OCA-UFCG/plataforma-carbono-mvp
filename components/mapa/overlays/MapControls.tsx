@@ -163,10 +163,13 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
       </div>
 
       {/* draw, active state is the fixed "ink" chip from the handoff (#26241d
-          in light; adapts via c.text/c.bg so it stays legible in dark). */}
+          in light; adapts via c.text/c.bg so it stays legible in dark). The
+          toolbar opens with the map, so the label follows the state: from here
+          the button usually hides the toolbar rather than revealing it. */}
       <button
         onClick={onToggleDraw}
-        aria-label="Ferramentas de desenho" title="Ferramentas de desenho"
+        aria-label={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
+        title={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
         aria-pressed={drawOpen}
         style={{
           width: 38, height: 38, borderRadius: 999,
