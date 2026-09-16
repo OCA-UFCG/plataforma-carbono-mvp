@@ -581,14 +581,14 @@ export default async function LandingPage() {
             ))}
           </div>
           <p className="rodape-institucional">
-            A Plataforma Carbono Caatinga integra o projeto Floresta em pé, Renda
+            A Caativar integra o projeto Floresta em pé, Renda
             justa, financiado pela Superintendência do Desenvolvimento do
             Nordeste (SUDENE), e desenvolvida pelo Observatório da Caatinga e
             Desertificação (OCA), em cooperação entre a Universidade Federal de
             Campina Grande (UFCG) e o Instituto Nacional do Semiárido (INSA).
           </p>
           <div className="rodape-linha">
-            <span>Plataforma Carbono Caatinga, 2026</span>
+            <span>Caativar, 2026</span>
             <span>Dados abertos e rastreabilidade pública</span>
           </div>
         </div>

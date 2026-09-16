@@ -97,7 +97,7 @@ render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
 ```
 
-Plataforma única: só o tema "Carbono Caatinga". O seletor de plataformas e os layouts alternativos herdados do great-panini (SAP, PAE-PE, CRESCA, ATLAS, `BrandedHeader`/`BrandedFooter`, `PlatformSwitcher`) foram removidos.
+Plataforma única: só o tema "Caativar". O seletor de plataformas e os layouts alternativos herdados do great-panini (SAP, PAE-PE, CRESCA, ATLAS, `BrandedHeader`/`BrandedFooter`, `PlatformSwitcher`) foram removidos.
 
 ### Por que dois layouts raiz
 

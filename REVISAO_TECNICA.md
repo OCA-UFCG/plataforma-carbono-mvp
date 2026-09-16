@@ -1,4 +1,4 @@
-# Revisão técnica da plataforma, carbono Caatinga
+# Revisão técnica da plataforma, Caativar
 
 Revisão de código completa da Fase 1 (MVP). Cobre segurança, bugs de correção, desempenho, funcionamento, interface/design, código morto e documentação. Foram 61 achados confirmados por verificação dupla (um revisor propõe, um verificador adversarial tenta refutar lendo o código). Itens já listados como TODO/fora de escopo na `DOCUMENTACAO.md` (camadas temporais, deploy Render, PMTiles, seletor de plataformas herdado, banners definitivos) não entram, salvo quando há um problema adicional não descrito lá.
 
@@ -244,7 +244,7 @@ Não existe `middleware.ts` nem verificação de origem/token/taxa. Cada POST em
 
 > **Status:** C1-C9 feitos, **mais a remoção completa das outras plataformas** (a pedido). Build/typecheck/lint limpos; smoke test em `next start` OK (home 200, tile por `clipId` 200, stats 200), e o bundle de produção não contém mais nenhuma das plataformas removidas (PAE-PE/CRESCA/SAP/ATLAS = 0 ocorrências).
 >
-> **Plataforma única:** `config/platforms.ts` agora exporta um único `theme` (Carbono Caatinga). Removidos: as 4 plataformas herdadas, `PlatformSwitcher.tsx`, `BrandedHeader.tsx`, `BrandedFooter.tsx`, o estado `platformId`/`setPlatform` do store, e os campos `layout`/`branded`/`iconName` dos tipos. `WebGIS`/`Header`/`Sidebar` simplificados; `PlatformIcon` reduzido à folha.
+> **Plataforma única:** `config/platforms.ts` agora exporta um único `theme` (Caativar). Removidos: as 4 plataformas herdadas, `PlatformSwitcher.tsx`, `BrandedHeader.tsx`, `BrandedFooter.tsx`, o estado `platformId`/`setPlatform` do store, e os campos `layout`/`branded`/`iconName` dos tipos. `WebGIS`/`Header`/`Sidebar` simplificados; `PlatformIcon` reduzido à folha.
 >
 > **P4 (C1-C9):** C1 removidas as deps não usadas (terra-draw, terra-draw-maplibre-gl-adapter, geojson-vt, vt-pbf, stream-chain, stream-json) + `package-lock` sincronizado; C2 caminho TiTiler removido (`buildTileUrl.ts` deletado, `getTiTilerStats`/`getTiTilerPointValue` removidos, branch não-GEE do MapView); C3 `featureCenter` + CSS `.floating-results-popup` órfão removidos; C4 `titiler_cors.py` + `filter-otto-bacias-pe.mjs` deletados; C5 `page.module.css` deletado; C6 campo `map.basemap` morto removido; C7 `verify-assets.mjs` agora inclui os assets de solo/fogo em uso; C8/C9 `DOCUMENTACAO.md` atualizada (libs, plataforma única, unidade NPP, API) e `dev` fixado em `-p 3100`.
 
