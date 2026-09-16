@@ -98,7 +98,7 @@ export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
   const neutrals = dark ? darkNeutrals : lightNeutrals
   return {
     id: 'carbono',
-    name: 'Carbono Caatinga',
+    name: 'Caativar',
     fullName: 'Observatório da Caatinga, OCA',
     footer: 'OCA / UFCG-INSA',
     colors: { ...neutrals, ...buildAccent(month.color, dark), ...buildFluxInks(dark) },
@@ -121,7 +121,7 @@ const OCA_OLIVE = '#5f7030'
 export function buildReportTheme(): PlatformTheme {
   return {
     id: 'carbono-relatorio',
-    name: 'Carbono Caatinga',
+    name: 'Caativar',
     fullName: 'Observatório da Caatinga, OCA',
     footer: 'OCA / UFCG-INSA',
     colors: { ...lightNeutrals, ...buildAccent(OCA_OLIVE, false), ...buildFluxInks(false) },

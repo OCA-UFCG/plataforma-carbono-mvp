@@ -11,8 +11,8 @@ const libreFranklin = Libre_Franklin({
 })
 
 export const metadata: Metadata = {
-  title: 'Entrar | Plataforma Carbono Caatinga',
-  description: 'Acesso ao módulo de mapas e análises da Plataforma Carbono Caatinga.',
+  title: 'Entrar | Caativar',
+  description: 'Acesso ao módulo de mapas e análises da Caativar.',
   icons: { icon: '/logos/logo_oca.png' },
 }
 

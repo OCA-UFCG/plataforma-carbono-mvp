@@ -10,7 +10,7 @@ WebGIS (mapa web interativo) de **monitoramento do carbono florestal do bioma Ca
 
 - **Público:** pesquisadores, gestores ambientais, técnicos, contexto científico/institucional (projeto OCA / UFCG / INSA). Uso primário em **desktop**.
 - **Idioma:** português do Brasil, em toda a interface.
-- **Fase atual:** MVP funcional. É **uma única plataforma** (Carbono Caatinga), não há troca de plataformas nem múltiplos temas.
+- **Fase atual:** MVP funcional. É **uma única plataforma** (Caativar), não há troca de plataformas nem múltiplos temas.
 - **Objetivo do redesign:** deixar mais **profissional e coeso** sem perder a identidade (verde-oliva OCA) nem a densidade de informação que um WebGIS exige.
 
 ---
@@ -21,7 +21,7 @@ Aplicação de tela cheia (`100dvh`), sem rolagem da página. Três faixas:
 
 ```
 ┌ ┐
-│  HEADER (56px):  [ícone] Carbono Caatinga        [lua dark mode] │
+│  HEADER (56px):  [ícone] Caativar                [lua dark mode] │
 ├ ┬ ┬ ┤
 │              │                                 │              │
 │  SIDEBAR     │            MAPA                 │  RESULTADOS  │
@@ -33,7 +33,7 @@ Aplicação de tela cheia (`100dvh`), sem rolagem da página. Três faixas:
 └ ┴ ┴ ┘
 ```
 
-- **Header** (56px, fixo): marca à esquerda (ícone de folha num quadrado com a cor de destaque + nome "Carbono Caatinga" + subtítulo "Plataforma de Carbono da Caatinga"), e à direita o **toggle de dark mode**.
+- **Header** (56px, fixo): marca à esquerda (ícone de folha num quadrado com a cor de destaque + nome "Caativar" + subtítulo "Plataforma de Carbono da Caatinga"), e à direita o **toggle de dark mode**.
 - **Sidebar esquerda** (270px): painel de camadas. Colapsável por um botão hambúrguer flutuante no canto superior esquerdo do mapa. Começa aberta em desktop (≥1280px), fechada em telas menores.
 - **Mapa** (ocupa o resto): MapLibre GL, com vários overlays flutuantes (ver seção 4).
 - **Sidebar direita "Resultados"** (300px): só aparece quando há algo para mostrar (uma análise feita, ou um raster ativo). Tem botão de fechar. Abaixo de 768px vira um **drawer** sobreposto ao mapa (não empurra o mapa).

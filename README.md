@@ -1,4 +1,4 @@
-# Plataforma Carbono Caatinga
+# Caativar
 
 Aplicação única, em Next.js, que reúne a página institucional do projeto Floresta em pé, Renda justa e o módulo de mapas e análises do carbono florestal do bioma Caatinga.
 
@@ -69,8 +69,8 @@ A imagem usa Node 22 e a saída standalone do Next.js. Ela não contém credenci
 Build e execução sem Earth Engine (landing e vetores locais):
 
 ```bash
-docker build -t carbono-caatinga .
-docker run --rm -p 3000:3000 carbono-caatinga
+docker build -t caativar .
+docker run --rm -p 3000:3000 caativar
 ```
 
 Para executar localmente com as camadas e estatísticas do Earth Engine, informe o caminho absoluto da sua chave no host. O Compose monta o arquivo somente para leitura dentro do container, sem incluí-lo na imagem:
@@ -94,7 +94,7 @@ Configure estes valores em **Settings -> Secrets and variables -> Actions** do r
 
 | Tipo | Nome | Finalidade |
 | --- | --- | --- |
-| Variable | `DOCKER_IMAGE_BETA` | Imagem no Docker Hub, por exemplo `oca/carbono-caatinga-beta` |
+| Variable | `DOCKER_IMAGE_BETA` | Imagem no Docker Hub, por exemplo `oca/caativar-beta` |
 | Variable | `DOCKER_USERNAME` | Usuário do Docker Hub |
 | Secret | `DOCKER_PASSWORD` | Token ou senha do Docker Hub para publicar a imagem |
 | Variable | `CONTAINER_NAME_BETA` | Nome do container na VPS beta |

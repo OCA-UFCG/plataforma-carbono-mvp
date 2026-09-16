@@ -118,7 +118,7 @@ export default function ReportDocument({
               Relatório territorial de carbono
             </h1>
             <p style={{ margin: '6px 0 0', fontSize: 13, opacity: 0.85 }}>
-              Plataforma Carbono Caatinga — Observatório da Caatinga, OCA / UFCG-INSA
+              Caativar — Observatório da Caatinga, OCA / UFCG-INSA
             </p>
           </div>
 
@@ -214,7 +214,7 @@ export default function ReportDocument({
         </section>
 
         <footer style={{ marginTop: 40, paddingTop: 12, borderTop: `1px solid ${c.border}`, fontSize: 11, color: c.textDim }}>
-          Plataforma Carbono Caatinga · OCA / UFCG-INSA · gerado em {generatedAt}
+          Caativar · OCA / UFCG-INSA · gerado em {generatedAt}
         </footer>
       </main>
     </>

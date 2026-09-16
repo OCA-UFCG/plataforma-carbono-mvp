@@ -16,8 +16,8 @@ const raleway = Raleway({
 
 export const metadata: Metadata = {
   title: {
-    default: "Plataforma Carbono Caatinga",
-    template: "%s | Plataforma Carbono Caatinga",
+    default: "Caativar",
+    template: "%s | Caativar",
   },
   description:
     "Sistema integrado de monitoramento do carbono florestal do bioma Caatinga: dados espaciais, metodologia adaptada ao semiárido, governança e integridade dos mercados de carbono.",
