@@ -155,9 +155,12 @@ function VectorLegendItem({ layer, theme }: { layer: VectorLayerConfig; theme: P
           fontSize: 13,
           fontWeight: 600,
           color: theme.colors.text,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
+          // Wraps instead of truncating: the legend is 256px wide and the
+          // longer names ("Territórios Quilombolas") lost their tail to an
+          // ellipsis, which is the one place the reader checks what is on.
+          minWidth: 0,
+          overflowWrap: 'anywhere',
+          lineHeight: 1.3,
         }}
         title={layer.name}
       >
@@ -182,9 +185,11 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
           letterSpacing: '.08em',
           textTransform: 'uppercase',
           color: theme.colors.textDim,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
+          // Same reason as the vector item, and worse here: uppercase plus
+          // letter-spacing costs width, so "BIOMASSA ACIMA DO SOLO (QUARTO
+          // INVENTÁRIO)" was cut roughly in half.
+          overflowWrap: 'anywhere',
+          lineHeight: 1.4,
         }}
         title={layer.name}
       >

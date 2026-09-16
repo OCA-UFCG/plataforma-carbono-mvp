@@ -38,6 +38,7 @@ import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats
 import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
+import { topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
@@ -787,15 +788,14 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       }
 
       // Click-to-stats needs the vector to be above a visible raster so
-      // there's something to compute stats against.
+      // there's something to compute stats against. The results panel states
+      // the same rule in words, reading it from lib/mapa/analysisTargets.
       const pickStatsTarget = (
         hit: { vector: VectorLayerConfig },
       ): RasterLayerConfig | null => {
         const state = useStore.getState()
         const vectorIdx = state.layers.findIndex((l) => l.id === hit.vector.id)
-        const rasterIdx = state.layers.findIndex(
-          (l) => l.type === 'raster' && l.visible,
-        )
+        const rasterIdx = topVisibleRasterIndex(state.layers)
         if (rasterIdx === -1 || vectorIdx === -1) return null
         if (vectorIdx >= rasterIdx) return null // vector must be above raster
         return state.layers[rasterIdx] as RasterLayerConfig

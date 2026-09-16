@@ -363,7 +363,10 @@ function LayerRow({
           <IcGrip size={13} />
         </span>
         <span
-          style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          // Wraps onto a second line rather than truncating. The unit chip, the
+          // info button and the switch keep their place: they are flexShrink: 0
+          // and the row centers them against however tall the name gets.
+          style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.3 }}
           title={layer.name}
         >
           {layer.name}
