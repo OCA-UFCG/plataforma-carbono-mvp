@@ -27,6 +27,17 @@ export interface GeeAssetConfig {
   // 40,86 vs 26,50 Mg/ha in 2022). `unmaskValue: 0` restores the territorial
   // reading. Leave undefined to keep the asset's own masking.
   unmaskValue?: number
+  // Round to the nearest integer and cast to int, for class rasters ingested
+  // as float. Earth Engine picks the pyramid policy from the pixel type, so a
+  // float class raster is averaged away from its native resolution
+  // (Index_Degradacao_v4_2021: 6 distinct values at 500 m, 2872 at 2000 m).
+  // This only snaps those averages back onto integer codes; it does NOT undo
+  // the averaging, and a code that no pixel carries can still come out of it
+  // (cobertura_solo_IBGE_2020 yields 4% of the Caatinga in classes 7 and 8 at
+  // 1030 m, 12% at 8240 m, neither of which exists in the data). The real fix
+  // is re-ingesting the asset as int, which earns a MODE pyramid: MapBiomas,
+  // int, still returns only its 23 real codes at 128x its native resolution.
+  castInt?: boolean
   // Series whose year is in the band name instead of in the dates of a
   // collection. MapBiomas writes `classification_1985` to `classification_2024`
   // in a single image, and Fogo writes the accumulated frequency in
@@ -72,6 +83,7 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     if (asset.unmaskValue !== undefined) out = out.unmask(asset.unmaskValue)
     if (asset.multiplier !== undefined) out = out.multiply(asset.multiplier)
     if (asset.offset !== undefined) out = out.add(asset.offset)
+    if (asset.castInt) out = out.round().int()
     return out
   }
 

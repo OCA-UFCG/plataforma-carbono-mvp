@@ -103,6 +103,10 @@ export interface RasterLayerConfig {
       multiplier?:  number
       offset?:      number
       unmaskValue?: number
+      // Round and cast to int, for class rasters ingested as float whose Earth
+      // Engine pyramid averages neighbouring class codes away from the native
+      // resolution. See lib/mapa/geeImage.ts for the measured effect.
+      castInt?: boolean
       // Series whose year is in the band name, not in the dates of a collection
       // (MapBiomas writes `classification_1985` to `classification_2024` in a
       // single image). With this, the chosen date selects the year's band instead

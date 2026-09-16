@@ -28,6 +28,11 @@ export const LAYER_META: Record<string, LayerMeta> = {
   estoque_c_litter: { description: 'carbono na serrapilheira',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_solo:   { description: 'carbono orgânico do solo, segunda estimativa ao lado da do MapBiomas', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
+  // Third soil carbon estimate, in g/kg instead of t/ha, so it does not compare
+  // directly with the two above. Measured over the Caatinga it runs from 2,1 to
+  // 33,9 g/kg with p99 at 14,1, which is why the ramp stops at 16 and not at the
+  // 50 of the original specification.
+  solo_carbono_embrapa: { description: 'concentração de carbono orgânico do solo', source: 'Embrapa, 2020, 930 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   // A second GPP estimate, to measure the divergence between sources. It comes
@@ -47,9 +52,14 @@ export const LAYER_META: Record<string, LayerMeta> = {
   gfw_emissions:    { description: 'emissões brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
   gfw_removals:     { description: 'remoções brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
   lulc_mapbiomas:   { description: 'uso e cobertura da terra',       source: 'MapBiomas col. 10, 30 m', kind: 'Raster categórico' },
+  // Second land cover source, alongside the MapBiomas one. The IBGE legend has
+  // 14 codes, of which 7 and 8 have no pixel inside the Caatinga.
+  cobertura_ibge:   { description: 'uso e cobertura da terra, leitura independente da do MapBiomas', source: 'IBGE, 2020, 515 m', kind: 'Raster categórico' },
   fogo_frequencia:  { description: 'frequência de fogo (1985-2023)', source: 'MapBiomas Fogo, 30 m', kind: 'Raster contínuo' },
+  degradacao_terra: { description: 'nível de degradação da terra, do nível 5 (mais degradado) ao conservado', source: 'OCA, índice v4, 2021, 500 m', kind: 'Raster categórico' },
   ndvi_modis:       { description: 'índice de vegetação NDVI',       source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5 km',        kind: 'Raster contínuo' },
   lst_modis:        { description: 'temperatura de superfície',      source: 'MODIS, 1 km',         kind: 'Raster contínuo' },
+  aridez:           { description: 'classes de aridez da normal climatológica 1990-2020', source: 'OCA, dados de Xavier et al. 2021, 11 km', kind: 'Raster categórico' },
 }
