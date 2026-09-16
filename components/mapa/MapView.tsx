@@ -39,6 +39,8 @@ import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
+import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
+import { computeBbox } from '@/lib/mapa/computeBbox'
 import { basemaps } from '@/config/mapa/basemaps'
 import type {
   LayerConfig,
@@ -394,6 +396,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     featureId: number
     bbox: [number, number, number, number]
   } | null>(null)
+  // Installs a geometry the user typed as coordinates. Assigned inside the map
+  // init effect, where the draw instance and the commit handler live, and
+  // called by the coordinate form in the draw toolbar.
+  const commitCoordinatesRef = useRef<((feature: GeoJSON.Feature) => void) | null>(null)
   const [mapReady, setMapReady] = useState(false)
   // Draw toolbar visibility. It opens with the map at every width: reaching the
   // tools only through the pencil in the control cluster was too discreet a way
@@ -559,8 +565,13 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         setRasterStats(null)
         setPixelValue(null)
         setStatsError(null)
-        setAnalysisLabel(null)
-        setAnalysisKind('Área desenhada')
+        // A typed geometry is announced as "Coordenadas", with the coordinate
+        // itself as the label. Both come off the feature's properties rather
+        // than from an argument, so a drawing restored from localStorage --
+        // which comes back as a bare GeoJSON feature -- keeps its chip.
+        const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
+        setAnalysisLabel(typed ? (feature.properties?.ccLabel ?? null) : null)
+        setAnalysisKind(typed ? 'Coordenadas' : 'Área desenhada')
         clearSelectedFeature()
         selectedGeomRef.current = null
         prevStatsContextRef.current = null
@@ -662,6 +673,30 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
 
       map.on('draw.create', handleDrawCommit)
       map.on('draw.update', handleDrawCommit)
+
+      // Geometry typed as coordinates instead of drawn. It enters through the
+      // same commit as a drawn shape, so the measurements, the statistics,
+      // Limpar, the persisted drawing and the recompute on a temporal change
+      // all follow without a second code path. The id comes from `draw.add`
+      // and has to travel with the feature: `handleDrawCommit` clears every
+      // other feature in the buffer by comparing ids, and would wipe this one.
+      commitCoordinatesRef.current = (feature) => {
+        draw.deleteAll()
+        const [id] = draw.add(feature)
+        void handleDrawCommit({ features: [{ ...feature, id }] })
+
+        // A typed coordinate is usually outside the current view, so unlike a
+        // drawn shape it has to bring the camera with it.
+        if (feature.geometry.type === 'Point') {
+          const [lon, lat] = feature.geometry.coordinates as [number, number]
+          map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 12) })
+        } else {
+          map.fitBounds(
+            computeBbox(feature.geometry) as maplibregl.LngLatBoundsLike,
+            { padding: 60 },
+          )
+        }
+      }
 
       // Drawing from the previous session. `draw.add` does not emit `draw.create`,
       // so the handler is called by hand: restoring and drawing go down the same
@@ -1615,6 +1650,7 @@ useEffect(() => {
             leftEdge={leftEdge}
             open={drawOpen}
             onClose={() => setDrawOpen(false)}
+            onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
           />
           <FloatingLegend theme={theme} rightOffset={rightOffset} />
           <TemporalSlider theme={theme} />
