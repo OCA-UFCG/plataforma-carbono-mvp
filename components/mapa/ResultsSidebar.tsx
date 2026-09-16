@@ -6,6 +6,7 @@ import { IcX, IcBarChart, IcDownload } from './icons'
 import FluxValue from './FluxValue'
 import { useStore } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
+import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
 import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
@@ -58,10 +59,14 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     statsLoading ||
     statsError !== null
 
-  // Onboarding hint when a raster is active but nothing was analysed yet.
+  // Onboarding hint when a raster is active but nothing was analysed yet. What
+  // it tells the reader to do depends on the recortes a click can actually land
+  // on: with every recorte off, clicking the map is a silent no-op, so the hint
+  // asks for one to be turned on instead of promising a municipality.
   const activeRaster = layers.find((l) => l.type === 'raster' && l.visible) as
     | RasterLayerConfig
     | undefined
+  const recortes = clickableRecortes(layers)
 
   // Download the analysis. The CSV is built entirely on the client by
   // `buildAnalysisCsv`, from what the panel already has at hand.
@@ -298,11 +303,11 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           padding: '14px 12px',
           display: 'flex', flexDirection: 'column', gap: 8,
         }}>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: c.text }}>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.35 }}>
             Analisar {activeRaster!.name}
           </span>
           <span style={{ fontSize: 11.5, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
-            Clique em um município ou região vetorial sobre o raster (ou desenhe um polígono/ponto com as ferramentas à direita) para ver estatísticas desta camada.
+            {analysisHint(recortes)}
           </span>
         </div>
       )}
