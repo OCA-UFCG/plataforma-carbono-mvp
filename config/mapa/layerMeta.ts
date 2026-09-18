@@ -52,14 +52,10 @@ export const LAYER_META: Record<string, LayerMeta> = {
   gfw_emissions:    { description: 'emissões brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
   gfw_removals:     { description: 'remoções brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
   lulc_mapbiomas:   { description: 'uso e cobertura da terra',       source: 'MapBiomas col. 10, 30 m', kind: 'Raster categórico' },
-  // Second land cover source, alongside the MapBiomas one. The IBGE legend has
-  // 14 codes, of which 7 and 8 have no pixel inside the Caatinga.
-  cobertura_ibge:   { description: 'uso e cobertura da terra, leitura independente da do MapBiomas', source: 'IBGE, 2020, 515 m', kind: 'Raster categórico' },
   fogo_frequencia:  { description: 'frequência de fogo (1985-2023)', source: 'MapBiomas Fogo, 30 m', kind: 'Raster contínuo' },
   degradacao_terra: { description: 'nível de degradação da terra, do nível 5 (mais degradado) ao conservado', source: 'OCA, índice v4, 2021, 500 m', kind: 'Raster categórico' },
   ndvi_modis:       { description: 'índice de vegetação NDVI',       source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5 km',        kind: 'Raster contínuo' },
   lst_modis:        { description: 'temperatura de superfície',      source: 'MODIS, 1 km',         kind: 'Raster contínuo' },
-  aridez:           { description: 'classes de aridez da normal climatológica 1990-2020', source: 'OCA, dados de Xavier et al. 2021, 11 km', kind: 'Raster categórico' },
 }

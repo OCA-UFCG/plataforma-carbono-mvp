@@ -48,7 +48,7 @@ components/mapa/
 ├ icons.tsx                    # ícones da interface
 └ overlays/                    # busca, legenda, ferramentas, mapa base, coords
 config/mapa/
-├ layers.json                  # 34 camadas + centro/zoom do mapa
+├ layers.json                  # 32 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
 ├ basemaps.ts                  # mapas base (CARTO exige NEXT_PUBLIC_CARTO_KEY)
 └ layerMeta.ts                 # fichas das camadas
@@ -142,7 +142,7 @@ A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`
 
 ## Camadas
 
-São 34 camadas, 6 vetoriais e 28 rasters, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 32 camadas, 6 vetoriais e 26 rasters, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
 
 ### Recortes territoriais (vetoriais)
 
@@ -225,14 +225,12 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `gfw_emissions` | Emissões Brutas (GFW) | `.../gross_emissions`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_removals` | Remoções Brutas (GFW) | `.../gross_removals`, banda `b1` | contínua | Mg CO2/ha |
 | `lulc_mapbiomas` | Uso e Cobertura (MapBiomas 2024) | `mapbiomas-public/.../lulc/collection10_1/...`, banda `classification_2024` | categórica (30 classes) | classe |
-| `cobertura_ibge` | Cobertura da Terra (IBGE 2020) | `ee-ulissesalencar17/assets/cobertura_solo_IBGE_2020`, banda `b1` | categórica (12 classes) | classe |
 | `fogo_frequencia` | Frequência de Fogo (1985-2023) | `mapbiomas-public/.../fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1`, banda `fire_frequency_1985_2023` | contínua | anos com fogo |
 | `degradacao_terra` | Índice de Degradação da Terra (2021) | `ee-arturlourenco/assets/id_2021_recode_mask_int`, banda `b1` | categórica (6 classes) | classe |
 | `ndvi_modis` | NDVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `NDVI`, ×0,0001 | contínua | NDVI |
 | `evi_modis` | EVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `EVI`, ×0,0001 | contínua | EVI |
 | `chirps_precip` | Precipitação Anual (CHIRPS 2023) | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
-| `aridez` | Índice de Aridez (normal 1990-2020, Xavier et al. 2021) | `ee-ocaufcg/assets/IA_1990_2020`, banda `b1` | categórica (4 classes) | classe |
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
 
