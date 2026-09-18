@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Rubik } from "next/font/google";
 import { redirect } from "next/navigation";
 import "../globals.css";
 import { getAuthenticatedSession } from "@/lib/auth";
@@ -8,9 +8,9 @@ import { Analytics } from "@/components/Analytics";
 // Root layout of the marketing pages. The maps module has its own root layout
 // in app/(mapa)/, with a different font and a different global CSS, so neither
 // of the two loads the other's style.
-const raleway = Raleway({
+const rubik = Rubik({
   subsets: ["latin"],
-  weight: ["300", "400", "600"],
+  weight: ["400", "500", "600"],
   variable: "--font-sans",
 });
 
@@ -33,7 +33,7 @@ export default async function MarketingLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={raleway.variable}>
+      <body className={rubik.variable}>
         {children}
         <Analytics />
       </body>
