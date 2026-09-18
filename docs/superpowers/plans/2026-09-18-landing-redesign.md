@@ -90,8 +90,14 @@ describe('parked landing content', () => {
     expect(FRENTES).toHaveLength(6)
   })
 
-  it('preserves the ameacas entries', () => {
-    expect(AMEACAS.length).toBeGreaterThan(0)
+  it('preserves all ten ameacas entries', () => {
+    expect(AMEACAS).toHaveLength(10)
+    expect(AMEACAS[0].num).toBe('8,6 mi ha')
+    expect(AMEACAS[0].fonte).toBe('MAPBIOMAS, Coleção 9 (2025)')
+  })
+
+  it('names frentes icons as strings, keeping the data module free of React', () => {
+    expect(FRENTES[0].icon).toBe('FaLayerGroup')
   })
 })
 ```
@@ -123,7 +129,22 @@ export const DIMENSOES: Dimensao[] = [
 ]
 ```
 
-Give `lib/content/ameacas.ts` and `lib/content/frentes.ts` the same treatment, each with its own type (`Ameaca`, `Frente`) matching the fields actually present in the source array, and the same header comment adapted.
+Give `lib/content/ameacas.ts` and `lib/content/frentes.ts` the same treatment, each with its
+own type (`Ameaca`, `Frente`) matching the fields actually present in the source array, and the
+same header comment adapted. `Ameaca` is `{ num: string; texto: string; fonte: string }`.
+
+**One deliberate departure from copying verbatim.** `FRENTES` entries carry
+`icon: FaLayerGroup` — a React component imported from `react-icons/fa6`. Store the icon as
+its **name string** instead (`icon: 'FaLayerGroup'`), so `Frente` is
+`{ icon: string; color: string; title: string; text: string }` and the module stays pure data,
+like `lib/content/comunicacao.ts`. Whichever page renders these later maps the name back to a
+component. Copying the reference verbatim would pull React and an icon library into a data
+module for no gain.
+
+The `cor` / `color` hex values in `DIMENSOES` and `FRENTES` belong to the old palette
+(`#5f7030` and friends), which this redesign replaces. Keep them as they are — this is
+archived content, and whoever builds the internal pages restyles it against the new tokens.
+Note that in each module's header comment.
 
 - [ ] **Step 5: Run the test to verify it passes**
 
@@ -393,6 +414,21 @@ export default function Destaques() {
 uses `id="inicio"`, `Plataforma` `id="plataforma"`, `Ferramenta` `id="ferramenta"`,
 `Comunicacao` `id="comunicacao"`. Create an empty `.module.css` beside each.
 
+**The `Comunicacao` stub is the one exception: it must already take its prop**, because
+`page.tsx` in step 10 passes `conteudo` and the build in step 12 would otherwise fail
+type-checking. Give it the final signature now and ignore the value:
+
+```tsx
+import type { ComunicacaoContent } from "@/lib/content/comunicacao";
+import styles from "./Comunicacao.module.css";
+
+// Filled in by Task 8. The prop is declared now because page.tsx already passes it.
+export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
+  void conteudo;
+  return <section id="comunicacao" className={styles.comunicacao} aria-label="Comunicação" />;
+}
+```
+
 - [ ] **Step 10: Rewrite `app/(marketing)/page.tsx` as composition**
 
 ```tsx
@@ -506,8 +542,9 @@ Two rules that are not in the design file:
 Links inside the marketing group use `next/link`; `MAPA_LINK` crosses a route group and must
 be a plain `<a href>`.
 
-Carry over the mobile behaviour the old header had (`components/SiteHeader.tsx` in git
-history at `HEAD~`): a hamburger below 901px, body scroll locked while open, Escape closes,
+Carry over the mobile behaviour the old header had. Task 2 deleted that file, so read it from
+git history: `git show $(git log -1 --format=%H -- components/SiteHeader.tsx)^:components/SiteHeader.tsx`.
+It gave: a hamburger below 901px, body scroll locked while open, Escape closes,
 and the panel auto-closes when the viewport widens. The Figma "Menu expandido mobile"
 component (`8702:48799`) shows the intended mobile treatment.
 
