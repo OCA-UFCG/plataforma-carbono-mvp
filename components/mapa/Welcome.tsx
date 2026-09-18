@@ -68,7 +68,7 @@ export default function Welcome({ theme, month }: Props) {
               <IcLeaf size={18} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>Carbono Caatinga</div>
+              <div style={{ fontSize: 15, fontWeight: 800 }}>Caativar</div>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: theme.colors.dim, textTransform: 'uppercase' }}>Observatório da Caatinga, OCA</div>
             </div>
             <button onClick={close} aria-label="Fechar" style={{ background: theme.colors.mist, border: 'none', borderRadius: 999, width: 32, height: 32, cursor: 'pointer', color: theme.colors.textDim, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -81,7 +81,7 @@ export default function Welcome({ theme, month }: Props) {
             A cor da interface acompanha o mês do bioma
           </h1>
           <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.6, color: theme.colors.body, margin: '0 0 20px', maxWidth: 680 }}>
-            Módulo de mapas e análises da Plataforma Carbono Caatinga. A interface veste a cor do mês
+            Módulo de mapas e análises da Caativar. A interface veste a cor do mês
             corrente, apurada desde 1985 no acompanhamento da vegetação nativa por imagens do satélite Landsat e
             por uma câmera instalada em campo. Estão disponíveis camadas de solo, biomassa, produtividade, fluxo,
             fogo e uso da terra, sobre as quais se calcula estatística por município, território ou área desenhada.

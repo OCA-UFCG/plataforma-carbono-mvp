@@ -58,11 +58,7 @@ export default function SiteHeader() {
           alt="OCA, Observatório da Caatinga e Desertificação"
         />
         <span className="header-divisor" aria-hidden />
-        <span className="header-wordmark">
-          Plataforma
-          <br />
-          Carbono Caatinga
-        </span>
+        <span className="header-wordmark">Caativar</span>
       </Link>
 
       <nav className="header-nav" aria-label="Navegação principal">

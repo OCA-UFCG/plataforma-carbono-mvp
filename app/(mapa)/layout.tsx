@@ -18,7 +18,7 @@ const libreFranklin = Libre_Franklin({
 })
 
 export const metadata: Metadata = {
-  title: 'Mapas e análises | Plataforma Carbono Caatinga',
+  title: 'Mapas e análises | Caativar',
   description: 'Módulo de mapas e análises do carbono florestal do bioma Caatinga. OCA, UFCG, INSA.',
   icons: { icon: '/logos/logo_oca.png' },
 }

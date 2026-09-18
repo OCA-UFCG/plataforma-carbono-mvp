@@ -55,7 +55,7 @@ export default function Header({ theme, month }: Props) {
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
-          aria-label="Página inicial da Plataforma Carbono Caatinga"
+          aria-label="Página inicial da Caativar"
           style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none', textDecoration: 'none' }}
         >
           <div style={{
@@ -65,7 +65,7 @@ export default function Header({ theme, month }: Props) {
             <IcLeaf size={17} />
           </div>
           <div>
-            <div style={{ fontSize: 15.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Carbono Caatinga</div>
+            <div style={{ fontSize: 15.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
             <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', color: '#a5a294', textTransform: 'uppercase', lineHeight: 1.4 }}>
               Observatório da Caatinga, OCA
             </div>

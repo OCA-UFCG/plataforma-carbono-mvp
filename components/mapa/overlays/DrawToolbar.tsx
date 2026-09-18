@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/mapa/store'
+import CoordinateForm from './CoordinateForm'
 import type { PlatformTheme, DrawMode } from '@/types/mapa'
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   leftEdge: number
   open: boolean
   onClose: () => void
+  /** Installs a geometry typed as coordinates. See MapView. */
+  onApplyCoordinates: (feature: GeoJSON.Feature) => void
 }
 
 const TOOLS: { mode: Exclude<DrawMode, null>; name: string }[] = [
@@ -31,29 +34,48 @@ const HINT: Record<string, string> = {
  * panel (`left = leftEdge + 12`) on the second row of the left cluster, under
  * the Relatório button. It opens with the map; the pencil in the control
  * cluster hides and shows it. Tools as text (Polígono/Retângulo/Linha/Ponto)
- * + Limpar.
+ * + Coordenadas + Limpar.
+ *
+ * Coordenadas opens a form under the pill, for defining the same geometries by
+ * typing them instead of drawing. The pill and the form share a flex column,
+ * so the form follows the pill down when the tools wrap onto a second line.
  */
-export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
+export default function DrawToolbar({
+  theme, leftEdge, open, onClose, onApplyCoordinates,
+}: Props) {
   const drawMode      = useStore((s) => s.drawMode)
   const setDrawMode   = useStore((s) => s.setDrawMode)
   const clearDrawings = useStore((s) => s.clearDrawings)
   const c = theme.colors
 
-  // Esc escalates: it cancels the armed tool first, and only closes the toolbar
-  // when no tool is armed. Doing both at once would cost the user the toolbar
-  // every time they gave up on a polygon, and the toolbar now opens with the map.
+  const [coordsOpen, setCoordsOpen] = useState(false)
+
+  // Esc escalates: it closes the coordinate form first, then cancels the armed
+  // tool, and only closes the toolbar when neither is up. Doing all three at
+  // once would cost the user the toolbar every time they gave up on a polygon,
+  // and the toolbar now opens with the map.
   useEffect(() => {
     if (!open) return
     const onEsc = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (drawMode) setDrawMode(null)
+      if (coordsOpen) setCoordsOpen(false)
+      else if (drawMode) setDrawMode(null)
       else onClose()
     }
     document.addEventListener('keydown', onEsc)
     return () => document.removeEventListener('keydown', onEsc)
-  }, [open, drawMode, setDrawMode, onClose])
+  }, [open, coordsOpen, drawMode, setDrawMode, onClose])
 
   if (!open) return null
+
+  const toggleCoords = () => {
+    setCoordsOpen((v) => {
+      // An armed tool would draw on the same click that aims at the map while
+      // the form is open, so opening the form disarms it.
+      if (!v) setDrawMode(null)
+      return !v
+    })
+  }
 
   return (
     <>
@@ -63,39 +85,62 @@ export default function DrawToolbar({ theme, leftEdge, open, onClose }: Props) {
           // `left`, so sharing a row would hide it under the toolbar.
           position: 'absolute', top: 62, left: leftEdge + 12, zIndex: 15,
           maxWidth: `calc(100vw - ${leftEdge + 24}px)`,
-          display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, padding: 4,
-          background: c.glassBg, backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-          border: `1px solid ${c.glassBd}`, borderRadius: 22, boxShadow: '0 8px 24px -8px rgba(30,28,18,.4)',
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8,
           fontFamily: 'var(--font-app), sans-serif', transition: 'left .3s',
         }}
       >
-        {TOOLS.map((t) => {
-          const active = drawMode === t.mode
-          return (
-            <button
-              key={t.mode}
-              onClick={() => setDrawMode(active ? null : t.mode)}
-              aria-pressed={active}
-              style={{
-                height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: active ? c.accent : 'transparent', color: active ? c.onAccent : c.body,
-                fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
-              }}
-            >
-              {t.name}
-            </button>
-          )
-        })}
-        <div style={{ width: 1, height: 22, background: c.border, margin: '0 3px' }} />
-        <button
-          onClick={() => { clearDrawings(); setDrawMode(null) }}
+        <div
           style={{
-            height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: 'transparent', color: c.terracota, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+            maxWidth: '100%',
+            display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, padding: 4,
+            background: c.glassBg, backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+            border: `1px solid ${c.glassBd}`, borderRadius: 22, boxShadow: '0 8px 24px -8px rgba(30,28,18,.4)',
           }}
         >
-          Limpar
-        </button>
+          {TOOLS.map((t) => {
+            const active = drawMode === t.mode
+            return (
+              <button
+                key={t.mode}
+                onClick={() => setDrawMode(active ? null : t.mode)}
+                aria-pressed={active}
+                style={{
+                  height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: active ? c.accent : 'transparent', color: active ? c.onAccent : c.body,
+                  fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
+                }}
+              >
+                {t.name}
+              </button>
+            )
+          })}
+          <div style={{ width: 1, height: 22, background: c.border, margin: '0 3px' }} />
+          <button
+            onClick={toggleCoords}
+            aria-pressed={coordsOpen}
+            aria-expanded={coordsOpen}
+            style={{
+              height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: coordsOpen ? c.accent : 'transparent',
+              color: coordsOpen ? c.onAccent : c.body,
+              fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
+            }}
+          >
+            Coordenadas
+          </button>
+          <div style={{ width: 1, height: 22, background: c.border, margin: '0 3px' }} />
+          <button
+            onClick={() => { clearDrawings(); setDrawMode(null) }}
+            style={{
+              height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: 'transparent', color: c.terracota, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+            }}
+          >
+            Limpar
+          </button>
+        </div>
+
+        {coordsOpen && <CoordinateForm theme={theme} onApply={onApplyCoordinates} />}
       </div>
 
       {/* Toast de instrução quando uma ferramenta está ativa */}

@@ -38,9 +38,9 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
   return (
     <main style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: 'linear-gradient(140deg, #20281d 0%, #3d482c 48%, #c5813e 160%)' }}>
       <section style={{ width: 'min(100%, 420px)', padding: '40px', borderRadius: 20, background: '#fffdf7', boxShadow: '0 24px 60px rgba(0,0,0,.28)' }}>
-        <div aria-label="Carbono Caatinga" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: '#26241d', fontWeight: 800 }}>
+        <div aria-label="Caativar" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: '#26241d', fontWeight: 800 }}>
           <span style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 9, background: '#5f7030', color: '#fff' }}>O</span>
-          Carbono Caatinga
+          Caativar
         </div>
         <h1 style={{ margin: '36px 0 8px', color: '#26241d', fontSize: 28, lineHeight: 1.15 }}>Acesse a plataforma de carbono</h1>
         <p style={{ margin: '0 0 28px', color: '#6b6a60', fontSize: 15, lineHeight: 1.5 }}>Entre com as credenciais fornecidas pela equipe da plataforma.</p>

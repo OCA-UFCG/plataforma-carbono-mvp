@@ -20,7 +20,7 @@ const libreFranklin = Libre_Franklin({
 })
 
 export const metadata: Metadata = {
-  title: 'Relatório territorial | Plataforma Carbono Caatinga',
+  title: 'Relatório territorial | Caativar',
   description: 'Relatório automático de carbono por recorte territorial do bioma Caatinga. OCA, UFCG, INSA.',
   icons: { icon: '/logos/logo_oca.png' },
 }

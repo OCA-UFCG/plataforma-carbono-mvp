@@ -162,7 +162,7 @@ describe('buildAnalysisCsv', () => {
     const { filename } = buildAnalysisCsv({ ...base })
 
     expect(filename).toBe(
-      'carbono-caatinga_carbono-organico-do-solo-0-30-cm_petrolina_2026-08-24.csv',
+      'caativar_carbono-organico-do-solo-0-30-cm_petrolina_2026-08-24.csv',
     )
   })
 
@@ -174,7 +174,7 @@ describe('buildAnalysisCsv', () => {
       analysisLabel: null,
     })
 
-    expect(filename).toBe('carbono-caatinga_estoque-de-carbono_area-desenhada_2026-08-24.csv')
+    expect(filename).toBe('caativar_estoque-de-carbono_area-desenhada_2026-08-24.csv')
   })
 
   it('states the sign convention in the metadata when the layer is a signed flux', () => {
