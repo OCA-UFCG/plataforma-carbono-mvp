@@ -42,6 +42,24 @@
   --shadow: 0 1px 3px #0000001a, 0 1px 2px -1px #0000001a;
 
   --font-fallback: "Rubik", system-ui, sans-serif;
+
+  /* Content column from the Figma Home frame (18862:8514, 1436px wide): its
+   * containers sit at x=80 with width=1276, so the column is 1276px flanked by
+   * an 80px gutter on desktop. The gutter collapses on narrow viewports below,
+   * so sections never have to invent their own breakpoint for it. */
+  --container-max: 1276px;
+  --gutter: 80px;
+
+  /* Height of SiteHeader (Task 3, Figma "Menu-superior" 18862:8515). Sections
+   * read this for scroll-margin-top below so anchor navigation clears the
+   * fixed header; Task 3 cannot edit this file, so the number lives here once. */
+  --header-height: 76px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
 }
 
 /* Reset and base */
@@ -59,8 +77,10 @@ body {
   background: var(--bg-fundo);
   color: var(--bg-texto-primario);
   font-family: var(--font-sans, var(--font-fallback));
-  font-size: clamp(15px, 0.4vw + 14px, 16px);
-  line-height: 1.75;
+  /* "body" scale from the type system below: Regular 14/24. */
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 24px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -81,5 +101,54 @@ button:focus-visible {
 }
 
 section {
-  scroll-margin-top: 80px;
+  scroll-margin-top: var(--header-height);
+}
+
+/* Type scale (Figma design system, all Rubik). Section CSS Modules apply these
+ * as utility classes instead of hard-coding font metrics, e.g.
+ * `<h2 className={`${styles.title} text-h2`}>`; a class composes freely with a
+ * module's own selector for color, margin and layout. The h1 is deliberately
+ * absent: it has no bound Figma variable, and Task 4 reads its real value off
+ * the hero node and defines it locally in Hero.module.css. */
+.text-h2 {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 36px;
+  letter-spacing: -0.75px;
+}
+
+.text-lead {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.text-p-ui {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.text-body {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.text-subtle {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.text-subtle-semibold {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
 }
