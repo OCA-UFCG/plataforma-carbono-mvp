@@ -3,10 +3,25 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { FOOTER_LINKS, HEADER_LINKS, SECTION_IDS } from '@/lib/marketing/nav'
 
-// Reads the `id="…"` a section component actually renders, the same way
-// tests/lib/marketingPalette.test.ts reads tokens straight out of globals.css:
-// the check must fail if a component renames or drops its section id, not just
-// if two constants in nav.ts happen to disagree with each other.
+// Reads the id of the outermost <section>/<header>/<footer> a marketing
+// component actually renders, the same way tests/lib/marketingPalette.test.ts
+// reads tokens straight out of globals.css: the check must fail if a component
+// renames or drops its own section id, not just if two constants in nav.ts
+// happen to disagree with each other.
+//
+// Scoped to the wrapper tag on purpose. A section is free to carry internal ids
+// for its own markup — Task 3 needs one for the mobile menu panel's
+// aria-controls, Task 6 needs several for the ARIA tabs pattern on Plataforma —
+// and none of those must count as a "section id" or this test would fail the
+// moment a filled-in section adds one.
+function wrapperId(source: string): string | null {
+  const wrapper = source.match(/<(?:section|header|footer)\b[^>]*>/)
+  if (!wrapper) return null
+
+  const id = wrapper[0].match(/\bid="([\w-]+)"/)
+  return id ? id[1] : null
+}
+
 function renderedSectionIds(): Set<string> {
   const dir = path.join(process.cwd(), 'components/marketing')
   const ids = new Set<string>()
@@ -15,9 +30,8 @@ function renderedSectionIds(): Set<string> {
     if (!file.endsWith('.tsx')) continue
 
     const source = readFileSync(path.join(dir, file), 'utf8')
-    for (const [, id] of source.matchAll(/\bid="([\w-]+)"/g)) {
-      ids.add(id)
-    }
+    const id = wrapperId(source)
+    if (id) ids.add(id)
   }
 
   return ids
