@@ -29,10 +29,10 @@ export const LAYER_META: Record<string, LayerMeta> = {
   estoque_c_solo:   { description: 'carbono orgânico do solo, segunda estimativa ao lado da do MapBiomas', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   solo_carbono:     { description: 'carbono orgânico do solo (0-30 cm)', source: 'MapBiomas Solo, 30 m', kind: 'Raster contínuo' },
   // Third soil carbon estimate, in g/kg instead of t/ha, so it does not compare
-  // directly with the two above. Measured over the Caatinga it runs from 2,1 to
-  // 33,9 g/kg with p99 at 14,1, which is why the ramp stops at 16 and not at the
+  // directly with the two above. Measured over the Caatinga it runs from 2.1 to
+  // 33.9 g/kg with p99 at 14.1, which is why the ramp stops at 16 and not at the
   // 50 of the original specification.
-  solo_carbono_embrapa: { description: 'concentração de carbono orgânico do solo', source: 'Embrapa, 2020, 930 m', kind: 'Raster contínuo' },
+  solo_carbono_embrapa: { description: 'concentração de carbono orgânico do solo', source: 'Embrapa, 2020, 928 m', kind: 'Raster contínuo' },
   gpp_modis:        { description: 'produtividade primária bruta',   source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   npp_modis:        { description: 'produtividade primária líquida', source: 'MODIS, 500 m',        kind: 'Raster categórico' },
   // A second GPP estimate, to measure the divergence between sources. It comes

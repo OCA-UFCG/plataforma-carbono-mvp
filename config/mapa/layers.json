@@ -1503,8 +1503,7 @@
           "type": "image",
           "id": "projects/ee-ulissesalencar17/assets/cobertura_solo_IBGE_2020",
           "band": "b1",
-          "scale": 515,
-          "castInt": true
+          "scale": 515
         },
         "visParams": {
           "min": 1,

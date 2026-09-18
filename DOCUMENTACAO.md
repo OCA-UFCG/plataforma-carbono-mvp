@@ -48,7 +48,7 @@ components/mapa/
 ├ icons.tsx                    # ícones da interface
 └ overlays/                    # busca, legenda, ferramentas, mapa base, coords
 config/mapa/
-├ layers.json                  # 20 camadas + centro/zoom do mapa
+├ layers.json                  # 34 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
 ├ basemaps.ts                  # mapas base (CARTO exige NEXT_PUBLIC_CARTO_KEY)
 └ layerMeta.ts                 # fichas das camadas
@@ -142,7 +142,7 @@ A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`
 
 ## Camadas
 
-São 21 camadas em dois acordeões. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 34 camadas, 6 vetoriais e 28 rasters, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
 
 ### Recortes territoriais (vetoriais)
 
@@ -210,7 +210,9 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | id | Nome | Asset e banda | Estatística | Unidade |
 |---|---|---|---|---|
 | `estoque_carbono` | Estoque de Carbono (Quarto Inventário Nacional) | `ee-arturlourenco/assets/caatinga_estoques`, banda `b1` | contínua | t C/ha |
+| `estoque_c_agb` a `estoque_c_solo` | Os cinco reservatórios do estoque acima, um por camada | idem, bandas `b2` a `b6` | contínua | t C/ha |
 | `solo_carbono` | Carbono Orgânico do Solo (MapBiomas) | `mapbiomas-public/.../soil/collection2/mapbiomas_soil_collection2_soc_t_ha_000_030cm`, banda `prediction_2023` | contínua | t C/ha |
+| `solo_carbono_embrapa` | Carbono Orgânico do Solo (Embrapa) | `ee-ulissesalencar17/assets/carbono_g_kg_2020`, banda `b1` | contínua, 2 a 16 | g/kg |
 | `gpp_modis` | Produtividade Primária Bruta (GPP) | `MODIS/061/MOD17A2HGF`, banda `Gpp`, 2023 | Jenks 5 classes | kg C/m2/8d |
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
 | `gpp_pml` | Produtividade Primária Bruta (GPP, PML-V2 2023) | `CAS/IGSNRR/PML/V2_v018`, banda `GPP`, 2023, média ×365 | contínua | g C/m2/ano |
@@ -223,11 +225,14 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `gfw_emissions` | Emissões Brutas (GFW) | `.../gross_emissions`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_removals` | Remoções Brutas (GFW) | `.../gross_removals`, banda `b1` | contínua | Mg CO2/ha |
 | `lulc_mapbiomas` | Uso e Cobertura (MapBiomas 2024) | `mapbiomas-public/.../lulc/collection10_1/...`, banda `classification_2024` | categórica (30 classes) | classe |
+| `cobertura_ibge` | Cobertura da Terra (IBGE 2020) | `ee-ulissesalencar17/assets/cobertura_solo_IBGE_2020`, banda `b1` | categórica (12 classes) | classe |
 | `fogo_frequencia` | Frequência de Fogo (1985-2023) | `mapbiomas-public/.../fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1`, banda `fire_frequency_1985_2023` | contínua | anos com fogo |
+| `degradacao_terra` | Índice de Degradação da Terra (2021) | `ee-arturlourenco/assets/id_2021_recode_mask_int`, banda `b1` | categórica (6 classes) | classe |
 | `ndvi_modis` | NDVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `NDVI`, ×0,0001 | contínua | NDVI |
 | `evi_modis` | EVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `EVI`, ×0,0001 | contínua | EVI |
 | `chirps_precip` | Precipitação Anual (CHIRPS 2023) | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
+| `aridez` | Índice de Aridez (normal 1990-2020, Xavier et al. 2021) | `ee-ocaufcg/assets/IA_1990_2020`, banda `b1` | categórica (4 classes) | classe |
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
 
@@ -287,7 +292,37 @@ qual das duas leituras está em uso é condição para o número ser comparável
 outra fonte. Como partem do mesmo `id::band`, a flag entra na chave do cache de
 tiles em `app/api/gee/tile/route.ts`, sem o que as duas serviriam o mesmo tile.
 
-Todos os asset IDs foram confirmados no catálogo do GEE por `scripts/verify-assets.mjs`.
+`node scripts/verify-assets.mjs` confere se a service account lê cada asset
+citado no `layers.json` e se os rasters categóricos têm pirâmide de moda (ver a
+seção seguinte). Sai com erro quando algum falha.
+
+O carbono do solo da Embrapa, em g/kg, vai de 2,1 a 33,9 sobre a Caatinga, com
+mediana 7,3 e p99 14,1. A rampa vai de 2 a 16: com o limite de 50 da
+especificação original, quase todo o mapa caía no primeiro quinto das cores. O
+índice de degradação ganhou um subtema próprio, `degradacao`, em Uso do solo e
+pressões.
+
+### Rasters categóricos e a pirâmide do Earth Engine
+
+O Earth Engine grava a política de pirâmide de cada asset na ingestão, e o padrão
+é a média, qualquer que seja o tipo do pixel. Num raster de classes o efeito só
+aparece quando a imagem é lida abaixo da resolução nativa, o que acontece com o
+tile no zoom afastado e com um `reduceRegion` em escala grossa: a pirâmide tira a
+média de códigos vizinhos e produz classes que não existem no dado. Medido no
+`Index_Degradacao_v4_2021`, gravado em float com pirâmide de média, eram 6 valores
+distintos a 500 m e 2.872 a 2.000 m; a 1.800 m, a escala do bioma inteiro na tela,
+a classe 5 ocupava 10,2% da área, contra 0,03% no dado. Num asset inteiro o erro
+não se vê, porque a média cai truncada num código que existe.
+
+Arredondar na leitura não resolve, porque a média já aconteceu antes. No
+`cobertura_solo_IBGE_2020`, um `.round().int()` ainda deixava entre 4% e 12% do
+bioma nas classes 7 e 8, que não têm pixel nenhum na Caatinga. Toda camada
+categórica usa, portanto, asset ingerido com `pyramidingPolicy: MODE`. A
+degradação aponta para uma cópia reingerida com moda
+(`ee-arturlourenco/assets/id_2021_recode_mask_int`), idêntica ao original pixel a
+pixel na resolução nativa. A política não vem no `ee.data.getAsset` do cliente;
+está no campo `bands[].pyramidingPolicy` da API REST, que é o que o
+`verify-assets.mjs` lê.
 
 ### Relatório de estoque de carbono
 
@@ -513,7 +548,7 @@ Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components
 
 ## Scripts utilitários
 
-- `node scripts/verify-assets.mjs`: autentica no GEE e imprime as bandas de cada asset candidato, ou o erro. Serve para confirmar IDs e bandas antes de configurar uma camada.
+- `node scripts/verify-assets.mjs`: autentica no GEE e confere cada asset citado no `layers.json`, avisando quando um raster categórico não tem pirâmide de moda; em seguida imprime as bandas de uma lista de candidatos. Sai com erro se algum asset em uso falhar.
 - `node scripts/list-assets.mjs`: lista os filhos de um diretório de assets, para achar caminhos exatos.
 - `npm run breaks`: calcula os breaks de Jenks sobre o bioma e grava em `config/mapa/layers.json`.
 - `npm run clip`: gera as versões simplificadas das bordas usadas como recorte.
