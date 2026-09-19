@@ -23,7 +23,16 @@
   min-width: 0;
 }
 
+/* Taken out of flow against .media's `position: relative` so the band's height
+ * stays driven by the panel's content (and .ferramenta's 560px floor), not by
+ * the map's intrinsic ratio. An <img> with `height: 100%` against a parent of
+ * indefinite height falls back to `auto` and sizes itself from its own aspect
+ * ratio, which stretched the band to 743px; a <div> placeholder never did,
+ * having no intrinsic ratio to fall back to. Reset to `static` below 900px,
+ * where the stacked layout wants the image to size itself. */
 .image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -127,6 +136,7 @@
 
   .image,
   .placeholder {
+    position: static;
     height: auto;
     min-height: 240px;
     aspect-ratio: 729 / 560;

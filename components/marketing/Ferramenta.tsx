@@ -2,13 +2,15 @@ import { MAPA_LINK } from "@/lib/marketing/nav";
 import styles from "./Ferramenta.module.css";
 
 // The Figma export of this map (node 18862:8548) has not been pulled yet — the
-// design file's API quota ran out mid-build. Set this to the committed asset
-// path once it exists; until then the band renders a neutral placeholder block
-// so the layout is complete and reviewable. When it lands, give it a
-// meaningful `alt` (it conveys information: a choropleth of the Caatinga over
-// Brazil, not a decorative photo) plus the image's real intrinsic width/height
-// in place of the 729x560 the placeholder assumes.
-const MAPA_IMAGEM: { src: string; alt: string } | null = null;
+// design file's API quota ran out mid-build, so it was later exported through
+// Figma's REST API instead (node 18862:8548, PNG at 2x, then converted to WebP
+// with Pillow — 1048 KB to 65 KB, no real transparency to preserve). The
+// placeholder branch below stays: it is what renders if this is ever set back
+// to null, and it shares the image's aspect ratio so neither reflows.
+const MAPA_IMAGEM: { src: string; alt: string } | null = {
+  src: "/images/ferramenta/mapa-caatinga.webp",
+  alt: "Mapa do bioma Caatinga sobre o Nordeste do Brasil, com a cobertura vegetal em tons de verde e os estados identificados",
+};
 
 // The four-item list, Figma node 18862:8556.
 const ITENS = [
@@ -33,8 +35,8 @@ export default function Ferramenta() {
           <img
             src={MAPA_IMAGEM.src}
             alt={MAPA_IMAGEM.alt}
-            width={729}
-            height={560}
+            width={1458}
+            height={1120}
             className={styles.image}
           />
         ) : (
