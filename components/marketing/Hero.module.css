@@ -149,13 +149,22 @@
  * with the `container` utility (see app/globals.css) so the dots land on the
  * same content-column edge as the h1, instead of padding out from `--gutter`
  * on its own — that re-derivation is exactly what put the dots 160px off
- * from the text at non-Figma-frame viewport widths. */
+ * from the text at non-Figma-frame viewport widths.
+ *
+ * `width: 100%` is required for the same reason `.contentArea` above needs
+ * it: `.dots` is an in-flow flex item of `.hero` (column direction), and
+ * the `container` utility's `margin-inline: auto` disables flex's default
+ * cross-axis stretch for this item, leaving it sized to shrink-wrap its own
+ * content (the dot row) instead of filling the row before `max-width` caps
+ * it — a shrink-wrapped, auto-margined box then centers on its own narrow
+ * width instead of landing on the column's left edge. */
 .dots {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
   gap: 9px;
+  width: 100%;
   padding-bottom: 29px;
 }
 
@@ -176,11 +185,21 @@
 
 /* Photo credit overlay, bottom-right (node 18862:8536). `.creditRow` is the
  * `container` utility stretched over the full hero (it is itself the
- * positioned ancestor, via `position: absolute`), so `.credit`'s `right: 0`
- * resolves against the content column's right edge (the container's padding
- * box), not the viewport's — the same fix as `.dots` above, from the other
- * edge. The old raw `right: 21.62px` was a sub-pixel Figma value that only
- * lined up at the 1436px Figma frame width. */
+ * positioned ancestor, via `position: absolute`), out-of-flow so it isn't
+ * subject to the `.dots`-style flex shrink-wrap bug above — its box already
+ * sizes and centers to the 1276px column correctly.
+ *
+ * `.credit`'s offset is `right: var(--gutter)`, not `right: 0`. An
+ * absolutely positioned descendant's containing block is its ancestor's
+ * *padding box*, whose outer edge is the ancestor's border edge — with no
+ * border on `.creditRow`, that is the same as its outer, un-padded visual
+ * edge. `right: 0` therefore lands flush with `.creditRow`'s outer edge
+ * (the container's max-width boundary), ignoring the `padding-inline:
+ * var(--gutter)` `container` gives it entirely; `right: var(--gutter)`
+ * insets by that padding explicitly, landing on the actual content column's
+ * right edge — the same edge the h1 lands on from the left, and the mirror
+ * of that fix. The old raw `right: 21.62px` was a sub-pixel Figma value
+ * that only lined up at the 1436px Figma frame width. */
 .creditRow {
   position: absolute;
   inset: 0;
@@ -192,7 +211,7 @@
  * pill background is the exact token the Figma node itself references. */
 .credit {
   position: absolute;
-  right: 0;
+  right: var(--gutter);
   bottom: 21px;
   padding: 6px 12px;
   border-radius: 999px;
