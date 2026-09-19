@@ -1,0 +1,176 @@
+/* Hero. Figma "Background", node 18862:8516, 495px tall under the 76px
+ * header (18862:8515). Font sizes/weights/line-heights come from the
+ * .text-* utility classes applied in Hero.tsx (see app/globals.css), except
+ * the h1: it has no bound Figma variable, so its metrics are read off node
+ * 18862:8525 (Archivo Narrow, Bold, 48px, line-height 51.52px, no tracking)
+ * and defined here instead of reusing .text-h2 (a different family/scale).
+ * Archivo Narrow is not loaded anywhere else in the project (only Rubik is,
+ * via next/font in app/(marketing)/layout.tsx, which this task does not
+ * touch), so it is pulled in with its own @import, scoped to this module. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap");
+
+.hero {
+  position: relative;
+  min-height: 495px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  color: var(--role-terciario-texto-sobre);
+}
+
+/* Cross-fading photo layer, absorbed from the deleted HeroBackground.tsx. */
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.backgroundImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 1s ease-in-out;
+}
+
+/* Darkens the photo so the white text over it clears 4.5:1 (Gradient, node
+ * 18862:8520). The design's own gradient uses a warm dark brown with no bound
+ * token (rgb(40, 38, 35)); the closest real token is the "inverse background"
+ * used elsewhere for dark-on-light overlays, so the tint is derived from it
+ * rather than inventing an untokenized colour. Left edge (where the text
+ * column sits) is kept the most opaque so contrast holds regardless of which
+ * photo is showing. */
+.gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--bg-fundo-inverso) 88%, transparent) 0%,
+    color-mix(in srgb, var(--bg-fundo-inverso) 78%, transparent) 45%,
+    color-mix(in srgb, var(--bg-fundo-inverso) 40%, transparent) 100%
+  );
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 21px;
+  max-width: 568px;
+  padding: 82px var(--gutter) 64px;
+}
+
+.eyebrow {
+  color: color-mix(in srgb, var(--role-terciario-texto-sobre) 72%, transparent);
+  text-transform: uppercase;
+}
+
+/* The h1's own scale (see file header comment): Archivo Narrow, Bold, 48px,
+ * line-height 51.52px, no letter-spacing, read off Figma node 18862:8525.
+ * Clamped down on narrow viewports so it does not overflow at 390px. */
+.title {
+  font-family: "Archivo Narrow", var(--font-sans, var(--font-fallback));
+  font-weight: 700;
+  font-size: clamp(28px, 6vw, 48px);
+  line-height: 1.0733;
+  letter-spacing: normal;
+  margin: 0;
+}
+
+.lead {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  white-space: nowrap;
+}
+
+.primaryButton {
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.primaryButton:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+.secondaryButton {
+  background: transparent;
+  color: var(--role-terciario-texto-sobre);
+  border: var(--borda-largura) solid var(--role-terciario-texto-sobre);
+}
+
+.secondaryButton:hover {
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 12%, transparent);
+}
+
+/* Carousel dots, bottom-left (node 18862:8531): active pill 26x6, others 6x6
+ * circles, both tints of the "text over inverse background" token. */
+.dots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 var(--gutter) 29px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 45%, transparent);
+  cursor: pointer;
+}
+
+.dotActive {
+  width: 26px;
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
+}
+
+/* Photo credit overlay, bottom-right (node 18862:8536). Only rendered when
+ * the active photo has a known credit (see Hero.tsx); its pill background is
+ * the exact token the Figma node itself references. */
+.credit {
+  position: absolute;
+  z-index: 1;
+  right: 21.62px;
+  bottom: 21px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--bg-texto-sobre-inverso);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .content {
+    max-width: 100%;
+    padding-top: 56px;
+    padding-bottom: 48px;
+  }
+
+  .dots {
+    padding-bottom: 20px;
+  }
+}
