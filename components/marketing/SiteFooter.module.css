@@ -1,0 +1,88 @@
+/* Site footer. Figma "Footer", node 18862:8583 (symbol 16864:138883),
+ * 1440x196. Font sizes/weights/line-heights come only from the .text-*
+ * utility classes applied in SiteFooter.tsx; this file handles color,
+ * spacing and layout only. */
+
+.siteFooter {
+  background: var(--bg-fundo-inverso);
+}
+
+.inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 64px;
+  padding-block: 48px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Column 1: the Caativar mark over the FOOTER_LINKS row. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-interno);
+  object-fit: contain;
+  flex: none;
+}
+
+.brandName {
+  color: var(--bg-texto-sobre-inverso);
+  text-transform: uppercase;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.navLink {
+  color: color-mix(in srgb, var(--bg-texto-sobre-inverso) 80%, transparent);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--bg-texto-sobre-inverso);
+}
+
+/* Columns 2 and 3 share the same small caption heading treatment. */
+.heading {
+  margin: 0;
+  color: var(--bg-texto-sobre-inverso);
+}
+
+/* Column 2: "Parceiros e apoio" over the partner logos. Aligned to a common
+ * baseline (flex-end) since the three marks differ in height. */
+.logos {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* No width/height rule here: each logo's HTML width/height attributes (set
+ * in SiteFooter.tsx, derived from its own aspect ratio) are what sizes it.
+ * Setting `auto` in CSS here would override those attributes and let the
+ * image blow up to its intrinsic pixel size. */
+.logo {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .inner {
+    flex-direction: column;
+    gap: 40px;
+  }
+}
