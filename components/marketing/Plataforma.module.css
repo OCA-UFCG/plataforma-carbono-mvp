@@ -1,6 +1,7 @@
 /* Plataforma, Figma node 18862:8546 ("Sobre"). Font sizes/weights/line-heights
  * come only from the .text-* utility classes applied in Plataforma.tsx (see
- * app/globals.css); this file handles color, spacing and layout only.
+ * app/globals.css); this file handles color, spacing and layout only — with
+ * one documented exception, `.tab`'s font-weight/font-size below.
  *
  * Two colours in the design node have no bound token:
  *   - the tablist's bottom border (#d8d6d1) and the image frame's border
@@ -10,6 +11,19 @@
  *   - the tab strip's inactive-tab colour is spec'd by the task brief as
  *     --bg-texto-secundario, overriding the Figma-extracted --am-400 (the
  *     brief is the more recent, deliberate decision).
+ *
+ * Exception: `.tab`'s 600/16px is a measured metric, not a bound type-scale
+ * token, hard-coded the same way Hero.module.css hard-codes the h1. Measured
+ * off the "Sobre" node's own tab label instances (18862:8546, e.g. the
+ * "O que é a CaatiVAR?" text node I18862:8546;18846:7562 and its inactive
+ * siblings 18846:7565/7568/7571), all `Archivo SemiBold 16px`. The generic
+ * "tab item" component in the Figma library (8702:53247) is NOT the source
+ * for this: it is bound to a different, unrelated design system (slate/900,
+ * slate/600, shadcn's var(--primary)/var(--foreground)) and carries no
+ * typography variable at all, so it cannot confirm or deny a token binding
+ * for this section's tabs. If a matching --text-* utility is ever bound in
+ * the design file for this weight/size pair, this hard-coded value should be
+ * replaced with it.
  */
 
 .plataforma {

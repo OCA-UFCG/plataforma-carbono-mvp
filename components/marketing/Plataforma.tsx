@@ -31,7 +31,6 @@ export default function Plataforma() {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const activeIndex = ABAS_PLATAFORMA.findIndex((aba) => aba.id === activeId);
-  const activeAba = ABAS_PLATAFORMA[activeIndex];
 
   function selectAndFocus(index: number) {
     const aba = ABAS_PLATAFORMA[index];
@@ -96,19 +95,29 @@ export default function Plataforma() {
           })}
         </div>
 
-        <div
-          role="tabpanel"
-          id={panelId(activeAba.id)}
-          aria-labelledby={tabId(activeAba.id)}
-          className={styles.panel}
-          tabIndex={0}
-        >
-          {activeAba.conteudo ? (
-            <PanelConteudo conteudo={activeAba.conteudo} />
-          ) : (
-            <p className={`${styles.vazio} text-subtle`}>Conteúdo em preparação.</p>
-          )}
-        </div>
+        {/* Every tab gets its own always-mounted panel, hidden via the
+            `hidden` attribute rather than swapping a single panel's content.
+            The APG's own tab examples (manual and automatic activation
+            alike) always mount every panel this way; a single dynamic panel
+            leaves the three inactive tabs' `aria-controls` pointing at an id
+            absent from the DOM, which axe-core/Lighthouse/WAVE all flag. */}
+        {ABAS_PLATAFORMA.map((aba) => (
+          <div
+            key={aba.id}
+            role="tabpanel"
+            id={panelId(aba.id)}
+            aria-labelledby={tabId(aba.id)}
+            className={styles.panel}
+            tabIndex={0}
+            hidden={aba.id !== activeId}
+          >
+            {aba.conteudo ? (
+              <PanelConteudo conteudo={aba.conteudo} />
+            ) : (
+              <p className={`${styles.vazio} text-subtle`}>Conteúdo em preparação.</p>
+            )}
+          </div>
+        ))}
       </div>
     </section>
   );
