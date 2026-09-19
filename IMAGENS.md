@@ -9,11 +9,8 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 | Arquivo | Onde aparece |
 |---|---|
 | `hero/hero1.jpg` a `hero5.jpg` | Carrossel automático do hero (rotação a cada 6 s) |
-| `cta_caatinga.jpg` | Fundo da faixa CTA (pôr do sol, com overlay quente) |
-| `sobre_caatinga.jpg` | Banner 16:6 na seção "Por que a plataforma existe" |
-| `galeria/cg1.jpg` a `cg9.jpg` e `importa/imp1.jpg` a `imp3.jpg` | Galeria em mosaico (12 fotos) da seção "Conheça a Caatinga" |
 
-A seção "Por que a Caatinga importa" voltou a ser só números, sem fotos; as `importa/imp1-3.jpg` migraram para a galeria. As imagens antigas de NASA e Wikimedia foram removidas do projeto. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
+`cta_caatinga.jpg`, `sobre_caatinga.jpg` e a galeria em mosaico (`galeria/cg1.jpg` a `cg9.jpg`, `importa/imp1.jpg` a `imp3.jpg`) foram removidos do projeto junto com as seções que os usavam; nenhum desses arquivos, nem as pastas `galeria/` e `importa/`, existe mais em `public/images/`. As imagens antigas de NASA e Wikimedia também já haviam sido removidas. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
 
 ## Cartilhas (public/images/cartilhas/)
 
@@ -22,8 +19,9 @@ Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", p
 | Arquivo | Origem | Uso |
 |---|---|---|
 | `vol1.jpg` a `vol4.jpg` | `cartilhas/01.png` a `04.png` | Grade dos 4 volumes |
-| `colecao_banner.jpg` | recorte de `cartilhas/todas.png` (título + capas em leque, sem o bloco de QR) | Remate da seção |
 | `caderno.jpg` | `cartilhas/boletim.png` | Bloco de destaque do caderno temático |
+
+`colecao_banner.jpg` (recorte de `cartilhas/todas.png`, usado no remate da seção) foi removido junto com o trecho que o usava; o arquivo não existe mais em `public/images/cartilhas/`.
 
 Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
 
@@ -37,13 +35,11 @@ Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação
 
 ## Plataforma (public/images/)
 
-| Arquivo | Onde aparece |
-|---|---|
-| `plataforma_preview.jpg` | Moldura da seção "A plataforma": captura de tela real do mapa, com a camada de produtividade primária bruta (GPP) ativa. |
+`plataforma_preview.jpg` (captura de tela do mapa, camada de GPP ativa) foi removido junto com a versão anterior da seção "A plataforma"; o arquivo não existe mais. A seção reconstruída usa `plataforma/o-que-e.jpg`, cuja origem e crédito este documento não registra — não preenchido aqui para evitar atribuição incorreta.
 
 ## Hero
 
-O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar `HERO_FOTOS` em `app/(marketing)/page.tsx`.
+O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar a constante `PHOTOS` em `components/marketing/Hero.tsx`; o crédito exibido ("Foto: Artur Lourenço") vem do campo `credit` de cada entrada dessa constante e só aparece quando ele está preenchido.
 
 ## Tipografia
 

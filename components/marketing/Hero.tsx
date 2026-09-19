@@ -9,9 +9,10 @@ import styles from "./Hero.module.css";
 // behaviour absorbed from the deleted components/HeroBackground.tsx drives
 // these committed assets instead). `credit` is deliberately optional: the
 // Figma overlay text "Foto: [nome da equipe]" is placeholder copy, not real
-// copy, and none of these photos has a known credit yet. When one is known it
-// goes here and the overlay renders itself — see the `activePhoto.credit`
-// check below.
+// copy. The real, mandatory credit for these five photos is documented in
+// IMAGENS.md ("Fotos de Artur Lourenço" — "Crédito na página: 'Fotos: Artur
+// Lourenço'"), the same wording the pre-redesign hero rendered; it is filled
+// in below so the overlay renders it — see the `activePhoto.credit` check.
 type HeroPhoto = {
   src: string;
   alt: string;
@@ -19,11 +20,11 @@ type HeroPhoto = {
 };
 
 const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero1.jpg", alt: "Foto 1 da Caatinga" },
-  { src: "/images/hero/hero2.jpg", alt: "Foto 2 da Caatinga" },
-  { src: "/images/hero/hero3.jpg", alt: "Foto 3 da Caatinga" },
-  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga" },
-  { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga" },
+  { src: "/images/hero/hero1.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero2.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero3.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga", credit: "Artur Lourenço" },
 ];
 
 const ROTATION_INTERVAL_MS = 6000;
