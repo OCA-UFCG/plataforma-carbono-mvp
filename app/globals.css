@@ -153,6 +153,17 @@ section {
   line-height: 20px;
 }
 
+/* 500/14. The design gives each section label its own style rather than reusing
+ * one: "Conheça a plataforma" is 500/14 (Figma node 18862:8546) while
+ * "Destaques" is 700/16 (node 18862:8538). This step exists for the former;
+ * there is no bound token for either, so both were measured off their nodes. */
+.text-subtle-medium {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+}
+
 .text-subtle-semibold {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 600;

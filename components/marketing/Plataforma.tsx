@@ -68,7 +68,7 @@ export default function Plataforma() {
   return (
     <section id="plataforma" className={styles.plataforma} aria-label="Plataforma">
       <div className={`container ${styles.inner}`}>
-        <p className={`${styles.label} text-subtle-semibold`}>Conheça a plataforma</p>
+        <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
 
         <div className={styles.tablist} role="tablist" aria-label="Conheça a plataforma">
           {ABAS_PLATAFORMA.map((aba) => {
@@ -144,7 +144,7 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
             {paragrafo}
           </p>
         ))}
-        <p className={`${styles.destaque} text-subtle-semibold`}>{conteudo.destaque}</p>
+        <p className={`${styles.destaque} text-body`}>{conteudo.destaque}</p>
       </div>
     </div>
   );
