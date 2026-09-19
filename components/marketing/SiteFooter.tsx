@@ -8,13 +8,24 @@ import styles from "./SiteFooter.module.css";
 // public/logos/logo_insa.png (and appears in the pre-redesign footer's
 // institutional paragraph) but is not one of the three logos this design
 // renders, so it is left out here rather than added back silently. Heights
-// mirror the pre-redesign footer (components/SiteFooter usage recovered from
-// git history), widths derived from each PNG's own aspect ratio so nothing
-// stretches: OCA 230x117, UFCG 1472x462, SUDENE 752x358.
+// The three partner logos the design shows, in the design's own order and at
+// its own sizes: Figma node 18862:8583 places Sudene at x=470 (149x60), UFCG at
+// x=643 (191x60) and OCA at x=858 (108x60).
+//
+// These are WHITE monochrome lockups, not the colour PNGs in public/logos/. The
+// footer sits on --bg-fundo-inverso (#000f15), and the design uses white marks
+// against it; the colour versions are what the pre-redesign footer used on its
+// light background, and they still serve the header. Exported from the footer's
+// own nodes through Figma's REST API at 3x, resized to 2x and saved as WebP with
+// alpha (5-10 KB each).
+//
+// The INSA logo in public/logos/ is deliberately not shown: the design credits
+// three institutions, not four. That is a content decision worth confirming —
+// the pre-redesign footer credited all four.
 const PARTNERS = [
-  { src: "/logos/logo_oca.png", alt: "OCA", width: 83, height: 42 },
-  { src: "/logos/logo_ufcg.png", alt: "UFCG", width: 127, height: 40 },
-  { src: "/logos/logo_sudene.png", alt: "SUDENE", width: 76, height: 36 },
+  { src: "/logos/rodape/sudene.webp", alt: "SUDENE", width: 149, height: 60 },
+  { src: "/logos/rodape/ufcg.webp", alt: "UFCG", width: 191, height: 60 },
+  { src: "/logos/rodape/oca.webp", alt: "OCA", width: 108, height: 60 },
 ];
 
 // The site footer. Keeps rendering a bare <footer> (no id): the wrapper is

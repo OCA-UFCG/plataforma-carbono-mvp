@@ -58,6 +58,24 @@ Elas vivem no repositório porque o modelo de conteúdo não tem campo para "fot
 `cover`. Quando esse campo existir, remover o mapa `FOTOS` em `components/marketing/Comunicacao.tsx`
 e ler a foto do conteúdo, para que a edição não dependa de deploy.
 
+## Logos do rodapé (public/logos/rodape/)
+
+O rodapé assenta sobre `--bg-fundo-inverso` (#000f15), e o design usa marcas **brancas
+monocromáticas** — não os PNG coloridos de `public/logos/`, que continuam servindo o cabeçalho e
+foram o que o rodapé anterior usava sobre fundo claro.
+
+| Arquivo | Instituição | Exibição | Nó do Figma |
+|---|---|---|---|
+| `sudene.webp` | SUDENE | 149×60 | I18862:8583;18862:8286 |
+| `ufcg.webp` | UFCG | 191×60 | I18862:8583;18862:8873 |
+| `oca.webp` | OCA | 108×60 | I18862:8583;18862:8288 |
+
+Exportadas pela API REST do Figma a 3×, reduzidas para 2× e salvas em WebP com alfa (5 a 10 KB
+cada). A ordem no design é **Sudene, UFCG, OCA** (x=470, 643 e 858 dentro do frame de 1436).
+
+O logo do INSA (`public/logos/logo_insa.png`) não aparece: o design credita três instituições, o
+rodapé anterior creditava quatro. Decisão de conteúdo a confirmar.
+
 ## Formação (public/images/formacao/)
 
 Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos). A seção Formação e seu carrossel foram removidos na reconstrução da landing; as fotos sobrevivem em `DEFAULT_FOTOS_FORMACAO` mas nada as renderiza hoje. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).
