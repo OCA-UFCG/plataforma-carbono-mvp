@@ -39,10 +39,16 @@ vezes e recortava um retrato de proporção 0,75 num card de 1,30, decepando a a
 | `cartilha.webp` | Card "CARTILHA" | Figma, nó 18862:8581 (preenchimento de imagem do card) |
 | `caderno.webp` | Card "CADERNO TEMÁTICO" | Figma, nó 18862:8582 |
 
-Exportadas pela API REST do Figma, recortadas para a proporção do card (626×480) com âncora no
-topo e convertidas para WebP com Pillow: 940×720 (206 KB) e 960×736 (132 KB). O nó do caderno
-usa `scaleMode: STRETCH` no design, o que distorce um retrato num quadro paisagem; aqui foi
-usado recorte, que preserva a proporção.
+Exportadas pela API REST do Figma, recortadas para a proporção do card (626×480) e convertidas
+para WebP com Pillow: 940×720 (206 KB) e 960×736 (197 KB). O nó do caderno usa
+`scaleMode: STRETCH` no design, o que distorce um retrato num quadro paisagem; aqui foi usado
+recorte, que preserva a proporção.
+
+Sobre a âncora do recorte: a `cartilha` é paisagem e perde só as laterais. O `caderno` é retrato
+(960×1280) e perde mais da metade da altura, então a âncora decide o que sobra. Ancorar no topo
+— a convenção usada para arte de capa, onde o título fica em cima — deixava apenas céu e copas,
+cortando a casa, que é o assunto. As duas são recortadas pelo **centro**. Para fotografia, topo
+é quase sempre a escolha errada.
 
 **Autoria não documentada.** Nem este documento nem o arquivo do Figma registram quem fez estas
 duas fotos. Não foram atribuídas para evitar crédito incorreto. Se forem de Artur Lourenço, como
