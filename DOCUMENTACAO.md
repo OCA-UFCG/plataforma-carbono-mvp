@@ -16,14 +16,14 @@ O módulo de mapas foi clonado do projeto `great-panini` (`C:\Users\artur\Docume
 - Recharts (gráficos de estatística)
 - @mapbox/mapbox-gl-draw e @turf/area (desenho e medição)
 - @google/earthengine (SDK server-side, nas rotas de API)
-- Libre Franklin no módulo de mapas, Raleway nas páginas de marketing
+- Libre Franklin no módulo de mapas, Rubik + Archivo Narrow nas páginas de marketing
 
 ## Estrutura
 
 ```
 app/
 ├ (marketing)/
-│   ├ layout.tsx               # layout raiz: Raleway, metadata, globals.css
+│   ├ layout.tsx               # layout raiz: Rubik + Archivo Narrow, metadata, globals.css
 │   └ page.tsx                 # a landing
 ├ (mapa)/
 │   ├ layout.tsx               # layout raiz: Libre Franklin, tela cheia, mapa.css
@@ -35,8 +35,14 @@ app/
 │   └ timeseries/route.ts      # série anual num ponto
 ├ globals.css                  # estilos das páginas de marketing
 └ mapa.css                     # estilos do módulo de mapas
-components/                    # marketing: SiteHeader, PhotoCarousel, HeroBackground,
-                               # Sazonalidade (matriz, paleta e climatologias)
+components/marketing/          # landing redesenhada a partir do Figma (ver seção própria abaixo)
+├ SiteHeader.tsx               # menu superior, âncoras de seção, slot de sessão
+├ Hero.tsx                     # capa com carrossel de fotos
+├ Destaques.tsx                # cartões de números
+├ Plataforma.tsx               # abas "Conheça a plataforma"
+├ Ferramenta.tsx               # faixa com a moldura do mapa
+├ Comunicacao.tsx              # cartilhas, caderno temático (conteúdo do Contentful)
+└ SiteFooter.tsx                # rodapé
 components/mapa/
 ├ Mapa.tsx                     # orquestrador (tema, dark mode, sidebars)
 ├ MapView.tsx                  # mapa, desenho, clique-para-estatística
@@ -103,7 +109,7 @@ Plataforma única: só o tema "Caativar". O seletor de plataformas e os layouts 
 
 `app/(marketing)/layout.tsx` e `app/(mapa)/layout.tsx` são layouts raiz irmãos, cada um com o seu `<html>`, o seu `<body>` e o seu CSS global. Não existe `app/layout.tsx`.
 
-O motivo é CSS. O `mapa.css` zera a rolagem (`html, body { overflow: hidden }`), pinta o fundo com `--paper` e troca a família tipográfica; aplicado às páginas de marketing, mataria a rolagem da landing. O `globals.css` define `.btn`, `.container`, `body { font-size: 15px; line-height: 1.75 }` e a paleta `--verde`/`--laranja`, que não têm uso no mapa. Com layouts raiz separados, o Next.js emite um chunk de CSS por grupo e nenhum dos dois alcança o outro. Verificado no build: o CSS de `/` não contém `--paper`, `--acc` nem `overflow:hidden` no `body`; o de `/mapa` não contém `.btn`, `--verde` nem Raleway.
+O motivo é CSS. O `mapa.css` zera a rolagem (`html, body { overflow: hidden }`), pinta o fundo com `--paper` e troca a família tipográfica; aplicado às páginas de marketing, mataria a rolagem da landing. O `globals.css` define `.container`, a escala tipográfica e os tokens do design system do Figma, que não têm uso no mapa. Com layouts raiz separados, o Next.js emite um chunk de CSS por grupo e nenhum dos dois alcança o outro. Verificado no build: o CSS de `/` não contém `--paper`, `--acc` nem `overflow:hidden` no `body`; o de `/mapa` não contém `.container`, `--role-marca-ancora-padrao` nem Rubik.
 
 O preço é que navegar entre os dois grupos é um carregamento de página inteiro, não uma transição de cliente. Por isso todo link que cruza a fronteira usa `<a href>`, não `next/link`: os botões "Abrir os mapas" e a marca no header do módulo, que volta para `/`.
 
@@ -124,9 +130,47 @@ npm run dev
 
 O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (centro `[-40, -9]`, zoom `5.2`). As camadas vetoriais carregam de `public/data`; as de carbono geram tiles do GEE ao serem ligadas.
 
+## A landing redesenhada
+
+A landing foi reconstruída inteira a partir de um handoff no Figma (arquivo `hzQi2FcgZuGSGSP6NaeLdY`), em `components/marketing/`. `app/(marketing)/page.tsx` monta a página com seis seções, nesta ordem: `Hero`, `Destaques`, `Plataforma`, `Ferramenta`, `Comunicacao` e `SiteFooter` (mais o `SiteHeader` fixo). Cada seção é um par `Componente.tsx` + `Componente.module.css`.
+
+### CSS Modules em vez do estilo global antigo
+
+`components/marketing/` usa CSS Modules co-localizados; o resto do repositório (módulo de mapas, relatório) segue com folha de estilo global. A decisão foi deliberada: a landing anterior tinha uma `globals.css` só, com uma classe por seção (`.hero`, `.destaques`, `.plataforma-tabs` etc.), e todas elas viravam órfãs assim que uma seção era reescrita ou removida — o que era exatamente o caso aqui, com cinco seções inteiras saindo da página (ver TODOs/decisões abaixo). Com CSS Modules, apagar ou reescrever um componente apaga o CSS dele junto, sem precisir de uma varredura manual por classes soltas. Verificado ao final da reconstrução: `app/globals.css` ficou só com o reset, os tokens, a escala tipográfica (`.text-h2`, `.text-lead`, `.text-p-ui`, `.text-body`, `.text-subtle`, `.text-subtle-semibold`) e o utilitário `.container` — zero classes de seção órfãs.
+
+### Camada de tokens
+
+`app/globals.css` define CSS vars a partir das variáveis do Figma, com o nome mecanicamente convertido (`ROLE-MarcaAncora-Padrao` → `--role-marca-ancora-padrao`), mais um punhado de tokens de layout derivados do frame (`--container-max: 1276px`, `--gutter: 80px`, a partir do frame Home de 1436px = 1276 + 80×2) e um `--header-height: 76px` que as seções usam em `scroll-margin-top` para a navegação por âncora não ficar embaixo do menu fixo. A escala tipográfica (`.text-h2`, `.text-lead` etc.) espelha os estilos de texto do design system, todos em Rubik; a exceção é o h1 do hero, sem variável vinculada no Figma, definido localmente em `Hero.module.css` com a família de exibição `Archivo Narrow` (peso 700, só essa família e peso entram no bundle).
+
+### Seções que saíram
+
+A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta mensal, a matriz de 40 anos e as climatologias em vídeo), a faixa CTA, "Por que a Caatinga importa" (com fotos) e "Formação cidadã" (carrossel de fotos) não fazem mais parte da página — o Figma não as trouxe. O conteúdo editorial de duas delas ficou parado em `lib/content/{dimensoes,ameacas,frentes}.ts`, importado por nada de propósito: é material reservado para páginas internas futuras que o menu já sugere, não para religar na landing. `lib/content/comunicacao.ts` continua export do Contentful e ainda expõe `DEFAULT_FOTOS_FORMACAO` (seis fotos em `public/images/formacao/`), embora a landing atual não renderize mais `fotosFormacao`; o módulo não muda porque sua forma é ditada pelo Contentful, não pela página.
+
+### Decisões e pendências abertas
+
+- **"Entrar" vira "Sair".** O Figma mostra um botão "Entrar" no header, mas `app/(marketing)/layout.tsx` já redireciona todo visitante não autenticado para `/login` — quem vê a landing já está logado. O slot mostra "Sair" e executa as duas etapas do logout já estabelecido (`DELETE /api/session`, depois `firebaseSignOut`) antes de redirecionar.
+- **PT-BR / En não funciona.** O seletor de idioma é renderizado mas inerte; internacionalização está fora do escopo desta reconstrução.
+- **"Ver mais" foi omitido.** Não há páginas internas para esses botões apontarem ainda.
+- **Três das quatro abas de "Conheça a plataforma" estão vazias** ("Conteúdo em preparação."). Só "O que é a CaatiVAR?" tinha conteúdo desenhado; não existe texto para as outras três em lugar nenhum do handoff.
+- **Divergência numérica a confirmar com o time de conteúdo:** o cartão de destaque cita **40%** "das remoções de gases de efeito estufa do Brasil em 2022"; a landing anterior dizia **48%** "da remoção bruta de carbono do país" (hoje em `lib/content/dimensoes.ts`). Podem ser números diferentes e corretos — todos os GEE versus só carbono — mas ninguém confirmou.
+- **Não existe e-mail de contato.** A coluna "CONTATO" do rodapé sai com o rótulo e nada embaixo; o `contato@Caativar.gov.br` do Figma é texto de preenchimento (`.gov.br` não é o domínio do projeto), por isso nada foi inventado no lugar.
+- **O crédito da foto do hero nunca aparece**, porque nenhuma foto do repositório carrega dado de crédito; "Foto: [nome da equipe]" no Figma também é placeholder.
+- **Os cartões de comunicação mostram o título duas vezes**: o Figma mockava fotografias, mas a arte real é a capa da cartilha/caderno com o título já embutido na imagem, e o recorte central de 626×480 corta parte dele. Falta decidir entre fornecer fotografia nova ou tirar o título sobreposto dos itens cuja arte já o traz.
+- **A cor laranja saiu da paleta**: `--laranja #ce8b44` e derivados não têm par no novo design system.
+- **A história da paleta sazonal desapareceu da landing.** `Sazonalidade` explicava que a identidade de cor da plataforma foi medida numa série NDFI de 40 anos, não escolhida; o módulo de mapas ainda deriva o acento mensal exatamente dessa série (ver "A paleta mensal" abaixo), então a plataforma usa hoje uma paleta que não explica mais em lugar nenhum.
+- **A faixa "Ferramenta" está sem a imagem do mapa.** A exportação do Figma não pôde ser buscada (cota da API esgotada) e o único candidato no repositório carregava chrome de UI do módulo de mapas e marca antiga. A faixa renderiza um placeholder neutro controlado por uma única constante anulável, `MAPA_IMAGEM` em `Ferramenta.tsx`; trocar pela exportação real é uma mudança de uma linha.
+- **`.text-lead` (peso 400) nos títulos dos cartões de comunicação** por falta de um token de título de cartão vinculado no Figma; um título peso regular de 20px lê como legenda, então a escala tipográfica provavelmente está sem esse token.
+- Três valores do design system do Figma não têm par nos tokens reais e foram mapeados manualmente: `var(--card)` #ffffff, `var(--foreground)` #292829 (cinza quente que contrasta com o resto da escala, fria) e `var(--primary-foreground)` #f8f7f8 — defaults do shadcn deixados na biblioteca, não importados.
+- O botão primário do hero amarra o preenchimento de **repouso** ao token de papel `ROLE-MarcaAncora-Hover` (nó `18862:8529`), sem token distinto para o estado de hover; implementado como desenhado, com comentário no código para não ser "corrigido" sem querer.
+- O componente genérico de "tab item" (nó `8702:53247`) pertence a outro design system (`slate/*`, `Verde Sudene #018f39`, variáveis do shadcn, nenhuma variável de tipografia).
+- Os quatro ícones dos cartões de destaque são o mesmo glifo, byte a byte idêntico — fiel à fonte no Figma, mas quatro indicadores diferentes acabam sem diferenciação visual nenhuma.
+- O slot da logo da Caativar no Figma é uma caixa vazia; o header reaproveita `logo_oca.png`.
+- Possível terceira família tipográfica: os rótulos das abas medem como Archivo SemiBold 16px, que não é nem Rubik (corpo) nem Archivo Narrow (exibição). Não resolvido — a cota da API do Figma acabou antes de confirmar.
+- CI (`.github/workflows/ci.yml`) roda só `npm ci`, `npm run build` e `npm run contrast`; não roda `npm test` nem `npm run lint`. Tudo nesta reconstrução foi verificado localmente.
+
 ## Conteúdo editorial da landing
 
-Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o caderno temático em destaque e as fotos do carrossel da Formação cidadã. O restante da página segue no código, inclusive os cartões de números com as suas fontes, a seção de sazonalidade e as fotos do hero.
+Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o caderno temático em destaque e as fotos do carrossel da Formação cidadã (hoje sem consumidor na página — ver acima). O restante da página segue no código, inclusive os cartões de números com as suas fontes e as fotos do hero.
 
 O acesso é server-side (`lib/contentful.ts`, com `import 'server-only'`), pela API GraphQL de entrega, e as credenciais nunca levam o prefixo `NEXT_PUBLIC_`. O repositório `lib/content/comunicacao.ts` traduz as entries para o formato que a página consome e aplica o padrão por seção: se a coleção de cartilhas vier vazia, entram as quatro cartilhas do código; se a requisição falhar, entra o conteúdo padrão inteiro e o erro vai para o log. É o que permite ao `npm run build` do CI rodar sem qualquer variável do Contentful.
 
@@ -497,7 +541,7 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 ## Identidade visual
 
-Cores do logo OCA nos dois lados: verde-oliva `#5f7030` e laranja `#ce8b44`. A tipografia difere por grupo de rotas: as páginas de marketing usam Raleway (pesos 300/400/600), o módulo de mapas usa Libre Franklin (400 a 800), ambas self-hosted via `next/font/google` e com numerais alinhados e tabulares (`lnum`/`tnum`).
+A tipografia difere por grupo de rotas: as páginas de marketing usam Rubik (pesos 400/500/600) mais Archivo Narrow (peso 700, só no h1 do hero), o módulo de mapas usa Libre Franklin (400 a 800), ambas self-hosted via `next/font/google`. A paleta de cores da landing vem do design system do Figma (ver "A camada de tokens" acima); a cor laranja do logo OCA (`#ce8b44`) não faz mais parte dela — só o módulo de mapas ainda carrega verde-oliva `#5f7030` como cor de marca.
 
 ### A paleta mensal
 
@@ -509,7 +553,7 @@ O acento da interface não é fixo: é a cor do mês corrente. As doze cores sae
 
 O módulo abre no mês de hoje e escreve as CSS vars `--acc*` inline na sua raiz, junto com `data-month`. O `mapa.css` guarda só um valor de repouso; não há blocos `[data-month]` no CSS, que seriam 24 e sairiam de sincronia com o tema em JS. O usuário pode fixar outro mês pelo chip do header ou pela rampa do welcome, e a escolha persiste em `cc_month_v2`.
 
-Na landing, a mesma paleta aparece na seção `/#paleta` (componente `components/Sazonalidade.tsx`): a matriz de 40 anos por 12 meses, a tira dos doze tons e as três climatologias mensais em vídeo (cor real, precipitação e GPP), em `public/videos`. Os vídeos só baixam quando a seção chega perto da tela.
+A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção que a apresentava (`Sazonalidade`, com a matriz de 40 anos, a tira dos doze tons e as climatologias em vídeo de `public/videos`) saiu da página na reconstrução a partir do Figma (ver "A landing redesenhada" acima), embora `lib/phenology.ts`, `lib/ndfi-series.json` e `lib/color.ts` continuem em uso pelo módulo de mapas e por isso não possam ser removidos.
 
 ## Scripts utilitários
 
