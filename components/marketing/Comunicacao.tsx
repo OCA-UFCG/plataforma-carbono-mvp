@@ -9,6 +9,24 @@ type CardData = {
   pdf?: string;
 };
 
+// The design fills these cards with PHOTOGRAPHS: Figma nodes 18862:8581 and
+// 18862:8582 each carry a real image fill. The content module's `cover` field
+// means something else — the publication's cover ART, portrait, with the title
+// already typeset into it — so rendering `cover` here printed every title twice
+// and centre-cropped a 0.75 portrait into a 1.30 landscape card, clipping it.
+//
+// These two photographs are the design's own, exported from the Figma file and
+// cropped to the card ratio. They live in the repository rather than in
+// Contentful because the content model has no field for a card photograph; when
+// one is added, delete this map and read the photo from `conteudo` instead, so
+// editors can change it without a deploy. Their authorship is NOT documented
+// anywhere — see IMAGENS.md. If they turn out to be Artur Lourenço's, like the
+// hero photos, they need the same mandatory credit.
+const FOTOS: Record<string, string> = {
+  caderno: "/images/comunicacao/caderno.webp",
+  cartilha: "/images/comunicacao/cartilha.webp",
+};
+
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
 // gutter (card component 18862:7951, hover state 18916:9437). The module
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
@@ -31,7 +49,8 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       key: "caderno",
       label: "CADERNO TEMÁTICO",
       title: conteudo.caderno.title,
-      cover: conteudo.caderno.cover,
+      // Falls back to the publication's cover art if the photograph is ever removed.
+      cover: FOTOS.caderno ?? conteudo.caderno.cover,
       pdf: conteudo.caderno.pdf,
     },
     ...(primeiraCartilha
@@ -40,7 +59,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
             key: "cartilha",
             label: "CARTILHA",
             title: primeiraCartilha.title,
-            cover: primeiraCartilha.cover,
+            cover: FOTOS.cartilha ?? primeiraCartilha.cover,
             pdf: primeiraCartilha.pdf,
           },
         ]
