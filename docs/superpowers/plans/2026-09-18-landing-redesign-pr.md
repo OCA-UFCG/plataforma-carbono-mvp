@@ -68,11 +68,37 @@ or `app/relatorio.css`.
    restored in commit f2521ce, which added `credit: "Artur Lourenço"` to all
    five hero photos. The Figma's "Foto: [nome da equipe]" is still
    placeholder text, not the real copy.
-9. The **communication cards show their titles twice** — the design mocked
-   photographs, but the real content is cartilha and caderno cover art with
-   the title already typeset into the image, and the 626×480 centre-crop clips
-   it. Either supply photography, or drop the overlay title for items whose
-   art carries it.
+9. ~~The communication cards show their titles twice.~~ **Resolved, but it
+   leaves a content-model question open.** The cards were rendering each
+   publication's `cover` — which in the content model means the publication's
+   **cover art**: portrait, with the title already typeset into it. So every
+   title printed twice, and a 0.75 portrait centre-cropped into a 1.30
+   landscape card clipped the art.
+
+   Figma nodes `18862:8581` and `18862:8582` turned out to carry real
+   photographs as their image fills, so those were exported through Figma's
+   REST API, cropped to the card ratio (top-anchored) and converted to WebP:
+   940×720 at 206 KB and 960×736 at 132 KB, both within the range of the hero
+   photos already in the repository. The caderno node uses `scaleMode: STRETCH`
+   in the design, which distorts a portrait inside a landscape frame; cropping
+   was used instead, which preserves proportions.
+
+   **The open question:** the photographs live in the repository, in a `FOTOS`
+   map in `Comunicacao.tsx`, because the content model has no field for a card
+   photograph — only `cover`. That means an editor cannot change them without a
+   deploy, and if the featured cartilha changes in Contentful its photograph
+   will not follow. The durable fix is a `foto` field on the content type,
+   falling back to `cover`; the map is written so it can be deleted when that
+   exists.
+
+   **Authorship of these two photographs is not documented** anywhere — not in
+   `IMAGENS.md`, not in the Figma file. They were not attributed, to avoid
+   crediting the wrong person. If they are Artur Lourenço's, like the five hero
+   photos, they carry the same mandatory credit.
+
+   Incidental: `IMAGENS.md` records that the caderno's cover art still reads
+   "Boletim temático", the publication's former name. Since the card no longer
+   renders that art, the stale label no longer appears on the landing.
 10. The **orange leaves the palette**: `--laranja #ce8b44` and its derivatives
     have no counterpart in the new design system.
 11. The **seasonal-palette story is gone from the landing**. `Sazonalidade`
