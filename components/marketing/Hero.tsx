@@ -65,26 +65,28 @@ export default function Hero() {
         <div className={styles.gradient} />
       </div>
 
-      <div className={styles.content}>
-        <p className={`${styles.eyebrow} text-subtle-semibold`}>
-          Mercado de Carbono na Caatinga
-        </p>
-        <h1 className={styles.title}>
-          Dados abertos e mapas para entender o carbono do bioma e decidir com
-          mais segurança
-        </h1>
-        <p className={`${styles.lead} text-lead`}>
-          Informação aberta para que comunidades e gestores avaliem projetos
-          de carbono e negociem em condições mais justas.
-        </p>
-        <div className={styles.actions}>
-          {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
-          <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-body`}>
-            Abrir os mapas
-          </a>
-          <a href="#comunicacao" className={`${styles.secondaryButton} text-body`}>
-            Ver materiais
-          </a>
+      <div className={`container ${styles.contentArea}`}>
+        <div className={styles.content}>
+          <p className={`${styles.eyebrow} text-subtle-semibold`}>
+            Mercado de Carbono na Caatinga
+          </p>
+          <h1 className={styles.title}>
+            Dados abertos e mapas para entender o carbono do bioma e decidir com
+            mais segurança
+          </h1>
+          <p className={`${styles.lead} text-lead`}>
+            Informação aberta para que comunidades e gestores avaliem projetos
+            de carbono e negociem em condições mais justas.
+          </p>
+          <div className={styles.actions}>
+            {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
+            <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-body`}>
+              Abrir os mapas
+            </a>
+            <a href="#comunicacao" className={`${styles.secondaryButton} text-body`}>
+              Ver materiais
+            </a>
+          </div>
         </div>
       </div>
 

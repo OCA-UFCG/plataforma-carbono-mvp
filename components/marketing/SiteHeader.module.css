@@ -13,9 +13,6 @@
 
 .bar {
   height: var(--header-height);
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding-inline: var(--gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;

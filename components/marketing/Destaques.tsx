@@ -8,7 +8,7 @@ import styles from "./Destaques.module.css";
 export default function Destaques() {
   return (
     <section id="destaques" className={styles.destaques} aria-label="Destaques">
-      <div className={styles.container}>
+      <div className={`container ${styles.container}`}>
         <p className={`${styles.label} text-subtle-semibold`}>Destaques</p>
         <ul className={styles.grid}>
           {DESTAQUES.map((d) => (

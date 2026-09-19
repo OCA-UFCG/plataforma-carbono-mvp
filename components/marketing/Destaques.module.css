@@ -20,9 +20,7 @@
 }
 
 .container {
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding: 40px var(--gutter);
+  padding-block: 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;

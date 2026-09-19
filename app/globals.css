@@ -152,3 +152,18 @@ section {
   font-size: 14px;
   line-height: 20px;
 }
+
+/* Shared container primitive. Invariant: the content column is exactly
+ * --container-max (1276px), with --gutter (80px) sitting OUTSIDE that column,
+ * never subtracted from it — Figma frame 1436 = 1276 + 80x2. Consumers apply
+ * this class to the element that should hold the content column (e.g. a
+ * global class alongside a CSS-Modules class: `container ${styles.inner}`)
+ * instead of re-deriving max-width/padding-inline from the two tokens
+ * themselves. Below viewport = column + 2*gutter, the padding shrinks the
+ * column instead of overflowing the viewport, which is the sensible
+ * degradation for narrow screens. */
+.container {
+  max-width: calc(var(--container-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}

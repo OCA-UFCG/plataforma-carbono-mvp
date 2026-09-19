@@ -118,7 +118,7 @@ export default function SiteHeader() {
 
   return (
     <header className={styles.siteHeader} aria-label="Cabeçalho">
-      <div className={styles.bar}>
+      <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
           {/* The Figma node (I18862:8515;18808:5505) is an empty placeholder
               box labelled "logo", not a real exported mark; reusing the

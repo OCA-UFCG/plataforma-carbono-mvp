@@ -52,15 +52,22 @@
   );
 }
 
-.content {
+/* Positions the text column: full-bleed .hero above supplies the photo and
+ * gradient, and this wrapper (the `container` utility, see app/globals.css)
+ * aligns the text to the same content-column edge as SiteHeader and
+ * Destaques, instead of the section's own raw gutter inset. */
+.contentArea {
   position: relative;
   z-index: 1;
+  padding-block: 82px 64px;
+}
+
+.content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 21px;
   max-width: 568px;
-  padding: 82px var(--gutter) 64px;
 }
 
 .eyebrow {
@@ -167,10 +174,12 @@
 }
 
 @media (max-width: 768px) {
+  .contentArea {
+    padding-block: 56px 48px;
+  }
+
   .content {
     max-width: 100%;
-    padding-top: 56px;
-    padding-bottom: 48px;
   }
 
   .dots {
