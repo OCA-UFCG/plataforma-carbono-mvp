@@ -1,0 +1,138 @@
+/* Ferramenta, Figma node 18862:8547, 1436x560. Full-bleed band: unlike the
+ * sections above it, this one does NOT use the shared `container` utility
+ * (see app/globals.css) — the design runs the image and the dark panel
+ * edge-to-edge with the viewport. Font sizes/weights/line-heights come only
+ * from the .text-* utility classes applied in Ferramenta.tsx; this file
+ * handles color, spacing and layout only.
+ *
+ * Split ratio: the media column is 729/1436 of the frame (50.7661%), and the
+ * panel takes the remainder via `flex: 1` rather than a second hard-coded
+ * percentage, so the two always sum to exactly 100% regardless of rounding.
+ */
+
+.ferramenta {
+  display: flex;
+  align-items: stretch;
+  min-height: 560px;
+  background: var(--bg-fundo-inverso);
+}
+
+.media {
+  flex: 0 0 50.7661%;
+  position: relative;
+  min-width: 0;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Stands in for the map export until it is committed (see the MAPA_IMAGEM
+ * comment in Ferramenta.tsx). --am-100 is a light neutral, not a color tied
+ * to any real map data, so it reads as an empty slot rather than a fake map. */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background: var(--am-100);
+}
+
+/* Panel content is inset 40px from the panel's OWN left edge (Figma nodes
+ * 18862:8551..8574), not aligned to the page's content column — the design
+ * deliberately breaks that alignment here since the band is full-bleed. The
+ * vertical rhythm below (padding-top 83px, then per-element margins) is read
+ * directly off the node's y-positions: eyebrow y=83, h2 y=118, body y=211,
+ * list y=304.5, button y=461.5, panel height 560. */
+.panel {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  padding: 83px 40px 58px;
+  color: var(--bg-texto-sobre-inverso);
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: color-mix(in srgb, var(--bg-texto-sobre-inverso) 72%, transparent);
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 15px 0 0;
+}
+
+.body {
+  margin: 21px 0 0;
+  max-width: 520px;
+}
+
+.list {
+  list-style: none;
+  margin: 21px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* The 8x8 rounded marker (Figma: an 8x8 dot at x=0 in each row, text at
+ * x=20 — the 12px gap above plus this 8px marker reproduces that offset). */
+.listItem::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--cb-400);
+}
+
+.button {
+  align-self: flex-start;
+  margin-top: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  white-space: nowrap;
+  /* Same binding Hero.module.css uses for its primary button: the Figma
+     button node carries -TextoSobre and -Hover, with no -Padrao binding. */
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.button:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+@media (max-width: 900px) {
+  .ferramenta {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .media {
+    flex-basis: auto;
+  }
+
+  .image,
+  .placeholder {
+    height: auto;
+    min-height: 240px;
+    aspect-ratio: 729 / 560;
+  }
+
+  .panel {
+    padding: 48px 24px 40px;
+  }
+}
