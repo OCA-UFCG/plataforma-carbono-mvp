@@ -23,14 +23,23 @@
   background: var(--bg-fundo);
 }
 
+/* No gap between the three rows: Figma node 18862:8546 stacks them edge to edge
+ * (label row at y=40 h=40, tab strip at y=80 h=48, panel at y=128 h=274, inside
+ * 40px of block padding — 442 in total). The rows carry their own height. */
 .inner {
   padding-block: 40px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
 }
 
+/* 40px tall in the design, where the row also held a "Ver mais" button that is
+ * omitted here (there is no page to link to). Keeping the row's height means
+ * dropping the button does not pull the tab strip up under the label. */
 .label {
+  display: flex;
+  align-items: center;
+  height: 40px;
   color: var(--bg-texto-secundario);
   text-transform: uppercase;
   margin: 0;
@@ -53,7 +62,9 @@
   border: none;
   border-bottom: 3px solid transparent;
   cursor: pointer;
-  padding: 14px 2px 16px;
+  /* 10 + 24 (the .text-p-ui-semibold line box) + 10 + 3 = 47, plus the strip's
+   * own 1px bottom border = 48, the height of the design's tab strip. */
+  padding: 10px 2px;
   color: var(--bg-texto-secundario);
   white-space: nowrap;
 }
@@ -63,8 +74,15 @@
   border-bottom-color: var(--role-marca-ancora-padrao);
 }
 
+/* 274px is the panel height in Figma node 18862:8546 (frame 277132049), which
+ * the filled tab reaches on its own. The floor is here for the three tabs that
+ * ship empty: without it, selecting one collapses the section from 442px to
+ * 212px and everything below jumps up by 230px. The design never shows this,
+ * having drawn only the filled tab. Released below 640px, where the panel
+ * stacks and a fixed floor would just add dead space. */
 .panel {
   padding-top: 24px;
+  min-height: 274px;
 }
 
 .panel:focus-visible {
@@ -88,15 +106,19 @@
   align-items: flex-start;
 }
 
-/* Default (centre) object-position is correct here: unlike Comunicacao's
- * cartilha/caderno cover art (which needed `object-position: top` to stop
- * clipping a title typeset near the top of the frame), this 200x130 frame
- * shows `plataforma/o-que-e.jpg`, a plain map screenshot with no typeset
- * content to protect. */
+/* 340x250, the size of the "Background+Border" frame in Figma node 18862:8546
+ * (child I18862:8546;18846:7574). An earlier brief gave this as "~200x130",
+ * which was a misreading: it made the frame smaller than designed AND changed
+ * its ratio from 1.36 to 1.54, which is what left the whole section 36px short.
+ *
+ * Default (centre) object-position is correct here. Comunicacao's cards needed
+ * `object-position: top` only while they rendered cover art with a title
+ * typeset near the top; this frame holds a landscape photograph of the biome,
+ * pre-cropped to 1.36, so there is nothing to protect at any edge. */
 .imagem {
   flex: none;
-  width: 200px;
-  height: 130px;
+  width: 340px;
+  height: 250px;
   border-radius: var(--radius);
   border: 1px solid var(--am-200);
   object-fit: cover;
@@ -128,6 +150,11 @@
 }
 
 @media (max-width: 640px) {
+  /* No height floor once stacked: it would only add dead space. */
+  .panel {
+    min-height: 0;
+  }
+
   .conteudo {
     flex-direction: column;
   }
@@ -135,6 +162,6 @@
   .imagem {
     width: 100%;
     height: auto;
-    aspect-ratio: 200 / 130;
+    aspect-ratio: 340 / 250;
   }
 }

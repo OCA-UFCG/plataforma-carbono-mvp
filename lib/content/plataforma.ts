@@ -28,7 +28,7 @@ export const ABAS_PLATAFORMA: AbaPlataforma[] = [
     id: 'o-que-e',
     label: 'O que é a CaatiVAR?',
     conteudo: {
-      imagem: '/images/plataforma/o-que-e.jpg',
+      imagem: '/images/plataforma/o-que-e.webp',
       imagemAlt: 'Vista de um vale da Caatinga com vegetação e cidade ao fundo',
       titulo: 'O que é a CaatiVAR?',
       paragrafos: [

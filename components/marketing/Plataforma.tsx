@@ -133,8 +133,8 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
       <img
         src={conteudo.imagem}
         alt={conteudo.imagemAlt}
-        width={200}
-        height={130}
+        width={680}
+        height={500}
         className={styles.imagem}
       />
       <div className={styles.texto}>

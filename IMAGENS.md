@@ -66,7 +66,15 @@ Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação
 
 ## Plataforma (public/images/)
 
-`plataforma_preview.jpg` (captura de tela do mapa, camada de GPP ativa) foi removido junto com a versão anterior da seção "A plataforma"; o arquivo não existe mais. A seção reconstruída usa `plataforma/o-que-e.jpg`, cuja origem e crédito este documento não registra — não preenchido aqui para evitar atribuição incorreta.
+`plataforma_preview.jpg` (captura de tela do mapa, camada de GPP ativa) foi removido junto com a versão anterior da seção "A plataforma"; o arquivo não existe mais. A seção reconstruída usa `plataforma/o-que-e.webp` (680×500, 72 KB), exportada pela API REST do
+Figma a partir do preenchimento de imagem do quadro "Background+Border" (nó
+I18862:8546;18846:7574), recortada pelo centro para a proporção 340/250 do quadro e convertida
+com Pillow. O quadro tem 340×250 no design; uma versão anterior foi construída em 200×130 por
+erro de leitura do brief, o que encurtava a seção inteira em 36 px e mudava a proporção de 1,36
+para 1,54.
+
+Origem e crédito desta foto não estão registrados em lugar nenhum — nem aqui, nem no arquivo do
+Figma. Não preenchido para evitar atribuição incorreta.
 
 ## Hero
 
