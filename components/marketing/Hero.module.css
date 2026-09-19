@@ -55,10 +55,22 @@
 /* Positions the text column: full-bleed .hero above supplies the photo and
  * gradient, and this wrapper (the `container` utility, see app/globals.css)
  * aligns the text to the same content-column edge as SiteHeader and
- * Destaques, instead of the section's own raw gutter inset. */
+ * Destaques, instead of the section's own raw gutter inset.
+ *
+ * `width: 100%` is required here because .hero is itself a flex container
+ * (column direction, for the flex-end/dots layout below): the `container`
+ * utility's `margin-inline: auto` disables flexbox's default cross-axis
+ * stretch for this item, which would otherwise leave it sized to shrink-wrap
+ * its content (the 568px .content child) instead of filling the row before
+ * `max-width` caps it — and a shrink-wrapped, auto-margined box centers on
+ * its own narrower width, not on the column's left edge. `width: 100%` gives
+ * it a definite cross size again so `max-width` + the auto margins produce
+ * the same left-aligned 1276px column as SiteHeader and Destaques, which
+ * aren't flex children and don't hit this. */
 .contentArea {
   position: relative;
   z-index: 1;
+  width: 100%;
   padding-block: 82px 64px;
 }
 

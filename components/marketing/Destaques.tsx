@@ -10,9 +10,13 @@ export default function Destaques() {
     <section id="destaques" className={styles.destaques} aria-label="Destaques">
       <div className={`container ${styles.container}`}>
         <p className={`${styles.label} text-subtle-semibold`}>Destaques</p>
-        <ul className={styles.grid}>
+        {/* `role="list"`/`role="listitem"` restore the implicit list semantics
+            that `list-style: none` strips from the accessibility tree in
+            Safari/VoiceOver — without them the cards stop being announced as
+            a list of four items. */}
+        <ul className={styles.grid} role="list">
           {DESTAQUES.map((d) => (
-            <li key={d.rotulo} className={styles.card}>
+            <li key={d.rotulo} className={styles.card} role="listitem">
               <div className={styles.cardHeader}>
                 {/* Decorative: the icon repeats what `rotulo` already says in
                     text, so it carries no information of its own. A plain
