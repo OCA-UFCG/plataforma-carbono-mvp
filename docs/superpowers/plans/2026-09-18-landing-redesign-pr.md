@@ -62,9 +62,12 @@ or `app/relatorio.css`.
    label and nothing under it. The Figma's `contato@Caativar.gov.br` is
    placeholder text and `.gov.br` is not this project's domain, so nothing was
    fabricated. A real address is needed.
-8. The **hero photo credit** never renders, because no photo in the repo
-   carries credit data. The Figma's "Foto: [nome da equipe]" is likewise
-   placeholder.
+8. The **hero photo credit** is mandatory per `IMAGENS.md` ("Crédito na
+   página: 'Fotos: Artur Lourenço'"). The redesign initially dropped it — no
+   photo carried credit data, so the overlay never rendered — and it was
+   restored in commit f2521ce, which added `credit: "Artur Lourenço"` to all
+   five hero photos. The Figma's "Foto: [nome da equipe]" is still
+   placeholder text, not the real copy.
 9. The **communication cards show their titles twice** — the design mocked
    photographs, but the real content is cartilha and caderno cover art with
    the title already typeset into the image, and the 626×480 centre-crop clips

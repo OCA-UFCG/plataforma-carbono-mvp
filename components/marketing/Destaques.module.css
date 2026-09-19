@@ -5,10 +5,8 @@
  * app/globals.css); this file handles color, spacing and layout only.
  *
  * The section's own label ("Destaques") is set at 16px/Bold/uppercase in the
- * Figma node, with no bound type-scale token for that combination. Rather
- * than hard-code a font metric here, it reuses .text-subtle-semibold (the
- * closest bound style) plus an uppercase transform, which is layout, not a
- * metric. */
+ * Figma node. It uses the .text-p-ui-semibold utility (app/globals.css) plus
+ * an uppercase transform, which is layout, not a metric. */
 
 /* The Figma node's top border is an untokenized warm gray (#e2e0db); no
  * token in app/globals.css matches it, so this reuses --am-200, the closest

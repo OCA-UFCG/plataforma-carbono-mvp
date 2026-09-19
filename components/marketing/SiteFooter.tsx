@@ -42,8 +42,9 @@ export default function SiteFooter() {
           {/* A second nav landmark exists on the page (SiteHeader's
               "Navegação principal"); this one needs its own accessible name
               so assistive tech can tell the two apart. `role="list"` /
-              `role="listitem"` restore the implicit list semantics that the
-              bullet-removing reset in app/globals.css strips from <ul>/<li>. */}
+              `role="listitem"` restore the implicit list semantics that
+              `list-style: none` on `.navList` (SiteFooter.module.css) strips
+              from <ul>/<li> in most browsers. */}
           <nav aria-label="Navegação do rodapé">
             <ul className={styles.navList} role="list">
               {FOOTER_LINKS.map((link) =>

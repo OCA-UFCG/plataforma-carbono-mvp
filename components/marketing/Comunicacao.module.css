@@ -50,12 +50,16 @@
   color: inherit;
 }
 
+/* `object-position: top`: the content is cartilha/caderno cover art, which
+ * has its title typeset near the top of the frame, so a centre-crop on this
+ * 626x480 card clips it. */
 .photo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   transition: transform 0.2s ease;
 }
 

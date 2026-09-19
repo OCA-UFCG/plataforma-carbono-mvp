@@ -132,6 +132,13 @@ section {
   line-height: 24px;
 }
 
+.text-p-ui-semibold {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+
 .text-body {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 400;

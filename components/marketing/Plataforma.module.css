@@ -1,7 +1,6 @@
 /* Plataforma, Figma node 18862:8546 ("Sobre"). Font sizes/weights/line-heights
  * come only from the .text-* utility classes applied in Plataforma.tsx (see
- * app/globals.css); this file handles color, spacing and layout only — with
- * one documented exception, `.tab`'s font-weight/font-size below.
+ * app/globals.css); this file handles color, spacing and layout only.
  *
  * Two colours in the design node have no bound token:
  *   - the tablist's bottom border (#d8d6d1) and the image frame's border
@@ -12,18 +11,12 @@
  *     --bg-texto-secundario, overriding the Figma-extracted --am-400 (the
  *     brief is the more recent, deliberate decision).
  *
- * Exception: `.tab`'s 600/16px is a measured metric, not a bound type-scale
- * token, hard-coded the same way Hero.module.css hard-codes the h1. Measured
- * off the "Sobre" node's own tab label instances (18862:8546, e.g. the
- * "O que é a CaatiVAR?" text node I18862:8546;18846:7562 and its inactive
- * siblings 18846:7565/7568/7571), all `Archivo SemiBold 16px`. The generic
- * "tab item" component in the Figma library (8702:53247) is NOT the source
- * for this: it is bound to a different, unrelated design system (slate/900,
- * slate/600, shadcn's var(--primary)/var(--foreground)) and carries no
- * typography variable at all, so it cannot confirm or deny a token binding
- * for this section's tabs. If a matching --text-* utility is ever bound in
- * the design file for this weight/size pair, this hard-coded value should be
- * replaced with it.
+ * Open question: `.tab` uses the bound `.text-p-ui-semibold` utility
+ * (600/16px, Rubik). The Figma node's own tab label instances (18862:8546,
+ * e.g. the "O que é a CaatiVAR?" text node I18862:8546;18846:7562 and its
+ * inactive siblings 18846:7565/7568/7571) are all set in `Archivo SemiBold
+ * 16px`, not Rubik — whether this tab label should actually render in
+ * Archivo rather than Rubik is still open.
  */
 
 .plataforma {
@@ -62,9 +55,6 @@
   cursor: pointer;
   padding: 14px 2px 16px;
   color: var(--bg-texto-secundario);
-  font-family: var(--font-sans, var(--font-fallback));
-  font-weight: 600;
-  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -98,6 +88,11 @@
   align-items: flex-start;
 }
 
+/* Default (centre) object-position is correct here: unlike Comunicacao's
+ * cartilha/caderno cover art (which needed `object-position: top` to stop
+ * clipping a title typeset near the top of the frame), this 200x130 frame
+ * shows `plataforma/o-que-e.jpg`, a plain map screenshot with no typeset
+ * content to protect. */
 .imagem {
   flex: none;
   width: 200px;

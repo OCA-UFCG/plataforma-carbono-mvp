@@ -19,12 +19,15 @@
   gap: 16px;
 }
 
-/* Brand mark + wordmark, left side of the bar. */
+/* Brand mark + wordmark, left side of the bar. Allowed to shrink (unlike
+ * `.nav`/`.actions` below, which stay `flex: none`) so `.brandTagline`'s
+ * ellipsis can actually engage under pressure instead of being permanently
+ * dead code. */
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: none;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
@@ -216,7 +219,9 @@
   gap: 16px;
 }
 
-@media (max-width: 900px) {
+/* Breakpoint pair with SiteHeader.tsx's DESKTOP_QUERY — see the comment
+ * there for why 1200px and why the two must move together. */
+@media (max-width: 1199px) {
   .nav,
   .actions > .language,
   .actions > .sessionButton {
@@ -228,7 +233,7 @@
   }
 }
 
-@media (min-width: 901px) {
+@media (min-width: 1200px) {
   .panel,
   .panel:not([hidden]) {
     display: none;

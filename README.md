@@ -110,7 +110,7 @@ O arquivo da service account deve existir apenas na VPS beta e ser legível pelo
 
 ```
 app/
-├ (marketing)/          layout raiz de marketing (Raleway, globals.css)
+├ (marketing)/          layout raiz de marketing (Rubik + Archivo Narrow, globals.css)
 │   ├ layout.tsx
 │   └ page.tsx          a landing
 ├ (mapa)/               layout raiz do módulo (Libre Franklin, mapa.css)
@@ -142,7 +142,7 @@ Os dois grupos de rotas têm layouts raiz irmãos, e não um layout comum. É is
 
 ## Identidade visual
 
-Paleta do logo OCA: verde-oliva `#5f7030` e laranja `#ce8b44`, sobre neutros de cinza-areia. As páginas de marketing usam Raleway (pesos 300/400/600) com numerais lining; o módulo de mapas usa Libre Franklin (400 a 800).
+Paleta do logo OCA: verde-oliva `#5f7030` e laranja `#ce8b44`, sobre neutros de cinza-areia. As páginas de marketing usam Rubik (texto) e Archivo Narrow (o h1 do hero), ambas com numerais lining por padrão; o módulo de mapas usa Libre Franklin (400 a 800).
 
 O acento acompanha o mês: as doze cores vêm da série Landsat 1985-2024 do bioma, desmisturada em NDFI, e ficam em `lib/phenology.ts`. O módulo abre no mês de hoje e deixa fixar outro. A seção `/#paleta` da landing mostra o estudo que originou a rampa. Ver a seção Identidade visual da [`DOCUMENTACAO.md`](DOCUMENTACAO.md).
 

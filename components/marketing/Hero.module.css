@@ -145,14 +145,18 @@
 }
 
 /* Carousel dots, bottom-left (node 18862:8531): active pill 26x6, others 6x6
- * circles, both tints of the "text over inverse background" token. */
+ * circles, both tints of the "text over inverse background" token. Composed
+ * with the `container` utility (see app/globals.css) so the dots land on the
+ * same content-column edge as the h1, instead of padding out from `--gutter`
+ * on its own — that re-derivation is exactly what put the dots 160px off
+ * from the text at non-Figma-frame viewport widths. */
 .dots {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 0 var(--gutter) 29px;
+  padding-bottom: 29px;
 }
 
 .dot {
@@ -170,19 +174,32 @@
   background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
 }
 
-/* Photo credit overlay, bottom-right (node 18862:8536). Only rendered when
- * the active photo has a known credit (see Hero.tsx); its pill background is
- * the exact token the Figma node itself references. */
+/* Photo credit overlay, bottom-right (node 18862:8536). `.creditRow` is the
+ * `container` utility stretched over the full hero (it is itself the
+ * positioned ancestor, via `position: absolute`), so `.credit`'s `right: 0`
+ * resolves against the content column's right edge (the container's padding
+ * box), not the viewport's — the same fix as `.dots` above, from the other
+ * edge. The old raw `right: 21.62px` was a sub-pixel Figma value that only
+ * lined up at the 1436px Figma frame width. */
+.creditRow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Only rendered when the active photo has a known credit (see Hero.tsx); its
+ * pill background is the exact token the Figma node itself references. */
 .credit {
   position: absolute;
-  z-index: 1;
-  right: 21.62px;
+  right: 0;
   bottom: 21px;
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--bg-overlay);
   color: var(--bg-texto-sobre-inverso);
   margin: 0;
+  pointer-events: auto;
 }
 
 @media (max-width: 768px) {

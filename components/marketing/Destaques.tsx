@@ -9,7 +9,7 @@ export default function Destaques() {
   return (
     <section id="destaques" className={styles.destaques} aria-label="Destaques">
       <div className={`container ${styles.container}`}>
-        <p className={`${styles.label} text-subtle-semibold`}>Destaques</p>
+        <p className={`${styles.label} text-p-ui-semibold`}>Destaques</p>
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
             that `list-style: none` strips from the accessibility tree in
             Safari/VoiceOver — without them the cards stop being announced as

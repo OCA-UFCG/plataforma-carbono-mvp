@@ -10,9 +10,18 @@ import { HEADER_LINKS, MAPA_LINK } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
-// Matches the breakpoint the pre-redesign header used (components/SiteHeader.tsx,
-// recovered from git history for this task).
-const DESKTOP_QUERY = "(min-width: 901px)";
+// Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
+// `.actions` are 250 + 486 + 247px with 16px gaps between them (1015px),
+// none of it allowed to shrink below content (`flex: none` on `.nav` and
+// `.actions`, deliberately — only `.brand` shrinks, for its tagline
+// ellipsis), plus `--gutter` (80px, still 80 in this range — it only drops
+// to 24 at <=768px) on both sides. 1015 + 160 = 1175px is the narrowest
+// viewport the inline header actually fits; 1200 clears it with margin. This
+// is the only JS/CSS breakpoint pair on the branch — this value, the
+// `max-width: 1199px` / `min-width: 1200px` pair in SiteHeader.module.css,
+// and the `.toggle`/`.panel` rules they gate must all move together, or the
+// hamburger and the inline nav can both render, or both vanish.
+const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
 

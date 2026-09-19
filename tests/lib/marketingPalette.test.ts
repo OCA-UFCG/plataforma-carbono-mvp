@@ -24,6 +24,14 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-sobre-inverso', '--bg-fundo-inverso'],
   ['--role-marca-ancora-texto-sobre', '--role-marca-ancora-padrao'],
   ['--role-primario-texto-sobre', '--role-categorica1-padrao'],
+  // The tightest pair the page actually renders: --role-marca-ancora-padrao
+  // as foreground (the Comunicação h2, the active tab, the active nav link,
+  // the global focus ring) on the page background. Both primary buttons rest
+  // on --role-marca-ancora-hover instead (Hero.module.css, Ferramenta.module.css,
+  // both deliberate, both matching Figma node 18862:8529), so that pair is
+  // covered here rather than the -padrao background pair no section uses.
+  ['--role-marca-ancora-padrao', '--bg-fundo'],
+  ['--role-marca-ancora-texto-sobre', '--role-marca-ancora-hover'],
 ]
 
 describe('landing palette', () => {

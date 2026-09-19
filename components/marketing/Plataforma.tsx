@@ -85,7 +85,7 @@ export default function Plataforma() {
                 aria-selected={selected}
                 aria-controls={panelId(aba.id)}
                 tabIndex={selected ? 0 : -1}
-                className={`${styles.tab} ${selected ? styles.tabActive : ""}`}
+                className={`${styles.tab} text-p-ui-semibold ${selected ? styles.tabActive : ""}`}
                 onClick={() => setActiveId(aba.id)}
                 onKeyDown={handleKeyDown}
               >

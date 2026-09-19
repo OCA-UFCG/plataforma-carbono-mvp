@@ -29,7 +29,7 @@ Observação: a arte da capa do caderno ainda traz o rótulo "Boletim temático"
 
 ## Formação (public/images/formacao/)
 
-Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos), usadas no carrossel da seção Formação. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).
+Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos). A seção Formação e seu carrossel foram removidos na reconstrução da landing; as fotos sobrevivem em `DEFAULT_FOTOS_FORMACAO` mas nada as renderiza hoje. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).
 
 Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação em evento), `f3.jpg` (oficina), `f4.jpg` (roda de diálogo), `f6.jpg` (foto de grupo), `f7.jpg` (oficina com a sociedade civil). A sétima selecionada era um momento cultural em orientação retrato (`f5`), removida porque o carrossel usa moldura paisagem 3:2 e a foto perdia metade do conteúdo no recorte. As legendas são provisórias (descrevem o que se vê); ajustar quando houver a identificação dos eventos. A pasta `../fotos` tem mais imagens disponíveis e um `photos_caatinga.zip` (não usado).
 
@@ -43,4 +43,4 @@ O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), 
 
 ## Tipografia
 
-Fonte Raleway via `next/font/google`, pesos 300, 400 e 600, com `font-feature-settings: 'lnum' 1` global (a Raleway usa algarismos old-style por padrão; lnum alinha os números). Se o projeto adotar o padrão gov.br, a equivalente institucional é a Rawline.
+Fonte Rubik via `next/font/google` (texto) e Archivo Narrow (o h1 do hero), ambas self-hosted através de `next/font` em `app/(marketing)/layout.tsx`. Sem `font-feature-settings: 'lnum' 1`: a Rubik já usa algarismos lining por padrão, então a regra que a Raleway precisava foi removida. Se o projeto adotar o padrão gov.br, a equivalente institucional é a Rawline.

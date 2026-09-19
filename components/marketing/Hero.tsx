@@ -91,7 +91,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className={styles.dots} role="group" aria-label="Selecionar foto de fundo">
+      <div className={`container ${styles.dots}`} role="group" aria-label="Selecionar foto de fundo">
         {PHOTOS.map((photo, i) => (
           <button
             key={photo.src}
@@ -104,9 +104,11 @@ export default function Hero() {
         ))}
       </div>
 
-      {activePhoto.credit && (
-        <p className={`${styles.credit} text-subtle`}>Foto: {activePhoto.credit}</p>
-      )}
+      <div className={`container ${styles.creditRow}`}>
+        {activePhoto.credit && (
+          <p className={`${styles.credit} text-subtle`}>Foto: {activePhoto.credit}</p>
+        )}
+      </div>
     </section>
   );
 }
