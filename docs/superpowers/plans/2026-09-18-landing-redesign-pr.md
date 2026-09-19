@@ -140,5 +140,19 @@ were left untouched.
       `overlays/FloatingSearchBar.tsx:83,165`), out of scope
 - [x] `npm run build` — succeeds
 - [x] `npm run contrast` — 0 failures below 4.5:1
-- [ ] Manual browser pass at 1440px / 768px / 390px — not done in this session
-      (browser tooling unavailable); needs a separate pass before merge
+- [x] Browser verification at a 1905px layout width, in an authenticated
+      session, measuring real element geometry rather than eyeballing:
+      header, hero, highlights, tabs, map band, communication and footer all
+      land their content on one x (314.5), content column exactly 1276.0px,
+      no horizontal scroll; hero dots and photo credit align to that column;
+      the tab keyboard model (arrows, Home/End with `preventDefault`, roving
+      `tabindex`, all four panels mounted so every `aria-controls` resolves,
+      no focusable element inside a hidden panel); list semantics on all four
+      list-bearing sections; `"Foto: Artur Lourenço"` rendering
+- [ ] **Responsive rendering below ~1900px — NOT verified.** Chrome runs under
+      Wayland here, where the window cannot be resized programmatically, so
+      the 1200px header breakpoint and the 900 / 768 / 640 / 520px section
+      breakpoints were reasoned about but never observed. The footer's
+      three-column row was cleared analytically (648px required against 741px
+      available just above its breakpoint). Needs a manual pass at 1436 /
+      1200 / 1024 / 900 / 768 / 640 / 390px before merge
