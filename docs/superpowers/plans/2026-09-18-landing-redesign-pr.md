@@ -105,11 +105,24 @@ or `app/relatorio.css`.
 
 ### Known technical debt, deliberate and isolated
 
-18. The **map image in the "Ferramenta" band is missing**. The Figma export
-    could not be fetched (API quota), and the only repo candidate was rejected
-    for carrying map-module UI chrome and stale branding. The band renders a
-    neutral placeholder driven by a single nullable constant (`MAPA_IMAGEM`) in
-    `Ferramenta.tsx`; swapping in the real export is a one-line change.
+18. ~~The map image in the "Ferramenta" band is missing.~~ **Resolved.** The
+    Figma MCP's plan quota was exhausted, so the export was fetched through
+    Figma's REST API instead (node `18862:8548`, PNG at 2x), then converted to
+    WebP with Pillow — the same tooling `IMAGENS.md` records for the other
+    photos — taking it from 1048 KB to 65 KB with no real transparency to
+    preserve. `MAPA_IMAGEM` in `Ferramenta.tsx` now points at
+    `/images/ferramenta/mapa-caatinga.webp`; the placeholder branch is kept, as
+    it shares the image's aspect ratio and is what renders if the constant is
+    ever set back to `null`.
+
+    Wiring the real image exposed a latent layout bug worth noting: an `<img>`
+    with `height: 100%` against a parent of indefinite height falls back to
+    `auto` and sizes itself from its own intrinsic ratio, which stretched the
+    band from 560px to 743px. A `<div>` placeholder never did, having no
+    intrinsic ratio. `.image` is now taken out of flow against `.media`'s
+    existing `position: relative` (and reset to `static` below 900px, where the
+    stacked layout wants the image to size itself), so the band's height stays
+    driven by the panel's content.
 19. **`.text-lead` (weight 400) is used for the communication card titles**
     because no bound token was reachable and inventing one was forbidden. A
     regular-weight 20px title reads as a caption; the type scale is probably
