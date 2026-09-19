@@ -4,10 +4,9 @@
  * the h1: it has no bound Figma variable, so its metrics are read off node
  * 18862:8525 (Archivo Narrow, Bold, 48px, line-height 51.52px, no tracking)
  * and defined here instead of reusing .text-h2 (a different family/scale).
- * Archivo Narrow is not loaded anywhere else in the project (only Rubik is,
- * via next/font in app/(marketing)/layout.tsx, which this task does not
- * touch), so it is pulled in with its own @import, scoped to this module. */
-@import url("https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap");
+ * Archivo Narrow is self-hosted via next/font in app/(marketing)/layout.tsx,
+ * exposed there as --font-display, alongside Rubik's --font-sans, so both
+ * faces load the same way instead of one going through a CSS @import. */
 
 .hero {
   position: relative;
@@ -73,7 +72,7 @@
  * line-height 51.52px, no letter-spacing, read off Figma node 18862:8525.
  * Clamped down on narrow viewports so it does not overflow at 390px. */
 .title {
-  font-family: "Archivo Narrow", var(--font-sans, var(--font-fallback));
+  font-family: var(--font-display, var(--font-sans, var(--font-fallback)));
   font-weight: 700;
   font-size: clamp(28px, 6vw, 48px);
   line-height: 1.0733;
@@ -103,6 +102,10 @@
   white-space: nowrap;
 }
 
+/* Resting fill is deliberately bound to -hover, not -padrao: Figma node
+ * 18862:8529 (the "Abrir os mapas" button) carries exactly two colour
+ * variables, ROLE-MarcaAncora-TextoSobre and ROLE-MarcaAncora-Hover, with no
+ * -Padrao binding at all. This matches the design; do not "fix" it back. */
 .primaryButton {
   background: var(--role-marca-ancora-hover);
   color: var(--role-marca-ancora-texto-sobre);
