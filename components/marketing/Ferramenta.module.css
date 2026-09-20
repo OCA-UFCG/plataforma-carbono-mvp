@@ -69,8 +69,14 @@
   text-transform: uppercase;
 }
 
+/* 391px is this heading's own width in Figma node 18862:8553, where it sets in
+ * two lines (72 tall at the 36px h2 line box) inside a 587px content column.
+ * Unlike the arbitrary caps removed elsewhere on this branch, this one comes
+ * from the design: without it the heading fits on one line and the panel reads
+ * differently from the mock. */
 .title {
   margin: 15px 0 0;
+  max-width: 391px;
 }
 
 /* 587px is the width of this paragraph's container in Figma node 18862:8554,

@@ -3,16 +3,23 @@
  * applied in SiteHeader.tsx (see app/globals.css); this file handles color,
  * spacing and layout only. */
 
+/* The height lives here, on the element that actually occupies the sticky
+ * strip, so --header-height means the WHOLE header including its border: the
+ * global reset's border-box keeps the 2px inside the 76. With the height on
+ * .bar instead, the border added on top and the header stood 78 tall while
+ * `section { scroll-margin-top: var(--header-height) }` still offset by 76 —
+ * anchored sections landed 2px under the bar. */
 .siteHeader {
   position: sticky;
   top: 0;
   z-index: 50;
+  height: var(--header-height);
   background: var(--bg-fundo);
   border-bottom: var(--borda-largura) solid var(--bg-borda);
 }
 
 .bar {
-  height: var(--header-height);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
