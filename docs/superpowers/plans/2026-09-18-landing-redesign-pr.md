@@ -45,8 +45,16 @@ or `app/relatorio.css`.
    `caatinga`/`Sazonalidade`, `faixa-cta`. Their content is parked in
    `lib/content/{dimensoes,ameacas,frentes}.ts`, imported by nothing, for the
    internal pages the menu implies.
-4. **"Ver mais" buttons are omitted** throughout — there are no internal pages
-   to link to yet.
+4. **"Ver mais" controls are rendered but inert.** They appear at the right of
+   the "Conheça a plataforma" and "Comunicação" header rows, 114x40 as in the
+   design, but they do not navigate: the internal pages they would open do not
+   exist yet. They are `<span>`s carrying `aria-disabled` and a "Disponível em
+   breve" title rather than disabled `<button>`s, matching how the header's
+   PT-BR/En control handles the same problem — a disabled button announces as a
+   broken control, a span announces as unavailable text. Shared as
+   `components/marketing/MoreLink.tsx` so giving them a real `href` later is one
+   change rather than two. (They were omitted entirely in an earlier revision;
+   restored at the reviewer's request.)
 5. **Three of the four "Conheça a plataforma" tabs ship empty**
    ("Conteúdo em preparação."). Only "O que é a CaatiVAR?" was designed; no
    copy exists anywhere for the other three and none was invented.
