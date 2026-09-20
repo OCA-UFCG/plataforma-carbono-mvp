@@ -149,11 +149,15 @@
   margin: 0;
 }
 
+/* No max-width: the text column is already capped at 896px by the panel, and
+ * the design sets this quote on ONE line (its text node measures 605x24 in
+ * Figma node 18862:8546). An earlier 560px cap left only 540px of content box
+ * after the padding and wrapped it to two lines — a number that came from
+ * nowhere in the design. */
 .destaque {
   color: var(--bg-texto-primario);
   border-left: 3px solid var(--role-neutro-borda);
   padding: 10px 0 10px 20px;
-  max-width: 560px;
   margin: 0;
 }
 

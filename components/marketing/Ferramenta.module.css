@@ -73,9 +73,12 @@
   margin: 15px 0 0;
 }
 
+/* 587px is the width of this paragraph's container in Figma node 18862:8554,
+ * where the text sets in 3 lines. An earlier 520px cap was not from the design
+ * and squeezed it into more. */
 .body {
   margin: 21px 0 0;
-  max-width: 520px;
+  max-width: 587px;
 }
 
 .list {
