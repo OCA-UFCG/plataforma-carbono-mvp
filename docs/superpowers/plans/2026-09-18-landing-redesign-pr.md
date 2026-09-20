@@ -17,8 +17,10 @@ against the Figma handoff (file `hzQi2FcgZuGSGSP6NaeLdY`), replacing the old
 `Ferramenta`, `Comunicacao`, `SiteFooter`. `app/globals.css` now holds only the
 reset, the Figma design-system tokens, the shared type scale and the `.container`
 utility — verified with `grep -oE '^\.[a-zA-Z0-9_-]+' app/globals.css`, which
-returns exactly `.container .text-body .text-h2 .text-lead .text-p-ui .text-subtle
-.text-subtle-semibold` and nothing else. Zero orphan section classes survived,
+returns exactly `.container .text-body .text-h2 .text-lead .text-p-ui
+.text-p-ui-semibold .text-subtle .text-subtle-medium .text-subtle-semibold` and
+nothing else — the reset, the tokens, one layout primitive and the type scale.
+Zero orphan section classes survived,
 which is what justified CSS Modules over editing the old stylesheet in place.
 
 Also sweeps `public/images/` for assets the new page no longer references (18
@@ -85,11 +87,13 @@ or `app/relatorio.css`.
 
    Figma nodes `18862:8581` and `18862:8582` turned out to carry real
    photographs as their image fills, so those were exported through Figma's
-   REST API, cropped to the card ratio (top-anchored) and converted to WebP:
-   940×720 at 206 KB and 960×736 at 132 KB, both within the range of the hero
+   REST API, cropped to the card ratio (centre-anchored) and converted to WebP:
+   940×720 at 206 KB and 960×736 at 197 KB, both within the range of the hero
    photos already in the repository. The caderno node uses `scaleMode: STRETCH`
    in the design, which distorts a portrait inside a landscape frame; cropping
-   was used instead, which preserves proportions.
+   was used instead, which preserves proportions. The crop is centre-anchored:
+   top-anchoring, the rule that suited cover art with a title at the top, left
+   the caderno card showing only sky and cut the house out of the photograph.
 
    **The open question:** the photographs live in the repository, in a `FOTOS`
    map in `Comunicacao.tsx`, because the content model has no field for a card
