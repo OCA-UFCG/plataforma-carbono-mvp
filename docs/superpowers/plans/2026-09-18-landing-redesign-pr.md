@@ -63,11 +63,27 @@ or `app/relatorio.css`.
 
 ### Content the owner must resolve
 
-6. **A numeric discrepancy:** the highlights card reads **40%** "das remoções
-   de gases de efeito estufa do Brasil em 2022", while the previous landing
-   said **48%** "da remoção bruta de carbono do país" (now in
-   `lib/content/dimensoes.ts`). Both may be right — all greenhouse gases versus
-   carbon alone — but nobody has confirmed.
+6. ~~A numeric discrepancy between 40% and 48%.~~ **Resolved by the content
+   owner: the card now shows 48%.** The design read **40%** "das remoções de
+   gases de efeito estufa do Brasil em 2022" with no source; the previous
+   landing read **48%** "da remoção bruta de carbono do país", sourced to DA
+   COSTA et al. (2025) and MENDES et al. (2023; 2025).
+
+   Note that these are different metrics — all greenhouse gases versus carbon
+   alone — so the label and the sentence moved with the figure rather than the
+   figure alone: "48% of GHG removals" is a claim neither source supports. The
+   card now reads "Remoção de carbono · 48% · da remoção bruta de carbono do
+   Brasil em 2022, ocupando cerca de 10% do território."
+
+   **This is a deliberate departure from the Figma copy**, recorded in
+   `lib/content/destaques.ts`. The design file still says 40%/GHG and should be
+   updated to match, or the two will drift again.
+
+   One thing left open: the figure is sourced, but the card has no field to
+   show a source and the design's card has no source line. On a platform whose
+   argument is open scientific data, a headline figure arguably ought to carry
+   its provenance — that would need a design change, so it is raised rather
+   than invented.
 7. **No contact e-mail exists.** The footer's "CONTATO" column ships with a
    label and nothing under it. The Figma's `contato@Caativar.gov.br` is
    placeholder text and `.gov.br` is not this project's domain, so nothing was

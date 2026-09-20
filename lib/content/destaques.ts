@@ -9,14 +9,20 @@
 // one exported SVG, one per card, so a future design pass can swap a single
 // card's glyph without touching the others.
 //
-// Known discrepancy, not silently resolved: the "Remoção de GEE" card says
-// 40% "das remoções de gases de efeito estufa do Brasil em 2022" per the
-// Figma copy. The landing this replaces said 48% "da remoção bruta de
-// carbono do país" (that old copy now lives in lib/content/dimensoes.ts).
-// Both figures may be correct — all greenhouse gases versus carbon alone —
-// but the content owner has not confirmed which the site should show. This
-// ships the Figma figure (40%) as instructed; do not "fix" it back to 48%
-// without checking with the content owner first.
+// The second card deliberately departs from the Figma copy, on the content
+// owner's instruction. The design read 40% "das remoções de gases de efeito
+// estufa do Brasil em 2022" with no source. The figure now shown is the 48%
+// the previous landing carried, which is a DIFFERENT metric — gross CARBON
+// removal, not all greenhouse gases — so the label and the sentence moved with
+// the number rather than the number alone: "48% of GHG removals" is a claim
+// neither source supports.
+//
+// Source for the figure and wording, carried over from the previous landing
+// (now lib/content/dimensoes.ts): DA COSTA et al. (2025); MENDES et al.
+// (2023; 2025). The card has no field to display it — the design's card has no
+// source line — so it is recorded here. Raised in the PR: a headline figure on
+// a platform whose argument is open scientific data arguably ought to show its
+// provenance, which would need a design change.
 export type Destaque = {
   icone: string
   rotulo: string
@@ -35,11 +41,11 @@ export const DESTAQUES: Destaque[] = [
   },
   {
     icone: '/icons/destaques/remocao.svg',
-    rotulo: 'Remoção de GEE',
-    numero: '40',
+    rotulo: 'Remoção de carbono',
+    numero: '48',
     unidade: '%',
     texto:
-      'das remoções de gases de efeito estufa do Brasil em 2022, mais do que qualquer outro bioma.',
+      'da remoção bruta de carbono do Brasil em 2022, ocupando cerca de 10% do território.',
   },
   {
     icone: '/icons/destaques/eficiencia.svg',
