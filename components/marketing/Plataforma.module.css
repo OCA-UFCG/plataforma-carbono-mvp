@@ -1,0 +1,180 @@
+/* Plataforma, Figma node 18862:8546 ("Sobre"). Font sizes/weights/line-heights
+ * come only from the .text-* utility classes applied in Plataforma.tsx (see
+ * app/globals.css); this file handles color, spacing and layout only.
+ *
+ * Two colours in the design node have no bound token:
+ *   - the tablist's bottom border (#d8d6d1) and the image frame's border
+ *     (#d1cec8) are both untokenized warm grays close to --am-200, the same
+ *     substitution Destaques.module.css already made for an equivalent
+ *     border (see its comment); reused here rather than inventing a hex.
+ *   - the tab strip's inactive-tab colour is spec'd by the task brief as
+ *     --bg-texto-secundario, overriding the Figma-extracted --am-400 (the
+ *     brief is the more recent, deliberate decision).
+ *
+ * Open question: `.tab` uses the bound `.text-p-ui-semibold` utility
+ * (600/16px, Rubik). The Figma node's own tab label instances (18862:8546,
+ * e.g. the "O que é a CaatiVAR?" text node I18862:8546;18846:7562 and its
+ * inactive siblings 18846:7565/7568/7571) are all set in `Archivo SemiBold
+ * 16px`, not Rubik — whether this tab label should actually render in
+ * Archivo rather than Rubik is still open.
+ */
+
+.plataforma {
+  background: var(--bg-fundo);
+}
+
+/* No gap between the three rows: Figma node 18862:8546 stacks them edge to edge
+ * (label row at y=40 h=40, tab strip at y=80 h=48, panel at y=128 h=274, inside
+ * 40px of block padding — 442 in total). The rows carry their own height. */
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* The section's 40px header row: label or heading on the left, the inert
+ * "Ver mais" control pushed to the right edge of the content column. */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+/* 40px tall, matching the design's header row. The row also carries the
+ * "Ver mais" control (see MoreLink) at its right edge. */
+.label {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  color: var(--bg-texto-secundario);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Scrolls horizontally instead of wrapping at narrow widths (verified at
+ * 390px): a wrapped tab grid would break the "Button" underline layout the
+ * design uses for the active tab. */
+.tablist {
+  display: flex;
+  gap: 34px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--am-200);
+}
+
+.tab {
+  flex: none;
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  /* 10 + 24 (the .text-p-ui-semibold line box) + 10 + 3 = 47, plus the strip's
+   * own 1px bottom border = 48, the height of the design's tab strip. */
+  padding: 10px 2px;
+  color: var(--bg-texto-secundario);
+  white-space: nowrap;
+}
+
+.tabActive {
+  color: var(--role-marca-ancora-padrao);
+  border-bottom-color: var(--role-marca-ancora-padrao);
+}
+
+/* 274px is the panel height in Figma node 18862:8546 (frame 277132049), which
+ * the filled tab reaches on its own. The floor is here for the three tabs that
+ * ship empty: without it, selecting one collapses the section from 442px to
+ * 212px and everything below jumps up by 230px. The design never shows this,
+ * having drawn only the filled tab. Released below 640px, where the panel
+ * stacks and a fixed floor would just add dead space. */
+.panel {
+  padding-top: 24px;
+  min-height: 274px;
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 4px;
+}
+
+/* Quiet empty state for the three undesigned tabs: informative text a
+ * person has to read, so it uses --bg-texto-secundario (14.80:1 against
+ * --bg-fundo), never --role-neutro-texto-desabilitado (2.50:1) — that token
+ * is reserved for genuinely inert controls, like the header's English
+ * language option. */
+.vazio {
+  color: var(--bg-texto-secundario);
+  margin: 0;
+}
+
+.conteudo {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* 340x250, the size of the "Background+Border" frame in Figma node 18862:8546
+ * (child I18862:8546;18846:7574). An earlier brief gave this as "~200x130",
+ * which was a misreading: it made the frame smaller than designed AND changed
+ * its ratio from 1.36 to 1.54, which is what left the whole section 36px short.
+ *
+ * Default (centre) object-position is correct here. Comunicacao's cards needed
+ * `object-position: top` only while they rendered cover art with a title
+ * typeset near the top; this frame holds a landscape photograph of the biome,
+ * pre-cropped to 1.36, so there is nothing to protect at any edge. */
+.imagem {
+  flex: none;
+  width: 340px;
+  height: 250px;
+  border-radius: var(--radius);
+  border: 1px solid var(--am-200);
+  object-fit: cover;
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.titulo {
+  color: var(--role-marca-ancora-pressionado);
+  margin: 0;
+}
+
+.paragrafo {
+  color: var(--bg-texto-primario);
+  margin: 0;
+}
+
+/* No max-width: the text column is already capped at 896px by the panel, and
+ * the design sets this quote on ONE line (its text node measures 605x24 in
+ * Figma node 18862:8546). An earlier 560px cap left only 540px of content box
+ * after the padding and wrapped it to two lines — a number that came from
+ * nowhere in the design. */
+.destaque {
+  color: var(--bg-texto-primario);
+  border-left: 3px solid var(--role-neutro-borda);
+  padding: 10px 0 10px 20px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  /* No height floor once stacked: it would only add dead space. */
+  .panel {
+    min-height: 0;
+  }
+
+  .conteudo {
+    flex-direction: column;
+  }
+
+  .imagem {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 340 / 250;
+  }
+}

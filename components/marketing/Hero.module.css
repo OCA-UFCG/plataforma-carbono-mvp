@@ -1,0 +1,263 @@
+/* Hero. Figma "Background", node 18862:8516, 495px tall under the 76px
+ * header (18862:8515). Font sizes/weights/line-heights come from the
+ * .text-* utility classes applied in Hero.tsx (see app/globals.css), except
+ * the h1: it has no bound Figma variable, so its metrics are read off node
+ * 18862:8525 (Archivo Narrow, Bold, 48px, line-height 51.52px, no tracking)
+ * and defined here instead of reusing .text-h2 (a different family/scale).
+ * Archivo Narrow is self-hosted via next/font in app/(marketing)/layout.tsx,
+ * exposed there as --font-display, alongside Rubik's --font-sans, so both
+ * faces load the same way instead of one going through a CSS @import. */
+
+/* This section renders 503px tall against the design's 495. The 8px is four
+ * differences that nearly cancel, and it is left alone deliberately:
+ *
+ *   eyebrow line box    20 vs 14   +6
+ *   gap h1 -> lead      21 vs 16   +5
+ *   button row          52 vs 48   +4
+ *   dot row block       35 vs 42   -7
+ *                                 ----
+ *                                  +8
+ *
+ * Two of the four would cost more than they are worth. The eyebrow needs a
+ * line-height equal to its font size, which is a tenth type utility for a
+ * design system that binds six styles; the h1/lead gap needs those two wrapped
+ * in their own element so the column can carry two different gaps. Both exist
+ * only because the design uses values it never tokenised — the same problem the
+ * PR already raises with whoever maintains the Figma file.
+ *
+ * Do NOT close the 8px by tuning the dot row alone. That would make the total
+ * land at this one viewport while all four causes stay wrong, and they only
+ * cancel here by arithmetic accident — a different width or a different string
+ * pulls them apart again. Fix the causes or leave it. */
+.hero {
+  position: relative;
+  min-height: 495px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  color: var(--role-terciario-texto-sobre);
+}
+
+/* Cross-fading photo layer, absorbed from the deleted HeroBackground.tsx. */
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.backgroundImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 1s ease-in-out;
+}
+
+/* Darkens the photo so the white text over it clears 4.5:1 (Gradient, node
+ * 18862:8520). The design's own gradient uses a warm dark brown with no bound
+ * token (rgb(40, 38, 35)); the closest real token is the "inverse background"
+ * used elsewhere for dark-on-light overlays, so the tint is derived from it
+ * rather than inventing an untokenized colour. Left edge (where the text
+ * column sits) is kept the most opaque so contrast holds regardless of which
+ * photo is showing. */
+.gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--bg-fundo-inverso) 88%, transparent) 0%,
+    color-mix(in srgb, var(--bg-fundo-inverso) 78%, transparent) 45%,
+    color-mix(in srgb, var(--bg-fundo-inverso) 40%, transparent) 100%
+  );
+}
+
+/* Positions the text column: full-bleed .hero above supplies the photo and
+ * gradient, and this wrapper (the `container` utility, see app/globals.css)
+ * aligns the text to the same content-column edge as SiteHeader and
+ * Destaques, instead of the section's own raw gutter inset.
+ *
+ * `width: 100%` is required here because .hero is itself a flex container
+ * (column direction, for the flex-end/dots layout below): the `container`
+ * utility's `margin-inline: auto` disables flexbox's default cross-axis
+ * stretch for this item, which would otherwise leave it sized to shrink-wrap
+ * its content (the 568px .content child) instead of filling the row before
+ * `max-width` caps it — and a shrink-wrapped, auto-margined box centers on
+ * its own narrower width, not on the column's left edge. `width: 100%` gives
+ * it a definite cross size again so `max-width` + the auto margins produce
+ * the same left-aligned 1276px column as SiteHeader and Destaques, which
+ * aren't flex children and don't hit this. */
+.contentArea {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* 82 above the eyebrow and 40 below the button row, both from Figma node
+   * 18862:8516: the eyebrow starts at y=82, the button row ends at y=413 and
+   * the dot row begins at y=453. The dots are in flow below this, so their own
+   * height and 29px tail complete the section's 495:
+   *   82 + 14 + 21 + 227 + 21 + 48 + 40 + 13 + 29 = 495.
+   * An earlier 64 here pushed the section past that floor. */
+  padding-block: 82px 40px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 21px;
+  max-width: 568px;
+}
+
+.eyebrow {
+  color: color-mix(in srgb, var(--role-terciario-texto-sobre) 72%, transparent);
+  text-transform: uppercase;
+}
+
+/* The h1's own scale (see file header comment): Archivo Narrow, Bold, 48px,
+ * line-height 51.52px, no letter-spacing, read off Figma node 18862:8525.
+ * Clamped down on narrow viewports so it does not overflow at 390px. */
+.title {
+  font-family: var(--font-display, var(--font-sans, var(--font-fallback)));
+  font-weight: 700;
+  font-size: clamp(28px, 6vw, 48px);
+  line-height: 1.0733;
+  letter-spacing: normal;
+  margin: 0;
+}
+
+.lead {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  white-space: nowrap;
+}
+
+/* Resting fill is deliberately bound to -hover, not -padrao: Figma node
+ * 18862:8529 (the "Abrir os mapas" button) carries exactly two colour
+ * variables, ROLE-MarcaAncora-TextoSobre and ROLE-MarcaAncora-Hover, with no
+ * -Padrao binding at all. This matches the design; do not "fix" it back. */
+.primaryButton {
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.primaryButton:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+.secondaryButton {
+  background: transparent;
+  color: var(--role-terciario-texto-sobre);
+  border: var(--borda-largura) solid var(--role-terciario-texto-sobre);
+}
+
+.secondaryButton:hover {
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 12%, transparent);
+}
+
+/* Carousel dots, bottom-left (node 18862:8531): active pill 26x6, others 6x6
+ * circles, both tints of the "text over inverse background" token. Composed
+ * with the `container` utility (see app/globals.css) so the dots land on the
+ * same content-column edge as the h1, instead of padding out from `--gutter`
+ * on its own — that re-derivation is exactly what put the dots 160px off
+ * from the text at non-Figma-frame viewport widths.
+ *
+ * `width: 100%` is required for the same reason `.contentArea` above needs
+ * it: `.dots` is an in-flow flex item of `.hero` (column direction), and
+ * the `container` utility's `margin-inline: auto` disables flex's default
+ * cross-axis stretch for this item, leaving it sized to shrink-wrap its own
+ * content (the dot row) instead of filling the row before `max-width` caps
+ * it — a shrink-wrapped, auto-margined box then centers on its own narrow
+ * width instead of landing on the column's left edge. */
+.dots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding-bottom: 29px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 45%, transparent);
+  cursor: pointer;
+}
+
+.dotActive {
+  width: 26px;
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
+}
+
+/* Photo credit overlay, bottom-right (node 18862:8536). `.creditRow` is the
+ * `container` utility stretched over the full hero (it is itself the
+ * positioned ancestor, via `position: absolute`), out-of-flow so it isn't
+ * subject to the `.dots`-style flex shrink-wrap bug above — its box already
+ * sizes and centers to the 1276px column correctly.
+ *
+ * `.credit`'s offset is `right: var(--gutter)`, not `right: 0`. An
+ * absolutely positioned descendant's containing block is its ancestor's
+ * *padding box*, whose outer edge is the ancestor's border edge — with no
+ * border on `.creditRow`, that is the same as its outer, un-padded visual
+ * edge. `right: 0` therefore lands flush with `.creditRow`'s outer edge
+ * (the container's max-width boundary), ignoring the `padding-inline:
+ * var(--gutter)` `container` gives it entirely; `right: var(--gutter)`
+ * insets by that padding explicitly, landing on the actual content column's
+ * right edge — the same edge the h1 lands on from the left, and the mirror
+ * of that fix. The old raw `right: 21.62px` was a sub-pixel Figma value
+ * that only lined up at the 1436px Figma frame width. */
+.creditRow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Only rendered when the active photo has a known credit (see Hero.tsx); its
+ * pill background is the exact token the Figma node itself references. */
+.credit {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 21px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  color: var(--bg-texto-sobre-inverso);
+  margin: 0;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .contentArea {
+    padding-block: 56px 48px;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .dots {
+    padding-bottom: 20px;
+  }
+}

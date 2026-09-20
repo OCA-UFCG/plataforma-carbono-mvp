@@ -1,0 +1,101 @@
+/* Site footer. Figma "Footer", node 18862:8583 (symbol 16864:138883),
+ * 1440x196. Font sizes/weights/line-heights come only from the .text-*
+ * utility classes applied in SiteFooter.tsx; this file handles color,
+ * spacing and layout only. */
+
+.siteFooter {
+  background: var(--bg-fundo-inverso);
+}
+
+.inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  /* 40px, not 48: Figma node 18862:8583 is 196 tall around a 116-tall content
+   * row (196 = 40 + 116 + 40). */
+  padding-block: 40px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Column 1 is 350x74 in the design: the mark row (36) over the links row (16),
+ * with the gap between them. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-interno);
+  object-fit: contain;
+  flex: none;
+}
+
+.brandName {
+  color: var(--bg-texto-sobre-inverso);
+  text-transform: uppercase;
+}
+
+/* A ROW, not a column: Figma lays the four links out horizontally inside
+ * column 1 (x=80, 135, 190, 292 within the 1436 frame). Stacking them made the
+ * column 184px tall against the design's 74 and pushed the whole footer from
+ * 196 to 280. Wraps rather than overflowing if the labels ever grow. */
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  list-style: none;
+}
+
+.navLink {
+  color: color-mix(in srgb, var(--bg-texto-sobre-inverso) 80%, transparent);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--bg-texto-sobre-inverso);
+}
+
+/* Columns 2 and 3 share the same small caption heading treatment. */
+.heading {
+  margin: 0;
+  color: var(--bg-texto-sobre-inverso);
+}
+
+/* Column 2: "Parceiros e apoio" over the partner logos. Aligned to a common
+ * baseline (flex-end) since the three marks differ in height.
+ *
+ * The 16px below comes from the design: Figma's "HorizontalBorder" frame is
+ * 497x76 around a 60-tall logo row, with paddingBottom 16 and — despite the
+ * name — no stroke at all (strokes: 0). It is breathing room, not a divider. */
+.logos {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+}
+
+/* No width/height rule here: each logo's HTML width/height attributes (set
+ * in SiteFooter.tsx, derived from its own aspect ratio) are what sizes it.
+ * Setting `auto` in CSS here would override those attributes and let the
+ * image blow up to its intrinsic pixel size. */
+.logo {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .inner {
+    flex-direction: column;
+    gap: 40px;
+  }
+}

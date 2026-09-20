@@ -1,0 +1,128 @@
+/* Comunicação, Figma node 18862:8575 ("Comunicação"), 1436x624, card row
+ * 18862:8580 (626x480 cards, 24px gutter). Font sizes/weights/line-heights
+ * come only from the .text-* utility classes applied in Comunicacao.tsx (see
+ * app/globals.css); this file handles color, spacing and layout only.
+ *
+ * The card title has no bound type-scale token in the design file itself
+ * (the geometry pulled before the MCP quota ran out gives the card's box,
+ * not its text style) — `.text-lead` was picked as the closest utility scale
+ * for a card headline that sits a step below the section's own `.text-h2`,
+ * the same reasoning Plataforma.tsx used for its panel `.titulo`. If the
+ * design system later binds a dedicated variable for this card title, this
+ * should switch to it.
+ */
+
+.comunicacao {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The section's 40px header row: label or heading on the left, the inert
+ * "Ver mais" control pushed to the right edge of the content column. */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.heading {
+  color: var(--role-marca-ancora-padrao);
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 626 / 480;
+  background: var(--am-100);
+}
+
+.surface {
+  display: block;
+  position: absolute;
+  inset: 0;
+  color: inherit;
+}
+
+/* `object-position: top` is a no-op today: the FOTOS photographs
+ * (Comunicacao.tsx) are pre-cropped to this 626x480 card's ratio, so there is
+ * nothing left at any edge to protect (see IMAGENS.md — photography is
+ * centre-cropped, top is almost always wrong for it). The declaration stays
+ * for the `cover` fallback Comunicacao.tsx renders when a FOTOS entry is
+ * removed: that is the publication's cover art, which does have its title
+ * typeset near the top of the frame, and a centre-crop on this card would
+ * clip it. */
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transition: transform 0.2s ease;
+}
+
+/* Interactive cards get a small hover/focus lift on the photo; the
+ * non-interactive card (no <a>, see Comunicacao.tsx) never receives
+ * hover/focus in the first place, since nothing inside it is focusable. */
+a.surface:hover .photo,
+a.surface:focus-visible .photo {
+  transform: scale(1.03);
+}
+
+/* Dark gradient the title sits on. Solid at the bottom (0%, opaque
+ * --bg-fundo-inverso) fading to fully transparent by 65% up the card: the
+ * text block below sits inside the solid portion, so its contrast against
+ * the photo never depends on the photo itself — see the module's title rule
+ * below for the actual contrast figure. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--bg-fundo-inverso) 0%, transparent 65%);
+}
+
+.text {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: var(--bg-texto-sobre-inverso);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* White on the gradient's solid stop (var(--bg-fundo-inverso), #000f15) is
+ * 19.8:1 — the title never sits over bare photo pixels, only over that
+ * opaque base, so the ratio holds regardless of what the photograph shows. */
+.title {
+  color: var(--role-terciario-texto-sobre);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

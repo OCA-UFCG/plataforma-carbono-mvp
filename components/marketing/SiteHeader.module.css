@@ -1,0 +1,248 @@
+/* Site header. Figma "Menu-superior", node 18862:8515, 1436x76.
+ * Font sizes/weights/line-heights come only from the .text-* utility classes
+ * applied in SiteHeader.tsx (see app/globals.css); this file handles color,
+ * spacing and layout only. */
+
+/* The height lives here, on the element that actually occupies the sticky
+ * strip, so --header-height means the WHOLE header including its border: the
+ * global reset's border-box keeps the 2px inside the 76. With the height on
+ * .bar instead, the border added on top and the header stood 78 tall while
+ * `section { scroll-margin-top: var(--header-height) }` still offset by 76 —
+ * anchored sections landed 2px under the bar. */
+.siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-height);
+  background: var(--bg-fundo);
+  border-bottom: var(--borda-largura) solid var(--bg-borda);
+}
+
+.bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Brand mark + wordmark, left side of the bar. Allowed to shrink (unlike
+ * `.nav`/`.actions` below, which stay `flex: none`) so `.brandTagline`'s
+ * ellipsis can actually engage under pressure instead of being permanently
+ * dead code. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.brandMark {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius);
+  object-fit: contain;
+  flex: none;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brandName {
+  color: var(--bg-texto-primario);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.brandTagline {
+  color: var(--am-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Inline nav: HEADER_LINKS + the Mapas button. */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+}
+
+.navLink {
+  padding: 8px 16px;
+  color: var(--bg-texto-primario);
+  border-bottom: var(--borda-largura) solid transparent;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--role-marca-ancora-padrao);
+}
+
+.navLinkActive {
+  color: var(--role-marca-ancora-padrao);
+  border-bottom-color: var(--role-marca-ancora-padrao);
+}
+
+/* Figma renders the "Mapas" button at rest with the hover-role green
+ * (I18862:8515;16825:136055); the darker pressed-role green is used here as
+ * the interactive hover/focus step. */
+.mapaButton {
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+  white-space: nowrap;
+}
+
+.mapaButton:hover,
+.mapaButton:focus-visible {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+/* Language switch + session slot, right side of the bar. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: none;
+}
+
+.language {
+  display: flex;
+  align-items: center;
+  background: var(--am-200);
+  border-radius: var(--radius-interno);
+  overflow: hidden;
+}
+
+.languageOption {
+  padding: 6px 12px;
+  color: var(--bg-texto-primario);
+}
+
+.languageOptionActive {
+  background: var(--role-categorica1-padrao);
+  color: var(--role-primario-texto-sobre);
+}
+
+.language [aria-disabled="true"] {
+  color: var(--role-neutro-texto-desabilitado);
+  cursor: not-allowed;
+}
+
+.sessionButton {
+  width: 114px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: var(--borda-largura) solid var(--role-categorica1-padrao);
+  background: var(--bg-fundo);
+  color: var(--role-categorica1-padrao);
+  cursor: pointer;
+}
+
+.sessionButton:hover,
+.sessionButton:focus-visible {
+  background: var(--am-100);
+}
+
+.sessionButton:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Hamburger, hidden on desktop. */
+.toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-interno);
+  border: var(--borda-largura) solid var(--bg-borda);
+  background: var(--bg-fundo);
+  color: var(--bg-texto-primario);
+  cursor: pointer;
+  flex: none;
+}
+
+/* Mobile panel, closed by default; JS toggles [hidden]. A CSS Modules class
+ * has higher precedence than the UA stylesheet's `[hidden] { display: none }`,
+ * so `display: flex` cannot live on the base `.panel` rule or it would win
+ * over `hidden` — `:not([hidden])` is what actually gates it. */
+.panel {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  background: var(--bg-fundo);
+  border-bottom: var(--borda-largura) solid var(--bg-borda);
+  box-shadow: var(--shadow);
+  padding: 16px var(--gutter) 24px;
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel:not([hidden]) {
+  display: flex;
+}
+
+.panelNav {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelLink {
+  padding: 12px 8px;
+  color: var(--bg-texto-primario);
+  border-radius: var(--radius-interno);
+}
+
+.panelLink:hover {
+  background: var(--am-100);
+}
+
+.panelMapaButton {
+  margin-top: 8px;
+  padding: 12px 16px;
+  text-align: center;
+  border-radius: var(--radius-interno);
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.panelActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Breakpoint pair with SiteHeader.tsx's DESKTOP_QUERY — see the comment
+ * there for why 1200px and why the two must move together. */
+@media (max-width: 1199px) {
+  .nav,
+  .actions > .language,
+  .actions > .sessionButton {
+    display: none;
+  }
+
+  .toggle {
+    display: flex;
+  }
+}
+
+@media (min-width: 1200px) {
+  .panel,
+  .panel:not([hidden]) {
+    display: none;
+  }
+}
