@@ -143,6 +143,18 @@ or `app/relatorio.css`.
 
 ### Known technical debt, deliberate and isolated
 
+0. **The hero renders 503px tall against the design's 495, deliberately.** Five
+   of the seven sections match the Figma to the pixel (header 76, Plataforma
+   442, Ferramenta 560, Comunicação 624, footer 196); Destaques is +1 and the
+   hero +8. The hero's 8px is four differences that nearly cancel — the eyebrow's
+   line box (+6), the h1/lead gap (+5), the button row (+4) and the dot row
+   (−7) — and closing them properly would mean a tenth type utility for a design
+   system that binds six styles, plus wrapping the h1 and lead in their own
+   element. Two of the four exist only because the design uses values it never
+   tokenised. The decomposition and an explicit warning against "fixing" the
+   total by tuning one part are recorded in `Hero.module.css`.
+
+
 18. ~~The map image in the "Ferramenta" band is missing.~~ **Resolved.** The
     Figma MCP's plan quota was exhausted, so the export was fetched through
     Figma's REST API instead (node `18862:8548`, PNG at 2x), then converted to

@@ -8,6 +8,27 @@
  * exposed there as --font-display, alongside Rubik's --font-sans, so both
  * faces load the same way instead of one going through a CSS @import. */
 
+/* This section renders 503px tall against the design's 495. The 8px is four
+ * differences that nearly cancel, and it is left alone deliberately:
+ *
+ *   eyebrow line box    20 vs 14   +6
+ *   gap h1 -> lead      21 vs 16   +5
+ *   button row          52 vs 48   +4
+ *   dot row block       35 vs 42   -7
+ *                                 ----
+ *                                  +8
+ *
+ * Two of the four would cost more than they are worth. The eyebrow needs a
+ * line-height equal to its font size, which is a tenth type utility for a
+ * design system that binds six styles; the h1/lead gap needs those two wrapped
+ * in their own element so the column can carry two different gaps. Both exist
+ * only because the design uses values it never tokenised — the same problem the
+ * PR already raises with whoever maintains the Figma file.
+ *
+ * Do NOT close the 8px by tuning the dot row alone. That would make the total
+ * land at this one viewport while all four causes stay wrong, and they only
+ * cancel here by arithmetic accident — a different width or a different string
+ * pulls them apart again. Fix the causes or leave it. */
 .hero {
   position: relative;
   min-height: 495px;
