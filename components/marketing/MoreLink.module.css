@@ -1,0 +1,27 @@
+/* 114x40 in the design, with the label and a right chevron. Font metrics come
+ * from the .text-body utility applied in MoreLink.tsx; this file handles
+ * colour, spacing and layout only. */
+.moreLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 114px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--radius);
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+  /* Inert while the internal pages do not exist. Not a disabled <button>: see
+   * the component's comment. The cursor is the only affordance that changes,
+   * because dimming a filled green button would drop its white label below the
+   * 4.5:1 it currently clears. */
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}

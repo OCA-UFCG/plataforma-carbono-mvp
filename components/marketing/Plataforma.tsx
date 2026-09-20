@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { ABAS_PLATAFORMA } from "@/lib/content/plataforma";
 import type { ConteudoAba } from "@/lib/content/plataforma";
+import MoreLink from "./MoreLink";
 import styles from "./Plataforma.module.css";
 
 function tabId(id: string) {
@@ -68,7 +69,12 @@ export default function Plataforma() {
   return (
     <section id="plataforma" className={styles.plataforma} aria-label="Plataforma">
       <div className={`container ${styles.inner}`}>
-        <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
+        {/* Label left, "Ver mais" right — the 40px header row of Figma node
+            18862:8546. The control is inert; see MoreLink. */}
+        <div className={styles.headerRow}>
+          <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
+          <MoreLink />
+        </div>
 
         <div className={styles.tablist} role="tablist" aria-label="Conheça a plataforma">
           {ABAS_PLATAFORMA.map((aba) => {

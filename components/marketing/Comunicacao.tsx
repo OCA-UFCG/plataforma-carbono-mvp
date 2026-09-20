@@ -1,4 +1,5 @@
 import type { ComunicacaoContent } from "@/lib/content/comunicacao";
+import MoreLink from "./MoreLink";
 import styles from "./Comunicacao.module.css";
 
 type CardData = {
@@ -32,9 +33,9 @@ const FOTOS: Record<string, string> = {
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
 // so the choice of which ones is fixed by the task brief rather than by this
 // component: the caderno (labelled "CADERNO TEMÁTICO") and cartilhas[0]
-// (labelled "CARTILHA"). The "Ver mais" link the header row shows next to
-// the heading is omitted — same decision as Plataforma.tsx: there is no page
-// for it to link to.
+// (labelled "CARTILHA"). The header row's "Ver mais" control is rendered but
+// inert, the same as Plataforma.tsx: the internal page it would open does not
+// exist yet. See MoreLink.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
   const [primeiraCartilha] = conteudo.cartilhas;
 
@@ -69,7 +70,12 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
   return (
     <section id="comunicacao" className={styles.comunicacao} aria-label="Comunicação">
       <div className={`container ${styles.inner}`}>
-        <h2 className={`${styles.heading} text-h2`}>Comunicação</h2>
+        {/* Heading left, "Ver mais" right — the 40px header row of Figma node
+            18862:8576. The control is inert; see MoreLink. */}
+        <div className={styles.headerRow}>
+          <h2 className={`${styles.heading} text-h2`}>Comunicação</h2>
+          <MoreLink />
+        </div>
 
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
             that `list-style: none` strips from the accessibility tree in

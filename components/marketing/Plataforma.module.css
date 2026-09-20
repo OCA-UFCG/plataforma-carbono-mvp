@@ -33,9 +33,17 @@
   gap: 0;
 }
 
-/* 40px tall in the design, where the row also held a "Ver mais" button that is
- * omitted here (there is no page to link to). Keeping the row's height means
- * dropping the button does not pull the tab strip up under the label. */
+/* The section's 40px header row: label or heading on the left, the inert
+ * "Ver mais" control pushed to the right edge of the content column. */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* 40px tall, matching the design's header row. The row also carries the
+ * "Ver mais" control (see MoreLink) at its right edge. */
 .label {
   display: flex;
   align-items: center;

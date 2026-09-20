@@ -23,6 +23,15 @@
   gap: 24px;
 }
 
+/* The section's 40px header row: label or heading on the left, the inert
+ * "Ver mais" control pushed to the right edge of the content column. */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
 .heading {
   color: var(--role-marca-ancora-padrao);
   margin: 0;
