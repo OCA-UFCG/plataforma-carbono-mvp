@@ -3,25 +3,25 @@ import Link from "next/link";
 import { FOOTER_LINKS } from "@/lib/marketing/nav";
 import styles from "./SiteFooter.module.css";
 
-// Partner logos credited in the Figma footer (node 18862:8583, symbol
-// 16864:138883): Sudene, UFCG and OCA — INSA is committed at
-// public/logos/logo_insa.png (and appears in the pre-redesign footer's
-// institutional paragraph) but is not one of the three logos this design
-// renders, so it is left out here rather than added back silently. Heights
-// The three partner logos the design shows, in the design's own order and at
-// its own sizes: Figma node 18862:8583 places Sudene at x=470 (149x60), UFCG at
-// x=643 (191x60) and OCA at x=858 (108x60).
+// The three partner logos the Figma footer shows (node 18862:8583, symbol
+// 16864:138883), in the design's own order and at its own sizes: Sudene at
+// x=470 (149x60), UFCG at x=643 (191x60) and OCA at x=858 (108x60).
 //
-// These are WHITE monochrome lockups, not the colour PNGs in public/logos/. The
-// footer sits on --bg-fundo-inverso (#000f15), and the design uses white marks
-// against it; the colour versions are what the pre-redesign footer used on its
-// light background, and they still serve the header. Exported from the footer's
-// own nodes through Figma's REST API at 3x, resized to 2x and saved as WebP with
+// These are WHITE monochrome lockups, not the colour PNGs in public/logos/.
+// The footer sits on --bg-fundo-inverso (#000f15), and the design uses white
+// marks against it. They were produced by exporting the footer's own nodes
+// through Figma's REST API at 3x, resizing to 2x, and saving as WebP with
 // alpha (5-10 KB each).
 //
-// The INSA logo in public/logos/ is deliberately not shown: the design credits
-// three institutions, not four. That is a content decision worth confirming —
-// the pre-redesign footer credited all four.
+// The colour PNGs in public/logos/ are not orphaned by this: logo_oca.png
+// still serves the header (and the auth/mapa/relatorio layouts), while
+// logo_ufcg.png, logo_sudene.png and logo_insa.png are kept alive solely by
+// components/mapa/Welcome.tsx. Do not delete them as unused.
+//
+// INSA is committed at public/logos/logo_insa.png and was credited in the
+// pre-redesign footer's institutional paragraph, but is deliberately not one
+// of the three logos this design renders — a content decision worth
+// confirming, since the pre-redesign footer credited all four institutions.
 const PARTNERS = [
   { src: "/logos/rodape/sudene.webp", alt: "SUDENE", width: 149, height: 60 },
   { src: "/logos/rodape/ufcg.webp", alt: "UFCG", width: 191, height: 60 },
@@ -94,6 +94,8 @@ export default function SiteFooter() {
                 width={partner.width}
                 height={partner.height}
                 className={styles.logo}
+                loading="lazy"
+                decoding="async"
               />
             ))}
           </div>

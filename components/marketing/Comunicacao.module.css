@@ -29,6 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 24px;
 }
 
@@ -59,9 +60,14 @@
   color: inherit;
 }
 
-/* `object-position: top`: the content is cartilha/caderno cover art, which
- * has its title typeset near the top of the frame, so a centre-crop on this
- * 626x480 card clips it. */
+/* `object-position: top` is a no-op today: the FOTOS photographs
+ * (Comunicacao.tsx) are pre-cropped to this 626x480 card's ratio, so there is
+ * nothing left at any edge to protect (see IMAGENS.md — photography is
+ * centre-cropped, top is almost always wrong for it). The declaration stays
+ * for the `cover` fallback Comunicacao.tsx renders when a FOTOS entry is
+ * removed: that is the publication's cover art, which does have its title
+ * typeset near the top of the frame, and a centre-crop on this card would
+ * clip it. */
 .photo {
   position: absolute;
   inset: 0;

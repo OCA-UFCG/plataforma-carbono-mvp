@@ -39,7 +39,7 @@ export default function Destaques() {
                 <p className={`${styles.texto} text-subtle`} aria-hidden="true">
                   {d.texto}
                 </p>
-                <span className={styles.srOnly}>
+                <span className="sr-only">
                   {d.numero} {d.unidade} {d.texto}
                 </span>
               </div>

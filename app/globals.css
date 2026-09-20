@@ -50,9 +50,9 @@
   --container-max: 1276px;
   --gutter: 80px;
 
-  /* Height of SiteHeader (Task 3, Figma "Menu-superior" 18862:8515). Sections
-   * read this for scroll-margin-top below so anchor navigation clears the
-   * fixed header; Task 3 cannot edit this file, so the number lives here once. */
+  /* Height of SiteHeader (Figma "Menu-superior" 18862:8515), which is
+   * `position: sticky`, not fixed. Sections read this for scroll-margin-top
+   * below so anchor navigation clears the sticky header. */
   --header-height: 76px;
 }
 
@@ -156,7 +156,10 @@ section {
 /* 500/14. The design gives each section label its own style rather than reusing
  * one: "Conheça a plataforma" is 500/14 (Figma node 18862:8546) while
  * "Destaques" is 700/16 (node 18862:8538). This step exists for the former;
- * there is no bound token for either, so both were measured off their nodes. */
+ * there is no bound token for either, so both were measured off their nodes.
+ * Destaques does not actually use 700/16: it deliberately renders its label
+ * with `.text-p-ui-semibold` (600/16) instead — a documented substitution,
+ * see the comment in Destaques.module.css. */
 .text-subtle-medium {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 500;
@@ -184,4 +187,22 @@ section {
   max-width: calc(var(--container-max) + 2 * var(--gutter));
   margin-inline: auto;
   padding-inline: var(--gutter);
+}
+
+/* Standard visually-hidden clip: keeps text in the accessibility tree without
+ * showing it. Promoted here from Destaques.module.css (originally written for
+ * its combined "26 milhões de pessoas vivem no bioma." statement, needed
+ * because the sighted layout splits those words across three elements) once
+ * MoreLink.tsx and SiteHeader.tsx needed the same pattern to give an
+ * inert control's accessible name the "disponível em breve" suffix. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

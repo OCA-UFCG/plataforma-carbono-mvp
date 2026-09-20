@@ -142,6 +142,8 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
         width={680}
         height={500}
         className={styles.imagem}
+        loading="lazy"
+        decoding="async"
       />
       <div className={styles.texto}>
         <h2 className={`${styles.titulo} text-h2`}>{conteudo.titulo}</h2>

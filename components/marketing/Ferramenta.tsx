@@ -1,12 +1,11 @@
 import { MAPA_LINK } from "@/lib/marketing/nav";
 import styles from "./Ferramenta.module.css";
 
-// The Figma export of this map (node 18862:8548) has not been pulled yet — the
-// design file's API quota ran out mid-build, so it was later exported through
-// Figma's REST API instead (node 18862:8548, PNG at 2x, then converted to WebP
-// with Pillow — 1048 KB to 65 KB, no real transparency to preserve). The
-// placeholder branch below stays: it is what renders if this is ever set back
-// to null, and it shares the image's aspect ratio so neither reflows.
+// The map image is committed: exported from Figma node 18862:8548 through the
+// REST API (PNG at 2x, then converted to WebP with Pillow — 1048 KB down to
+// 65 KB, no real transparency to preserve). The placeholder branch below is
+// kept as the fallback for MAPA_IMAGEM === null, not a temporary state — it
+// shares the image's aspect ratio so neither reflows.
 const MAPA_IMAGEM: { src: string; alt: string } | null = {
   src: "/images/ferramenta/mapa-caatinga.webp",
   alt: "Mapa do bioma Caatinga sobre o Nordeste do Brasil, com a cobertura vegetal em tons de verde e os estados identificados",
@@ -38,6 +37,8 @@ export default function Ferramenta() {
             width={1458}
             height={1120}
             className={styles.image}
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           // Neutral placeholder standing in for the map export (see the

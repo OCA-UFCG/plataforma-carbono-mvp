@@ -106,7 +106,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
           below already state everything a reader needs — which publication
           this is and what it covers. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={card.cover} alt="" className={styles.photo} />
+      <img src={card.cover} alt="" className={styles.photo} loading="lazy" decoding="async" />
       <div className={styles.overlay} aria-hidden="true" />
       <div className={styles.text}>
         <p className={`${styles.label} text-subtle-semibold`} aria-hidden="true">

@@ -96,22 +96,6 @@
   margin: 0;
 }
 
-/* Standard visually-hidden clip: keeps the combined "26 milhões de pessoas
- * vivem no bioma." statement in the accessibility tree without showing it,
- * since the sighted layout above already renders the same words split
- * across three elements (see the aria-hidden siblings in Destaques.tsx). */
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

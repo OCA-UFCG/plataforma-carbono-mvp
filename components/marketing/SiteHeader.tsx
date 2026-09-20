@@ -70,7 +70,12 @@ function SessionAction({ className }: { className?: string }) {
 // selecting "En" does nothing. --role-neutro-texto-desabilitado is the token
 // for that disabled state; it measures 2.50:1 against the background, which
 // WCAG allows for an inactive control but not for informative text, so it is
-// used only here.
+// used only here. `aria-disabled` is documentation for the next developer,
+// not something assistive tech consumes — the <span> has no role (it maps
+// to `generic`, which does not support `aria-disabled`), so without the
+// visually-hidden suffix below it would announce as plain "En", giving no
+// indication it does nothing. `title` is not announced on a non-focusable
+// element and does not exist on touch, so it is decorative only.
 function LanguageSwitch({ className }: { className?: string }) {
   return (
     <div className={className} role="group" aria-label="Idioma">
@@ -83,6 +88,7 @@ function LanguageSwitch({ className }: { className?: string }) {
         title="Disponível em breve"
       >
         En
+        <span className="sr-only"> (disponível em breve)</span>
       </span>
     </div>
   );

@@ -38,9 +38,10 @@
   object-fit: cover;
 }
 
-/* Stands in for the map export until it is committed (see the MAPA_IMAGEM
- * comment in Ferramenta.tsx). --am-100 is a light neutral, not a color tied
- * to any real map data, so it reads as an empty slot rather than a fake map. */
+/* Fallback for MAPA_IMAGEM === null (see the MAPA_IMAGEM comment in
+ * Ferramenta.tsx), not a temporary state — the map export is committed.
+ * --am-100 is a light neutral, not a color tied to any real map data, so it
+ * reads as an empty slot rather than a fake map. */
 .placeholder {
   width: 100%;
   height: 100%;

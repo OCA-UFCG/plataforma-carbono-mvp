@@ -1,6 +1,7 @@
-/* 114x40 in the design, with the label and a right chevron. Font metrics come
- * from the .text-body utility applied in MoreLink.tsx; this file handles
- * colour, spacing and layout only. */
+/* 114x40 in the design, with the label and a right chevron, Figma nodes
+ * 18862:8546 ("Conheça a plataforma") and 18862:8578 ("Comunicação"). Font
+ * metrics come from the .text-body utility applied in MoreLink.tsx; this
+ * file handles color, spacing and layout only. */
 .moreLink {
   display: inline-flex;
   align-items: center;
@@ -17,7 +18,6 @@
    * because dimming a filled green button would drop its white label below the
    * 4.5:1 it currently clears. */
   cursor: not-allowed;
-  user-select: none;
 }
 
 .icon {
