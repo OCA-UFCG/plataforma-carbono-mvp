@@ -200,10 +200,20 @@ were left untouched.
       `tabindex`, all four panels mounted so every `aria-controls` resolves,
       no focusable element inside a hidden panel); list semantics on all four
       list-bearing sections; `"Foto: Artur Lourenço"` rendering
-- [ ] **Responsive rendering below ~1900px — NOT verified.** Chrome runs under
-      Wayland here, where the window cannot be resized programmatically, so
-      the 1200px header breakpoint and the 900 / 768 / 640 / 520px section
-      breakpoints were reasoned about but never observed. The footer's
-      three-column row was cleared analytically (648px required against 741px
-      available just above its breakpoint). Needs a manual pass at 1436 /
-      1200 / 1024 / 900 / 768 / 640 / 390px before merge
+- [x] **Responsive rendering from 390px to 1440px — verified.** Chrome runs
+      under Wayland here, where the window cannot be resized programmatically,
+      so the page was loaded into a same-origin iframe whose width was stepped
+      through the breakpoints; media queries evaluate against the iframe's own
+      viewport, so this exercises the real CSS rather than approximating it.
+      Swept 1440 / 1300 / 1201 / 1199 / 1100 / 1024 / 901 / 899 / 769 / 767 /
+      641 / 639 / 521 / 519 / 390:
+      - **no horizontal page overflow at any width**
+      - the header switches between the inline nav and the hamburger exactly
+        at the 1200px breakpoint (inline at 1201, hamburger at 1199), so the
+        901–1175px band that used to overflow is gone
+      - Ferramenta stacks at ≤900; Destaques goes 4→2 columns at ≤900 and
+        2→1 at ≤520; Comunicação goes 2→1 at ≤900; the footer stacks at ≤900
+      - at 390px the h1 sits at its `clamp` floor of 28px without clipping,
+        the tab strip carries 665px of content in a 327px box and scrolls
+        horizontally as designed, and the only elements extending past the
+        viewport are the last two tab buttons inside that scroller
