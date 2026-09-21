@@ -6,6 +6,7 @@ import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { contextIsUnique, matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
+import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
 import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 // Types
@@ -31,6 +32,9 @@ interface SearchResult {
 
 interface Props {
   theme: PlatformTheme
+  /** Free-strip anchors; see lib/mapa/gutters. */
+  leftEdge: number
+  rightOffset: number
   onSelectFeature: (
     layerId: string,
     featureId: number,
@@ -44,7 +48,7 @@ const MAX_RESULTS = 20
 
 // Component
 
-export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
+export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSelectFeature }: Props) {
   const layers = useStore((s) => s.layers)
 
   // Local state
@@ -302,11 +306,12 @@ export default function FloatingSearchBar({ theme, onSelectFeature }: Props) {
       style={{
         position: 'absolute',
         top: 16,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        ...centeredInGutters(leftEdge, rightOffset),
         zIndex: 20,
         fontFamily: 'var(--font-app), sans-serif',
-        width: 'min(440px, calc(100vw - 32px))',
+        // Shrinks with the strip instead of sliding under a panel.
+        width: 440,
+        maxWidth: gutterMaxWidth(leftEdge, rightOffset),
       }}
     >
       {/* Input bar */}

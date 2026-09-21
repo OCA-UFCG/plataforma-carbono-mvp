@@ -5,6 +5,7 @@ import { IcList, IcBarChart } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
+import LayerInfoCard, { FICHA_WIDTH } from './LayerInfoCard'
 import ReportForm from './overlays/ReportForm'
 import Header from './Header'
 import Welcome from './Welcome'
@@ -67,6 +68,11 @@ export default function Mapa() {
 
   const resultsOpen = resultsVisible && !resultsCollapsed
 
+  // Open ficha. It lives here, not in Sidebar, because only this component can
+  // widen `leftEdge` to reserve the column the ficha occupies.
+  const [infoId, setInfoId] = useState<string | null>(null)
+  const toggleInfo = (id: string) => setInfoId((current) => (current === id ? null : id))
+
   // Below 768px the Results panel is a full-width overlay drawer (it doesn't
   // reserve horizontal space), so the map controls/legend must NOT shift to the
   // desktop 396px offset, that would push them off the left edge.
@@ -82,7 +88,15 @@ export default function Mapa() {
   // Floating-layout anchors (handoff): panel edge on the left, Results-aware
   // offset on the right. On narrow screens the offset stays at 14 (drawer
   // overlays the map). When collapsed to a tab, clear its 28px width.
-  const leftEdge    = panelOpen ? 360 : 64
+  //
+  // Everything the map floats -- the Relatorio button, the draw toolbar, the
+  // search bar, the temporal slider -- is laid out inside [leftEdge,
+  // 100% - rightOffset]. Reserving space here is what keeps them from
+  // overlapping, so a panel that takes room must be added to an anchor rather
+  // than be given a higher z-index.
+  const panelEdge   = panelOpen ? 360 : 64
+  const fichaOpen   = !narrow && panelOpen && infoId !== null
+  const leftEdge    = panelEdge + (fichaOpen ? FICHA_WIDTH + 12 : 0)
   const rightOffset = narrow ? 14 : resultsOpen ? 396 : resultsVisible ? 42 : 14
 
   return (
@@ -116,7 +130,12 @@ export default function Mapa() {
         <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
 
         {panelOpen ? (
-          <Sidebar theme={theme} onCollapse={() => setPanelOpen(false)} />
+          <Sidebar
+            theme={theme}
+            infoId={infoId}
+            onInfo={toggleInfo}
+            onCollapse={() => { setPanelOpen(false); setInfoId(null) }}
+          />
         ) : (
           <button
             className="ui-press"
@@ -145,6 +164,16 @@ export default function Mapa() {
           >
             <IcList size={17} />
           </button>
+        )}
+
+        {infoId && panelOpen && (
+          <LayerInfoCard
+            theme={theme}
+            layerId={infoId}
+            narrow={narrow}
+            leftEdge={panelEdge}
+            onClose={() => setInfoId(null)}
+          />
         )}
 
         {/* Report trigger: sits next to the panel toggle and shifts with it. */}
