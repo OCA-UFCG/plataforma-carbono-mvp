@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/mapa/store'
 import CoordinateForm from './CoordinateForm'
+import { centeredInGutters } from '@/lib/mapa/gutters'
 import type { PlatformTheme, DrawMode } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
   /** left anchor (px), right edge of the Temas panel + 12. */
   leftEdge: number
+  /** Right anchor, for centering the hint toast in the free strip. */
+  rightOffset: number
   open: boolean
   onClose: () => void
   /** Installs a geometry typed as coordinates. See MapView. */
@@ -41,7 +44,7 @@ const HINT: Record<string, string> = {
  * so the form follows the pill down when the tools wrap onto a second line.
  */
 export default function DrawToolbar({
-  theme, leftEdge, open, onClose, onApplyCoordinates,
+  theme, leftEdge, rightOffset, open, onClose, onApplyCoordinates,
 }: Props) {
   const drawMode      = useStore((s) => s.drawMode)
   const setDrawMode   = useStore((s) => s.setDrawMode)
@@ -84,7 +87,7 @@ export default function DrawToolbar({
           // Second row: the Relatório button holds `top: 16` at this same
           // `left`, so sharing a row would hide it under the toolbar.
           position: 'absolute', top: 62, left: leftEdge + 12, zIndex: 15,
-          maxWidth: `calc(100vw - ${leftEdge + 24}px)`,
+          maxWidth: `calc(100% - ${leftEdge + rightOffset + 24}px)`,
           display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8,
           fontFamily: 'var(--font-app), sans-serif', transition: 'left .3s',
         }}
@@ -147,7 +150,7 @@ export default function DrawToolbar({
       {drawMode && HINT[drawMode] && (
         <div
           style={{
-            position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)', zIndex: 15,
+            position: 'absolute', bottom: 52, ...centeredInGutters(leftEdge, rightOffset), zIndex: 15,
             background: 'rgba(38,36,29,.92)', color: '#e8e6da', fontSize: 12, fontWeight: 600,
             padding: '8px 16px', borderRadius: 999, whiteSpace: 'nowrap',
             fontFamily: 'var(--font-app), sans-serif',

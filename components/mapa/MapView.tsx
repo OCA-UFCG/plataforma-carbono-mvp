@@ -1629,6 +1629,8 @@ useEffect(() => {
         <>
           <FloatingSearchBar
             theme={theme}
+            leftEdge={leftEdge}
+            rightOffset={rightOffset}
             onSelectFeature={(lid, fid, bbox) =>
               selectFeatureFromSearchRef.current?.(lid, fid, bbox)
             }
@@ -1648,12 +1650,13 @@ useEffect(() => {
           <DrawToolbar
             theme={theme}
             leftEdge={leftEdge}
+            rightOffset={rightOffset}
             open={drawOpen}
             onClose={() => setDrawOpen(false)}
             onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
           />
           <FloatingLegend theme={theme} rightOffset={rightOffset} />
-          <TemporalSlider theme={theme} />
+          <TemporalSlider theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
           <CursorCoordinates mapRef={mapRef} theme={theme} />
         </>
       )}

@@ -135,3 +135,19 @@ body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
 }
 
 /* Opacity sliders: native, they take the inline accent-color (var(--acc)) */
+
+/* The ficha column opens instantly while the left cluster takes .3s to slide
+   clear of it. Matching that duration means the two are never both solid in
+   the same place, not even mid-animation. */
+@keyframes ficha-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.ficha-in {
+  animation: ficha-in .3s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ficha-in { animation-duration: .01ms; }
+}

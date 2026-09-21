@@ -3,10 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '@/lib/mapa/store'
 import { paradas, ano } from '@/lib/mapa/temporal'
+import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
 import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
+  /** Free-strip anchors; see lib/mapa/gutters. */
+  leftEdge: number
+  rightOffset: number
 }
 
 /** Wait before fetching the tile while the handle is being dragged. */
@@ -18,7 +22,7 @@ const ESPERA_MS = 400
  * the drawing toolbar and the coordinates, which also occupy the bottom center
  * of the map.
  */
-export default function TemporalSlider({ theme }: Props) {
+export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) {
   const layers         = useStore((s) => s.layers)
   const temporalDate   = useStore((s) => s.temporalDate)
   const setTemporalDate = useStore((s) => s.setTemporalDate)
@@ -106,14 +110,14 @@ export default function TemporalSlider({ theme }: Props) {
   return (
     <div
       style={{
-        position: 'absolute', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', bottom: 88, ...centeredInGutters(leftEdge, rightOffset),
         zIndex: 14, display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 14px', borderRadius: 14,
         background: c.glassBg, border: `1px solid ${c.glassBd}`,
         backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
         boxShadow: '0 6px 20px rgba(0,0,0,.14)',
         fontFamily: 'var(--font-app), sans-serif',
-        maxWidth: 'min(560px, calc(100vw - 32px))',
+        maxWidth: `min(560px, ${gutterMaxWidth(leftEdge, rightOffset)})`,
       }}
     >
       {botao(true)}

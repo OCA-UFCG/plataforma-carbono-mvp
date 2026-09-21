@@ -12,12 +12,15 @@ import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa
 
 interface Props {
   theme: PlatformTheme
+  /** Open ficha, owned by Mapa.tsx: only it can widen `leftEdge` to reserve the
+   *  column the ficha occupies. Toggling is the caller's business too. */
+  infoId: string | null
+  onInfo: (id: string) => void
   onCollapse: () => void
 }
 
-export default function Sidebar({ theme, onCollapse }: Props) {
+export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
-  const [infoId, setInfoId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 
   const normalizedQuery = normalizeSearch(query.trim())
@@ -81,8 +84,8 @@ export default function Sidebar({ theme, onCollapse }: Props) {
         fontFamily: 'var(--font-app), sans-serif',
       }}
     >
-      {/* Panel chrome, overflow:hidden clips the rounded corners; the ficha
-          popover renders OUTSIDE this box so it isn't clipped. */}
+      {/* Panel chrome; overflow:hidden clips the rounded corners. The ficha is
+          not in here: it is a sibling panel rendered by Mapa.tsx. */}
       <div
         style={{
           flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
@@ -140,7 +143,8 @@ export default function Sidebar({ theme, onCollapse }: Props) {
                 theme={theme}
                 tema={tema}
                 subtemas={subtemas}
-                onInfo={setInfoId}
+                infoId={infoId}
+                onInfo={onInfo}
                 open={abertoTemaId === tema.id}
                 openSubthemeKey={abertoSubtemaKey}
                 onToggle={() => setAbertoTemaId((atual) => (atual === tema.id ? null : tema.id))}
@@ -151,8 +155,6 @@ export default function Sidebar({ theme, onCollapse }: Props) {
         </div>
 
       </div>
-
-      {infoId && <LayerInfoCard theme={theme} layerId={infoId} narrow={narrow} onClose={() => setInfoId(null)} />}
     </div>
   )
 }
@@ -160,10 +162,11 @@ export default function Sidebar({ theme, onCollapse }: Props) {
 // Section (accordion)
 
 function ThemeSection({
-  theme, tema, subtemas, onInfo, open, openSubthemeKey, onToggle, onToggleSubtheme,
+  theme, tema, subtemas, infoId, onInfo, open, openSubthemeKey, onToggle, onToggleSubtheme,
 }: {
   theme: PlatformTheme; tema: ThemeInfo
-  subtemas: { subtema: SubthemeInfo; itens: LayerConfig[] }[]; onInfo: (id: string) => void
+  subtemas: { subtema: SubthemeInfo; itens: LayerConfig[] }[]
+  infoId: string | null; onInfo: (id: string) => void
   open: boolean; openSubthemeKey: string | null; onToggle: () => void; onToggleSubtheme: (id: string) => void
 }) {
   const layers = subtemas.flatMap(({ itens }) => itens)
@@ -193,7 +196,7 @@ function ThemeSection({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '4px 0 10px 9px', paddingLeft: 11, borderLeft: `2px solid ${tema.color}44` }}>
           {subtemas.map(({ subtema, itens }) => {
             const key = `${tema.id}:${subtema.id}`
-            return <SubthemeSection key={key} theme={theme} subtheme={subtema} layers={itens} onInfo={onInfo} open={openSubthemeKey === key} onToggle={() => onToggleSubtheme(key)} />
+            return <SubthemeSection key={key} theme={theme} subtheme={subtema} layers={itens} infoId={infoId} onInfo={onInfo} open={openSubthemeKey === key} onToggle={() => onToggleSubtheme(key)} />
           })}
         </div>
       )}
@@ -202,9 +205,10 @@ function ThemeSection({
 }
 
 function SubthemeSection({
-  theme, subtheme, layers, onInfo, open, onToggle,
+  theme, subtheme, layers, infoId, onInfo, open, onToggle,
 }: {
-  theme: PlatformTheme; subtheme: SubthemeInfo; layers: LayerConfig[]; onInfo: (id: string) => void
+  theme: PlatformTheme; subtheme: SubthemeInfo; layers: LayerConfig[]
+  infoId: string | null; onInfo: (id: string) => void
   open: boolean; onToggle: () => void
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -280,6 +284,7 @@ function SubthemeSection({
                 <LayerRow
                   theme={theme}
                   layer={layer}
+                  infoOpen={infoId === layer.id}
                   onInfo={onInfo}
                   onDragStart={(event) => {
                     if ((event.target as HTMLElement).closest('button, input, select, textarea, a')) {
@@ -323,10 +328,11 @@ function DropIndicator({ color, bottom = false }: { color: string; bottom?: bool
 // Layer row (card)
 
 function LayerRow({
-  theme, layer, onInfo, onDragStart, onDragEnd,
+  theme, layer, infoOpen, onInfo, onDragStart, onDragEnd,
 }: {
   theme: PlatformTheme
   layer: LayerConfig
+  infoOpen: boolean
   onInfo: (id: string) => void
   onDragStart: (event: React.DragEvent<HTMLDivElement>) => void
   onDragEnd: () => void
@@ -379,6 +385,7 @@ function LayerRow({
         <button
           onClick={() => onInfo(layer.id)}
           aria-label={`Ficha da camada ${layer.name}`}
+          aria-expanded={infoOpen}
           style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 999, border: 'none', background: 'transparent', color: c.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         >
           <IcInfo size={13} />
@@ -416,78 +423,6 @@ function LayerRow({
           <span style={{ fontSize: 10, fontWeight: 700, color: c.accentInk, width: 30, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{layer.opacity}%</span>
         </div>
       )}
-    </div>
-  )
-}
-
-// Layer info card
-
-function LayerInfoCard({ theme, layerId, narrow, onClose }: { theme: PlatformTheme; layerId: string; narrow: boolean; onClose: () => void }) {
-  const layers = useStore((s) => s.layers)
-  const toggleLayer = useStore((s) => s.toggleLayer)
-  const layer = layers.find((l) => l.id === layerId)
-  const c = theme.colors
-  if (!layer) return null
-  const meta = LAYER_META[layerId]
-  const raster = layer.type === 'raster' ? (layer as RasterLayerConfig) : null
-  const palette = raster?.gee?.visParams?.palette
-  const rescale = raster?.rescale
-
-  return (
-    <div
-      style={{
-        position: 'absolute', top: 12,
-        // Desktop: anchored to the right edge of the panel, clamped so it never
-        // reaches the Results panel. Narrow: overlays the drawer.
-        ...(narrow
-          ? { left: 8, width: 'calc(100vw - 16px)' }
-          : { left: 'calc(100% + 12px)', width: 340, minWidth: 280, maxWidth: 'calc(100vw - 420px)' }),
-        background: theme.colors.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, boxShadow: 'var(--sh-pop)',
-        padding: 16, zIndex: 20,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        {meta && <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 5, padding: '2px 8px' }}>{meta.kind}</span>}
-        {layer.visible && <span style={{ fontSize: 10, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 5, padding: '2px 8px' }}>Ativa</span>}
-        <button onClick={onClose} aria-label="Fechar ficha" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 2, display: 'flex' }}><IcX size={15} /></button>
-      </div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: c.text, lineHeight: 1.2 }}>{layer.name}</div>
-      {meta && <div style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, marginTop: 2 }}>{meta.source}</div>}
-      {meta && <p style={{ fontSize: 13, fontWeight: 400, color: c.body, lineHeight: 1.6, margin: '10px 0 0' }}>{meta.description[0].toUpperCase() + meta.description.slice(1)}.</p>}
-
-      {/* legenda */}
-      {raster && raster.colorType === 'continuous' && palette && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>Legenda</div>
-          <div style={{ height: 10, borderRadius: 3, background: `linear-gradient(90deg, ${palette.join(', ')})` }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3, fontSize: 10, color: c.dim, fontVariantNumeric: 'tabular-nums' }}>
-            <span>{rescale ? rescale[0] : ''}</span>
-            <span>{raster.unit}</span>
-            <span>{rescale ? rescale[1] : ''}</span>
-          </div>
-        </div>
-      )}
-      {raster && raster.colorType === 'categorical' && raster.classes && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>Classes</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 10px', maxHeight: 180, overflowY: 'auto' }}>
-            {raster.classes.slice(0, 30).map((cl) => (
-              <div key={cl.value} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 2, background: cl.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 10.5, color: c.textDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cl.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <button
-        onClick={() => toggleLayer(layer.id)}
-        className="ui-press"
-        style={{ marginTop: 16, width: '100%', background: layer.visible ? c.mist : c.accent, color: layer.visible ? c.text : '#fff', border: 'none', borderRadius: 999, padding: '9px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-      >
-        {layer.visible ? 'Desativar camada' : 'Ativar camada'}
-      </button>
     </div>
   )
 }
