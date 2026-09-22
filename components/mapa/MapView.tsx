@@ -59,8 +59,6 @@ import CursorCoordinates from './overlays/CursorCoordinates'
 import TemporalSlider from './overlays/TemporalSlider'
 import FloatingSearchBar from './overlays/FloatingSearchBar'
 
-// Minimal initial style
-
 // Full-feature geometry lookup
 // map.queryRenderedFeatures returns geometry CLIPPED to the tiles under the
 // cursor, so area and zonal stats computed from it would cover only the visible
