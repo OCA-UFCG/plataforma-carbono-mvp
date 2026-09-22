@@ -163,7 +163,19 @@ export async function runLayerAnalysis(
     }
 
     const { lon, lat } = geom
-    if (lon === undefined || lat === undefined) return
+    if (lon === undefined || lat === undefined) {
+      // A silent return here would leave the card stuck on `status: 'loading'`
+      // forever -- Task 6's card treats "no result yet" and "loading" the same
+      // way, so the user would see a spinner that never resolves and no retry.
+      land({
+        ...base,
+        status: 'error',
+        error: !layer.gee?.temporal
+          ? 'Falha ao obter o valor do pixel. Tente novamente.'
+          : 'Falha ao calcular estatísticas. Tente novamente.',
+      })
+      return
+    }
 
     if (layer.gee?.temporal) {
       const series = await getTemporalTimeSeries(layer, lon, lat)
