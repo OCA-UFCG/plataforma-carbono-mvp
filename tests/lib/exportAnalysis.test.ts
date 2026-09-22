@@ -178,7 +178,7 @@ describe('buildAnalysisCsv', () => {
   it('starts with a UTF-8 BOM and separates rows with CRLF so Excel opens it clean', () => {
     const { csv } = buildAnalysisCsv({ ...base })
 
-    expect(csv.startsWith('﻿')).toBe(true)
+    expect(csv.startsWith('\ufeff')).toBe(true)
     expect(csv).toContain('\r\n')
     expect(csv).not.toMatch(/[^\r]\n/)
   })
