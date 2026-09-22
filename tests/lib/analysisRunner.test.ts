@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pendingAnalyses } from '@/lib/mapa/analysisRunner'
+import { geomHash, pendingAnalyses, statsCacheKey, timeSeriesCacheKey } from '@/lib/mapa/analysisRunner'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
 
 const gee = (id: string, temporal = false): RasterLayerConfig => ({
@@ -113,5 +113,40 @@ describe('pendingAnalyses', () => {
     }))
 
     expect(out).toEqual([])
+  })
+})
+
+describe('cache keys', () => {
+  const square: GeoJSON.Geometry = {
+    type: 'Polygon',
+    coordinates: [[[-40, -8], [-39, -8], [-39, -7], [-40, -7], [-40, -8]]],
+  }
+
+  it('hashes the same geometry to the same string', () => {
+    expect(geomHash(square)).toBe(geomHash(structuredClone(square)))
+  })
+
+  it('hashes different geometries apart', () => {
+    const other: GeoJSON.Geometry = {
+      type: 'Polygon',
+      coordinates: [[[-41, -9], [-40, -9], [-40, -8], [-41, -8], [-41, -9]]],
+    }
+    expect(geomHash(square)).not.toBe(geomHash(other))
+  })
+
+  it('writes a static key as layer:static:hash', () => {
+    expect(statsCacheKey('estoque_carbono', undefined, square))
+      .toBe(`estoque_carbono:static:${geomHash(square)}`)
+  })
+
+  it('writes a temporal key with the stop in place of static', () => {
+    expect(statsCacheKey('ndvi_modis', '2024-01-01', square))
+      .toBe(`ndvi_modis:2024-01-01:${geomHash(square)}`)
+  })
+
+  // A point series covers every year at once, so it is cached by position only.
+  it('keys a point time series by layer and position, with no date', () => {
+    expect(timeSeriesCacheKey('ndvi_modis', -40.5, -7.25))
+      .toBe('timeseries:ndvi_modis:-40.5:-7.25')
   })
 })
