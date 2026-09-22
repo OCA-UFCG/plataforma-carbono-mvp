@@ -139,6 +139,12 @@ export async function runLayerAnalysis(
 
   const land = (result: LayerResult) => {
     if (seq !== analysisSeq) return   // superseded by a newer selection
+    // The sequence alone cannot order two requests for the same layer: the
+    // reactive effect joins the current analysis instead of starting one, so a
+    // year stepped twice produces two responses carrying the same seq, and the
+    // slower one would win. A response for a stop the layer has since moved
+    // off is dropped rather than landing under the newer year's header.
+    if (layer.gee?.temporal && date !== useStore.getState().temporalDate[layer.id]) return
     useStore.getState().setLayerResult(result)
   }
 

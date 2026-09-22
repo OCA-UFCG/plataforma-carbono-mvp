@@ -40,6 +40,7 @@ import {
   runVisibleRasterAnalyses,
 } from '@/lib/mapa/analysisRunner'
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
+import { topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
@@ -721,10 +722,18 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // A new selection invalidates any in-flight stats response.
         const seq = bumpAnalysisSeq()
 
+        // With no raster on, the click has nothing to measure and is only a
+        // highlight -- so it must not throw away a drawing the user committed
+        // and can no longer undo. The predicate lives in analysisTargets,
+        // beside the hint the results panel shows for the same situation.
+        const measurable = topVisibleRasterIndex(useStore.getState().layers) !== -1
+
         // Replace any existing drawing / measurement
-        draw.deleteAll()
-        setDrawnArea(null)
-        setDrawnLength(null)
+        if (measurable) {
+          draw.deleteAll()
+          setDrawnArea(null)
+          setDrawnLength(null)
+        }
         clearResults()
         // Dropped until the complete geometry resolves below. Leaving the
         // previous feature in place would let the reactive effect measure it
@@ -1189,6 +1198,10 @@ useEffect(() => {
       draw.deleteAll()
       setDrawnArea(null)
       setDrawnLength(null)
+      // Bumped with the clear: a response still in flight would otherwise land
+      // in `results` with no selection behind it, and the panel would render
+      // its header and footer around nothing.
+      bumpAnalysisSeq()
       clearResults()
       // Clear any selected-feature highlight (effect runs outside the
       // map.on('load') closure where `clearSelectedFeature` helper lives,

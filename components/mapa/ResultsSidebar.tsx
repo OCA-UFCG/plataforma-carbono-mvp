@@ -6,7 +6,7 @@ import LayerResultCard from './LayerResultCard'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
-import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -38,6 +38,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
   const analysisKind     = useStore((s) => s.analysisKind)
   const layers           = useStore((s) => s.layers)
   const temporalDate     = useStore((s) => s.temporalDate)
+  const layerErrors      = useStore((s) => s.layerErrors)
 
   const c = theme.colors
 
@@ -62,6 +63,33 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       return next
     })
 
+  /**
+   * What a card may show for a layer, tied to the stop its header names.
+   *
+   * A result from another stop is never shown under this year's heading: the
+   * card falls back to its skeleton, which is what the deleted reactive effect
+   * guarded with "do not leave the previous year's result visible while the new
+   * tile is loading". `LayerResultCard` treats "no result" and "loading" alike,
+   * so an undefined result is exactly that skeleton.
+   *
+   * A tile that failed for this stop would otherwise leave that skeleton
+   * spinning for good -- `layerErrors` is set, `loadingLayers` is cleared and
+   * nothing re-triggers the analysis -- so it surfaces as the card's own error.
+   */
+  function cardResult(raster: RasterLayerConfig, stop: string | undefined): LayerResult | undefined {
+    const current = results[raster.id]
+    if (current && current.date === stop) return current
+
+    const tileError = layerErrors[raster.id]
+    if (tileError) {
+      return {
+        layerId: raster.id, date: stop, status: 'error',
+        stats: null, pixelValue: null, error: tileError,
+      }
+    }
+    return undefined
+  }
+
   // Onboarding hint when a raster is active but nothing was analysed yet. What
   // it tells the reader to do depends on the recortes a click can actually land
   // on: with every recorte off, clicking the map is a silent no-op, so the hint
@@ -72,9 +100,14 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
   // Download the analysis. The CSV is built entirely on the client by
   // `buildAnalysisCsv`, from what the panel already has at hand.
   // A layer still computing, or one that failed, is left out rather than
-  // exported empty. The length gate also keeps a CSV with no layer at all --
-  // named "caativar_0-camadas_....csv" -- from ever being offered.
-  const measured = rasters.filter((r) => results[r.id]?.status === 'ready')
+  // exported empty. It goes through `cardResult` so the export cannot do what
+  // the card cannot either: write one stop's numbers under another stop's year.
+  // The length gate also keeps a CSV with no layer at all -- named
+  // "caativar_0-camadas_....csv" -- from ever being offered.
+  const measured = rasters.filter((r) => {
+    const stop = r.gee?.temporal ? temporalDate[r.id] : undefined
+    return cardResult(r, stop)?.status === 'ready'
+  })
   const canDownload = hasContent && measured.length > 0
 
   function handleDownload() {
@@ -276,18 +309,21 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           no result yet renders as "Calculando...": with nothing selected -- or with
           only a line drawn, which no raster is measured over -- that skeleton would
           never resolve, and it would sit above the onboarding hint on first load. */}
-      {selectedGeometry && rasters.map((raster) => (
-        <LayerResultCard
-          key={raster.id}
-          layer={raster}
-          result={results[raster.id]}
-          date={raster.gee?.temporal ? temporalDate[raster.id] : undefined}
-          expanded={isExpanded(raster.id)}
-          onToggle={() => toggle(raster.id)}
-          theme={theme}
-          geometry={selectedGeometry}
-        />
-      ))}
+      {selectedGeometry && rasters.map((raster) => {
+        const stop = raster.gee?.temporal ? temporalDate[raster.id] : undefined
+        return (
+          <LayerResultCard
+            key={raster.id}
+            layer={raster}
+            result={cardResult(raster, stop)}
+            date={stop}
+            expanded={isExpanded(raster.id)}
+            onToggle={() => toggle(raster.id)}
+            theme={theme}
+            geometry={selectedGeometry}
+          />
+        )
+      })}
 
       {showEmptyHint && (
         <div style={{
