@@ -74,18 +74,20 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
 
   function handleDownload() {
     const { filename, csv } = buildAnalysisCsv({
-      layerName: activeRaster?.name ?? 'Análise',
-      layerUnit: activeRaster?.unit,
-      layerClasses: activeRaster?.classes,
-      signedFlux: activeRaster?.signedFlux,
-      year: activeRaster ? temporalDate[activeRaster.id]?.slice(0, 4) : undefined,
       analysisKind,
       analysisLabel,
       drawnArea,
       drawnLength,
-      pixelValue,
-      stats: rasterStats,
       generatedAt: new Date(),
+      layers: [{
+        layerName:    activeRaster?.name ?? 'Análise',
+        layerUnit:    activeRaster?.unit,
+        layerClasses: activeRaster?.classes,
+        signedFlux:   activeRaster?.signedFlux,
+        year:         activeRaster ? temporalDate[activeRaster.id]?.slice(0, 4) : undefined,
+        pixelValue,
+        stats:        rasterStats,
+      }],
     })
 
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
