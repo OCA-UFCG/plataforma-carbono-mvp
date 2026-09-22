@@ -63,6 +63,24 @@ results: Record<string, LayerResult>
 recorte, not the layer, and are shown once at the top of the panel. `statsCache` and
 `pixelCache` are unchanged — they are already keyed per layer and per geometry.
 
+The selected geometry joins them as store state:
+
+```ts
+export interface SelectedGeometry {
+  geometry:     GeoJSON.Geometry
+  geometryType: 'polygon' | 'point'
+  lon?:         number
+  lat?:         number
+}
+selectedGeometry: SelectedGeometry | null
+```
+
+`MapView` kept it in `selectedGeomRef` because nothing outside the map needed it. A failed
+card's "Tentar novamente" does — it re-measures one layer over that geometry — so it becomes
+state. Its `vectorLayerId` field is dropped: it is written at three points and read at none.
+The type lives in `types/mapa.ts` rather than in the runner, because the store holds a value
+of it and the runner imports the store.
+
 New actions: `setLayerResult(layerId, patch)` (merge) and `clearResults()`, which replaces the
 `setRasterStats(null); setPixelValue(null); setStatsError(null)` trio, which `MapView.tsx`
 spells out at eleven separate points today. `clearDrawings` calls `clearResults`.
@@ -163,7 +181,7 @@ One collapsible card per visible raster.
   chevron. The header is the whole answer while collapsed.
 - **Body:** `StatsChartView`, plus the "Valor do pixel" card when the analysis was a point.
 - **Status:** `loading` renders `SkeletonChart`; `error` renders `ErrorCard` plus a retry button
-  that calls `runLayerAnalysis` for that layer alone. A visible raster with **no** `results` entry
+  that calls `runLayerAnalysis` for that layer alone, over `selectedGeometry` from the store. A visible raster with **no** `results` entry
   at all — just switched on, or still fetching its tile per rule 3 of §3.3 — renders the same
   skeleton, so a card never appears empty while work is pending.
 
@@ -299,6 +317,11 @@ routes or to the report module.
 **New:** `lib/mapa/analysisRunner.ts`, `lib/mapa/resultSummary.ts`,
 `components/mapa/LayerResultCard.tsx`, `tests/lib/analysisRunner.test.ts`,
 `tests/lib/resultSummary.test.ts`.
+
+**Removed:** `MapView`'s `selectedGeomRef` and `statsSeqRef` (replaced by store state and by
+the runner's counter), its local `geomHash` / `statsCacheKey` (moved into the runner), its
+`pickStatsTarget` (the single-raster pick this change retires), and `StatsChart`'s default
+export.
 
 **Modified:** `lib/mapa/store.ts`, `lib/mapa/exportAnalysis.ts`, `components/mapa/MapView.tsx`,
 `components/mapa/ResultsSidebar.tsx`, `components/mapa/StatsChart.tsx`,
