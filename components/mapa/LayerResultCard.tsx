@@ -161,6 +161,16 @@ export default function LayerResultCard({
               signedFlux={layer.signedFlux}
             />
           )}
+
+          {/* Point sampled over nodata: status is 'ready', but both pixelValue and
+              stats are null. This is a real answer, not an error or loading state. */}
+          {result?.status === 'ready' && !result.pixelValue && !result.stats && (
+            <div style={{
+              fontSize: 11.5, fontWeight: 600, color: c.dim,
+            }}>
+              Sem dado neste ponto.
+            </div>
+          )}
         </div>
       )}
     </div>
