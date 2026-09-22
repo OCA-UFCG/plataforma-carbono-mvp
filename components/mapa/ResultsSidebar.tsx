@@ -102,13 +102,14 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
   // A layer still computing, or one that failed, is left out rather than
   // exported empty. It goes through `cardResult` so the export cannot do what
   // the card cannot either: write one stop's numbers under another stop's year.
-  // The length gate also keeps a CSV with no layer at all -- named
-  // "caativar_0-camadas_....csv" -- from ever being offered.
+  // No layer measured is not a reason to withhold the file: a drawn line and a
+  // polygon with every raster off are measurements in their own right, and
+  // `buildAnalysisCsv` writes their rows and names the file "analise".
   const measured = rasters.filter((r) => {
     const stop = r.gee?.temporal ? temporalDate[r.id] : undefined
     return cardResult(r, stop)?.status === 'ready'
   })
-  const canDownload = hasContent && measured.length > 0
+  const canDownload = hasContent
 
   function handleDownload() {
     const { filename, csv } = buildAnalysisCsv({

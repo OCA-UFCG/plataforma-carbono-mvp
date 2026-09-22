@@ -181,8 +181,12 @@ export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; cs
   const recorte = snap.analysisLabel ?? snap.analysisKind ?? 'analise'
   // A single layer keeps the name it has always had; only a comparison needs
   // the count, and naming it after the topmost layer would misdescribe the file.
-  const subject = snap.layers.length === 1
-    ? slug(snap.layers[0].layerName)
+  // With no layer at all -- a drawn line, or a polygon with every raster off --
+  // the file is still the area and length rows above, so it is named after the
+  // analysis rather than after the "0-camadas" it would otherwise announce.
+  const subject =
+    snap.layers.length === 0 ? 'analise'
+    : snap.layers.length === 1 ? slug(snap.layers[0].layerName)
     : `${snap.layers.length}-camadas`
 
   const filename = ['caativar', subject, slug(recorte), isoDate(snap.generatedAt)]

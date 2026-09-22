@@ -269,6 +269,25 @@ describe('buildAnalysisCsv', () => {
     expect(csv.match(/Área analisada;621,4;km²/g)).toHaveLength(1)
   })
 
+  // A drawn LineString measures no raster, and neither does a polygon with
+  // every raster turned off. Both are analyses the panel shows and the user can
+  // export, so the file carries the measurement rows and is named after the
+  // analysis -- "0-camadas" would be a filename describing nothing.
+  it('exports a measurement that touched no layer, named after the analysis', () => {
+    const { filename, csv } = buildAnalysisCsv({
+      ...base,
+      analysisKind: 'Área desenhada',
+      analysisLabel: null,
+      drawnArea: null,
+      drawnLength: 42.5,
+      layers: [],
+    })
+
+    expect(csv).toContain('medida;valor;unidade')
+    expect(csv).toContain('Comprimento;42,5;km')
+    expect(filename).toBe('caativar_analise_area-desenhada_2026-08-24.csv')
+  })
+
   it('names a multi-layer file after the layer count', () => {
     const { filename } = buildAnalysisCsv({
       ...base,
