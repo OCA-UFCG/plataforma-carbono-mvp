@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { ErrorCard, SkeletonChart } from './StatsChart'
+import { ErrorCard, SkeletonChart } from './StatsCards'
 import FluxValue from './FluxValue'
 import { IcChevronDown } from './icons'
 import { currentAnalysisSeq, runLayerAnalysis } from '@/lib/mapa/analysisRunner'
