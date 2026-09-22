@@ -728,12 +728,13 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // beside the hint the results panel shows for the same situation.
         const measurable = topVisibleRasterIndex(useStore.getState().layers) !== -1
 
-        // Replace any existing drawing / measurement
-        if (measurable) {
-          draw.deleteAll()
-          setDrawnArea(null)
-          setDrawnLength(null)
-        }
+        // Replace any existing drawing / measurement. Only `deleteAll` sits
+        // behind the guard: the geometry is committed user work, while the
+        // numbers describe the subject the click is replacing, and leaving
+        // them would caption the clicked feature with the drawing's length.
+        if (measurable) draw.deleteAll()
+        setDrawnArea(null)
+        setDrawnLength(null)
         clearResults()
         // Dropped until the complete geometry resolves below. Leaving the
         // previous feature in place would let the reactive effect measure it
