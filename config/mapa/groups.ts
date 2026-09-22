@@ -41,6 +41,7 @@ export const THEMES: ThemeInfo[] = [
     subthemes: [
       { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
       { id: 'fogo', label: 'Fogo', exclusive: true },
+      { id: 'degradacao', label: 'Degradação da terra', exclusive: true },
     ],
   },
   {

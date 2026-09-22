@@ -382,6 +382,43 @@
       "subtheme": "solo"
     },
     {
+      "id": "solo_carbono_embrapa",
+      "name": "Carbono Orgânico do Solo (Embrapa)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-ulissesalencar17/assets/carbono_g_kg_2020",
+          "band": "b1",
+          "scale": 928
+        },
+        "visParams": {
+          "min": 2,
+          "max": 16,
+          "palette": [
+            "#921f14",
+            "#e99957",
+            "#f6dea3",
+            "#7ded45",
+            "#305b19",
+            "#242f1e"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        2,
+        16
+      ],
+      "unit": "g/kg",
+      "theme": "carbono",
+      "subtheme": "solo"
+    },
+    {
       "id": "biomassa_gedi",
       "name": "Biomassa Aérea (GEDI L4B)",
       "type": "raster",
@@ -1445,6 +1482,70 @@
       "unit": "anos com fogo",
       "theme": "uso_solo",
       "subtheme": "fogo"
+    },
+    {
+      "id": "degradacao_terra",
+      "name": "Índice de Degradação da Terra (2021)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/ee-arturlourenco/assets/id_2021_recode_mask_int",
+          "band": "b1",
+          "scale": 500
+        },
+        "visParams": {
+          "min": 1,
+          "max": 6,
+          "palette": [
+            "#7000a8",
+            "#b93289",
+            "#e87158",
+            "#fec855",
+            "#12f007",
+            "#202f1c"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "categorical",
+      "classes": [
+        {
+          "value": 1,
+          "label": "Nível 5",
+          "color": "#7000a8"
+        },
+        {
+          "value": 2,
+          "label": "Nível 4",
+          "color": "#b93289"
+        },
+        {
+          "value": 3,
+          "label": "Nível 3",
+          "color": "#e87158"
+        },
+        {
+          "value": 4,
+          "label": "Nível 2",
+          "color": "#fec855"
+        },
+        {
+          "value": 5,
+          "label": "Nível 1",
+          "color": "#12f007"
+        },
+        {
+          "value": 6,
+          "label": "Conservado",
+          "color": "#202f1c"
+        }
+      ],
+      "theme": "uso_solo",
+      "subtheme": "degradacao"
     }
   ]
 }
