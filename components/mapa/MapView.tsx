@@ -1249,6 +1249,16 @@ useEffect(() => {
   // React to "Clear drawings" button
   useEffect(() => {
     if (clearSignal === 0) return
+    // The store has already emptied `results`; without this bump a reduction
+    // still in flight would pass land()'s sequence check and refill the panel
+    // for an analysis the user just cleared -- header, footer and a working
+    // "Baixar CSV" around numbers that no longer describe anything on screen.
+    // It lives here rather than in clearDrawings because the store cannot
+    // import the runner: the runner imports the store. And `deleteAll()`
+    // cannot stand in for it -- mapbox-gl-draw suppresses events for API
+    // deletes (`suppressAPIEvents` defaults to true), so the `draw.delete`
+    // handler that does bump the sequence never fires on this path.
+    bumpAnalysisSeq()
     drawRef.current?.deleteAll()
   }, [clearSignal])
 
