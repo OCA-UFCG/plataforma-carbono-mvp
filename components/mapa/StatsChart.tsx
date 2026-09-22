@@ -133,7 +133,7 @@ export default function StatsChart({ theme }: Props) {
 
 // Error card (stats request failed)
 
-function ErrorCard({ message }: { message: string }) {
+export function ErrorCard({ message }: { message: string }) {
   return (
     <div
       style={{
@@ -155,7 +155,7 @@ function ErrorCard({ message }: { message: string }) {
 
 // Skeleton loader (animated placeholder while stats are loading)
 
-function SkeletonChart({ theme }: { theme: PlatformTheme }) {
+export function SkeletonChart({ theme }: { theme: PlatformTheme }) {
   return (
     <CardBox title="Carregando..." theme={theme}>
       <div
