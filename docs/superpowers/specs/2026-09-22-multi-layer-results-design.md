@@ -281,13 +281,45 @@ common case does not regress.
 ## 6. Cost and failure
 
 A click on a municipality with three layers on is three parallel `POST /api/gee/stats`, where
-today it is one. The in-memory rate limiter allows 60 requests per IP per minute
-(`lib/mapa/rateLimit.ts`), and the exclusive subthemes in `config/mapa/groups.ts` cap the
-visible rasters at 13, so even the worst case stays well inside the window.
+today it is one. The fan-out is N-for-1 on every analysis path: `/api/gee/stats` for a polygon,
+`/api/gee/point` for a point on a static layer, `/api/gee/timeseries` for a point on a temporal
+one. Nothing throttles or batches them — `runVisibleRasterAnalyses` deliberately avoids
+`Promise.all` so a slow layer does not hold back a fast one, which means all N are in flight at
+once.
 
-Each card fails alone, with its own message and its own retry, which is the same shape the
-report's sections use — a design adopted there precisely because a zonal reduction over a large
-recorte can exceed the Earth Engine deadline. No single layer can take the panel down.
+**The budget is tighter than it looks.** `lib/mapa/rateLimit.ts` keeps *one* sliding window of
+60 requests per minute per IP, shared across **every** route that calls it — all of
+`/api/gee/{tile,stats,point,timeseries}` and all of `/api/mapa/relatorio/{base,analise,feicoes}`.
+It is not 60 per route. And the exclusive subthemes in `config/mapa/groups.ts` cap the visible
+rasters at 13 (8 under Carbono, 3 under Uso do solo e pressões, 2 under Ambiente), so 13 is the
+number to plan for, not 3:
+
+| action | requests |
+|---|---|
+| turning 13 layers on | 13 × `/tile` |
+| one click | 13 × `/stats` (or `/point` / `/timeseries`) |
+| one year step | 1 × `/tile` + 1 × `/stats` |
+| opening the report | the `/api/mapa/relatorio/*` calls, from the same window |
+
+So comparing three municipalities with everything on is 13 + 3 × 13 ≈ 52 requests inside one
+minute — same window, same bucket, with the report and every year step still to pay for. That
+is not "well inside" 60; it is the ceiling. Worse, `clientIp` falls back to the literal string
+`'unknown'` when neither `x-forwarded-for` nor `x-real-ip` is present, so every client reaching
+the app without a proxy header shares a single 60-request bucket between them.
+
+**This design does not change `MAX_REQUESTS`.** Raising a rate limit is the repository owner's
+call, and the point of stating the arithmetic honestly here is so that call can be made with the
+right numbers.
+
+Degradation is graceful in shape: each card fails alone, with its own message and its own manual
+retry, which is the same pattern the report's sections use — adopted there precisely because a
+zonal reduction over a large recorte can exceed the Earth Engine deadline. Nothing retries on its
+own, so a failure cannot turn into a loop, and no single layer can take the panel down.
+
+It is not graceful in cost. A 429 arrives for whatever is left of the fan-out, so one click can
+paint up to 13 error cards, and the obvious remedy — pressing each card's retry — spends 13 more
+requests against the window that just refused them. The user's way out is to close layers before
+retrying; the panel does not say so.
 
 ## 7. Testing
 
