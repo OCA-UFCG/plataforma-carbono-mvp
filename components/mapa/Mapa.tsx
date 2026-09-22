@@ -9,7 +9,7 @@ import LayerInfoCard, { FICHA_WIDTH } from './LayerInfoCard'
 import ReportForm from './overlays/ReportForm'
 import Header from './Header'
 import Welcome from './Welcome'
-import { useStore, camadasARestaurar } from '@/lib/mapa/store'
+import { useStore, camadasARestaurar, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildTheme } from '@/config/mapa/platforms'
 import { resolveMonth } from '@/lib/phenology'
 import type { PlatformTheme } from '@/types/mapa'
@@ -35,17 +35,14 @@ export default function Mapa() {
   // Results panel visibility (drives the dynamic control/legend offset)
   // Same condition ResultsSidebar renders on: any measurement/stat content OR
   // an active raster (which shows the onboarding hint).
-  const drawnArea    = useStore((s) => s.drawnArea)
-  const drawnLength  = useStore((s) => s.drawnLength)
-  const pixelValue   = useStore((s) => s.pixelValue)
-  const rasterStats  = useStore((s) => s.rasterStats)
-  const statsLoading = useStore((s) => s.statsLoading)
-  const statsError   = useStore((s) => s.statsError)
-  const layers       = useStore((s) => s.layers)
+  const drawnArea   = useStore((s) => s.drawnArea)
+  const drawnLength = useStore((s) => s.drawnLength)
+  const results     = useStore((s) => s.results)
+  const layers      = useStore((s) => s.layers)
 
-  const resultsHasContent =
-    drawnArea !== null || drawnLength !== null || pixelValue !== null ||
-    rasterStats !== null || statsLoading || statsError !== null
+  // Same predicate ResultsSidebar renders on -- shared, because two copies of
+  // it is what let the panel and the controls disagree about being open.
+  const resultsHasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
   const activeRaster = layers.some((l) => l.type === 'raster' && l.visible)
   const resultsVisible = resultsHasContent || activeRaster
 

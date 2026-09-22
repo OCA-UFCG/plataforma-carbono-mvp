@@ -54,8 +54,6 @@ interface MapaStore {
   drawMode: DrawMode
   drawnArea: number | null
   drawnLength: number | null
-  rasterStats: RasterStatsResult | null
-  pixelValue: PixelValueResult | null
   // One result per visible raster, keyed by layer id. Nothing prunes it when a
   // layer is switched off: the panel renders the intersection with the visible
   // rasters, so the card disappears on its own and switching the layer back on
@@ -65,10 +63,6 @@ interface MapaStore {
   // What the results refer to. MapView kept this in a ref while nothing outside
   // the map needed it; a failed card's "Tentar novamente" does, so it is state.
   selectedGeometry: SelectedGeometry | null
-  // Zonal-stats request lifecycle (separate from layer tile loading), so the
-  // sidebar can show a spinner during the GEE call and a message on failure.
-  statsLoading: boolean
-  statsError: string | null
   // Human label for what's being analysed (e.g. "Campina Grande"), shown in
   // the results card so the numbers are never ambiguous about their source.
   analysisLabel: string | null
@@ -111,13 +105,9 @@ interface MapaStore {
   setDrawMode:    (mode: DrawMode) => void
   setDrawnArea:   (area: number | null) => void
   setDrawnLength: (length: number | null) => void
-  setRasterStats: (stats: RasterStatsResult | null) => void
-  setPixelValue:  (value: PixelValueResult | null) => void
   setLayerResult:      (result: LayerResult) => void
   clearResults:        () => void
   setSelectedGeometry: (geom: SelectedGeometry | null) => void
-  setStatsLoading:  (v: boolean) => void
-  setStatsError:    (v: string | null) => void
   setAnalysisLabel: (v: string | null) => void
   setAnalysisKind:  (v: string | null) => void
   setBasemap:     (id: string) => void
@@ -141,12 +131,8 @@ export const useStore = create<MapaStore>((set, get) => ({
   drawMode: null,
   drawnArea: null,
   drawnLength: null,
-  rasterStats: null,
-  pixelValue: null,
   results: {},
   selectedGeometry: null,
-  statsLoading: false,
-  statsError: null,
   analysisLabel: null,
   analysisKind: null,
   clearSignal: 0,
@@ -242,8 +228,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   setDrawMode:    (mode)   => set({ drawMode: mode }),
   setDrawnArea:   (area)   => set({ drawnArea: area }),
   setDrawnLength: (length) => set({ drawnLength: length }),
-  setRasterStats: (stats)  => set({ rasterStats: stats }),
-  setPixelValue:  (value)  => set({ pixelValue: value }),
   // A full replace, not a merge: a layer moving back to 'loading' must drop the
   // previous stop's numbers, or the card would show last year's mean under this
   // year's header while the request is in flight.
@@ -251,8 +235,6 @@ export const useStore = create<MapaStore>((set, get) => ({
     set((s) => ({ results: { ...s.results, [result.layerId]: result } })),
   clearResults: () => set({ results: {} }),
   setSelectedGeometry: (geom) => set({ selectedGeometry: geom }),
-  setStatsLoading:  (v)    => set({ statsLoading: v }),
-  setStatsError:    (v)    => set({ statsError: v }),
   setAnalysisLabel: (v)    => set({ analysisLabel: v }),
   setAnalysisKind:  (v)    => set({ analysisKind: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
@@ -280,12 +262,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       drawnArea: null,
       drawnLength: null,
       drawMode: null,
-      rasterStats: null,
-      pixelValue: null,
       results: {},
       selectedGeometry: null,
-      statsLoading: false,
-      statsError: null,
       analysisLabel: null,
       analysisKind: null,
       clearSignal: s.clearSignal + 1,

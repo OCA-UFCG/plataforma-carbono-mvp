@@ -8,21 +8,15 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useStore } from '@/lib/mapa/store'
 import StockReportView from './StockReportView'
 import FluxValue from './FluxValue'
 import type {
-  RasterLayerConfig,
   RasterClass,
   RasterStatsResult,
   PlatformTheme,
   ContinuousStats,
   TimeSeriesPoint,
 } from '@/types/mapa'
-
-interface Props {
-  theme: PlatformTheme
-}
 
 export interface StatsChartViewProps {
   theme:       PlatformTheme
@@ -33,7 +27,7 @@ export interface StatsChartViewProps {
   caption?:    string
   /**
    * Whether the yearly-series line animates in. Defaults to true so the
-   * map's results panel (StatsChart below) keeps its existing feel; the
+   * map's results panel (LayerResultCard) keeps its existing feel; the
    * report path passes false because recharts animates by mutating SVG
    * attributes from JS, which a print stylesheet cannot interrupt, and a
    * chart mid-animation at the moment print captures the page prints blank.
@@ -56,8 +50,9 @@ export interface StatsChartViewProps {
 /**
  * The charts with no store behind them: one result, one layer's metadata.
  *
- * The report needs this shape because it renders N sections at once, each with
- * its own layer, where "the visible raster" the store exposes means nothing.
+ * Both callers render N sections at once -- the report one per section, the
+ * results panel one per visible raster -- so "the visible raster" the store
+ * used to expose means nothing to either of them.
  */
 export function StatsChartView({
   theme, stats, classes, unit, signedFlux, caption, animate = true, width,
@@ -87,46 +82,6 @@ export function StatsChartView({
       theme={theme}
       caption={caption}
       signedFlux={signedFlux}
-    />
-  )
-}
-
-export default function StatsChart({ theme }: Props) {
-  const rasterStats    = useStore((s) => s.rasterStats)
-  const layers         = useStore((s) => s.layers)
-  const loadingLayers  = useStore((s) => s.loadingLayers)
-  const statsLoading   = useStore((s) => s.statsLoading)
-  const statsError     = useStore((s) => s.statsError)
-  const analysisLabel  = useStore((s) => s.analysisLabel)
-
-  // Show skeleton while any visible raster has a pending GEE fetch (tile
-  // activation) OR a zonal-stats/point request is in flight.
-  const activeRasterLoading =
-    statsLoading ||
-    layers.some((l) => l.type === 'raster' && l.visible && loadingLayers[l.id])
-
-  // Caption naming what's being analysed: "<raster>, <feature>".
-  const activeRaster = layers.find(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  )
-  const caption = activeRaster
-    ? `${activeRaster.name}${analysisLabel ? `, ${analysisLabel}` : ''}`
-    : undefined
-
-  if (!rasterStats) {
-    if (activeRasterLoading) return <SkeletonChart theme={theme} />
-    if (statsError) return <ErrorCard message={statsError} />
-    return null
-  }
-
-  return (
-    <StatsChartView
-      theme={theme}
-      stats={rasterStats}
-      classes={activeRaster?.classes}
-      unit={activeRaster?.unit}
-      signedFlux={activeRaster?.signedFlux}
-      caption={caption}
     />
   )
 }

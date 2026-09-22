@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
 import { IcX, IcBarChart, IcDownload } from './icons'
-import FluxValue from './FluxValue'
-import { useStore } from '@/lib/mapa/store'
+import LayerResultCard from './LayerResultCard'
+import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
 import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
@@ -12,13 +11,6 @@ import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
-
-// Load StatsChart (and its heavy Recharts dependency) only when the results
-// panel actually needs it, keeps Recharts out of the initial map bundle.
-const StatsChart = dynamic(() => import('./StatsChart'), {
-  ssr: false,
-  loading: () => null,
-})
 
 interface Props {
   theme: PlatformTheme
@@ -33,44 +25,57 @@ interface Props {
  * raster is active but nothing was analysed yet, in which case it shows an
  * onboarding hint.
  *
- * Anatomy: cut chip + feature name, "Área analisada" hero card, length /
- * pixel-value cards, raster statistics, provenance footer. Below 768px it
- * becomes a bottom drawer so it never squeezes the map sideways.
+ * Anatomy: cut chip + feature name, "Área analisada" hero card, length card,
+ * one collapsible result card per visible raster, provenance footer. Below
+ * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
 export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Props) {
-  const drawnArea     = useStore((s) => s.drawnArea)
-  const drawnLength   = useStore((s) => s.drawnLength)
-  const pixelValue    = useStore((s) => s.pixelValue)
-  const rasterStats   = useStore((s) => s.rasterStats)
-  const statsLoading  = useStore((s) => s.statsLoading)
-  const statsError    = useStore((s) => s.statsError)
-  const analysisLabel = useStore((s) => s.analysisLabel)
-  const analysisKind  = useStore((s) => s.analysisKind)
-  const layers        = useStore((s) => s.layers)
-  const temporalDate  = useStore((s) => s.temporalDate)
+  const drawnArea        = useStore((s) => s.drawnArea)
+  const drawnLength      = useStore((s) => s.drawnLength)
+  const results          = useStore((s) => s.results)
+  const selectedGeometry = useStore((s) => s.selectedGeometry)
+  const analysisLabel    = useStore((s) => s.analysisLabel)
+  const analysisKind     = useStore((s) => s.analysisKind)
+  const layers           = useStore((s) => s.layers)
+  const temporalDate     = useStore((s) => s.temporalDate)
 
   const c = theme.colors
 
-  const hasContent =
-    drawnArea   !== null ||
-    drawnLength !== null ||
-    pixelValue  !== null ||
-    rasterStats !== null ||
-    statsLoading ||
-    statsError !== null
+  // One card per visible raster, in panel order (topmost first), whether or
+  // not it has an answer yet: a layer still computing shows its skeleton.
+  const rasters = layers.filter(
+    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
+  )
+  const hasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
+
+  // The topmost layer opens; the rest answer from their headers until asked for.
+  // `null` means untouched, which is not the same as "all closed": an empty Set
+  // has to stay empty, or collapsing the top card would spring it back open.
+  const [expanded, setExpanded] = useState<Set<string> | null>(null)
+  const topId = rasters[0]?.id
+  const isExpanded = (id: string) => (expanded ? expanded.has(id) : id === topId)
+  const toggle = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev ?? (topId ? [topId] : []))
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
 
   // Onboarding hint when a raster is active but nothing was analysed yet. What
   // it tells the reader to do depends on the recortes a click can actually land
   // on: with every recorte off, clicking the map is a silent no-op, so the hint
   // asks for one to be turned on instead of promising a municipality.
-  const activeRaster = layers.find((l) => l.type === 'raster' && l.visible) as
-    | RasterLayerConfig
-    | undefined
+  const activeRaster = rasters[0]
   const recortes = clickableRecortes(layers)
 
   // Download the analysis. The CSV is built entirely on the client by
   // `buildAnalysisCsv`, from what the panel already has at hand.
-  const canDownload = hasContent && !statsLoading && statsError === null
+  // A layer still computing, or one that failed, is left out rather than
+  // exported empty. The length gate also keeps a CSV with no layer at all --
+  // named "caativar_0-camadas_....csv" -- from ever being offered.
+  const measured = rasters.filter((r) => results[r.id]?.status === 'ready')
+  const canDownload = hasContent && measured.length > 0
 
   function handleDownload() {
     const { filename, csv } = buildAnalysisCsv({
@@ -79,15 +84,15 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       drawnArea,
       drawnLength,
       generatedAt: new Date(),
-      layers: [{
-        layerName:    activeRaster?.name ?? 'Análise',
-        layerUnit:    activeRaster?.unit,
-        layerClasses: activeRaster?.classes,
-        signedFlux:   activeRaster?.signedFlux,
-        year:         activeRaster ? temporalDate[activeRaster.id]?.slice(0, 4) : undefined,
-        pixelValue,
-        stats:        rasterStats,
-      }],
+      layers: measured.map((raster) => ({
+        layerName:    raster.name,
+        layerUnit:    raster.unit,
+        layerClasses: raster.classes,
+        signedFlux:   raster.signedFlux,
+        year:         temporalDate[raster.id]?.slice(0, 4),
+        pixelValue:   results[raster.id]?.pixelValue ?? null,
+        stats:        results[raster.id]?.stats ?? null,
+      })),
     })
 
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
@@ -267,35 +272,22 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         </div>
       )}
 
-      {/* Valor do pixel */}
-      {pixelValue !== null && (
-        <div style={card}>
-          <div style={{ ...eyebrow, marginBottom: 4 }}>Valor do pixel</div>
-          {activeRaster?.signedFlux ? (
-            <FluxValue
-              value={pixelValue.value}
-              unit={activeRaster.unit}
-              theme={theme}
-              size={24}
-              format={(m) => m.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
-            />
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {pixelValue.color && (
-                <span style={{ width: 14, height: 14, borderRadius: 3, background: pixelValue.color, flexShrink: 0 }} />
-              )}
-              <span style={{ ...heroNumber, fontSize: 24 }}>
-                {pixelValue.value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
-              </span>
-              {pixelValue.label && (
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: c.dim }}>{pixelValue.label}</span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      <StatsChart theme={theme} />
+      {/* One card per visible raster. Gated on the selection because a card with
+          no result yet renders as "Calculando...": with nothing selected -- or with
+          only a line drawn, which no raster is measured over -- that skeleton would
+          never resolve, and it would sit above the onboarding hint on first load. */}
+      {selectedGeometry && rasters.map((raster) => (
+        <LayerResultCard
+          key={raster.id}
+          layer={raster}
+          result={results[raster.id]}
+          date={raster.gee?.temporal ? temporalDate[raster.id] : undefined}
+          expanded={isExpanded(raster.id)}
+          onToggle={() => toggle(raster.id)}
+          theme={theme}
+          geometry={selectedGeometry}
+        />
+      ))}
 
       {showEmptyHint && (
         <div style={{
@@ -306,7 +298,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           display: 'flex', flexDirection: 'column', gap: 8,
         }}>
           <span style={{ fontSize: 12.5, fontWeight: 700, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.35 }}>
-            Analisar {activeRaster!.name}
+            Analisar {activeRaster.name}
           </span>
           <span style={{ fontSize: 11.5, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
             {analysisHint(recortes)}
