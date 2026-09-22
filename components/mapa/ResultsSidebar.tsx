@@ -75,10 +75,16 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
    * A tile that failed for this stop would otherwise leave that skeleton
    * spinning for good -- `layerErrors` is set, `loadingLayers` is cleared and
    * nothing re-triggers the analysis -- so it surfaces as the card's own error.
+   *
+   * A point on a temporal layer is the exception: its result is the whole
+   * series, cached under the deliberately date-free `timeSeriesCacheKey`
+   * because every year is already in hand. Pinning it to one stop would blank
+   * the chart on each step of the slider and refetch what is already there.
+   * Only a per-year number belongs to a single stop.
    */
   function cardResult(raster: RasterLayerConfig, stop: string | undefined): LayerResult | undefined {
     const current = results[raster.id]
-    if (current && current.date === stop) return current
+    if (current && (current.stats?.kind === 'timeseries' || current.date === stop)) return current
 
     const tileError = layerErrors[raster.id]
     if (tileError) {
