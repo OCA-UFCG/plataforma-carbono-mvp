@@ -363,7 +363,7 @@ classes abaixo de 0,1% cada, por isso a rosca agrupa a cauda em "outras".
 
 ### Navegação no tempo
 
-Doze das dezoito camadas raster são navegáveis por ano. O que torna uma camada
+Doze das vinte e seis camadas raster são navegáveis por ano. O que torna uma camada
 temporal é o bloco `gee.temporal` no `layers.json`, e o passo é sempre anual: a
 camada num dado ano é exatamente o mesmo cálculo que a versão estática fazia,
 só com o ano variando. Por isso ligar uma camada abre no ano mais recente, e não
@@ -580,9 +580,10 @@ Camadas e dados:
 - A altura do dossel do Meta e WRI tem 1 m de resolução nativa, mas a estatística zonal roda a 30 m, para ficar comparável às demais camadas de 30 m e não estourar o tempo em municípios grandes. A média sobre o bioma praticamente não muda com isso; quem precisar do detalhe de árvore isolada deve baixar o dado direto.
 - Spawn e Gibbs usa só a banda `agb`. A soma AGB mais BGB exige uma pequena edição no servidor (`lib/mapa/geeImage.ts` ou na rota) para somar bandas.
 - Fogo: a camada mostra `min: 0`, então áreas nunca queimadas aparecem na cor mais clara. Para mostrar só o que queimou, mascarar o valor 0 (edição no servidor).
+- Aridez (Xavier et al. 2021) e cobertura do solo do IBGE 2020 ficaram de fora até serem reingeridas com `pyramidingPolicy: MODE`. Os assets de hoje, `ee-ocaufcg/assets/IA_1990_2020` e `ee-ulissesalencar17/assets/cobertura_solo_IBGE_2020`, têm pirâmide de média, que mistura códigos de classe no zoom afastado (ver a seção da pirâmide acima). O primeiro é inteiro e mesmo assim tem média, então o tipo do pixel não dispensa a reingestão. Voltam em PR próprio.
 - Camadas do inventário ainda não incluídas: ERA5 e TerraClimate no bloco de clima e água, fenologia por Sentinel-2, gases e fluorescência (TROPOMI, SIF) e integridade de projetos. Ficam para fases seguintes. CHIRPS, NDVI e EVI, que constavam aqui, já estão na plataforma.
 - O passo temporal é anual e só anual. Séries mensais e sazonais (composições de 8 ou 16 dias, CHIRPS diário) são agregadas ao ano pelo redutor da camada. Se a fenologia intra-anual virar escopo, o contrato precisa de um campo de granularidade e o gerador de paradas em `lib/mapa/temporal.ts` precisa saber gerar meses.
-- Seis camadas seguem estáticas por não terem série: `biomassa_gedi`, `altura_dossel`, `biomassa_spawn` e as três do GFW. As do GFW são cumulativas numa banda só e as demais são imagem única.
+- Quatorze camadas seguem estáticas por não terem série: as seis do Quarto Inventário, `solo_carbono_embrapa`, `degradacao_terra`, `biomassa_gedi`, `altura_dossel`, `biomassa_spawn` e as três do GFW. As do GFW são cumulativas numa banda só e as demais são imagem única.
 - Dar um código estável para `assentamentos` e passar a identidade de feição do relatório a usar o código oficial em vez do sufixo ordinal do slug. O `build-recortes.py` já preserva `code_muni`/`abbrev_state`, então falta o `recorteRegistry.ts` indexar por eles — e migrar ou redirecionar os ids atuais.
 - Uma série de participação por classe para `lulc_mapbiomas`, que custaria uma redução agrupada por ano.
 - Medir a série zonal sobre um estado inteiro com as quarenta paradas. Se a escala-piso somada ao `bestEffort` não bastar, a série vira um artefato cacheado à parte em vez de fazer parte da chamada de análise.
