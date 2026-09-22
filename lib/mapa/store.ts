@@ -2,9 +2,11 @@ import { create } from 'zustand'
 import type {
   LayerConfig,
   DrawMode,
+  LayerResult,
   PixelValueResult,
   RasterLayerConfig,
   RasterStatsResult,
+  SelectedGeometry,
 } from '@/types/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
@@ -54,6 +56,15 @@ interface MapaStore {
   drawnLength: number | null
   rasterStats: RasterStatsResult | null
   pixelValue: PixelValueResult | null
+  // One result per visible raster, keyed by layer id. Nothing prunes it when a
+  // layer is switched off: the panel renders the intersection with the visible
+  // rasters, so the card disappears on its own and switching the layer back on
+  // reuses the result -- still valid, because every path that changes the
+  // geometry clears the whole record first.
+  results: Record<string, LayerResult>
+  // What the results refer to. MapView kept this in a ref while nothing outside
+  // the map needed it; a failed card's "Tentar novamente" does, so it is state.
+  selectedGeometry: SelectedGeometry | null
   // Zonal-stats request lifecycle (separate from layer tile loading), so the
   // sidebar can show a spinner during the GEE call and a message on failure.
   statsLoading: boolean
@@ -102,6 +113,9 @@ interface MapaStore {
   setDrawnLength: (length: number | null) => void
   setRasterStats: (stats: RasterStatsResult | null) => void
   setPixelValue:  (value: PixelValueResult | null) => void
+  setLayerResult:      (result: LayerResult) => void
+  clearResults:        () => void
+  setSelectedGeometry: (geom: SelectedGeometry | null) => void
   setStatsLoading:  (v: boolean) => void
   setStatsError:    (v: string | null) => void
   setAnalysisLabel: (v: string | null) => void
@@ -129,6 +143,8 @@ export const useStore = create<MapaStore>((set, get) => ({
   drawnLength: null,
   rasterStats: null,
   pixelValue: null,
+  results: {},
+  selectedGeometry: null,
   statsLoading: false,
   statsError: null,
   analysisLabel: null,
@@ -228,6 +244,13 @@ export const useStore = create<MapaStore>((set, get) => ({
   setDrawnLength: (length) => set({ drawnLength: length }),
   setRasterStats: (stats)  => set({ rasterStats: stats }),
   setPixelValue:  (value)  => set({ pixelValue: value }),
+  // A full replace, not a merge: a layer moving back to 'loading' must drop the
+  // previous stop's numbers, or the card would show last year's mean under this
+  // year's header while the request is in flight.
+  setLayerResult: (result) =>
+    set((s) => ({ results: { ...s.results, [result.layerId]: result } })),
+  clearResults: () => set({ results: {} }),
+  setSelectedGeometry: (geom) => set({ selectedGeometry: geom }),
   setStatsLoading:  (v)    => set({ statsLoading: v }),
   setStatsError:    (v)    => set({ statsError: v }),
   setAnalysisLabel: (v)    => set({ analysisLabel: v }),
@@ -259,6 +282,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       drawMode: null,
       rasterStats: null,
       pixelValue: null,
+      results: {},
+      selectedGeometry: null,
       statsLoading: false,
       statsError: null,
       analysisLabel: null,
@@ -413,6 +438,25 @@ export const useStore = create<MapaStore>((set, get) => ({
   clearLayerError: (id) =>
     set((s) => ({ layerErrors: omitKey(s.layerErrors, id) })),
 }))
+
+/**
+ * Whether the results panel has anything to show.
+ *
+ * Exported because Mapa.tsx needs the same answer as ResultsSidebar to decide
+ * how far to shift the map controls, and two copies of this condition -- which
+ * is what the code had -- drift apart.
+ */
+export function hasAnalysisContent(s: {
+  drawnArea:   number | null
+  drawnLength: number | null
+  results:     Record<string, LayerResult>
+  layers:      LayerConfig[]
+}): boolean {
+  if (s.drawnArea !== null || s.drawnLength !== null) return true
+  return s.layers.some(
+    (l) => l.type === 'raster' && l.visible && s.results[l.id] !== undefined,
+  )
+}
 
 // Helper: return a new object with `key` removed
 function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
