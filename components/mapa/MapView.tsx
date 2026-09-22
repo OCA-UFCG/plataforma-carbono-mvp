@@ -40,7 +40,7 @@ import {
   runVisibleRasterAnalyses,
 } from '@/lib/mapa/analysisRunner'
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
-import { topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
+import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
@@ -722,11 +722,23 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // A new selection invalidates any in-flight stats response.
         const seq = bumpAnalysisSeq()
 
-        // With no raster on, the click has nothing to measure and is only a
-        // highlight -- so it must not throw away a drawing the user committed
-        // and can no longer undo. The predicate lives in analysisTargets,
-        // beside the hint the results panel shows for the same situation.
-        const measurable = topVisibleRasterIndex(useStore.getState().layers) !== -1
+        // A click only measures through a recorte drawn ABOVE a visible
+        // raster: that is what lets it reach the raster beneath the feature.
+        // The predicate is `clickableRecortes`, the same list the results panel
+        // names in its hint, so the instruction and the behavior cannot drift.
+        const layersNow = useStore.getState().layers
+        const measurable = clickableRecortes(layersNow)
+          .some((recorte) => recorte.id === vector.id)
+
+        // `clickableRecortes` is empty in two situations that are not the same
+        // click. With no raster on there is simply nothing to measure YET: the
+        // selection stands and the reactive recompute fills the cards the
+        // moment a raster is switched on. With rasters on but this recorte
+        // dragged below them by `reorderLayer`, the click never passed through
+        // a raster at all -- rasters are not queryable, so the feature answers
+        // a click it is not underneath. That is the rule the deleted
+        // `pickStatsTarget` enforced with `vectorIdx >= rasterIdx`.
+        const belowRaster = !measurable && topVisibleRasterIndex(layersNow) !== -1
 
         // Replace any existing drawing / measurement. Only `deleteAll` sits
         // behind the guard: the geometry is committed user work, while the
@@ -772,10 +784,21 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // measure and the zoom + highlight stand on their own.
         if (!geom) return
 
+        // The feature's own size replaces the drawing's in the panel, whether
+        // or not there is anything to measure over it.
+        if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+          setDrawnArea(turfArea({ type: 'Feature', geometry: geom, properties: {} }) / 1_000_000)
+        }
+
+        // A recorte below the rasters names and highlights its feature and
+        // stops there. Installing the selection would not merely measure once:
+        // the reactive recompute would go on measuring rasters this click never
+        // reached, on every layer toggle and every year step.
+        if (belowRaster) return
+
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
           const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon' }
           setSelectedGeometry(selected)
-          setDrawnArea(turfArea({ type: 'Feature', geometry: geom, properties: {} }) / 1_000_000)
           runVisibleRasterAnalyses(selected, seq)
         } else if (geom.type === 'Point') {
           const [lon, lat] = geom.coordinates as [number, number]
