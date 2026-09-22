@@ -54,8 +54,8 @@ const CANDIDATES = [
 // drift. A class raster must also have a MODE pyramid: Earth Engine records the
 // pyramid policy at ingestion and defaults to MEAN whatever the pixel type, and
 // a MEAN pyramid mixes neighbouring class codes whenever the map is zoomed out
-// past the native resolution (IA_1990_2020 is INT and MEAN). ee.data.getAsset
-// does not return the policy, so it is read from the REST endpoint.
+// past the native resolution. ee.data.getAsset does not return the policy, so
+// it is read from the REST endpoint.
 const layers = JSON.parse(readFileSync(new URL('../config/mapa/layers.json', import.meta.url), 'utf-8')).layers
 const IN_USE = new Map() // asset id -> id of the class layer that needs MODE, or null
 for (const l of layers) {
@@ -85,7 +85,14 @@ async function checkInUse(id, classLayer) {
   }
   console.log('OK  ', id, `(${body.type})`)
   if (!classLayer) return true
-  const notMode = (body.bands ?? []).filter((b) => (b.pyramidingPolicy ?? 'MEAN') !== 'MODE')
+  // An ImageCollection reports no bands here: the pyramid policy lives on the
+  // member images. Reading that as "no offending band" would wave a collection
+  // of class codes through unchecked, so the missing case fails closed.
+  if (!body.bands) {
+    console.log('AVISO', id, `\n      usado pela camada ${classLayer}, com classes, mas a resposta (${body.type}) não traz bandas; pirâmide não conferida`)
+    return false
+  }
+  const notMode = body.bands.filter((b) => (b.pyramidingPolicy ?? 'MEAN') !== 'MODE')
   if (notMode.length === 0) return true
   const policies = [...new Set(notMode.map((b) => b.pyramidingPolicy ?? 'MEAN'))].join(', ')
   console.log('AVISO', id, `\n      usado pela camada ${classLayer}, com classes, mas pyramidingPolicy ${policies}; reingerir com MODE`)
