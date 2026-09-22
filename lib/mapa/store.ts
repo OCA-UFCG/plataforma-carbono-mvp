@@ -357,8 +357,15 @@ export const useStore = create<MapaStore>((set, get) => ({
 
   // Temporal date navigation
   setTemporalDate: async (layerId, date) => {
-    // 1. Update selected date immediately (UI stays responsive)
-    set((s) => ({ temporalDate: { ...s.temporalDate, [layerId]: date } }))
+    // 1. Update selected date immediately (UI stays responsive). The error of
+    //    the previous stop goes with it: it described that year's tile, and a
+    //    cache hit below returns without ever reaching the fetch that used to
+    //    be the only place clearing it -- which left the result card flashing
+    //    a stale message for the stop it had just moved on to.
+    set((s) => ({
+      temporalDate: { ...s.temporalDate, [layerId]: date },
+      layerErrors:  omitKey(s.layerErrors, layerId),
+    }))
 
     // 2. Check cache, if already fetched, nothing more to do
     const cached = get().temporalTileUrls[layerId]?.[date]
@@ -368,10 +375,7 @@ export const useStore = create<MapaStore>((set, get) => ({
     const layer = get().layers.find((l) => l.id === layerId) as RasterLayerConfig | undefined
     if (!layer?.gee?.asset) return
 
-    set((s) => ({
-      loadingLayers: { ...s.loadingLayers, [layerId]: true },
-      layerErrors:   omitKey(s.layerErrors, layerId),
-    }))
+    set((s) => ({ loadingLayers: { ...s.loadingLayers, [layerId]: true } }))
 
     try {
       const res = await fetch('/api/gee/tile', {
