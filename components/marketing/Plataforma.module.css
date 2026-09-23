@@ -7,9 +7,11 @@
  *     (#d1cec8) are both untokenized warm grays close to --am-200, the same
  *     substitution Destaques.module.css already made for an equivalent
  *     border (see its comment); reused here rather than inventing a hex.
- *   - the tab strip's inactive-tab colour is spec'd by the task brief as
- *     --bg-texto-secundario, overriding the Figma-extracted --am-400 (the
- *     brief is the more recent, deliberate decision).
+ *
+ * The inactive tab uses --am-400, as the design does (5.32:1 on --bg-fundo).
+ * An earlier brief had it at --bg-texto-secundario; that was reverted once
+ * the design added a tab hover (18916:9468), which darkens the label to
+ * --bg-texto-primario and is invisible from a resting colour that dark.
  *
  * Open question: `.tab` uses the bound `.text-p-ui-semibold` utility
  * (600/16px, Rubik). The Figma node's own tab label instances (18862:8546,
@@ -74,7 +76,7 @@
   /* 10 + 24 (the .text-p-ui-semibold line box) + 10 + 3 = 47, plus the strip's
    * own 1px bottom border = 48, the height of the design's tab strip. */
   padding: 10px 2px;
-  color: var(--bg-texto-secundario);
+  color: var(--am-400);
   white-space: nowrap;
 }
 

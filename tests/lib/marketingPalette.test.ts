@@ -40,6 +40,8 @@ const PAIRS: [string, string][] = [
   // The nav link deliberately departs from Figma: the design keeps
   // -marca-ancora-padrao text on --am-100, which is 4.01:1 and fails AA for
   // its 14px label, so SiteHeader.module.css steps the text to -hover.
+  // The inactive tab rests on --am-400 (Plataforma.module.css).
+  ['--am-400', '--bg-fundo'],
   ['--role-primario-texto-sobre', '--role-categorica1-hover'],
   ['--role-marca-ancora-hover', '--am-100'],
   ['--role-categorica1-padrao', '--am-100'],
