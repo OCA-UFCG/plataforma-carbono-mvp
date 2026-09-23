@@ -32,6 +32,17 @@ const PAIRS: [string, string][] = [
   // covered here rather than the -padrao background pair no section uses.
   ['--role-marca-ancora-padrao', '--bg-fundo'],
   ['--role-marca-ancora-texto-sobre', '--role-marca-ancora-hover'],
+  // Hover states (Figma "Hover" frames on the home section, 18916:*):
+  // Ferramenta's button darkens to -categorica1-hover (18916:9764); the nav
+  // link and the "Entrar" button put their text on an --am-100 fill
+  // (18916:9717, 18916:9741); an inactive tab darkens to the primary text
+  // colour (18916:9468), already covered by the first pair above.
+  // The nav link deliberately departs from Figma: the design keeps
+  // -marca-ancora-padrao text on --am-100, which is 4.01:1 and fails AA for
+  // its 14px label, so SiteHeader.module.css steps the text to -hover.
+  ['--role-primario-texto-sobre', '--role-categorica1-hover'],
+  ['--role-marca-ancora-hover', '--am-100'],
+  ['--role-categorica1-padrao', '--am-100'],
 ]
 
 describe('landing palette', () => {
