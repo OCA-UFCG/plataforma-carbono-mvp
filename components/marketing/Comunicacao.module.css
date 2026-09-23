@@ -171,12 +171,15 @@ a.surface:focus-visible .photo {
   color: var(--role-marca-ancora-texto-sobre);
 }
 
-a.surface:hover .overlayExpanded,
+/* Every card reveals its description on hover, linked or not: the reveal is
+ * presentational, and touch screens show it on every card anyway (below).
+ * Only a linked card can take focus, and only it renders the button. */
+.surface:hover .overlayExpanded,
 a.surface:focus-visible .overlayExpanded {
   opacity: 1;
 }
 
-a.surface:hover .extra,
+.surface:hover .extra,
 a.surface:focus-visible .extra {
   grid-template-rows: 1fr;
   opacity: 1;

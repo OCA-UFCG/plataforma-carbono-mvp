@@ -38,10 +38,11 @@ const DESCRICAO_CARTILHA =
   "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.";
 
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
-// gutter (card component 18862:7951, hover state 18916:9437). Hovering or
-// focusing a linked card deepens its gradient and reveals the description
-// and a "Ver material" button; on touch screens, which have no hover, that
-// expanded state is the resting state (see Comunicacao.module.css). The module
+// gutter (card component 18862:7951, hover state 18916:9437). Hovering a
+// card (or focusing a linked one) deepens its gradient and reveals the
+// description, plus a "Ver material" button when there is a PDF to open; on
+// touch screens, which have no hover, that expanded state is the resting
+// state (see Comunicacao.module.css). The module
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
 // so the choice of which ones is fixed by the task brief rather than by this
 // component: the caderno (labelled "CADERNO TEMÁTICO") and cartilhas[0]
