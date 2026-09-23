@@ -16,15 +16,11 @@ function panelId(id: string) {
 }
 
 // Plataforma, Figma node 18862:8546 ("Sobre"), the "Conheça a plataforma"
-// tabbed section. The Figma file specifies neither keyboard behaviour nor
-// three of the four tabs' content, so both follow recorded decisions rather
-// than the design node itself:
-//   - keyboard interaction follows the WAI-ARIA tabs pattern (automatic
-//     activation: moving focus with the arrow keys also selects the tab and
-//     swaps the panel), since the design has no interaction spec at all;
-//   - "A Caatinga", "Carbono e comunidades" and "Como funciona" render a
-//     quiet empty state instead of invented scientific copy — see
-//     lib/content/plataforma.ts.
+// tabbed section; the other three tabs are its variant instances 18916:9520,
+// 18916:9585 and 18916:9650, and the tab hover is frame 18916:9468. The
+// Figma file does not specify keyboard behaviour, so it follows the WAI-ARIA
+// tabs pattern (automatic activation: moving focus with the arrow keys also
+// selects the tab and swaps the panel).
 // The "Ver mais" button the design shows next to the section label is
 // omitted: there is no page for it to link to.
 export default function Plataforma() {
@@ -117,11 +113,7 @@ export default function Plataforma() {
             tabIndex={0}
             hidden={aba.id !== activeId}
           >
-            {aba.conteudo ? (
-              <PanelConteudo conteudo={aba.conteudo} />
-            ) : (
-              <p className={`${styles.vazio} text-subtle`}>Conteúdo em preparação.</p>
-            )}
+            <PanelConteudo conteudo={aba.conteudo} />
           </div>
         ))}
       </div>

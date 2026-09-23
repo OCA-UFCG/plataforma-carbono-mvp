@@ -20,6 +20,12 @@
   cursor: not-allowed;
 }
 
+/* Hover from Figma frame 18916:9438, kept while the control is inert: the
+ * cursor above still says it does nothing. White on -hover is 6.68:1. */
+.moreLink:hover {
+  background: var(--role-marca-ancora-hover);
+}
+
 .icon {
   width: 16px;
   height: 16px;

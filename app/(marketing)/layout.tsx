@@ -10,7 +10,7 @@ import { Analytics } from "@/components/Analytics";
 // of the two loads the other's style.
 const rubik = Rubik({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
 });
 

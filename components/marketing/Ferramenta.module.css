@@ -124,14 +124,15 @@
   padding: 8px 16px;
   border-radius: var(--radius-interno);
   white-space: nowrap;
-  /* Same binding Hero.module.css uses for its primary button: the Figma
-     button node carries -TextoSobre and -Hover, with no -Padrao binding. */
-  background: var(--role-marca-ancora-hover);
-  color: var(--role-marca-ancora-texto-sobre);
+  /* Figma node 18862:8574 binds the categorica1 role, not the brand green
+     the hero uses; the hover step is frame 18916:9764. */
+  background: var(--role-categorica1-padrao);
+  color: var(--role-primario-texto-sobre);
 }
 
-.button:hover {
-  background: var(--role-marca-ancora-pressionado);
+.button:hover,
+.button:focus-visible {
+  background: var(--role-categorica1-hover);
 }
 
 @media (max-width: 900px) {

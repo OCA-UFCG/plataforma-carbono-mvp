@@ -7,9 +7,11 @@
  *     (#d1cec8) are both untokenized warm grays close to --am-200, the same
  *     substitution Destaques.module.css already made for an equivalent
  *     border (see its comment); reused here rather than inventing a hex.
- *   - the tab strip's inactive-tab colour is spec'd by the task brief as
- *     --bg-texto-secundario, overriding the Figma-extracted --am-400 (the
- *     brief is the more recent, deliberate decision).
+ *
+ * The inactive tab uses --am-400, as the design does (5.32:1 on --bg-fundo).
+ * An earlier brief had it at --bg-texto-secundario; that was reverted once
+ * the design added a tab hover (18916:9468), which darkens the label to
+ * --bg-texto-primario and is invisible from a resting colour that dark.
  *
  * Open question: `.tab` uses the bound `.text-p-ui-semibold` utility
  * (600/16px, Rubik). The Figma node's own tab label instances (18862:8546,
@@ -74,7 +76,7 @@
   /* 10 + 24 (the .text-p-ui-semibold line box) + 10 + 3 = 47, plus the strip's
    * own 1px bottom border = 48, the height of the design's tab strip. */
   padding: 10px 2px;
-  color: var(--bg-texto-secundario);
+  color: var(--am-400);
   white-space: nowrap;
 }
 
@@ -83,30 +85,26 @@
   border-bottom-color: var(--role-marca-ancora-padrao);
 }
 
-/* 274px is the panel height in Figma node 18862:8546 (frame 277132049), which
- * the filled tab reaches on its own. The floor is here for the three tabs that
- * ship empty: without it, selecting one collapses the section from 442px to
- * 212px and everything below jumps up by 230px. The design never shows this,
- * having drawn only the filled tab. Released below 640px, where the panel
- * stacks and a fixed floor would just add dead space. */
+/* Hover on an inactive tab, Figma frame 18916:9468: the label darkens to the
+ * primary text colour over a 1px underline. The underline is a background
+ * drawn under the transparent 3px border rather than a border of its own, so
+ * hovering does not shift the label or the strip. */
+.tab:not(.tabActive):hover {
+  color: var(--bg-texto-primario);
+  background: linear-gradient(var(--bg-texto-primario), var(--bg-texto-primario)) bottom / 100% 1px
+    no-repeat border-box;
+}
+
+/* No height floor: every tab's 250px image sets the panel to the design's
+ * 274px (Figma node 18862:8546, frame 277132049), so switching tabs does not
+ * move the sections below. */
 .panel {
   padding-top: 24px;
-  min-height: 274px;
 }
 
 .panel:focus-visible {
   outline: 2px solid var(--role-marca-ancora-padrao);
   outline-offset: 4px;
-}
-
-/* Quiet empty state for the three undesigned tabs: informative text a
- * person has to read, so it uses --bg-texto-secundario (14.80:1 against
- * --bg-fundo), never --role-neutro-texto-desabilitado (2.50:1) — that token
- * is reserved for genuinely inert controls, like the header's English
- * language option. */
-.vazio {
-  color: var(--bg-texto-secundario);
-  margin: 0;
 }
 
 .conteudo {
@@ -156,6 +154,9 @@
  * after the padding and wrapped it to two lines — a number that came from
  * nowhere in the design. */
 .destaque {
+  /* Rubik Bold in every tab of the design (e.g. I18916:9520;18846:7666);
+   * .text-body sets the size and line height, the weight is overridden. */
+  font-weight: 700;
   color: var(--bg-texto-primario);
   border-left: 3px solid var(--role-neutro-borda);
   padding: 10px 0 10px 20px;
@@ -163,11 +164,6 @@
 }
 
 @media (max-width: 640px) {
-  /* No height floor once stacked: it would only add dead space. */
-  .panel {
-    min-height: 0;
-  }
-
   .conteudo {
     flex-direction: column;
   }

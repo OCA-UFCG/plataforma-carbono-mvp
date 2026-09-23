@@ -1,11 +1,8 @@
 // Content for the "Conheça a plataforma" tabbed section (Plataforma,
-// Figma node 18862:8546, "Sobre"). Only the first tab is designed in the
-// Figma file; the other three ("A Caatinga", "Carbono e comunidades",
-// "Como funciona") have no copy anywhere in the repo or the design. This is
-// a recorded product decision, not an oversight: the content this page
-// replaced was sourced, cited material, and inventing lookalike scientific
-// copy to fill the gap would be worse than an empty state. See
-// components/marketing/Plataforma.tsx for how `conteudo: null` renders.
+// Figma node 18862:8546, "Sobre"). The first tab's copy comes from that node;
+// the other three from its variant instances on the same page, 18916:9520
+// ("A Caatinga"), 18916:9585 ("Carbono e comunidades") and 18916:9650
+// ("Como funciona"). Image alt text is not in the design and is written here.
 
 export type ConteudoAba = {
   imagem: string
@@ -18,9 +15,7 @@ export type ConteudoAba = {
 export type AbaPlataforma = {
   id: string
   label: string
-  // null means the copy has not been written yet: the section renders an empty
-  // state for the tab rather than inventing scientific content.
-  conteudo: ConteudoAba | null
+  conteudo: ConteudoAba
 }
 
 export const ABAS_PLATAFORMA: AbaPlataforma[] = [
@@ -38,7 +33,43 @@ export const ABAS_PLATAFORMA: AbaPlataforma[] = [
         'Informação aberta para que o mercado de carbono respeite o bioma e quem o conserva.',
     },
   },
-  { id: 'a-caatinga', label: 'A Caatinga', conteudo: null },
-  { id: 'carbono-e-comunidades', label: 'Carbono e comunidades', conteudo: null },
-  { id: 'como-funciona', label: 'Como funciona', conteudo: null },
+  {
+    id: 'a-caatinga',
+    label: 'A Caatinga',
+    conteudo: {
+      imagem: '/images/plataforma/a-caatinga.webp',
+      imagemAlt: 'Vista do alto de uma serra da Caatinga, com vegetação seca em primeiro plano sob céu azul',
+      titulo: 'A Caatinga',
+      paragrafos: [
+        'A Caatinga abriga a maior e mais diversa Floresta Tropical Sazonalmente Seca do mundo. Além de ser a casa de milhões de pessoas em cidades, comunidades rurais e territórios de povos tradicionais, desempenha um papel decisivo na regulação do clima: em 2022, foi o bioma que mais removeu carbono da atmosfera no Brasil. Mesmo assim, quase não há projetos de carbono certificados no bioma.',
+      ],
+      destaque: 'O bioma que mais remove carbono no Brasil ainda está fora do mercado.',
+    },
+  },
+  {
+    id: 'carbono-e-comunidades',
+    label: 'Carbono e comunidades',
+    conteudo: {
+      imagem: '/images/plataforma/carbono-e-comunidades.webp',
+      imagemAlt: 'Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor',
+      titulo: 'Carbono e comunidades',
+      paragrafos: [
+        'Projetos de carbono podem gerar renda complementar, mas devem reconhecer direitos, garantir a participação nas decisões, inclusive o direito de recusar, e repartir os benefícios de forma justa com quem conserva a vegetação e reúne conhecimentos essenciais sobre seus territórios.',
+      ],
+      destaque: 'Quem conserva o território deve participar das decisões e dos benefícios.',
+    },
+  },
+  {
+    id: 'como-funciona',
+    label: 'Como funciona',
+    conteudo: {
+      imagem: '/images/plataforma/como-funciona.webp',
+      imagemAlt: 'Plantação de milho diante de um morro coberto pela vegetação da Caatinga',
+      titulo: 'Como funciona',
+      paragrafos: [
+        'A CaatiVAR reúne dados sobre o carbono armazenado no solo e na vegetação, a produtividade e os fluxos de carbono, o clima, as mudanças da vegetação ao longo do tempo, o uso e a cobertura da terra e a ocorrência de fogo, organizados para diferentes recortes territoriais da Caatinga.',
+      ],
+      destaque: 'Dados ambientais para compreender as condições de cada território.',
+    },
+  },
 ]

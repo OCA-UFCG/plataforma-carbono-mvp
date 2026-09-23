@@ -157,7 +157,8 @@
   color: var(--role-marca-ancora-texto-sobre);
 }
 
-.primaryButton:hover {
+.primaryButton:hover,
+.primaryButton:focus-visible {
   background: var(--role-marca-ancora-pressionado);
 }
 
@@ -167,8 +168,10 @@
   border: var(--borda-largura) solid var(--role-terciario-texto-sobre);
 }
 
-.secondaryButton:hover {
-  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 12%, transparent);
+/* Hover darkens the button behind its white label, Figma frame 18916:9730. */
+.secondaryButton:hover,
+.secondaryButton:focus-visible {
+  background: var(--bg-overlay);
 }
 
 /* Carousel dots, bottom-left (node 18862:8531): active pill 26x6, others 6x6
