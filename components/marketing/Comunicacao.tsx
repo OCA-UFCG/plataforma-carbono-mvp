@@ -6,6 +6,7 @@ type CardData = {
   key: string;
   label: string;
   title: string;
+  description: string;
   cover: string;
   pdf?: string;
 };
@@ -28,8 +29,19 @@ const FOTOS: Record<string, string> = {
   cartilha: "/images/comunicacao/cartilha.webp",
 };
 
+// The hover state (Figma 18916:9437) reveals a description under the title.
+// The caderno carries one in the content model; cartilhas do not, so the
+// cartilha card falls back to the design's own copy, which describes the
+// series rather than any one volume. When the Cartilha model gains a
+// description field, read it here instead.
+const DESCRICAO_CARTILHA =
+  "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.";
+
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
-// gutter (card component 18862:7951, hover state 18916:9437). The module
+// gutter (card component 18862:7951, hover state 18916:9437). Hovering or
+// focusing a linked card deepens its gradient and reveals the description
+// and a "Ver material" button; on touch screens, which have no hover, that
+// expanded state is the resting state (see Comunicacao.module.css). The module
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
 // so the choice of which ones is fixed by the task brief rather than by this
 // component: the caderno (labelled "CADERNO TEMÁTICO") and cartilhas[0]
@@ -50,6 +62,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       key: "caderno",
       label: "CADERNO TEMÁTICO",
       title: conteudo.caderno.title,
+      description: conteudo.caderno.description,
       // Falls back to the publication's cover art if the photograph is ever removed.
       cover: FOTOS.caderno ?? conteudo.caderno.cover,
       pdf: conteudo.caderno.pdf,
@@ -60,6 +73,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
             key: "cartilha",
             label: "CARTILHA",
             title: primeiraCartilha.title,
+            description: DESCRICAO_CARTILHA,
             cover: FOTOS.cartilha ?? primeiraCartilha.cover,
             pdf: primeiraCartilha.pdf,
           },
@@ -95,6 +109,8 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
 // <section id="comunicacao"> — per this file.
 function ComunicacaoCard({ card }: { card: CardData }) {
   const titleId = `comunicacao-${card.key}-title`;
+  const descriptionId = `comunicacao-${card.key}-description`;
+  const linked = Boolean(card.pdf);
 
   const content = (
     <>
@@ -108,6 +124,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={card.cover} alt="" className={styles.photo} loading="lazy" decoding="async" />
       <div className={styles.overlay} aria-hidden="true" />
+      <div className={styles.overlayExpanded} aria-hidden="true" />
       <div className={styles.text}>
         <p className={`${styles.label} text-subtle-semibold`} aria-hidden="true">
           {card.label}
@@ -115,6 +132,25 @@ function ComunicacaoCard({ card }: { card: CardData }) {
         <h3 id={titleId} className={`${styles.title} text-lead`}>
           {card.title}
         </h3>
+        {/* Collapsed rather than unmounted while not hovered, so the
+            description stays in the accessibility tree: the link below
+            points at it with aria-describedby. */}
+        <div className={styles.extra}>
+          <div className={styles.extraInner}>
+            <p id={descriptionId} className={`${styles.description} text-body`}>
+              {card.description}
+            </p>
+            {/* The whole card is the link; this is its visual call to
+                action, not a second control, hence a <span> hidden from
+                assistive tech (the link's name already says where it goes).
+                The card without a PDF is not a control, so it gets none. */}
+            {linked && (
+              <span className={`${styles.cta} text-body`} aria-hidden="true">
+                Ver material
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );
@@ -126,7 +162,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
   // from the accessible tree, and the surface below is named from the title
   // node alone, so the reading order stays sensible: category first for
   // sighted users, title-only for the link's name.
-  if (card.pdf) {
+  if (linked) {
     return (
       <li className={styles.card} role="listitem">
         <a
@@ -134,6 +170,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
           target="_blank"
           rel="noreferrer"
           aria-labelledby={titleId}
+          aria-describedby={descriptionId}
           className={styles.surface}
         >
           {content}

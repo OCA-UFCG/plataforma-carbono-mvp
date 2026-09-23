@@ -45,18 +45,26 @@
   list-style: none;
 }
 
+/* The 626/480 ratio is a floor, not a fixed height: the text block sits in
+ * normal flow, so a card whose expanded text (title, description, button)
+ * outgrows that box — at phone widths, where touch shows the expanded state
+ * at rest — grows taller instead of clipping it. That relies on `overflow:
+ * clip`: `hidden` would make the card a scroll container, and aspect-ratio
+ * then stops growing with its content. */
 .card {
   position: relative;
+  display: grid;
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: clip;
   aspect-ratio: 626 / 480;
   background: var(--am-100);
 }
 
 .surface {
-  display: block;
-  position: absolute;
-  inset: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   color: inherit;
 }
 
@@ -91,20 +99,113 @@ a.surface:focus-visible .photo {
  * text block below sits inside the solid portion, so its contrast against
  * the photo never depends on the photo itself — see the module's title rule
  * below for the actual contrast figure. */
-.overlay {
+.overlay,
+.overlayExpanded {
   position: absolute;
   inset: 0;
+}
+
+.overlay {
   background: linear-gradient(to top, var(--bg-fundo-inverso) 0%, transparent 65%);
 }
 
+/* The hover gradient, Figma 18916:9437: solid over the bottom 36% and fading
+ * out only at the top edge, so the taller expanded text block still sits on
+ * near-opaque ground. Gradients do not interpolate, so it is a second layer
+ * faded in on top of the resting one. */
+.overlayExpanded {
+  background: linear-gradient(to top, var(--bg-fundo-inverso) 36%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
 .text {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
+  position: relative;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* Description + button, collapsed at rest. The 0fr -> 1fr row animates the
+ * height without a magic max-height, and the content stays in the DOM (and
+ * the accessibility tree) while collapsed. */
+.extra {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.extraInner {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The caderno's description runs to four or five lines at card width; three
+ * keep the block inside the gradient's solid band. The full text is still
+ * what aria-describedby announces. */
+.description {
+  color: var(--bg-texto-sobre-inverso);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Full-width "Ver material" button, Figma node 18862:7967. */
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+a.surface:hover .overlayExpanded,
+a.surface:focus-visible .overlayExpanded {
+  opacity: 1;
+}
+
+a.surface:hover .extra,
+a.surface:focus-visible .extra {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Touch screens have no hover to reveal the description with, so there the
+ * expanded state is the resting one, for every card. */
+@media (hover: none) {
+  .overlayExpanded {
+    opacity: 1;
+  }
+
+  .extra {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo,
+  .overlayExpanded,
+  .extra {
+    transition: none;
+  }
+
+  a.surface:hover .photo,
+  a.surface:focus-visible .photo {
+    transform: none;
+  }
 }
 
 .label {
