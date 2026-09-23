@@ -94,6 +94,15 @@ para 1,54.
 Origem e crédito desta foto não estão registrados em lugar nenhum — nem aqui, nem no arquivo do
 Figma. Não preenchido para evitar atribuição incorreta.
 
+As outras três abas ganharam foto na atualização do design de setembro de 2026:
+`plataforma/a-caatinga.webp`, `plataforma/carbono-e-comunidades.webp` e
+`plataforma/como-funciona.webp` (680×500, 60 a 90 KB), dos quadros "Background+Border" das
+instâncias 18916:9520, 18916:9585 e 18916:9650. Os originais no Figma são JPEGs de celular
+4000×3000 (Samsung SM-S901E, agosto de 2023 a julho de 2024), e dois deles traziam coordenadas
+GPS no EXIF. A conversão (recorte central para 340/250 e Pillow, WebP qualidade 80) descarta
+todos os metadados; **ao substituir essas fotos, não publicar os originais**, porque a de
+"Carbono e comunidades" mostra uma casa em comunidade. Autoria também não registrada.
+
 ## Hero
 
 O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar a constante `PHOTOS` em `components/marketing/Hero.tsx`; o crédito exibido ("Foto: Artur Lourenço") vem do campo `credit` de cada entrada dessa constante e só aparece quando ele está preenchido.

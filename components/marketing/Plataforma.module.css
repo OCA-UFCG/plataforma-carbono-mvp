@@ -83,30 +83,16 @@
   border-bottom-color: var(--role-marca-ancora-padrao);
 }
 
-/* 274px is the panel height in Figma node 18862:8546 (frame 277132049), which
- * the filled tab reaches on its own. The floor is here for the three tabs that
- * ship empty: without it, selecting one collapses the section from 442px to
- * 212px and everything below jumps up by 230px. The design never shows this,
- * having drawn only the filled tab. Released below 640px, where the panel
- * stacks and a fixed floor would just add dead space. */
+/* No height floor: every tab's 250px image sets the panel to the design's
+ * 274px (Figma node 18862:8546, frame 277132049), so switching tabs does not
+ * move the sections below. */
 .panel {
   padding-top: 24px;
-  min-height: 274px;
 }
 
 .panel:focus-visible {
   outline: 2px solid var(--role-marca-ancora-padrao);
   outline-offset: 4px;
-}
-
-/* Quiet empty state for the three undesigned tabs: informative text a
- * person has to read, so it uses --bg-texto-secundario (14.80:1 against
- * --bg-fundo), never --role-neutro-texto-desabilitado (2.50:1) — that token
- * is reserved for genuinely inert controls, like the header's English
- * language option. */
-.vazio {
-  color: var(--bg-texto-secundario);
-  margin: 0;
 }
 
 .conteudo {
@@ -163,11 +149,6 @@
 }
 
 @media (max-width: 640px) {
-  /* No height floor once stacked: it would only add dead space. */
-  .panel {
-    min-height: 0;
-  }
-
   .conteudo {
     flex-direction: column;
   }
