@@ -45,22 +45,29 @@
   list-style: none;
 }
 
-/* The 626/480 ratio is a floor, not a fixed height: the text block sits in
- * normal flow, so a card whose expanded text (title, description, button)
- * outgrows that box — at phone widths, where touch shows the expanded state
- * at rest — grows taller instead of clipping it. That relies on `overflow:
- * clip`: `hidden` would make the card a scroll container, and aspect-ratio
- * then stops growing with its content. */
+/* The 626/480 ratio is a floor, not a fixed height, so a card whose expanded
+ * text (title, description, button) outgrows that box — at phone widths,
+ * where touch shows the expanded state at rest — grows taller instead of
+ * clipping it. The ratio lives on an empty ::before sharing the one grid
+ * cell with the content, and the cell takes the taller of the two. Putting
+ * aspect-ratio on the card itself does not work: the card is a grid item of
+ * .grid, and there its automatic minimum does not follow the content. */
 .card {
   position: relative;
   display: grid;
   border-radius: var(--radius);
-  overflow: clip;
-  aspect-ratio: 626 / 480;
+  overflow: hidden;
   background: var(--am-100);
 }
 
+.card::before {
+  content: "";
+  grid-area: 1 / 1;
+  aspect-ratio: 626 / 480;
+}
+
 .surface {
+  grid-area: 1 / 1;
   position: relative;
   display: flex;
   flex-direction: column;
