@@ -83,6 +83,16 @@
   border-bottom-color: var(--role-marca-ancora-padrao);
 }
 
+/* Hover on an inactive tab, Figma frame 18916:9468: the label darkens to the
+ * primary text colour over a 1px underline. The underline is a background
+ * drawn under the transparent 3px border rather than a border of its own, so
+ * hovering does not shift the label or the strip. */
+.tab:not(.tabActive):hover {
+  color: var(--bg-texto-primario);
+  background: linear-gradient(var(--bg-texto-primario), var(--bg-texto-primario)) bottom / 100% 1px
+    no-repeat border-box;
+}
+
 /* No height floor: every tab's 250px image sets the panel to the design's
  * 274px (Figma node 18862:8546, frame 277132049), so switching tabs does not
  * move the sections below. */
