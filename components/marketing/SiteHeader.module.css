@@ -80,8 +80,14 @@
   white-space: nowrap;
 }
 
-.navLink:hover {
-  color: var(--role-marca-ancora-padrao);
+/* Hover fills the link with --am-100, Figma frame 18916:9717. The design
+ * keeps the -padrao text on that fill, which is 4.01:1 and fails AA for this
+ * 14px label; stepping to the role's -hover tone gives 5.51:1 with no visible
+ * change of hue (tests/lib/marketingPalette.test.ts holds the pair). */
+.navLink:hover,
+.navLink:focus-visible {
+  background: var(--am-100);
+  color: var(--role-marca-ancora-hover);
 }
 
 .navLinkActive {
