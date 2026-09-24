@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FaAngleRight } from "react-icons/fa6";
 import styles from "./MoreLink.module.css";
 
@@ -7,23 +8,29 @@ import styles from "./MoreLink.module.css";
 // #587c22 = --role-marca-ancora-padrao exactly — note that differs from the
 // hero and map buttons, which the design binds to --role-marca-ancora-hover.
 //
-// It ships INERT. The internal pages it would open ("Sobre", "Comunicação") do
-// not exist yet, so there is nothing to link to. Rendered as a <span> rather
-// than a disabled <button>, matching how SiteHeader's PT-BR/En control
-// handles the same problem: a disabled button announces as a broken control.
-// `aria-disabled` is documentation for the next developer, not something
-// assistive tech consumes — a <span> has no role (it maps to `generic`,
-// which does not support `aria-disabled`), so it would otherwise announce as
-// plain "Ver mais" with no indication it does nothing. The visually-hidden
-// suffix below is what actually carries that to the accessible name; `title`
-// is not announced on a non-focusable element and does not exist on touch,
-// so it is decorative only, for a sighted mouse user who hovers.
-//
-// When the pages exist, give this an `href` and render an <a> — one change,
-// both sections. That is why it is shared rather than written twice.
-export default function MoreLink() {
+// With an `href` it is a link to the internal page it opens. Without one it
+// ships INERT, as it did before those pages existed: a <span> rather than a
+// disabled <button>, matching how SiteHeader's PT-BR/En control handles the
+// same problem (a disabled button announces as a broken control). A <span>
+// has no role, so `aria-disabled` is documentation only; the visually-hidden
+// suffix is what tells assistive tech it does nothing, and `title` is
+// decorative, for a sighted mouse user who hovers.
+export default function MoreLink({ href }: { href?: string }) {
+  if (href) {
+    return (
+      <Link href={href} className={`${styles.moreLink} text-body`}>
+        Ver mais
+        <FaAngleRight aria-hidden className={styles.icon} />
+      </Link>
+    );
+  }
+
   return (
-    <span className={`${styles.moreLink} text-body`} aria-disabled="true" title="Disponível em breve">
+    <span
+      className={`${styles.moreLink} ${styles.inert} text-body`}
+      aria-disabled="true"
+      title="Disponível em breve"
+    >
       Ver mais
       <span className="sr-only"> (disponível em breve)</span>
       <FaAngleRight aria-hidden className={styles.icon} />

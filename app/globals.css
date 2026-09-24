@@ -22,6 +22,28 @@
   --ctx-atencao-texto-sobre: #ffffff;
   --ctx-positivo-texto-sobre: #ffffff;
 
+  /* Added for the internal pages (Figma frames 18988:8611, 8667, 8769, 8943
+   * and 18978:2048, read with get_variable_defs on the working copy
+   * d4ylsSkrfbYXNXHVq5WcVJ). Declared here all at once so the page tasks
+   * never have to edit this file (issue #44, "Regras para evitar conflito"). */
+  --role-marca-ancora-borda: #587c22;
+  --role-marca-ancora-foco: #587c22;
+  --role-categorica1-borda: #27725b;
+  --role-categorica1-container: #eaf3f0;
+  --role-categorica2-padrao: #002b39;
+  --role-categorica2-container: #e6eaeb;
+  --role-categorica2-texto-sobre: #ffffff;
+  --role-categorica3-padrao: #367483;
+  --role-categorica3-hover: #2a5964;
+  --role-categorica3-borda: #367483;
+  --role-alerta-risco-hover: #8f3a32;
+  --role-alerta-risco-borda: #b54c40;
+  --role-primario-container: #d3e0ee;
+  --ctx-negativo-padrao: #b54c40;
+  --ctx-negativo-container: #efd7d2;
+  --ctx-informativo-texto-sobre: #ffffff;
+  --ctx-positivo-texto-sobre-container: #001d27;
+
   --bg-fundo: #fefefb;
   --bg-fundo-inverso: #000f15;
   --bg-texto-primario: #001d27;
@@ -29,18 +51,23 @@
   --bg-texto-sobre-inverso: #fefefb;
   --bg-borda: #526f78;
   --bg-overlay: #000f1580;
+  --bg-superficie-variante: #fcf8eb;
 
+  --am-050: #f2f4f5;
   --am-100: #e6eaeb;
   --am-200: #bfcace;
   --am-400: #526f78;
   --ar-050: #fefefb;
   --cb-400: #72ae9b;
+  --cb-600: #27725b;
+  --cu-900: #1d3e45;
 
   --radius: 8px;
   --radius-interno: 6px;
   --borda-largura: 2px;
   --espaco: 8px;
   --shadow: 0 1px 3px #0000001a, 0 1px 2px -1px #0000001a;
+  --shadow-sm: 0 1px 2px #0000000d;
 
   --font-fallback: "Rubik", system-ui, sans-serif;
 

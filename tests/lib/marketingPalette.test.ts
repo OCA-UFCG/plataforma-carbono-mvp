@@ -45,6 +45,22 @@ const PAIRS: [string, string][] = [
   ['--role-primario-texto-sobre', '--role-categorica1-hover'],
   ['--role-marca-ancora-hover', '--am-100'],
   ['--role-categorica1-padrao', '--am-100'],
+  // Internal pages' frame (issue #45): the intro band's eyebrow and paragraph
+  // on --am-100, the sub-navigation at rest, active and hovered, and the photo
+  // bands' text over the solid stop of their gradients.
+  ['--bg-texto-secundario', '--am-100'],
+  ['--bg-texto-primario', '--am-100'],
+  ['--bg-texto-secundario', '--am-050'],
+  ['--role-primario-container', '--bg-fundo-inverso'],
+  ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
+]
+
+// Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
+// where AA asks for 3:1 instead of 4.5:1.
+const LARGE_TEXT_PAIRS: [string, string][] = [
+  // The internal pages' h1, 30px semibold, on the intro band (Figma node
+  // 18988:8616). 4.01:1: short of the normal-text bar, clear of this one.
+  ['--role-marca-ancora-padrao', '--am-100'],
 ]
 
 describe('landing palette', () => {
@@ -60,6 +76,15 @@ describe('landing palette', () => {
     const t = tokens()
     for (const [fg, bg] of PAIRS) {
       expect(contrast(t[fg], t[bg]), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('clears WCAG AA for large text on every large-text pair', () => {
+    const t = tokens()
+    for (const [fg, bg] of LARGE_TEXT_PAIRS) {
+      expect(t[fg], `${fg} missing`).toBeDefined()
+      expect(t[bg], `${bg} missing`).toBeDefined()
+      expect(contrast(t[fg], t[bg]), `${fg} on ${bg}`).toBeGreaterThanOrEqual(3)
     }
   })
 })

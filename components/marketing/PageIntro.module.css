@@ -1,0 +1,38 @@
+/* PageIntro, Figma nodes 18988:8613 / 18978:2050: 40px of block padding, the
+ * eyebrow and title stacked 4px apart, the paragraph 24px below. Font metrics
+ * come from the .text-* utilities applied in PageIntro.tsx. */
+.pageIntro {
+  background: var(--am-100);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eyebrow {
+  color: var(--bg-texto-secundario);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* 4.01:1 on --am-100, which clears AA only as large text: this is 30px
+ * semibold. tests/lib/marketingPalette.test.ts holds it in LARGE_TEXT_PAIRS;
+ * never reuse this pairing below 24px. */
+.title {
+  color: var(--role-marca-ancora-padrao);
+  margin: 0;
+}
+
+.intro {
+  color: var(--bg-texto-primario);
+  margin: 0;
+}

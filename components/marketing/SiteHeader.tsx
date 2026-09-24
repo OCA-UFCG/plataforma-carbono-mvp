@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { HEADER_LINKS, MAPA_LINK } from "@/lib/marketing/nav";
+import { HEADER_LINKS, MAPA_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
@@ -99,6 +100,7 @@ function LanguageSwitch({ className }: { className?: string }) {
 // "inicio" id on its own <section>.
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const activeHref = activeNavHref(usePathname());
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
   // breakpoint, so it does not linger over the desktop layout.
@@ -156,10 +158,10 @@ export default function SiteHeader() {
 
         <nav className={styles.nav} aria-label="Navegação principal">
           {HEADER_LINKS.map((link) => {
-            // "Início" ships as the active anchor by default, matching the
-            // Figma rest state (I18862:8515;2810:3916): the landing has no
-            // scroll-spy, and the page's own default scroll position is #inicio.
-            const active = link.href === "#inicio";
+            // The entry that owns the current route (activeNavHref): "Início"
+            // on the landing, "Sobre a plataforma" on every /sobre/* page, as
+            // in Figma node 18988:8612.
+            const active = link.href === activeHref;
             return (
               <Link
                 key={link.href}
@@ -205,6 +207,7 @@ export default function SiteHeader() {
               key={link.href}
               href={link.href}
               className={`${styles.panelLink} text-p-ui`}
+              aria-current={link.href === activeHref ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               {link.label}

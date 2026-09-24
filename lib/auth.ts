@@ -60,10 +60,20 @@ export function unauthorizedResponse() {
  */
 export function safeRedirect(value: string | string[] | undefined): string {
   if (typeof value !== 'string') return '/'
-  for (const base of ['/mapa', '/relatorio']) {
+  for (const base of ['/mapa', '/relatorio', '/sobre', '/comunicacao']) {
     if (value === base || value.startsWith(`${base}/`) || value.startsWith(`${base}?`)) {
       return value
     }
   }
   return '/'
+}
+
+/**
+ * The login URL for a visitor without a session on `path`, so that logging in
+ * returns them to the page they asked for. The destination goes through
+ * safeRedirect here, not only on the login page, so a forged path is never
+ * even written into the URL.
+ */
+export function loginRedirect(path: string | null): string {
+  return `/login?redirect=${encodeURIComponent(safeRedirect(path ?? undefined))}`
 }

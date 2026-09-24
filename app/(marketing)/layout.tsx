@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Archivo_Narrow, Rubik } from "next/font/google";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import "../globals.css";
-import { getAuthenticatedSession } from "@/lib/auth";
+import { getAuthenticatedSession, loginRedirect } from "@/lib/auth";
+import { REQUEST_PATH_HEADER } from "@/lib/marketing/requestPath";
 import { Analytics } from "@/components/Analytics";
 
 // Root layout of the marketing pages. The maps module has its own root layout
@@ -41,7 +43,11 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (!(await getAuthenticatedSession())) redirect("/login?redirect=/");
+  // The requested path comes from proxy.ts; without it the visitor would be
+  // sent back to "/" after logging in, whichever page they had asked for.
+  if (!(await getAuthenticatedSession())) {
+    redirect(loginRedirect((await headers()).get(REQUEST_PATH_HEADER)));
+  }
 
   return (
     <html lang="pt-BR">

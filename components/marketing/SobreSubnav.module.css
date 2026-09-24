@@ -1,0 +1,43 @@
+/* SobreSubnav, Figma node 18988:8635: entries 12px apart horizontally inside
+ * 16px/12px padding, 34px between them, over a 1px rule in the disabled-text
+ * grey (#94a6ac, --role-neutro-texto-desabilitado: the same value as the
+ * design's BG-TextoDesabilitado). */
+.subnav {
+  background: var(--bg-fundo);
+  border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
+}
+
+/* Scrolls horizontally rather than wrapping at narrow widths, like the
+ * landing's tab strip (Plataforma.module.css): four entries do not fit 390px. */
+.list {
+  display: flex;
+  gap: 34px;
+  padding-top: 8px;
+  overflow-x: auto;
+}
+
+.item {
+  flex: none;
+  padding: 16px 12px;
+  /* Reserved so the current entry's 2px underline does not shift the row. */
+  border-bottom: 2px solid transparent;
+  color: var(--bg-texto-secundario);
+  white-space: nowrap;
+}
+
+.itemCurrent {
+  color: var(--role-marca-ancora-padrao);
+  border-bottom-color: var(--role-marca-ancora-padrao);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Hover, Figma frame 18988:10642: an --am-050 fill over a 1px underline in
+ * the text colour, drawn as a background under the reserved 2px border so
+ * nothing moves. */
+.item:not(.itemCurrent):hover,
+.item:not(.itemCurrent):focus-visible {
+  background:
+    linear-gradient(var(--bg-texto-secundario), var(--bg-texto-secundario)) bottom / 100% 1px
+      no-repeat border-box,
+    var(--am-050);
+}
