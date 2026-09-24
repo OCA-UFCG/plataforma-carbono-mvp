@@ -1,0 +1,90 @@
+/* PhotoBand, Figma nodes 18988:8651 ("warm", 219px tall, 40px of block
+ * padding) and 18978:2080 ("dark", 209px, 56px). The photographs are
+ * pre-cropped to a strip centred where the design centres them, but taller
+ * than the desktop band (IMAGENS.md), so `cover` still has picture to show
+ * when the band grows at narrow widths. */
+.photoBand {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-fundo-inverso);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+}
+
+/* The design starts this gradient at #80190d, which is not a variable in the
+ * file; --role-alerta-risco-hover (#8f3a32) is the nearest token. The text
+ * sits at the left, over the gradient's near-solid start: white on its
+ * solid stop is 7.37:1. */
+.warm {
+  --band-padding: 40px;
+}
+
+.warm .overlay {
+  background: linear-gradient(to right, var(--role-alerta-risco-hover) 2%, transparent 116%);
+}
+
+/* The design's stop is pure black; --bg-fundo-inverso (#000f15) is the
+ * token for it. */
+.dark {
+  --band-padding: 56px;
+}
+
+.dark .overlay {
+  background: linear-gradient(to right, var(--bg-fundo-inverso) 9%, transparent 174%);
+}
+
+.content {
+  position: relative;
+  padding-block: var(--band-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eyebrow {
+  color: var(--role-primario-container);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.title {
+  color: var(--bg-texto-sobre-inverso);
+  margin: 0;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--bg-texto-sobre-inverso);
+}
+
+.icon {
+  flex: none;
+}
