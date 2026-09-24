@@ -225,3 +225,32 @@ export async function getComunicacaoContent(
     return DEFAULT_CONTENT
   }
 }
+
+// One card of the Comunicação page's publication grid (Figma 18978:2074).
+export type Publicacao = {
+  key: string
+  tipo: 'Caderno temático' | 'Cartilha'
+  title: string
+  cover: string
+  pdf?: string
+}
+
+// Every publication, for the Comunicação page: the caderno first, as the
+// landing's section shows it, then the cartilhas in the order the editor set
+// in Contentful (COMUNICACAO_QUERY sorts by `order`). The design's own grid is
+// five placeholder cards; the order is still an open question to the content
+// owner (issue #44, question 4).
+export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
+  const { caderno, cartilhas } = conteudo
+
+  return [
+    { key: 'caderno', tipo: 'Caderno temático', title: caderno.title, cover: caderno.cover, pdf: caderno.pdf },
+    ...cartilhas.map((c, i): Publicacao => ({
+      key: `cartilha-${i}`,
+      tipo: 'Cartilha',
+      title: c.title,
+      cover: c.cover,
+      pdf: c.pdf,
+    })),
+  ]
+}

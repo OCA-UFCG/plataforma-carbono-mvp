@@ -4,6 +4,7 @@ import {
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
   getComunicacaoContent,
+  listPublicacoes,
 } from '@/lib/content/comunicacao'
 
 describe('getComunicacaoContent without Contentful', () => {
@@ -157,5 +158,38 @@ describe('getComunicacaoContent when Contentful disappoints', () => {
     expect(content.cartilhas.map((c) => c.volume)).toEqual(['Volume 5'])
     expect(content.cartilhas[0].cover).toBe('https://images.ctfassets.net/vol5.jpg')
     expect(content.fotosFormacao.map((f) => f.caption)).toEqual(['Oficina em Sumé'])
+  })
+})
+
+describe('listPublicacoes', () => {
+  const caderno = { title: 'Caderno', description: 'Resumo', cover: '/c.jpg', pdf: 'https://x/c.pdf' }
+  const cartilhas = [
+    { volume: 'Volume 1', title: 'Um', cover: '/1.jpg', pdf: 'https://x/1.pdf' },
+    { volume: 'Volume 2', title: 'Dois', cover: '/2.jpg' },
+  ]
+
+  it('lists the caderno first, then every cartilha in the order the editor set', () => {
+    const lista = listPublicacoes({ caderno, cartilhas, fotosFormacao: [] })
+    expect(lista.map((p) => [p.tipo, p.title])).toEqual([
+      ['Caderno temático', 'Caderno'],
+      ['Cartilha', 'Um'],
+      ['Cartilha', 'Dois'],
+    ])
+  })
+
+  it('carries the PDF only when the entry has one', () => {
+    const lista = listPublicacoes({ caderno, cartilhas, fotosFormacao: [] })
+    expect(lista.map((p) => p.pdf)).toEqual(['https://x/c.pdf', 'https://x/1.pdf', undefined])
+  })
+
+  it('gives every publication a distinct key', () => {
+    const lista = listPublicacoes({ caderno, cartilhas, fotosFormacao: [] })
+    expect(new Set(lista.map((p) => p.key)).size).toBe(lista.length)
+  })
+
+  it('lists the shipped publications when Contentful is not configured', async () => {
+    const lista = listPublicacoes(await getComunicacaoContent(null))
+    expect(lista).toHaveLength(1 + DEFAULT_CARTILHAS.length)
+    expect(lista.every((p) => p.pdf === undefined)).toBe(true)
   })
 })
