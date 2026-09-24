@@ -1,0 +1,60 @@
+/* MediaText, Figma 18988:8641, 18988:8734 and 18988:8811: the photo and the
+ * text column 24px apart. Both photo sizes share the 1.36 ratio of the
+ * landing's tab images (Plataforma.module.css). */
+.mediaText {
+  display: flex;
+  gap: 24px;
+}
+
+.right {
+  flex-direction: row-reverse;
+}
+
+.large {
+  align-items: flex-start;
+}
+
+.small {
+  align-items: center;
+}
+
+/* The frame's border is the same untokenized warm gray (#d1cec8) Plataforma's
+ * image frame has, substituted with --am-200 the same way. The 12px radius has
+ * no token either (--radius is 8px); it is the design's own value. The width
+ * gives way to the text on narrow desktops, where the fixed photo would
+ * otherwise squeeze the text column to a sliver. */
+.image {
+  flex: none;
+  height: auto;
+  border: 1px solid var(--am-200);
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.large .image {
+  width: min(464px, 40%);
+  aspect-ratio: 464 / 341;
+}
+
+.small .image {
+  width: min(298px, 30%);
+  aspect-ratio: 298 / 219;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The breakpoint Plataforma.module.css stacks its tab panel at. */
+@media (max-width: 640px) {
+  .mediaText {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .large .image,
+  .small .image {
+    width: 100%;
+  }
+}

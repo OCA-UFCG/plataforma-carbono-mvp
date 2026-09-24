@@ -1,8 +1,9 @@
 /* Destaques, Figma "Background+HorizontalBorder", node 18862:8538, four
  * indicator cards (component "Cards de indicadores em destaque", 8689:52527,
- * used at instances 18862:8542..18862:8545). Font sizes/weights/line-heights
- * come only from the .text-* utility classes applied in Destaques.tsx (see
- * app/globals.css); this file handles color, spacing and layout only.
+ * used at instances 18862:8542..18862:8545). The cards themselves are
+ * IndicatorCard and styled in IndicatorCard.module.css; this file lays out the
+ * band, its label and the grid. Font sizes/weights/line-heights come only from
+ * the .text-* utility classes applied in Destaques.tsx (see app/globals.css).
  *
  * The section's own label ("Destaques") is set at 16px/Bold/uppercase in the
  * Figma node. It uses the .text-p-ui-semibold utility (app/globals.css) plus
@@ -39,61 +40,6 @@
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-fundo);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: clip;
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
-  background: var(--role-categorica1-padrao);
-}
-
-.icon {
-  flex: none;
-  width: 18px;
-  height: 18px;
-}
-
-.rotulo {
-  color: var(--role-marca-ancora-texto-sobre);
-  margin: 0;
-}
-
-.cardBody {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco);
-  padding: 12px 16px 24px;
-}
-
-.statLine {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--espaco);
-  margin: 0;
-}
-
-.numero {
-  color: var(--bg-texto-secundario);
-}
-
-.unidade {
-  color: var(--am-400);
-}
-
-.texto {
-  color: var(--bg-texto-primario);
-  margin: 0;
 }
 
 @media (max-width: 900px) {
