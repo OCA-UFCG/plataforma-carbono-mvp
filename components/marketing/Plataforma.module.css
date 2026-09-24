@@ -148,21 +148,6 @@
   margin: 0;
 }
 
-/* No max-width: the text column is already capped at 896px by the panel, and
- * the design sets this quote on ONE line (its text node measures 605x24 in
- * Figma node 18862:8546). An earlier 560px cap left only 540px of content box
- * after the padding and wrapped it to two lines — a number that came from
- * nowhere in the design. */
-.destaque {
-  /* Rubik Bold in every tab of the design (e.g. I18916:9520;18846:7666);
-   * .text-body sets the size and line height, the weight is overridden. */
-  font-weight: 700;
-  color: var(--bg-texto-primario);
-  border-left: 3px solid var(--role-neutro-borda);
-  padding: 10px 0 10px 20px;
-  margin: 0;
-}
-
 @media (max-width: 640px) {
   .conteudo {
     flex-direction: column;

@@ -5,6 +5,7 @@ import type { KeyboardEvent } from "react";
 import { ABAS_PLATAFORMA } from "@/lib/content/plataforma";
 import type { ConteudoAba } from "@/lib/content/plataforma";
 import MoreLink from "./MoreLink";
+import Quote from "./sobre/Quote";
 import styles from "./Plataforma.module.css";
 
 function tabId(id: string) {
@@ -144,7 +145,7 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
             {paragrafo}
           </p>
         ))}
-        <p className={`${styles.destaque} text-body`}>{conteudo.destaque}</p>
+        <Quote>{conteudo.destaque}</Quote>
       </div>
     </div>
   );
