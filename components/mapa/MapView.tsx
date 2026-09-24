@@ -51,6 +51,7 @@ import type {
   RasterLayerConfig,
   PlatformTheme,
   SelectedGeometry,
+  DrawMode,
 } from '@/types/mapa'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
@@ -109,6 +110,14 @@ const EMPTY_STYLE: maplibregl.StyleSpecification = {
 
 const BASEMAP_SOURCE_ID = 'basemap'
 const BASEMAP_LAYER_ID  = 'basemap'
+
+// Toolbar tool -> mapbox-gl-draw mode name.
+const MAPBOX_DRAW_MODE: Record<Exclude<DrawMode, null>, string> = {
+  polygon:    'draw_polygon',
+  rectangle:  'draw_rectangle',
+  linestring: 'draw_line_string',
+  point:      'draw_point',
+}
 
 // Geodesic length in km for a LineString (Haversine over segments)
 
@@ -616,14 +625,23 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       })
 
       // When a shape finishes, mapbox-gl-draw returns to simple_select on its
-      // own. Mirror that back into the store so the toolbar stops showing the
-      // tool as active. (Setting drawMode=null doesn't wipe the drawing, since
-      // the sync effect only clears when entering a drawing mode.)
+      // own. The chosen tool stays armed, so the next click starts another
+      // shape: the mode is re-entered on the draw instance directly, without
+      // touching the store, because the sync effect would wipe the shape that
+      // was just committed. `handleDrawCommit` drops the old shape once the
+      // new one lands. Every mode fires `draw.create` before this
+      // `draw.modechange`; a return to simple_select without one (Esc, Enter,
+      // an unfinished shape) is a cancel, and disarms the tool in the store.
+      let justCreated = false
+      map.on('draw.create', () => { justCreated = true })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.on('draw.modechange', (ev: any) => {
-        if (ev?.mode === 'simple_select' && useStore.getState().drawMode !== null) {
-          setDrawMode(null)
-        }
+        const created = justCreated
+        justCreated = false
+        const mode = useStore.getState().drawMode
+        if (ev?.mode !== 'simple_select' || mode === null) return
+        if (created) draw.changeMode(MAPBOX_DRAW_MODE[mode])
+        else setDrawMode(null)
       })
 
       // Hover + click-to-stats on vector layers
@@ -1238,15 +1256,9 @@ useEffect(() => {
       setSelectedGeometry(null)
     }
 
-    // Map internal DrawMode -> mapbox-gl-draw mode names. `null` falls
-    // back to simple_select (the idle mode) because mapbox-gl-draw 1.5
+    // `null` falls back to simple_select (the idle mode) because mapbox-gl-draw 1.5
     // doesn't ship a 'static' mode.
-    const mapboxMode =
-      drawMode === 'polygon'    ? 'draw_polygon'
-      : drawMode === 'rectangle'  ? 'draw_rectangle'
-      : drawMode === 'linestring' ? 'draw_line_string'
-      : drawMode === 'point'      ? 'draw_point'
-      : 'simple_select'
+    const mapboxMode = drawMode === null ? 'simple_select' : MAPBOX_DRAW_MODE[drawMode]
 
     draw.changeMode(mapboxMode)
 
