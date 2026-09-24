@@ -1,0 +1,38 @@
+/* Section, Figma 18988:8642 and its siblings on the four Sobre pages: the
+ * heading 8px above the body (Figma frames 18988:8700, 18988:8707).
+ *
+ * The heading is the design's "h3" text style (Rubik SemiBold 24/32), which
+ * app/globals.css has no utility for, so the metrics are set here, the way
+ * Hero.module.css sets its h1. Letter spacing is the -0.144px the text nodes
+ * actually carry (18988:8645, 18988:8744), not the style's -0.6px. If another
+ * component needs this step, it belongs in globals.css as `.text-h3`. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--role-marca-ancora-padrao);
+  margin: 0;
+}
+
+/* --ctx-negativo-padrao, 5.10:1 on --bg-fundo (tests/lib/marketingPalette.test.ts). */
+.alert {
+  color: var(--ctx-negativo-padrao);
+}
+
+/* 24px between blocks: the design separates paragraphs with one blank 24px
+ * line (18988:8646) and sets the indicator cards 24px from the text around
+ * them (18988:8712). One exception is not reproduced: in 18988:8700 the Quote
+ * sits 8px under the paragraph above it. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
