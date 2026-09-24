@@ -200,6 +200,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     borderRadius: 12,
     padding: '12px 14px',
     marginBottom: 8,
+    flexShrink: 0,
   }
   const eyebrow: React.CSSProperties = {
     fontSize: 10.5,
@@ -284,7 +285,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         </div>
       )}
 
-      {/* Corpo rolável: o cabeçalho e o nome da feição ficam sempre à vista. */}
+      {/* Scrollable body: the header, the feature name, the download and the
+          footer stay in view. Its children must not shrink -- the body scrolls
+          instead; `LayerResultCard` carries the same guard. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
       {/* Área analisada (hero) */}
@@ -348,6 +351,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           </span>
         </div>
       )}
+      </div>
 
       {/* Baixar a análise */}
       {canDownload && (
@@ -356,11 +360,12 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           onClick={handleDownload}
           title="Baixar esta análise em CSV"
           style={{
-            // `auto` pushes the button and the footer to the bottom of the panel, a role
-            // that belonged to the footer before there was anything below the scrollable content.
-            marginTop: 'auto',
+            // Pinned below the scrollable body, like the header above it, so the
+            // download stays in view however many cards are open.
+            marginTop: 8,
             width: '100%',
             height: 36,
+            flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -383,13 +388,13 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       {/* Provenance footer */}
       {hasContent && (
         <div style={{
-          marginTop: canDownload ? 10 : 'auto', paddingTop: 10, borderTop: `1px solid ${c.border}`,
+          marginTop: 10, paddingTop: 10, borderTop: `1px solid ${c.border}`,
+          flexShrink: 0,
           fontSize: 10, fontWeight: 600, color: c.caption, textAlign: 'center',
         }}>
           Estatística zonal, Google Earth Engine
         </div>
       )}
-      </div>
     </div>
   )
 }

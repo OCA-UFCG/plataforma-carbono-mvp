@@ -50,6 +50,11 @@ export default function LayerResultCard({
       borderRadius: 12,
       marginBottom: 8,
       overflow: 'hidden',
+      // The card sits in the panel's scrollable flex column. `overflow: hidden`
+      // drops its automatic min-height to 0, so without this several expanded
+      // cards would shrink to fit and clip their contents instead of letting
+      // the panel scroll.
+      flexShrink: 0,
     }}>
       <button
         className="ui-press"
