@@ -8,21 +8,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { useStore } from '@/lib/mapa/store'
+import { CardBox } from './StatsCards'
 import StockReportView from './StockReportView'
 import FluxValue from './FluxValue'
 import type {
-  RasterLayerConfig,
   RasterClass,
   RasterStatsResult,
   PlatformTheme,
   ContinuousStats,
   TimeSeriesPoint,
 } from '@/types/mapa'
-
-interface Props {
-  theme: PlatformTheme
-}
 
 export interface StatsChartViewProps {
   theme:       PlatformTheme
@@ -33,7 +28,7 @@ export interface StatsChartViewProps {
   caption?:    string
   /**
    * Whether the yearly-series line animates in. Defaults to true so the
-   * map's results panel (StatsChart below) keeps its existing feel; the
+   * map's results panel (LayerResultCard) keeps its existing feel; the
    * report path passes false because recharts animates by mutating SVG
    * attributes from JS, which a print stylesheet cannot interrupt, and a
    * chart mid-animation at the moment print captures the page prints blank.
@@ -56,8 +51,9 @@ export interface StatsChartViewProps {
 /**
  * The charts with no store behind them: one result, one layer's metadata.
  *
- * The report needs this shape because it renders N sections at once, each with
- * its own layer, where "the visible raster" the store exposes means nothing.
+ * Both callers render N sections at once -- the report one per section, the
+ * results panel one per visible raster -- so "the visible raster" the store
+ * used to expose means nothing to either of them.
  */
 export function StatsChartView({
   theme, stats, classes, unit, signedFlux, caption, animate = true, width,
@@ -88,155 +84,6 @@ export function StatsChartView({
       caption={caption}
       signedFlux={signedFlux}
     />
-  )
-}
-
-export default function StatsChart({ theme }: Props) {
-  const rasterStats    = useStore((s) => s.rasterStats)
-  const layers         = useStore((s) => s.layers)
-  const loadingLayers  = useStore((s) => s.loadingLayers)
-  const statsLoading   = useStore((s) => s.statsLoading)
-  const statsError     = useStore((s) => s.statsError)
-  const analysisLabel  = useStore((s) => s.analysisLabel)
-
-  // Show skeleton while any visible raster has a pending GEE fetch (tile
-  // activation) OR a zonal-stats/point request is in flight.
-  const activeRasterLoading =
-    statsLoading ||
-    layers.some((l) => l.type === 'raster' && l.visible && loadingLayers[l.id])
-
-  // Caption naming what's being analysed: "<raster>, <feature>".
-  const activeRaster = layers.find(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  )
-  const caption = activeRaster
-    ? `${activeRaster.name}${analysisLabel ? `, ${analysisLabel}` : ''}`
-    : undefined
-
-  if (!rasterStats) {
-    if (activeRasterLoading) return <SkeletonChart theme={theme} />
-    if (statsError) return <ErrorCard message={statsError} />
-    return null
-  }
-
-  return (
-    <StatsChartView
-      theme={theme}
-      stats={rasterStats}
-      classes={activeRaster?.classes}
-      unit={activeRaster?.unit}
-      signedFlux={activeRaster?.signedFlux}
-      caption={caption}
-    />
-  )
-}
-
-// Error card (stats request failed)
-
-function ErrorCard({ message }: { message: string }) {
-  return (
-    <div
-      style={{
-        background: '#fee2e2',
-        border: '1px solid #fecaca',
-        borderRadius: 8,
-        padding: '10px 12px',
-        marginBottom: 8,
-        fontFamily: "var(--font-raleway), sans-serif",
-        fontSize: 12,
-        color: '#b91c1c',
-        lineHeight: 1.4,
-      }}
-    >
-      {message}
-    </div>
-  )
-}
-
-// Skeleton loader (animated placeholder while stats are loading)
-
-function SkeletonChart({ theme }: { theme: PlatformTheme }) {
-  return (
-    <CardBox title="Carregando..." theme={theme}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        {[60, 80, 45, 70, 55].map((width, i) => (
-          <div
-            key={i}
-            className="skeleton-shimmer"
-            style={{
-              height: 10,
-              width: `${width}%`,
-              borderRadius: 3,
-              background: theme.colors.bgCard,
-            }}
-          />
-        ))}
-      </div>
-    </CardBox>
-  )
-}
-
-// Shared card wrapper
-
-function CardBox({
-  title,
-  caption,
-  theme,
-  children,
-}: {
-  title: string
-  caption?: string
-  theme: PlatformTheme
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      style={{
-        background: theme.colors.accentBg,
-        border: `1px solid ${theme.colors.accent}`,
-        borderRadius: 8,
-        padding: '10px 12px',
-        marginBottom: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        // `minWidth: 0` lets the card shrink to fit the flex parent
-        // (ResultsSidebar). Without it, ResponsiveContainer can measure
-        // the parent as -1 on first render and warn in the console.
-        minWidth: 0,
-      }}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <span
-          style={{
-            fontSize: 11,
-            color: theme.colors.textDim,
-            fontFamily: "var(--font-raleway), sans-serif",
-          }}
-        >
-          {title}
-        </span>
-        {caption && (
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: theme.colors.text,
-              fontFamily: "var(--font-raleway), sans-serif",
-            }}
-          >
-            {caption}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
   )
 }
 

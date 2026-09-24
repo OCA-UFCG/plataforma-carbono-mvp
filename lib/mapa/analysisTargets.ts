@@ -3,15 +3,18 @@ import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
 /**
  * What a click on the map is actually able to analyse.
  *
- * Click-to-stats only exists through a visible recorte: MapView resolves the
- * pointer to a vector feature and computes the statistics of the raster
- * underneath it. So the click needs BOTH a visible raster and a visible vector
- * sitting above it, and with either missing it is a silent no-op.
+ * Click-to-stats runs through a visible recorte: MapView resolves the pointer
+ * to a vector feature and measures every visible raster underneath it. So
+ * numbers need BOTH a visible raster and a visible vector sitting ABOVE it.
+ * With every recorte off the click lands on nothing at all; with no raster on,
+ * or with the recorte dragged below the rasters by `reorderLayer`, it still
+ * highlights and names the feature, but there is nothing under it to measure.
  *
- * The rule used to live only inside MapView's `pickStatsTarget`, where the
- * results panel could not see it -- which is why its hint kept telling people
- * to click a municipality that was not on the map. Both read it from here now,
- * so the instruction and the behavior cannot drift apart.
+ * The rule used to live only inside MapView, where the results panel could not
+ * see it -- which is why its hint kept telling people to click a municipality
+ * that was not on the map. Both read `clickableRecortes` now: the panel names
+ * the recortes it returns, MapView measures only for a recorte it contains, so
+ * the instruction and the behavior cannot drift apart.
  */
 
 // Portuguese list with "ou": "Bioma Caatinga ou Municípios".

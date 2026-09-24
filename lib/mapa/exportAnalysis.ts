@@ -1,8 +1,8 @@
 import type { PixelValueResult, RasterClass, RasterStatsResult } from '@/types/mapa'
 import { isoDate, numeroCsv, slug } from '@/lib/mapa/format'
 
-/** Everything an analysis needs to become a file, gathered from the store. */
-export interface AnalysisSnapshot {
+/** One layer's part of the file: its identity and its numbers. */
+export interface LayerSnapshot {
   layerName: string
   layerUnit?: string
   /** Classes of the categorical layer, to translate the code into a label. */
@@ -11,13 +11,24 @@ export interface AnalysisSnapshot {
   year?: string
   /** Layer whose values are a signed flux, negative where carbon was removed. */
   signedFlux?: boolean
+  pixelValue: PixelValueResult | null
+  stats: RasterStatsResult | null
+}
+
+/**
+ * Everything an analysis needs to become a file.
+ *
+ * The recorte is identified once and the layers repeat below it, because the
+ * panel now answers for every visible raster and a file per layer would leave
+ * whoever wants to compare them joining spreadsheets by hand.
+ */
+export interface AnalysisSnapshot {
   analysisKind: string | null
   analysisLabel: string | null
   drawnArea: number | null
   drawnLength: number | null
-  pixelValue: PixelValueResult | null
-  stats: RasterStatsResult | null
   generatedAt: Date
+  layers: LayerSnapshot[]
 }
 
 const DELIM = ';'
@@ -39,23 +50,28 @@ function row(cells: (string | number | null | undefined)[]): string {
 
 function metadataRows(snap: AnalysisSnapshot): string[] {
   const recorte = [snap.analysisKind, snap.analysisLabel].filter(Boolean).join(' - ')
-  const out = ['# Caativar', `# Camada: ${snap.layerName}`]
-  // The panel drops the minus sign and says "sequestrou" in green instead, but
-  // the file keeps the sign so a spreadsheet can sum sinks against sources.
-  // Spelling the convention out is what stops the two readings from clashing.
-  if (snap.signedFlux) {
-    out.push('# Convenção: valor negativo = sequestro, positivo = emissão')
-  }
+  const out = ['# Caativar']
   if (recorte) out.push(`# Recorte: ${recorte}`)
-  if (snap.year) out.push(`# Ano: ${snap.year}`)
   out.push(`# Gerado em: ${isoDate(snap.generatedAt)}`)
   out.push('# Fonte: Estatística zonal, Google Earth Engine')
   return out
 }
 
-// Area, length and point value: what the panel shows in the cards above the
-// statistics table. Hectares go along with km2 because it is the working unit
-// of whoever deals with carbon and land use.
+function layerHeaderRows(layer: LayerSnapshot): string[] {
+  const out = [`# Camada: ${layer.layerName}`]
+  // The panel drops the minus sign and says "sequestrou" in green instead, but
+  // the file keeps the sign so a spreadsheet can sum sinks against sources.
+  // Spelling the convention out is what stops the two readings from clashing.
+  if (layer.signedFlux) {
+    out.push('# Convenção: valor negativo = sequestro, positivo = emissão')
+  }
+  if (layer.year) out.push(`# Ano: ${layer.year}`)
+  return out
+}
+
+// Area and length: what the panel shows in the cards above the statistics
+// table. Hectares go along with km2 because it is the working unit of
+// whoever deals with carbon and land use.
 function measurementRows(snap: AnalysisSnapshot): string[] {
   const out: string[] = []
   if (snap.drawnArea !== null) {
@@ -63,11 +79,15 @@ function measurementRows(snap: AnalysisSnapshot): string[] {
     out.push(row(['Área analisada', snap.drawnArea * 100, 'ha']))
   }
   if (snap.drawnLength !== null) out.push(row(['Comprimento', snap.drawnLength, 'km']))
-  if (snap.pixelValue !== null) {
-    out.push(row(['Valor do pixel', snap.pixelValue.value, snap.layerUnit ?? '']))
-    if (snap.pixelValue.label) out.push(row(['Classe do pixel', snap.pixelValue.label, '']))
-  }
   return out.length ? [row(['medida', 'valor', 'unidade']), ...out] : []
+}
+
+function pixelRows(layer: LayerSnapshot): string[] {
+  if (layer.pixelValue === null) return []
+  const out = [row(['medida', 'valor', 'unidade'])]
+  out.push(row(['Valor do pixel', layer.pixelValue.value, layer.layerUnit ?? '']))
+  if (layer.pixelValue.label) out.push(row(['Classe do pixel', layer.pixelValue.label, '']))
+  return out
 }
 
 function continuousRows(s: RasterStatsResult & { kind: 'continuous' }, unit: string): string[] {
@@ -136,13 +156,13 @@ function stockRows(s: RasterStatsResult & { kind: 'stocks' }): string[] {
   return out
 }
 
-function statsRows(snap: AnalysisSnapshot): string[] {
-  const unit = snap.layerUnit ?? ''
-  switch (snap.stats?.kind) {
-    case 'continuous':  return continuousRows(snap.stats, unit)
-    case 'categorical': return categoricalRows(snap.stats, snap.layerClasses ?? [])
-    case 'timeseries':  return timeSeriesRows(snap.stats, unit)
-    case 'stocks':      return stockRows(snap.stats)
+function statsRows(layer: LayerSnapshot): string[] {
+  const unit = layer.layerUnit ?? ''
+  switch (layer.stats?.kind) {
+    case 'continuous':  return continuousRows(layer.stats, unit)
+    case 'categorical': return categoricalRows(layer.stats, layer.layerClasses ?? [])
+    case 'timeseries':  return timeSeriesRows(layer.stats, unit)
+    case 'stocks':      return stockRows(layer.stats)
     default:            return []
   }
 }
@@ -153,17 +173,27 @@ function statsRows(snap: AnalysisSnapshot): string[] {
  * verified in tests.
  */
 export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; csv: string } {
-  const blocks = [metadataRows(snap), measurementRows(snap), statsRows(snap)]
-    .filter((b) => b.length > 0)
-    .map((b) => b.join(EOL))
+  const blocks = [metadataRows(snap), measurementRows(snap)]
+  for (const layer of snap.layers) {
+    blocks.push(layerHeaderRows(layer), pixelRows(layer), statsRows(layer))
+  }
 
   const recorte = snap.analysisLabel ?? snap.analysisKind ?? 'analise'
-  const filename = [
-    'caativar',
-    slug(snap.layerName),
-    slug(recorte),
-    isoDate(snap.generatedAt),
-  ].join('_') + '.csv'
+  // A single layer keeps the name it has always had; only a comparison needs
+  // the count, and naming it after the topmost layer would misdescribe the file.
+  // With no layer at all -- a drawn line, or a polygon with every raster off --
+  // the file is still the area and length rows above, so it is named after the
+  // analysis rather than after the "0-camadas" it would otherwise announce.
+  const subject =
+    snap.layers.length === 0 ? 'analise'
+    : snap.layers.length === 1 ? slug(snap.layers[0].layerName)
+    : `${snap.layers.length}-camadas`
 
-  return { filename, csv: BOM + blocks.join(EOL + EOL) + EOL }
+  const filename = ['caativar', subject, slug(recorte), isoDate(snap.generatedAt)]
+    .join('_') + '.csv'
+
+  return {
+    filename,
+    csv: BOM + blocks.filter((b) => b.length > 0).map((b) => b.join(EOL)).join(EOL + EOL) + EOL,
+  }
 }

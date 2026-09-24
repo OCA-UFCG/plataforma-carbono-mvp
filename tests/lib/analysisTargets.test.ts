@@ -71,8 +71,9 @@ describe('clickableRecortes', () => {
   })
 
   it('excludes a visible recorte dragged below the raster', () => {
-    // pickStatsTarget requires the vector to sit above the raster, which is
-    // what lets a click on a feature reach the raster beneath it.
+    // A click on a feature reaches the raster BENEATH it, so a recorte dragged
+    // below the raster has nothing under it: MapView refuses to measure such a
+    // click and the hint must not offer it either. Both read this list.
     const layers: LayerConfig[] = [raster('agb', true), vector('municipios', true)]
 
     expect(clickableRecortes(layers)).toEqual([])

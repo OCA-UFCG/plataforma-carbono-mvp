@@ -219,6 +219,37 @@ export type RasterStatsResult =
   | { kind: 'timeseries';  series: TimeSeriesPoint[] }
   | { kind: 'stocks';      report: StockReport }
 
+/**
+ * One layer's outcome within a single analysis (one click, one geometry).
+ *
+ * The panel holds one of these per visible raster instead of a single result,
+ * so a number is never shown without the layer it came from. `date` is the
+ * temporal stop it refers to, and is what tells the reactive diff whether a
+ * card is still current (lib/mapa/analysisRunner.ts).
+ */
+export interface LayerResult {
+  layerId: string
+  /** Temporal stop these numbers refer to; absent for a static layer. */
+  date?: string
+  status: 'loading' | 'ready' | 'error'
+  stats: RasterStatsResult | null
+  pixelValue: PixelValueResult | null
+  error: string | null
+}
+
+/**
+ * The geometry an analysis runs over, and how it was produced.
+ *
+ * It lives here rather than in analysisRunner.ts because the store holds it and
+ * the runner imports the store: a type in the runner would close that loop.
+ */
+export interface SelectedGeometry {
+  geometry:     GeoJSON.Geometry
+  geometryType: 'polygon' | 'point'
+  lon?:         number
+  lat?:         number
+}
+
 // Basemap (raster XYZ tiles)
 
 export interface Basemap {
