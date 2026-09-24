@@ -1,0 +1,37 @@
+/* Publicacoes, Figma node 18978:2072: 40px of block padding, the heading 24px
+ * above the grid. */
+.publicacoes {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Rubik Bold 16 in capitals, 1.5px apart (node 18978:2073); no .text-*
+ * utility has this step. */
+.heading {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+  margin: 0;
+}
+
+/* Five 236px columns fill the 1276px content column, as in the design. Below
+ * that the columns reflow on their own (four, three, two, one) rather than at
+ * fixed breakpoints: a cover narrower than 200px stops reading as a cover. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
