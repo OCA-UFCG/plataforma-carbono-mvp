@@ -1,0 +1,74 @@
+/* IndicatorCard, Figma component "Cards de indicadores em destaque" 8689:52527
+ * (variant "formato2", 18808:5911). Extracted from Destaques.module.css, whose
+ * rules it carries over unchanged for the 'raised' variant. Font metrics come
+ * from the .text-* utilities applied in IndicatorCard.tsx; this file handles
+ * color, spacing and layout only. */
+
+/* `height: 100%` lets the card fill a stretched grid cell, so a row of cards
+ * with descriptions of different lengths still lines up at the bottom. */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: clip;
+}
+
+.raised {
+  background: var(--bg-fundo);
+  box-shadow: var(--shadow);
+}
+
+/* Figma 18988:8714 / 18988:8731: a 1px --bg-borda outline around a
+ * --bg-superficie-variante fill. The instance also carries a faint inner drop
+ * shadow, which the border covers at this size; it is left out. */
+.outlined {
+  background: var(--bg-superficie-variante);
+  border: 1px solid var(--bg-borda);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--role-categorica1-padrao);
+}
+
+.icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.label {
+  color: var(--role-marca-ancora-texto-sobre);
+  margin: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco);
+  padding: 12px 16px 24px;
+}
+
+.statLine {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espaco);
+  margin: 0;
+}
+
+.value {
+  color: var(--bg-texto-secundario);
+}
+
+.unit {
+  color: var(--am-400);
+}
+
+.description {
+  color: var(--bg-texto-primario);
+  margin: 0;
+}
