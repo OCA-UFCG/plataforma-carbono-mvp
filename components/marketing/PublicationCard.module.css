@@ -61,7 +61,11 @@
   color: var(--role-categorica2-texto-sobre);
 }
 
+/* The design draws this chip's 1px stroke inside its 2px/10px padding, as
+ * Figma draws strokes (20px tall); a CSS border adds to the box, so the
+ * padding gives up the border's 1px. */
 .tipo {
+  padding: 1px 9px;
   border: 1px solid var(--bg-borda);
   color: var(--ctx-positivo-texto-sobre-container);
 }
