@@ -15,17 +15,9 @@
   color: var(--role-marca-ancora-texto-sobre);
 }
 
-/* The control without an href. Not a disabled <button>: see the component's
- * comment. The cursor is the only affordance that changes, because dimming a
- * filled green button would drop its white label below the 4.5:1 it clears. */
-.inert {
-  cursor: not-allowed;
-}
-
-/* Hover from Figma frame 18916:9438, on the inert control too: the cursor
- * above still says it does nothing. White on -hover is 6.68:1. */
+/* Hover from Figma frame 18916:9438. White on -hover is 6.68:1. */
 .moreLink:hover,
-a.moreLink:focus-visible {
+.moreLink:focus-visible {
   background: var(--role-marca-ancora-hover);
 }
 

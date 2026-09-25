@@ -21,9 +21,8 @@ function panelId(id: string) {
 // 18916:9585 and 18916:9650, and the tab hover is frame 18916:9468. The
 // Figma file does not specify keyboard behaviour, so it follows the WAI-ARIA
 // tabs pattern (automatic activation: moving focus with the arrow keys also
-// selects the tab and swaps the panel).
-// The "Ver mais" button the design shows next to the section label is
-// omitted: there is no page for it to link to.
+// selects the tab and swaps the panel). "Ver mais" opens the longer
+// version of this section, the /sobre pages.
 export default function Plataforma() {
   const [activeId, setActiveId] = useState(ABAS_PLATAFORMA[0].id);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -67,10 +66,10 @@ export default function Plataforma() {
     <section id="plataforma" className={styles.plataforma} aria-label="Plataforma">
       <div className={`container ${styles.inner}`}>
         {/* Label left, "Ver mais" right — the 40px header row of Figma node
-            18862:8546. The control is inert; see MoreLink. */}
+            18862:8546. */}
         <div className={styles.headerRow}>
           <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
-          <MoreLink />
+          <MoreLink href="/sobre" contexto="sobre a plataforma" />
         </div>
 
         <div className={styles.tablist} role="tablist" aria-label="Conheça a plataforma">
