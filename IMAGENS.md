@@ -136,4 +136,4 @@ O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), 
 
 ## Tipografia
 
-Fonte Rubik via `next/font/google` (texto) e Archivo Narrow (o h1 do hero), ambas self-hosted através de `next/font` em `app/(marketing)/layout.tsx`. Sem `font-feature-settings: 'lnum' 1`: a Rubik já usa algarismos lining por padrão, então a regra que a Raleway precisava foi removida. Se o projeto adotar o padrão gov.br, a equivalente institucional é a Rawline.
+Fonte Rubik (texto) e Archivo Narrow (o h1 do hero), ambas servidas do próprio repositório via `next/font/local` em `app/fonts/marketing.ts`, sem baixar nada do Google Fonts no build. Sem `font-feature-settings: 'lnum' 1`: a Rubik já usa algarismos lining por padrão, então a regra que a Raleway precisava foi removida. Se o projeto adotar o padrão gov.br, a equivalente institucional é a Rawline.

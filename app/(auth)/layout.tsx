@@ -1,14 +1,7 @@
 import type { Metadata } from 'next'
-import { Libre_Franklin } from 'next/font/google'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { Analytics } from '@/components/Analytics'
-
-const libreFranklin = Libre_Franklin({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-app',
-  display: 'swap',
-})
+import { libreFranklin } from '../fonts/app'
 
 export const metadata: Metadata = {
   title: 'Entrar | Caativar',

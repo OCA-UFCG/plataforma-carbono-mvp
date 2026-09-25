@@ -574,7 +574,7 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 ## Identidade visual
 
-A tipografia difere por grupo de rotas: as páginas de marketing usam Rubik (pesos 400/500/600) mais Archivo Narrow (peso 700, só no h1 do hero), o módulo de mapas usa Libre Franklin (400 a 800), ambas self-hosted via `next/font/google`. A paleta de cores da landing vem do design system do Figma (ver "A camada de tokens" acima); a cor laranja do logo OCA (`#ce8b44`) não faz mais parte dela — só o módulo de mapas ainda carrega verde-oliva `#5f7030` como cor de marca.
+A tipografia difere por grupo de rotas: as páginas de marketing usam Rubik (pesos 400/500/600) mais Archivo Narrow (peso 700, só no h1 do hero), o módulo de mapas usa Libre Franklin (400 a 800), todas servidas do próprio repositório via `next/font/local` (arquivos e licenças em `app/fonts/`), para que o build não dependa do Google Fonts. A paleta de cores da landing vem do design system do Figma (ver "A camada de tokens" acima); a cor laranja do logo OCA (`#ce8b44`) não faz mais parte dela — só o módulo de mapas ainda carrega verde-oliva `#5f7030` como cor de marca.
 
 ### A paleta mensal
 
