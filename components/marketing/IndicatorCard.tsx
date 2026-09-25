@@ -8,8 +8,9 @@ export type IndicatorCardProps = {
   // size, as the Sobre cards do ("1,5–5tCO₂/ha/ano"), goes in `value` instead.
   unit?: string;
   description: string;
-  // Defaults to the component's own "Map" glyph (Figma I18808:5943), the only
-  // icon any instance of it uses so far.
+  // Defaults to the component's own "Map" glyph, which differs by variant:
+  // 18px on the landing, and a different, 24px glyph on the Sobre pages (Figma
+  // I18988:8714;18808:5943).
   icon?: string;
   // 'raised': white card with a shadow, on the landing's grey band (Figma
   // 18862:8542..8545). 'outlined': cream fill inside a 1px border, on the page
@@ -26,9 +27,13 @@ export default function IndicatorCard({
   value,
   unit,
   description,
-  icon = "/icons/indicator-card/map.svg",
+  icon,
   variant = "raised",
 }: IndicatorCardProps) {
+  const iconSize = variant === "outlined" ? 24 : 18;
+  const iconSrc =
+    icon ?? (variant === "outlined" ? "/icons/indicator-card/map-sobre.svg" : "/icons/indicator-card/map.svg");
+
   return (
     <div className={`${styles.card} ${styles[variant]}`}>
       <div className={styles.header}>
@@ -37,7 +42,7 @@ export default function IndicatorCard({
             next/image, matches Hero.tsx: these are small static SVGs, not
             photos worth the optimizer. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={icon} alt="" width={18} height={18} className={styles.icon} />
+        <img src={iconSrc} alt="" width={iconSize} height={iconSize} className={styles.icon} />
         <p className={`${styles.label} text-subtle-semibold`}>{label}</p>
       </div>
       <div className={styles.body}>
