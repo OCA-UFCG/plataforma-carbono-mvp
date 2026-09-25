@@ -17,7 +17,7 @@ const Mapa = dynamic(() => import('@/components/mapa/Mapa'), {
         justifyContent: 'center',
         color: '#6b6a60',
         fontFamily: 'var(--font-app), sans-serif',
-        fontSize: 14,
+        fontSize: 15.5,
         gap: 10,
       }}
     >

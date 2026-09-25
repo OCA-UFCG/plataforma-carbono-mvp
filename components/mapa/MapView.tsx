@@ -912,7 +912,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
             hoverPopup
               .setLngLat(e.lngLat)
               .setHTML(
-                `<div style="font-family:var(--font-raleway),sans-serif;font-size:12px;font-weight:500;padding:2px 4px;">${String(value)}</div>`,
+                `<div style="font-family:var(--font-raleway),sans-serif;font-size:13.5px;font-weight:500;padding:2px 4px;">${String(value)}</div>`,
               )
               .addTo(map)
           } else {

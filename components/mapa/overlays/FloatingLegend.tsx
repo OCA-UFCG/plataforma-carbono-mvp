@@ -88,7 +88,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: theme.colors.text }}>
+        <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: theme.colors.text }}>
           Legenda
         </span>
         <button
@@ -119,7 +119,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
         }}
       >
         {visible.length === 0 ? (
-          <span style={{ fontSize: 11, color: theme.colors.textDim, textAlign: 'center', padding: '8px 0' }}>
+          <span style={{ fontSize: 12.5, color: theme.colors.textDim, textAlign: 'center', padding: '8px 0' }}>
             Nenhuma camada ativa
           </span>
         ) : (
@@ -152,7 +152,7 @@ function VectorLegendItem({ layer, theme }: { layer: VectorLayerConfig; theme: P
       />
       <span
         style={{
-          fontSize: 13,
+          fontSize: 14.5,
           fontWeight: 600,
           color: theme.colors.text,
           // Wraps instead of truncating: the legend is 256px wide and the
@@ -180,7 +180,7 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
       {/* Layer name, uppercase eyebrow (handoff) */}
       <span
         style={{
-          fontSize: 10,
+          fontSize: 11.5,
           fontWeight: 800,
           letterSpacing: '.08em',
           textTransform: 'uppercase',
@@ -209,7 +209,7 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
                 background: cls.color,
               }}
             />
-            <span style={{ fontSize: 12.5, fontWeight: 500, color: theme.colors.text }}>{cls.label}</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: theme.colors.text }}>{cls.label}</span>
           </div>
         ))}
 
@@ -239,7 +239,7 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
     n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 
   const endStyle: React.CSSProperties = {
-    fontSize: 10,
+    fontSize: 11.5,
     fontWeight: 700,
     color: theme.colors.caption,
     fontVariantNumeric: 'tabular-nums',
@@ -285,7 +285,7 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
         >
           <FluxEnd value={min} theme={theme} format={fmt} align="left" />
           {layer.unit && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
               {layer.unit}
             </span>
           )}
@@ -304,7 +304,7 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
           >
             <span style={endStyle}>{min != null ? fmt(min) : ''}</span>
             {layer.unit && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
                 {layer.unit}
               </span>
             )}
@@ -333,11 +333,11 @@ function FluxEnd({
 
   return (
     <span style={{ display: 'flex', flexDirection: 'column', alignItems: align === 'left' ? 'flex-start' : 'flex-end' }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: ink, fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 11.5, fontWeight: 700, color: ink, fontVariantNumeric: 'tabular-nums' }}>
         {format(flux.magnitude)}
       </span>
       {flux.noun && (
-        <span style={{ fontSize: 9, fontWeight: 700, color: ink }}>{flux.noun}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: ink }}>{flux.noun}</span>
       )}
     </span>
   )

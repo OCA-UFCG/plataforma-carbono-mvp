@@ -164,7 +164,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
     border: `1px solid ${badFields.includes(key) ? c.terracota : c.border}`,
     background: c.bgCard,
     color: c.text,
-    fontSize: 12,
+    fontSize: 13.5,
     fontFamily: 'inherit',
     fontVariantNumeric: 'tabular-nums',
     outlineColor: c.accent,
@@ -173,7 +173,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
   const labelStyle: React.CSSProperties = {
     display: 'block',
     marginBottom: 3,
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: 700,
     letterSpacing: '.02em',
     textTransform: 'uppercase',
@@ -227,7 +227,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
                 flex: 1, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer',
                 background: active ? c.accentBg : 'transparent',
                 color: active ? c.accentInk : c.dim,
-                fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
+                fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
               }}
             >
               {t.name}
@@ -275,7 +275,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
         </label>
       )}
 
-      <p style={{ margin: '8px 0 0', fontSize: 10.5, lineHeight: 1.45, color: c.caption }}>
+      <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.45, color: c.caption }}>
         Latitude e depois longitude, em graus decimais (-9.25) ou em graus, minutos e
         segundos (9°15&apos;00&quot;S). Sul e oeste são negativos.
       </p>
@@ -284,7 +284,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
         <p
           role="alert"
           style={{
-            margin: '8px 0 0', fontSize: 11.5, fontWeight: 600,
+            margin: '8px 0 0', fontSize: 13, fontWeight: 600,
             lineHeight: 1.4, color: c.terracota,
           }}
         >
@@ -297,7 +297,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
           role="status"
           style={{
             margin: '8px 0 0', padding: '6px 8px', borderRadius: 7,
-            background: c.mist, fontSize: 11, lineHeight: 1.4, color: c.textDim,
+            background: c.mist, fontSize: 12.5, lineHeight: 1.4, color: c.textDim,
           }}
         >
           {warning}
@@ -309,7 +309,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
         style={{
           width: '100%', height: 32, marginTop: 10, borderRadius: 999, border: 'none',
           cursor: 'pointer', background: c.accent, color: c.onAccent,
-          fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+          fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
         }}
       >
         Aplicar

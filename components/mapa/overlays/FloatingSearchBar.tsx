@@ -341,7 +341,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             border: 'none',
             outline: 'none',
             background: 'transparent',
-            fontSize: 13,
+            fontSize: 14.5,
             color: theme.colors.text,
             fontFamily: 'var(--font-app), sans-serif',
           }}
@@ -385,7 +385,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             <div
               style={{
                 padding: '10px 12px',
-                fontSize: 12,
+                fontSize: 13.5,
                 color: theme.colors.textDim,
                 textAlign: 'center',
               }}
@@ -415,7 +415,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
                 {/* What kind of territory this row is */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11.5,
                     color: theme.colors.textDim,
                     marginBottom: 2,
                     whiteSpace: 'nowrap',
@@ -428,7 +428,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
                 {/* Matched value */}
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: 14.5,
                     color: theme.colors.text,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -450,7 +450,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           <div
             style={{
               padding: '6px 12px',
-              fontSize: 10,
+              fontSize: 11.5,
               color: theme.colors.textDim,
               borderTop: `1px solid ${theme.colors.border}`,
               fontStyle: 'italic',

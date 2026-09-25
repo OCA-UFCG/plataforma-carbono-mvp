@@ -66,7 +66,7 @@ export default function CursorCoordinates({ mapRef, theme }: Props) {
         border: `1px solid ${theme.colors.glassBd}`,
         borderRadius: 8,
         padding: '4px 10px',
-        fontSize: 11,
+        fontSize: 12.5,
         fontFamily: 'var(--font-app), sans-serif',
         fontVariantNumeric: 'tabular-nums',
         boxShadow: 'var(--sh-ctrl)',

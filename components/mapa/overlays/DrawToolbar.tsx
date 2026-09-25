@@ -110,7 +110,7 @@ export default function DrawToolbar({
                 style={{
                   height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: active ? c.accent : 'transparent', color: active ? c.onAccent : c.body,
-                  fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
+                  fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
                 }}
               >
                 {t.name}
@@ -126,7 +126,7 @@ export default function DrawToolbar({
               height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
               background: coordsOpen ? c.accent : 'transparent',
               color: coordsOpen ? c.onAccent : c.body,
-              fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
+              fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
             }}
           >
             Coordenadas
@@ -136,7 +136,7 @@ export default function DrawToolbar({
             onClick={() => { clearDrawings(); setDrawMode(null) }}
             style={{
               height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: 'transparent', color: c.terracota, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+              background: 'transparent', color: c.terracota, fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
             Limpar
@@ -151,7 +151,7 @@ export default function DrawToolbar({
         <div
           style={{
             position: 'absolute', bottom: 52, ...centeredInGutters(leftEdge, rightOffset), zIndex: 15,
-            background: 'rgba(38,36,29,.92)', color: '#e8e6da', fontSize: 12, fontWeight: 600,
+            background: 'rgba(38,36,29,.92)', color: '#e8e6da', fontSize: 13.5, fontWeight: 600,
             padding: '8px 16px', borderRadius: 999, whiteSpace: 'nowrap',
             fontFamily: 'var(--font-app), sans-serif',
           }}

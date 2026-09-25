@@ -20,7 +20,7 @@ export function ErrorCard({ message }: { message: string }) {
         padding: '10px 12px',
         marginBottom: 8,
         fontFamily: "var(--font-raleway), sans-serif",
-        fontSize: 12,
+        fontSize: 13.5,
         color: '#b91c1c',
         lineHeight: 1.4,
       }}
@@ -92,7 +92,7 @@ export function CardBox({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <span
           style={{
-            fontSize: 11,
+            fontSize: 12.5,
             color: theme.colors.textDim,
             fontFamily: "var(--font-raleway), sans-serif",
           }}
@@ -102,7 +102,7 @@ export function CardBox({
         {caption && (
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12.5,
               fontWeight: 600,
               color: theme.colors.text,
               fontFamily: "var(--font-raleway), sans-serif",

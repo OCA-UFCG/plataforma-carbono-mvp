@@ -126,7 +126,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
           <span
             style={{
-              fontSize: 11, fontWeight: 600, color: c.textDim,
+              fontSize: 12.5, fontWeight: 600, color: c.textDim,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}
           >
@@ -134,7 +134,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
           </span>
           <span
             style={{
-              fontSize: 17, fontWeight: 800, color: c.accent,
+              fontSize: 18, fontWeight: 800, color: c.accent,
               fontVariantNumeric: 'lining-nums tabular-nums', lineHeight: 1,
             }}
           >
@@ -157,7 +157,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
         <div
           style={{
             display: 'flex', justifyContent: 'space-between',
-            fontSize: 10, color: c.caption,
+            fontSize: 11.5, color: c.caption,
             fontVariantNumeric: 'lining-nums tabular-nums',
           }}
         >

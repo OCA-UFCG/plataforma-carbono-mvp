@@ -180,7 +180,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           gap: 8,
           color: c.accent,
           fontFamily: 'var(--font-app), sans-serif',
-          fontSize: 12,
+          fontSize: 13.5,
           fontWeight: 700,
           ...(narrow
             ? { left: '50%', bottom: 14, transform: 'translateX(-50%)', height: 38, padding: '0 16px', borderRadius: 999 }
@@ -203,7 +203,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     flexShrink: 0,
   }
   const eyebrow: React.CSSProperties = {
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: 800,
     letterSpacing: '.14em',
     textTransform: 'uppercase',
@@ -217,7 +217,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     fontVariantNumeric: 'tabular-nums',
   }
   const heroUnit: React.CSSProperties = {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: 700,
     color: c.accent,
   }
@@ -249,7 +249,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 10px', flexShrink: 0 }}>
-        <span style={{ ...eyebrow, fontSize: 11 }}>Resultados</span>
+        <span style={{ ...eyebrow, fontSize: 12.5 }}>Resultados</span>
         <button
           onClick={() => onSetCollapsed(true)}
           aria-label="Ocultar resultados"
@@ -272,7 +272,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 10px', flexShrink: 0 }}>
           {analysisKind && (
             <span style={{
-              fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
+              fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
               color: c.accentInk, background: c.accentBg, border: `1px solid ${c.accentBd}`,
               borderRadius: 5, padding: '2px 8px',
             }}>
@@ -280,7 +280,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
             </span>
           )}
           {analysisLabel && (
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: c.text }}>{analysisLabel}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: c.text }}>{analysisLabel}</span>
           )}
         </div>
       )}
@@ -298,7 +298,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
             <span style={heroNumber}>{nf.format(drawnArea)}</span>
             <span style={heroUnit}>km²</span>
           </div>
-          <div style={{ fontSize: 11.5, fontWeight: 600, color: c.dim, fontVariantNumeric: 'tabular-nums', marginTop: 3 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: c.dim, fontVariantNumeric: 'tabular-nums', marginTop: 3 }}>
             {nfInt.format(drawnArea * 100)} hectares
           </div>
         </div>
@@ -310,7 +310,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           <div style={{ ...eyebrow, marginBottom: 4 }}>Comprimento</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
             <span style={{ ...heroNumber, fontSize: 28 }}>{nf.format(drawnLength)}</span>
-            <span style={{ ...heroUnit, fontSize: 14 }}>km</span>
+            <span style={{ ...heroUnit, fontSize: 15.5 }}>km</span>
           </div>
         </div>
       )}
@@ -343,10 +343,10 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           padding: '14px 12px',
           display: 'flex', flexDirection: 'column', gap: 8,
         }}>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.35 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.35 }}>
             Analisar {activeRaster.name}
           </span>
-          <span style={{ fontSize: 11.5, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
             {analysisHint(recortes)}
           </span>
         </div>
@@ -376,7 +376,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
             cursor: 'pointer',
             color: c.accentInk,
             fontFamily: 'var(--font-app), sans-serif',
-            fontSize: 12,
+            fontSize: 13.5,
             fontWeight: 700,
           }}
         >
@@ -390,7 +390,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         <div style={{
           marginTop: 10, paddingTop: 10, borderTop: `1px solid ${c.border}`,
           flexShrink: 0,
-          fontSize: 10, fontWeight: 600, color: c.caption, textAlign: 'center',
+          fontSize: 11.5, fontWeight: 600, color: c.caption, textAlign: 'center',
         }}>
           Estatística zonal, Google Earth Engine
         </div>

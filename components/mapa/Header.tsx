@@ -65,8 +65,8 @@ export default function Header({ theme, month }: Props) {
             <IcLeaf size={17} />
           </div>
           <div>
-            <div style={{ fontSize: 15.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
-            <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', color: '#a5a294', textTransform: 'uppercase', lineHeight: 1.4 }}>
+            <div style={{ fontSize: 16.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', color: '#a5a294', textTransform: 'uppercase', lineHeight: 1.4 }}>
               Observatório da Caatinga, OCA
             </div>
           </div>
@@ -85,11 +85,11 @@ export default function Header({ theme, month }: Props) {
             }}
           >
             <span style={{ width: 14, height: 14, borderRadius: '50%', background: month.color, transition: 'background .4s' }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#ede9d8', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#ede9d8', whiteSpace: 'nowrap' }}>
               {month.label}, {PHASES[month.phase].label.toLowerCase()}
             </span>
             {isAuto && (
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.08em', color: '#26241d', background: '#cfccc0', borderRadius: 999, padding: '1px 6px', textTransform: 'uppercase' }}>auto</span>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', color: '#26241d', background: '#cfccc0', borderRadius: 999, padding: '1px 6px', textTransform: 'uppercase' }}>auto</span>
             )}
             <IcChevronDown size={12} color="#a5a294" />
           </button>
@@ -99,7 +99,7 @@ export default function Header({ theme, month }: Props) {
               position: 'absolute', top: 40, left: 0, zIndex: 40, width: 320, background: theme.colors.bgCard,
               border: `1px solid ${theme.colors.border}`, borderRadius: 14, boxShadow: 'var(--sh-pop)', overflow: 'hidden',
             }}>
-              <div style={{ padding: '10px 14px 8px', fontSize: 10.5, fontWeight: 800, letterSpacing: '.14em', color: theme.colors.dim, textTransform: 'uppercase', borderBottom: `1px solid ${theme.colors.border}` }}>
+              <div style={{ padding: '10px 14px 8px', fontSize: 12, fontWeight: 800, letterSpacing: '.14em', color: theme.colors.dim, textTransform: 'uppercase', borderBottom: `1px solid ${theme.colors.border}` }}>
                 Mês da interface
               </div>
 
@@ -113,8 +113,8 @@ export default function Header({ theme, month }: Props) {
               >
                 <span style={{ width: 16, height: 16, borderRadius: '50%', background: theme.colors.accentGrad, flexShrink: 0 }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: isAuto ? theme.colors.accentInk : theme.colors.text }}>Automático</span>
-                  <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: theme.colors.dim }}>Segue a data, hoje: {realMonth.label}</span>
+                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: isAuto ? theme.colors.accentInk : theme.colors.text }}>Automático</span>
+                  <span style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: theme.colors.dim }}>Segue a data, hoje: {realMonth.label}</span>
                 </span>
                 {isAuto && <IcCheck size={13} color={theme.colors.accent} />}
               </button>
@@ -134,7 +134,7 @@ export default function Header({ theme, month }: Props) {
                         position: 'relative', background: m.color, color: readableOn(m.color),
                         border: active ? `2px solid ${theme.colors.text}` : '2px solid transparent',
                         borderRadius: 8, padding: '9px 0', cursor: 'pointer',
-                        fontSize: 11.5, fontWeight: 700, letterSpacing: '.02em',
+                        fontSize: 13, fontWeight: 700, letterSpacing: '.02em',
                       }}
                     >
                       {m.short}
@@ -146,7 +146,7 @@ export default function Header({ theme, month }: Props) {
                 })}
               </div>
 
-              <div style={{ padding: '0 14px 12px', fontSize: 10.5, fontWeight: 500, lineHeight: 1.5, color: theme.colors.dim }}>
+              <div style={{ padding: '0 14px 12px', fontSize: 12, fontWeight: 500, lineHeight: 1.5, color: theme.colors.dim }}>
                 Cores medidas na vegetação nativa do bioma, de 1985 a 2024. O ponto marca o mês de hoje.
               </div>
             </div>
@@ -163,13 +163,13 @@ export default function Header({ theme, month }: Props) {
           }}
         >
           <IcSearch size={14} style={{ flex: 'none' }} />
-          <span style={{ fontSize: 13.5, fontWeight: 500, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: 15, fontWeight: 500, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Buscar município, estado ou território...
           </span>
         </button>
 
         {/* Nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 13.5, fontWeight: 600, color: '#b3af9e', flex: 'none', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 15, fontWeight: 600, color: '#b3af9e', flex: 'none', whiteSpace: 'nowrap' }}>
           <div style={{ color: '#fff', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             Mapa
             <span style={{ width: 16, height: 2.5, borderRadius: 2, background: theme.colors.accent, transition: 'background .4s' }} />
@@ -186,10 +186,10 @@ export default function Header({ theme, month }: Props) {
             {darkMode ? <IcSun size={14} /> : <IcMoon size={13} />}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 2 }}>
-            {user?.email && <span title={user.email} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', color: '#d9d5c5', fontSize: 11.5 }}>{user.email}</span>}
+            {user?.email && <span title={user.email} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', color: '#d9d5c5', fontSize: 13 }}>{user.email}</span>}
             <button
               onClick={() => { void handleSignOut() }}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, color: '#ede9d8', cursor: 'pointer', font: 'inherit', fontSize: 11.5, fontWeight: 700, padding: '6px 10px' }}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, color: '#ede9d8', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 700, padding: '6px 10px' }}
             >
               Sair
             </button>
