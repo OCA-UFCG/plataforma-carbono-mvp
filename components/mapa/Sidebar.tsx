@@ -97,8 +97,8 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: `1px solid ${c.border}`, flex: 'none' }}>
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.14em', color: c.dim, textTransform: 'uppercase' }}>Temas</span>
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 999, padding: '2px 8px' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.14em', color: c.dim, textTransform: 'uppercase' }}>Temas</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 999, padding: '2px 8px' }}>
             {activeCount} ativa{activeCount === 1 ? '' : 's'}
           </span>
           <button onClick={onCollapse} aria-label="Recolher painel" title="Recolher"
@@ -119,7 +119,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
               }}
               aria-label="Buscar camadas"
               placeholder="Buscar camadas"
-              style={{ width: '100%', border: `1px solid ${c.border}`, borderRadius: 9, background: c.bgCard, color: c.text, font: 'inherit', fontSize: 12.5, padding: '8px 32px 8px 32px', outlineColor: c.accent }}
+              style={{ width: '100%', border: `1px solid ${c.border}`, borderRadius: 9, background: c.bgCard, color: c.text, font: 'inherit', fontSize: 14, padding: '8px 32px 8px 32px', outlineColor: c.accent }}
             />
             {query && (
               <button
@@ -133,7 +133,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
             )}
           </div>
           {normalizedQuery && porTema.length === 0 ? (
-            <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 12.5, textAlign: 'center' }}>
+            <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 14, textAlign: 'center' }}>
               Nenhuma camada encontrada.
             </div>
           ) : (
@@ -187,9 +187,9 @@ function ThemeSection({
           transition: 'border-color .16s, filter .16s',
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        <span style={{ fontSize: 16, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
+        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
         <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
       </button>
       {open && (
@@ -257,9 +257,9 @@ function SubthemeSection({
           border: 'none', borderRadius: 7,
         }}
       >
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: c.dim }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 10, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        <span style={{ fontSize: 13, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim }}>{layers.length}</span>
+        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
         <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={13} /> : <IcChevronDown size={13} />}</span>
       </button>
       {open && (
@@ -372,13 +372,13 @@ function LayerRow({
           // Wraps onto a second line rather than truncating. The unit chip, the
           // info button and the switch keep their place: they are flexShrink: 0
           // and the row centers them against however tall the name gets.
-          style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.3 }}
+          style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.3 }}
           title={layer.name}
         >
           {layer.name}
         </span>
         {unit && (
-          <span style={{ fontSize: 9.5, fontWeight: 600, color: c.textDim, background: c.chip, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: c.textDim, background: c.chip, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {unit}
           </span>
         )}
@@ -391,7 +391,7 @@ function LayerRow({
           <IcInfo size={13} />
         </button>
         {isLoading ? (
-          <span style={{ fontSize: 9, fontWeight: 700, color: c.dim, textTransform: 'uppercase', letterSpacing: '.06em', flexShrink: 0 }}>...</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: c.dim, textTransform: 'uppercase', letterSpacing: '.06em', flexShrink: 0 }}>...</span>
         ) : (
           <button
             role="switch" aria-checked={layer.visible}
@@ -406,7 +406,7 @@ function LayerRow({
 
       {/* error */}
       {errorMsg && (
-        <div style={{ marginTop: 7, background: '#fee2e2', color: '#b91c1c', borderRadius: 6, padding: '6px 8px', fontSize: 10, display: 'flex', gap: 6 }}>
+        <div style={{ marginTop: 7, background: '#fee2e2', color: '#b91c1c', borderRadius: 6, padding: '6px 8px', fontSize: 11.5, display: 'flex', gap: 6 }}>
           <span style={{ flex: 1, wordBreak: 'break-word' }}>{errorMsg}</span>
           <button onClick={() => clearLayerError(layer.id)} title="Dispensar" aria-label="Dispensar erro" style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', padding: 0, lineHeight: 1, display: 'flex' }}><IcX size={12} /></button>
         </div>
@@ -415,12 +415,12 @@ function LayerRow({
       {/* opacity */}
       {layer.visible && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <span style={{ fontSize: 10, color: c.dim, flexShrink: 0 }}>Opacidade</span>
+          <span style={{ fontSize: 11.5, color: c.dim, flexShrink: 0 }}>Opacidade</span>
           <input type="range" min={0} max={100} value={layer.opacity}
             aria-label={`Opacidade de ${layer.name}`}
             onChange={(e) => setOpacity(layer.id, Number(e.target.value))}
             style={{ flex: 1, height: 3, accentColor: c.accent, cursor: 'pointer' }} />
-          <span style={{ fontSize: 10, fontWeight: 700, color: c.accentInk, width: 30, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{layer.opacity}%</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: c.accentInk, width: 34, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{layer.opacity}%</span>
         </div>
       )}
     </div>

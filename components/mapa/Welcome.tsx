@@ -68,8 +68,8 @@ export default function Welcome({ theme, month }: Props) {
               <IcLeaf size={18} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>Caativar</div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: theme.colors.dim, textTransform: 'uppercase' }}>Observatório da Caatinga, OCA</div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>Caativar</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.12em', color: theme.colors.dim, textTransform: 'uppercase' }}>Observatório da Caatinga, OCA</div>
             </div>
             <button onClick={close} aria-label="Fechar" style={{ background: theme.colors.mist, border: 'none', borderRadius: 999, width: 32, height: 32, cursor: 'pointer', color: theme.colors.textDim, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IcX size={15} />
@@ -80,7 +80,7 @@ export default function Welcome({ theme, month }: Props) {
           <h1 style={{ fontSize: 31, fontWeight: 800, letterSpacing: '-.015em', lineHeight: 1.15, margin: '0 0 12px' }}>
             A cor da interface acompanha o mês do bioma
           </h1>
-          <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.6, color: theme.colors.body, margin: '0 0 20px', maxWidth: 680 }}>
+          <p style={{ fontSize: 16, fontWeight: 400, lineHeight: 1.6, color: theme.colors.body, margin: '0 0 20px', maxWidth: 680 }}>
             Módulo de mapas e análises da Caativar. A interface veste a cor do mês
             corrente, apurada desde 1985 no acompanhamento da vegetação nativa por imagens do satélite Landsat e
             por uma câmera instalada em campo. Estão disponíveis camadas de solo, biomassa, produtividade, fluxo,
@@ -107,7 +107,7 @@ export default function Welcome({ theme, month }: Props) {
                       height: 26 + (m.ndfi + 0.6) * 34,
                       alignSelf: 'end',
                       outline: isCurrent ? `2px solid ${theme.colors.text}` : 'none', outlineOffset: 1,
-                      fontSize: 9.5, fontWeight: 800, letterSpacing: '.02em',
+                      fontSize: 11, fontWeight: 800, letterSpacing: '.02em',
                     }}
                   >
                     {m.short}
@@ -118,7 +118,7 @@ export default function Welcome({ theme, month }: Props) {
                 )
               })}
             </div>
-            <div style={{ fontSize: 11.5, fontWeight: 500, color: theme.colors.dim, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: theme.colors.dim, lineHeight: 1.5 }}>
               <strong style={{ color: theme.colors.text, fontWeight: 700 }}>{month.label}</strong>
               {', '}{phase.label.toLowerCase()}. A altura de cada barra acompanha o quanto a vegetação está
               enfolhada no mês, apurado ao longo de quarenta anos; o ponto marca o mês de hoje.
@@ -132,7 +132,7 @@ export default function Welcome({ theme, month }: Props) {
               alt={`Caatinga na fase ${phase.label.toLowerCase()}`}
               style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 12, display: 'block', border: `1px solid ${theme.colors.border}` }}
             />
-            <figcaption style={{ fontSize: 11, fontWeight: 500, color: theme.colors.caption, marginTop: 6 }}>
+            <figcaption style={{ fontSize: 12.5, fontWeight: 500, color: theme.colors.caption, marginTop: 6 }}>
               {phase.label}, foto de {phase.photoDate}. Acervo do projeto.
             </figcaption>
           </figure>
@@ -141,10 +141,10 @@ export default function Welcome({ theme, month }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
             {STEPS.map((st) => (
               <div key={st.n} style={{ display: 'flex', gap: 10 }}>
-                <span style={{ flex: 'none', width: 24, height: 24, borderRadius: 999, background: theme.colors.accentBg, color: theme.colors.accentInk, fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.n}</span>
+                <span style={{ flex: 'none', width: 24, height: 24, borderRadius: 999, background: theme.colors.accentBg, color: theme.colors.accentInk, fontSize: 13.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.n}</span>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 2 }}>{st.t}</div>
-                  <div style={{ fontSize: 11.5, fontWeight: 500, color: theme.colors.dim, lineHeight: 1.45 }}>{st.d}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{st.t}</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: theme.colors.dim, lineHeight: 1.45 }}>{st.d}</div>
                 </div>
               </div>
             ))}
@@ -153,14 +153,14 @@ export default function Welcome({ theme, month }: Props) {
           <button
             onClick={close}
             className="ui-press"
-            style={{ background: theme.colors.accent, color: theme.colors.onAccent, border: 'none', borderRadius: 999, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+            style={{ background: theme.colors.accent, color: theme.colors.onAccent, border: 'none', borderRadius: 999, padding: '11px 22px', fontSize: 15.5, fontWeight: 700, cursor: 'pointer' }}
           >
             Começar a explorar
           </button>
 
           {/* logos */}
           <div style={{ marginTop: 24, paddingTop: 18, borderTop: `1px solid ${theme.colors.border}` }}>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.14em', color: theme.colors.caption, textTransform: 'uppercase', marginBottom: 10 }}>Realização e apoio</div>
+            <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.14em', color: theme.colors.caption, textTransform: 'uppercase', marginBottom: 10 }}>Realização e apoio</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               {LOGOS.map((l) => (
                 <div key={l.alt} style={{ background: '#fff', borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', border: `1px solid ${theme.colors.border}` }}>

@@ -67,7 +67,7 @@ export default function StockReportView({ report, theme, caption }: Props) {
 
   if (!total || !report.classes.length) {
     return (
-      <p style={{ fontSize: 12, color: c.textDim, fontFamily: 'var(--font-app), sans-serif' }}>
+      <p style={{ fontSize: 13.5, color: c.textDim, fontFamily: 'var(--font-app), sans-serif' }}>
         Não há estoque mapeado nesta área.
       </p>
     )
@@ -90,7 +90,7 @@ export default function StockReportView({ report, theme, caption }: Props) {
   return (
     <div style={{ fontFamily: 'var(--font-app), sans-serif', display: 'grid', gap: 14 }}>
       {caption && (
-        <p style={{ fontSize: 11, color: c.textDim, margin: 0 }}>{caption}</p>
+        <p style={{ fontSize: 12.5, color: c.textDim, margin: 0 }}>{caption}</p>
       )}
 
       {/* A área não entra aqui: o cartão "Área analisada" do painel já a traz, e
@@ -136,18 +136,18 @@ function Cartao({
         borderRadius: 10, padding: '9px 11px',
       }}
     >
-      <div style={{ fontSize: 10, color: c.textDim, marginBottom: 2 }}>{rotulo}</div>
+      <div style={{ fontSize: 11.5, color: c.textDim, marginBottom: 2 }}>{rotulo}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
         <span
           style={{
-            fontSize: 19, fontWeight: 800, lineHeight: 1,
+            fontSize: 20, fontWeight: 800, lineHeight: 1,
             color: destaque ? c.accentInk : c.text,
             fontVariantNumeric: 'lining-nums tabular-nums',
           }}
         >
           {valor}
         </span>
-        <span style={{ fontSize: 11, color: c.textDim }}>{unidade}</span>
+        <span style={{ fontSize: 12.5, color: c.textDim }}>{unidade}</span>
       </div>
     </div>
   )
@@ -165,7 +165,7 @@ function Rosca({
     <section>
       <h4
         style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '.04em',
+          fontSize: 12.5, fontWeight: 700, letterSpacing: '.04em',
           textTransform: 'uppercase', color: c.textDim, margin: '0 0 6px',
         }}
       >
@@ -197,7 +197,7 @@ function Rosca({
             pushes the whole row past its container. */}
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, minWidth: 0, display: 'grid', gap: 3 }}>
           {fatias.map((f) => (
-            <li key={f.nome} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
+            <li key={f.nome} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}>
               <span
                 style={{
                   width: 9, height: 9, borderRadius: 2,

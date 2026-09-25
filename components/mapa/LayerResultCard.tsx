@@ -76,14 +76,14 @@ export default function LayerResultCard({
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{
             display: 'block',
-            fontSize: 10.5, fontWeight: 800, letterSpacing: '.14em',
+            fontSize: 12, fontWeight: 800, letterSpacing: '.14em',
             textTransform: 'uppercase', color: c.dim, overflowWrap: 'anywhere',
           }}>
             {layer.name}{date ? ` · ${date.slice(0, 4)}` : ''}
           </span>
           <span style={{
             display: 'block', marginTop: 3,
-            fontSize: 15, fontWeight: 700, color: c.text,
+            fontSize: 16, fontWeight: 700, color: c.text,
             fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere',
           }}>
             {summary ?? (loading ? 'Calculando…' : '—')}
@@ -113,7 +113,7 @@ export default function LayerResultCard({
                     marginTop: 8, width: '100%', height: 32,
                     background: 'transparent', border: `1px solid ${c.border}`,
                     borderRadius: 8, cursor: 'pointer', color: c.accentInk,
-                    fontFamily: 'var(--font-app), sans-serif', fontSize: 12, fontWeight: 700,
+                    fontFamily: 'var(--font-app), sans-serif', fontSize: 13.5, fontWeight: 700,
                   }}
                 >
                   Tentar novamente
@@ -147,7 +147,7 @@ export default function LayerResultCard({
                     {result.pixelValue.value.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}
                   </span>
                   {result.pixelValue.label && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: c.dim }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: c.dim }}>
                       {result.pixelValue.label}
                     </span>
                   )}
@@ -171,7 +171,7 @@ export default function LayerResultCard({
               stats are null. This is a real answer, not an error or loading state. */}
           {result?.status === 'ready' && !result.pixelValue && !result.stats && (
             <div style={{
-              fontSize: 11.5, fontWeight: 600, color: c.dim,
+              fontSize: 13, fontWeight: 600, color: c.dim,
             }}>
               Sem dado neste ponto.
             </div>

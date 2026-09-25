@@ -169,9 +169,9 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
           background: c.bgCard, color: c.text, border: `1px solid ${c.border}`,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 18 }}>Gerar relatório territorial</h2>
+        <h2 style={{ margin: 0, fontSize: 19 }}>Gerar relatório territorial</h2>
 
-        <label style={{ display: 'block', marginTop: 16, fontSize: 13, fontWeight: 600, color: c.textDim }}>
+        <label style={{ display: 'block', marginTop: 16, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
           Recorte
           <select
             value={recorteId}
@@ -193,7 +193,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             but it is GIS jargon above a box where someone types "Campina Grande".
             Generic on purpose — the value is a município, a state, a terra
             indígena, a settlement or the biome, depending on the recorte above. */}
-        <label style={{ display: 'block', marginTop: 14, fontSize: 13, fontWeight: 600, color: c.textDim }}>
+        <label style={{ display: 'block', marginTop: 14, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
           Área
           <input
             value={chosen ? feicaoLabel(chosen) : query}
@@ -204,7 +204,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
         </label>
 
         {feicoesError && (
-          <p style={{ margin: '6px 0 0', fontSize: 12, color: c.dim }}>
+          <p style={{ margin: '6px 0 0', fontSize: 13.5, color: c.dim }}>
             Não foi possível carregar a lista de feições. Tente novamente.
           </p>
         )}
@@ -233,7 +233,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
           </ul>
         )}
 
-        <label style={{ display: 'block', marginTop: 14, fontSize: 13, fontWeight: 600, color: c.textDim }}>
+        <label style={{ display: 'block', marginTop: 14, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
           Ano de referência
           <select
             value={year}
@@ -245,7 +245,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
         </label>
 
         <fieldset style={{ marginTop: 16, padding: 0, border: 'none' }}>
-          <legend style={{ padding: 0, fontSize: 13, fontWeight: 600, color: c.textDim }}>
+          <legend style={{ padding: 0, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
             Variáveis ({selected.size} de até {MAX_REPORT_LAYERS})
           </legend>
           <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
@@ -266,7 +266,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
                   key={entry.layerId}
                   style={{
                     display: 'flex', gap: 8, alignItems: 'flex-start',
-                    fontSize: 13, opacity: full ? 0.45 : 1,
+                    fontSize: 14.5, opacity: full ? 0.45 : 1,
                   }}
                 >
                   <input
@@ -279,7 +279,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
                     <strong style={{ fontWeight: 600 }}>{layer?.name ?? entry.layerId}</strong>
                     <span style={{ color: c.dim }}> — {LAYER_META[entry.layerId]?.description ?? ''}</span>
                     {missesYear && (
-                      <span style={{ display: 'block', marginTop: 2, color: c.dim, fontSize: 11.5 }}>
+                      <span style={{ display: 'block', marginTop: 2, color: c.dim, fontSize: 13 }}>
                         Sem dado para {year} — anos disponíveis: {stops.join(', ')}.
                       </span>
                     )}
@@ -290,7 +290,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
           </div>
         </fieldset>
 
-        <p style={{ marginTop: 14, fontSize: 12, color: c.dim }}>
+        <p style={{ marginTop: 14, fontSize: 13.5, color: c.dim }}>
           Cada variável é calculada ao vivo no Earth Engine, então um relatório com
           muitas variáveis leva mais tempo para ficar pronto.
         </p>

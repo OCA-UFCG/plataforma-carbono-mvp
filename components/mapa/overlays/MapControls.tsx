@@ -151,7 +151,7 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
                   style={{
                     background: active ? c.accent : 'transparent', color: active ? c.onAccent : c.text,
                     border: 'none', borderRadius: 7, padding: '7px 10px', cursor: 'pointer',
-                    textAlign: 'left', fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+                    textAlign: 'left', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
                   {b.name}

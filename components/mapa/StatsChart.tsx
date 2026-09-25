@@ -148,7 +148,7 @@ function CategoricalChart({
             <span
               title={r.label}
               style={{
-                width: 88, flexShrink: 0, fontSize: 11, fontWeight: 600, color: theme.colors.text,
+                width: 88, flexShrink: 0, fontSize: 12.5, fontWeight: 600, color: theme.colors.text,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}
             >
@@ -158,10 +158,10 @@ function CategoricalChart({
               <div style={{ width: `${Math.max(r.pct, 1)}%`, height: '100%', borderRadius: 999, background: r.color }} />
             </div>
             <span style={{ width: 62, flexShrink: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-              <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: theme.colors.text }}>
+              <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: theme.colors.text }}>
                 {r.pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
               </span>
-              <span style={{ display: 'block', fontSize: 9.5, fontWeight: 600, color: theme.colors.caption }}>
+              <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: theme.colors.caption }}>
                 {r.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: r.areaHa >= 100 ? 0 : 1 })} ha
               </span>
             </span>
@@ -211,7 +211,7 @@ function ContinuousStatsView({
 
   const c = theme.colors
   const eyebrow: React.CSSProperties = {
-    fontSize: 10.5, fontWeight: 800, letterSpacing: '.14em',
+    fontSize: 12, fontWeight: 800, letterSpacing: '.14em',
     textTransform: 'uppercase', color: c.dim,
   }
 
@@ -229,7 +229,7 @@ function ContinuousStatsView({
       <div>
         <div style={eyebrow}>Estatísticas do raster</div>
         {caption && (
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: c.text, marginTop: 2 }}>{caption}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: c.text, marginTop: 2 }}>{caption}</div>
         )}
       </div>
 
@@ -250,13 +250,13 @@ function ContinuousStatsView({
               {fmt(stats.mean)}
             </span>
             {unit && (
-              <span style={{ fontSize: 15, fontWeight: 700, color: c.accent, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 16, fontWeight: 700, color: c.accent, whiteSpace: 'nowrap' }}>
                 {unit}
               </span>
             )}
           </>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>
+        <span style={{ marginLeft: 'auto', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>
           média
         </span>
       </div>
@@ -270,7 +270,7 @@ function ContinuousStatsView({
           <div key={cell.label} style={{
             background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 8, padding: '7px 10px',
           }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: c.dim }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: c.dim }}>
               {cell.label}
             </div>
             {signedFlux && cell.directional && cell.value !== undefined ? (
@@ -284,7 +284,7 @@ function ContinuousStatsView({
         ))}
       </div>
 
-      <div style={{ fontSize: 10, fontWeight: 600, color: c.caption, textAlign: 'right' }}>
+      <div style={{ fontSize: 11.5, fontWeight: 600, color: c.caption, textAlign: 'right' }}>
         {stats.count.toLocaleString('pt-BR')} pixels válidos
       </div>
     </div>
@@ -376,14 +376,14 @@ function TimeSeriesChart({
         <XAxis
           dataKey="date"
           tickFormatter={formatTickDate}
-          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          tick={{ fontSize: 11, fill: theme.colors.textDim }}
           stroke={theme.colors.border}
           tickLine={false}
           interval={tickInterval}
         />
         <YAxis
           domain={[0, maxVal]}
-          tick={{ fontSize: 9, fill: theme.colors.textDim }}
+          tick={{ fontSize: 11, fill: theme.colors.textDim }}
           stroke={theme.colors.border}
           tickLine={false}
           allowDecimals={false}
@@ -460,7 +460,7 @@ function TimeSeriesTooltip({ active, payload, theme }: any) {
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      <div style={{ fontSize: 11, fontWeight: 600, color: theme.colors.text, marginBottom: 2 }}>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: theme.colors.text, marginBottom: 2 }}>
         {formatFullDate(row.date)}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -473,7 +473,7 @@ function TimeSeriesTooltip({ active, payload, theme }: any) {
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: 10, color: theme.colors.textDim }}>
+        <span style={{ fontSize: 11.5, color: theme.colors.textDim }}>
           {row.label}
           {row.value !== null && `, ${row.value}`}
         </span>

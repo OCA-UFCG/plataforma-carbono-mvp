@@ -60,7 +60,7 @@ export default function FluxValue({ value, unit, theme, size, format }: Props) {
         )}
       </div>
       {flux.label && (
-        <span style={{ fontSize: size >= 24 ? 11.5 : 10, fontWeight: 700, color: ink }}>
+        <span style={{ fontSize: size >= 24 ? 13 : 11.5, fontWeight: 700, color: ink }}>
           {flux.label}
         </span>
       )}

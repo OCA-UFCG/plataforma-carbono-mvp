@@ -196,7 +196,7 @@ export default function Mapa() {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            fontSize: 13,
+            fontSize: 14.5,
             fontWeight: 600,
             color: theme.colors.text,
             transition: 'left .3s',
