@@ -62,6 +62,13 @@ const PAIRS: [string, string][] = [
   // Comunicação page (issue #49): the PDF badge and the type chip.
   ['--role-categorica2-texto-sobre', '--role-categorica2-padrao'],
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
+  // "Entenda essa relação" (issue #51): the law figures, the red card's text,
+  // the question tiles and their numbers.
+  ['--role-categorica2-padrao', '--role-categorica2-container'],
+  ['--bg-texto-primario', '--role-categorica2-container'],
+  ['--bg-texto-primario', '--ctx-negativo-container'],
+  ['--role-categorica1-padrao', '--am-050'],
+  ['--ctx-informativo-texto-sobre', '--role-categorica1-padrao'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
@@ -70,6 +77,8 @@ const LARGE_TEXT_PAIRS: [string, string][] = [
   // The internal pages' h1, 30px semibold, on the intro band (Figma node
   // 18988:8616). 4.01:1: short of the normal-text bar, clear of this one.
   ['--role-marca-ancora-padrao', '--am-100'],
+  // The red card's 24px semibold title on its fill (issue #51), 3.76:1.
+  ['--ctx-negativo-padrao', '--ctx-negativo-container'],
 ]
 
 describe('landing palette', () => {

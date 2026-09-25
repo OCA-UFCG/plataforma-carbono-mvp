@@ -1,0 +1,46 @@
+/* CautionCard, Figma 18988:8852: a --ctx-negativo-container fill, 16px radius,
+ * 24px padding, 16px between its blocks and 8px between list items. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--ctx-negativo-container);
+}
+
+/* The h3 step, Rubik SemiBold 24/32, as in Section.module.css. 3.76:1 on the
+ * card fill: AA only as large text, which 24px semibold is
+ * (tests/lib/marketingPalette.test.ts, LARGE_TEXT_PAIRS). */
+.titulo {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--ctx-negativo-padrao);
+  margin: 0;
+}
+
+.forte {
+  font-weight: 700;
+  margin: 0;
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icone {
+  flex: none;
+}

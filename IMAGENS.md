@@ -116,6 +116,20 @@ alta, centrada no mesmo ponto que o design centraliza, para que `object-fit: cov
 imagem quando a faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os
 metadados. Autoria não registrada.
 
+## Páginas Sobre (public/images/sobre/)
+
+`direito-terra.webp` (928×682, 115 KB): foto ao lado de "Por que o direito sobre a terra importa?"
+em "Entenda essa relação" (nó 18988:8817). O original no Figma é uma foto de celular 3000×4000
+(retrato, sem EXIF), de um lago ao pé de um morro rochoso. O recorte é a largura inteira na
+proporção 464/341 do quadro, a partir da linha 900, enquadrando céu, morro e água como a tela do
+design mostra; as porcentagens de posição que o Figma exporta para esse preenchimento não
+correspondem a um recorte sem distorção, então não foram seguidas ao pé da letra. Autoria não
+registrada.
+
+Os ícones das perguntas numeradas (`public/icons/sobre/`) são os SVGs exportados do Figma sem
+alteração. Dois deles ("paid" e "calendar month") vêm em duas camadas, um quadro vazio de 85 px e
+o glifo posicionado dentro dele; as duas são usadas como o design as compõe.
+
 ## Hero
 
 O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar a constante `PHOTOS` em `components/marketing/Hero.tsx`; o crédito exibido ("Foto: Artur Lourenço") vem do campo `credit` de cada entrada dessa constante e só aparece quando ele está preenchido.

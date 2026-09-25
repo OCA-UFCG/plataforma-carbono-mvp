@@ -1,0 +1,44 @@
+/* Content of "Entenda essa relação", Figma 18988:8798: 40px of block padding
+ * and 24px between blocks. */
+.page {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The two law figures side by side, 24px apart (18988:8824). */
+.garantias {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+}
+
+/* The eight questions, two 626px columns 24px apart (18988:8886). */
+.perguntas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* minmax(0, 1fr), not 1fr: a bare 1fr track cannot shrink below its tile's
+ * min-content width, and at 390px the longest word of a question plus the
+ * tile's fixed parts pushed the tiles 24px past the content column. */
+@media (max-width: 900px) {
+  .perguntas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .garantias {
+    flex-direction: column;
+  }
+}
