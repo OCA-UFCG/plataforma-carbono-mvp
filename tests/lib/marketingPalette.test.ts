@@ -72,6 +72,16 @@ const PAIRS: [string, string][] = [
   // "Conheça a plataforma" (issue #47): the icon cards' heading and text.
   ['--role-categorica1-hover', '--role-categorica1-container'],
   ['--bg-texto-primario', '--role-categorica1-container'],
+  // "Como funciona" (issue #50): the step disc, title and text, and the four
+  // label colours of step 2 on the step panel. The Carbono label departs from
+  // the design's -marca-ancora-padrao (4.40:1) to -hover (StepCard.module.css).
+  ['--role-categorica2-texto-sobre', '--cu-900'],
+  ['--role-categorica3-hover', '--am-050'],
+  ['--bg-texto-primario', '--am-050'],
+  ['--role-categorica1-padrao', '--am-050'],
+  ['--role-marca-ancora-hover', '--am-050'],
+  ['--role-alerta-risco-hover', '--am-050'],
+  ['--role-categorica3-padrao', '--am-050'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

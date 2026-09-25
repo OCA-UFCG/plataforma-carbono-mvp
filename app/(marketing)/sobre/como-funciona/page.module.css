@@ -1,0 +1,42 @@
+/* Content of "Como funciona", Figma 18988:8972: 40px of block padding and
+ * 24px between blocks. */
+.page {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.passos {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.duvidas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.duvida {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pergunta {
+  font-weight: 700;
+}
+
+.resposta {
+  margin: 0;
+}
