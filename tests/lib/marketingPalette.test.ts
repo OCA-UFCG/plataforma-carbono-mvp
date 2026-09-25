@@ -59,6 +59,9 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-secundario', '--bg-superficie-variante'],
   ['--am-400', '--bg-superficie-variante'],
   ['--bg-texto-primario', '--bg-superficie-variante'],
+  // Comunicação page (issue #49): the PDF badge and the type chip.
+  ['--role-categorica2-texto-sobre', '--role-categorica2-padrao'],
+  ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

@@ -1,0 +1,90 @@
+/* PublicationCard, Figma 18978:2075–2079: the cover frame 236x318 (kept as a
+ * ratio, so it scales with its column), then the type chip and the title,
+ * 8px apart. Hover, 18988:10598: the frame's border darkens and it lifts on a
+ * shadow. The two chips set 12/16 semibold, which no .text-* utility covers,
+ * so their metrics are set here. */
+.card {
+  min-width: 0;
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  color: inherit;
+}
+
+/* The border is the design's BG-TextoDesabilitado (#94a6ac), the same value
+ * as --role-neutro-texto-desabilitado. The 12px radius has no token; it is the
+ * design's own, as on the Sobre pages' photos (sobre/MediaText.module.css). */
+.cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 236 / 318;
+  padding: 20px;
+  border: 1px solid var(--role-neutro-texto-desabilitado);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* The covers are 0.707 wide for 1, the frame 0.742: `cover` trims about 2.5%
+ * off the top and the bottom, which keeps the partner logos along the foot of
+ * the cartilha covers in frame, as the design shows them. */
+.coverImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pdfBadge,
+.tipo {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* White on --role-categorica2-padrao is 14.80:1. */
+.pdfBadge {
+  position: relative;
+  display: inline-block;
+  background: var(--role-categorica2-padrao);
+  color: var(--role-categorica2-texto-sobre);
+}
+
+.tipo {
+  border: 1px solid var(--bg-borda);
+  color: var(--ctx-positivo-texto-sobre-container);
+}
+
+/* Rubik Bold 16/24. The design colours it #2c2a27, a warm near-black that is
+ * not a variable in the file; --bg-texto-primario is the nearest token. */
+.title {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  margin: 0;
+}
+
+a.surface:hover .cover,
+a.surface:focus-visible .cover {
+  border-color: var(--bg-borda);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover {
+    transition: none;
+  }
+}
