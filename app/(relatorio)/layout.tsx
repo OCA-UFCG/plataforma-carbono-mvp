@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Libre_Franklin } from 'next/font/google'
 import { redirect } from 'next/navigation'
 import '../relatorio.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
+import { libreFranklin } from '../fonts/app'
 
 // Fourth sibling root layout. The report is a document that scrolls and prints,
 // and (mapa)'s layout zeroes the body scroll and pins the height to the
@@ -12,13 +12,6 @@ import { getAuthenticatedSession } from '@/lib/auth'
 //
 // Consequence: a link from /mapa to here crosses a route-group boundary, so it
 // is an <a href> and a full page load, never next/link.
-const libreFranklin = Libre_Franklin({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-app',
-  display: 'swap',
-})
-
 export const metadata: Metadata = {
   title: 'Relatório territorial | Caativar',
   description: 'Relatório automático de carbono por recorte territorial do bioma Caatinga. OCA, UFCG, INSA.',
