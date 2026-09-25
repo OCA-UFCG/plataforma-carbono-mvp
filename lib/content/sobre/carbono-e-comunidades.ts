@@ -53,7 +53,7 @@ export const CARBONO_E_COMUNIDADES = {
       'Em territórios com conflitos ou insegurança sobre a posse da terra, um projeto pode ampliar disputas existentes. Também pode favorecer agentes com maior capacidade financeira e jurídica, enquanto comunidades e pequenos proprietários enfrentam mais dificuldades para participar.',
       'Reconhecer os direitos territoriais é, portanto, uma condição essencial para que os projetos não aprofundem desigualdades. A expansão de usinas eólicas e solares na Caatinga mostra o risco: benefícios concentrados em poucos agentes e custos ambientais e sociais distribuídos para as comunidades, com contratos de arrendamento de longa duração e prejuízos à agricultura familiar.',
     ],
-    imagem: '/images/sobre/direito-terra.webp',
+    imagem: '/images/sobre/lago-serra.webp',
     imagemAlt: 'Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul',
   },
 

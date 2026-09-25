@@ -118,8 +118,10 @@ metadados. Autoria não registrada.
 
 ## Páginas Sobre (public/images/sobre/)
 
-`direito-terra.webp` (928×682, 115 KB): foto ao lado de "Por que o direito sobre a terra importa?"
-em "Entenda essa relação" (nó 18988:8817). O original no Figma é uma foto de celular 3000×4000
+`lago-serra.webp` (928×682, 115 KB): a mesma foto, com o mesmo enquadramento, aparece em duas
+páginas: ao lado de "Por que criar uma plataforma para a Caatinga?" em "Conheça a plataforma" (nó
+18988:8647) e ao lado de "Por que o direito sobre a terra importa?" em "Entenda essa relação" (nó
+18988:8817). É o mesmo preenchimento no Figma (asset 4cf5c) nos dois nós, então o arquivo é um só. O original no Figma é uma foto de celular 3000×4000
 (retrato, sem EXIF), de um lago ao pé de um morro rochoso. O recorte é a largura inteira na
 proporção 464/341 do quadro, a partir da linha 900, enquadrando céu, morro e água como a tela do
 design mostra; as porcentagens de posição que o Figma exporta para esse preenchimento não

@@ -2,10 +2,40 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { CARBONO_E_COMUNIDADES } from '@/lib/content/sobre/carbono-e-comunidades'
+import { SOBRE_PLATAFORMA } from '@/lib/content/sobre/plataforma'
+import { SOBRE_FAIXA } from '@/lib/content/paginas'
 
 function inPublic(src: string): boolean {
   return existsSync(path.join(process.cwd(), 'public', src))
 }
+
+describe('Conheça a plataforma (/sobre)', () => {
+  const p = SOBRE_PLATAFORMA
+
+  it('opens with why the platform exists, beside its photo', () => {
+    expect(p.porQue.titulo).toBe('Por que criar uma plataforma para a Caatinga?')
+    expect(inPublic(p.porQue.imagem)).toBe(true)
+  })
+
+  it('answers the two questions of the icon cards, each with an icon that exists', () => {
+    expect(p.cards.map((card) => card.titulo)).toEqual([
+      'Qual é a missão da CaatiVAR?',
+      'Para quem é a plataforma?',
+    ])
+    for (const card of p.cards) {
+      expect(inPublic(card.icone), card.icone).toBe(true)
+    }
+  })
+
+  it('closes on what the platform does not do', () => {
+    expect(SOBRE_FAIXA.title).toBe('O que a plataforma não faz')
+    expect(SOBRE_FAIXA.items).toEqual([
+      'Não vende créditos de carbono',
+      'Não certifica nem aprova projetos',
+      'Não substitui reguladores e certificadoras',
+    ])
+  })
+})
 
 describe('Entenda essa relação (/sobre/carbono-e-comunidades)', () => {
   const c = CARBONO_E_COMUNIDADES
