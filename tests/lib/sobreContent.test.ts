@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { CARBONO_E_COMUNIDADES } from '@/lib/content/sobre/carbono-e-comunidades'
 import { SOBRE_PLATAFORMA } from '@/lib/content/sobre/plataforma'
 import { COMO_FUNCIONA } from '@/lib/content/sobre/como-funciona'
+import { CAATINGA } from '@/lib/content/sobre/caatinga'
+import { DESTAQUES } from '@/lib/content/destaques'
 import { SOBRE_FAIXA } from '@/lib/content/paginas'
 
 function inPublic(src: string): boolean {
@@ -100,5 +102,38 @@ describe('Como funciona (/sobre/como-funciona)', () => {
   it('answers the three frequent questions', () => {
     expect(c.duvidas.itens).toHaveLength(3)
     expect(c.duvidas.itens.every((d) => d.pergunta.endsWith('?') && d.resposta.length > 0)).toBe(true)
+  })
+})
+
+describe('Conheça a Caatinga (/sobre/caatinga)', () => {
+  const c = CAATINGA
+  const indicadores = [c.clima.indicador, c.eficiencia.indicador, ...c.armazenamento.indicadores]
+
+  it('states the four indicators, with the subscript as a character', () => {
+    expect(indicadores.map((i) => i.value)).toEqual(['410 Mt', '60%', '125tC/ha', '1,5–5tCO₂/ha/ano'])
+  })
+
+  // The landing's highlights (lib/content/destaques.ts) repeat two of these
+  // figures, which must agree. The third shared subject does not: the landing
+  // says 48% "da remoção bruta de carbono do Brasil", this page "cerca de 40%
+  // das remoções realizadas pelos biomas brasileiros". DOCUMENTACAO.md already
+  // lists that divergence for the content owner; it is not resolved here.
+  it('agrees with the landing on efficiency and removal capacity', () => {
+    const landing = (rotulo: string) => DESTAQUES.find((d) => d.rotulo === rotulo)
+    expect(`${landing('Eficiência de carbono')?.numero}${landing('Eficiência de carbono')?.unidade}`).toBe(
+      c.eficiencia.indicador.value,
+    )
+    expect(landing('Capacidade de remoção')?.numero).toBe('1,5–5')
+    expect(c.armazenamento.indicadores[1].value.startsWith('1,5–5')).toBe(true)
+  })
+
+  it('compares the area under severe desertification in 2000 and 2020', () => {
+    expect(c.pressao.comparacao.antes).toEqual({ ano: '2000', valor: '74 mil km²' })
+    expect(c.pressao.comparacao.depois).toEqual({ ano: '2020', valor: '107 mil km²' })
+  })
+
+  it('points its photo and arrow at files that exist', () => {
+    expect(inPublic(c.pessoas.imagem)).toBe(true)
+    expect(inPublic('/icons/sobre/arrow.svg')).toBe(true)
   })
 })
