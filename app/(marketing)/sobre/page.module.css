@@ -1,0 +1,19 @@
+/* Content of "Conheça a plataforma", Figma 18988:8640: 40px of block padding
+ * and 24px between blocks. */
+.page {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The two icon cards, stacked 24px apart (18988:8648). */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
