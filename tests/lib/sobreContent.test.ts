@@ -3,6 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { CARBONO_E_COMUNIDADES } from '@/lib/content/sobre/carbono-e-comunidades'
 import { SOBRE_PLATAFORMA } from '@/lib/content/sobre/plataforma'
+import { COMO_FUNCIONA } from '@/lib/content/sobre/como-funciona'
 import { SOBRE_FAIXA } from '@/lib/content/paginas'
 
 function inPublic(src: string): boolean {
@@ -68,5 +69,36 @@ describe('Entenda essa relação (/sobre/carbono-e-comunidades)', () => {
 
   it('points its photo at a file that exists', () => {
     expect(inPublic(c.direitoTerra.imagem)).toBe(true)
+  })
+})
+
+describe('Como funciona (/sobre/como-funciona)', () => {
+  const c = COMO_FUNCIONA
+
+  it('walks through the six steps of using the map, in order', () => {
+    expect(c.passos.map((p) => p.titulo)).toEqual([
+      'Encontre a área de interesse',
+      'Escolha as informações',
+      'Visualize no mapa',
+      'Escolha o período',
+      'Consulte os detalhes',
+      'Gere um relatório territorial',
+    ])
+  })
+
+  it('groups the information in the four themes of the map', () => {
+    const grupos = c.passos.flatMap((p) => p.grupos ?? [])
+    expect(grupos.map((g) => [g.rotulo, g.tom])).toEqual([
+      ['Território', 'territorio'],
+      ['Carbono', 'carbono'],
+      ['Uso da terra e pressões', 'pressoes'],
+      ['Ambiente', 'ambiente'],
+    ])
+    expect(grupos.every((g) => g.itens.length > 0)).toBe(true)
+  })
+
+  it('answers the three frequent questions', () => {
+    expect(c.duvidas.itens).toHaveLength(3)
+    expect(c.duvidas.itens.every((d) => d.pergunta.endsWith('?') && d.resposta.length > 0)).toBe(true)
   })
 })
