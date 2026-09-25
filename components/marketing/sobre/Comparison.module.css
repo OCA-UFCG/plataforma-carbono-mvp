@@ -1,0 +1,80 @@
+/* Comparison, Figma 18988:8747: the title 16px above the row; the two figure
+ * cards 4px from the 114px arrow between them. */
+.comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Rubik Bold 16 in capitals, 1.5px apart, as the Comunicação page's
+ * "Conteúdo" heading (Publicacoes.module.css). */
+.titulo {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+  margin: 0;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.medida {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+/* The h3 step, Rubik SemiBold 24/32, as in Section.module.css. */
+.valor {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  margin: 0;
+}
+
+/* Then: --role-categorica1-hover on its container (6.91:1). */
+.antes {
+  background: var(--role-categorica1-container);
+}
+
+.antes .valor {
+  color: var(--role-categorica1-hover);
+}
+
+/* Now: --ctx-negativo-padrao on its container, 3.76:1, AA as large text,
+ * which 24px is (tests/lib/marketingPalette.test.ts, LARGE_TEXT_PAIRS). */
+.depois {
+  background: var(--ctx-negativo-container);
+}
+
+.depois .valor {
+  color: var(--ctx-negativo-padrao);
+}
+
+.seta {
+  flex: none;
+}
+
+/* At phone width the two cards stack and the arrow turns to point down. */
+@media (max-width: 520px) {
+  .linha {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .seta {
+    width: 60px;
+    transform: rotate(90deg);
+    margin: 22px 0 22px -6px;
+  }
+}

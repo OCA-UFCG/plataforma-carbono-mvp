@@ -1,0 +1,44 @@
+/* Content of "Conheça a Caatinga", Figma 18988:8696: 40px of block padding
+ * and 24px between blocks. */
+.page {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The opening text: two paragraphs a blank 24px line apart (18988:8699). */
+.abertura {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* A single indicator card is half the column, 626px (18988:8714). */
+.indicador {
+  width: min(626px, 100%);
+}
+
+/* The pair of storage cards, sharing the row 16px apart (18988:8730). */
+.indicadores {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.indicadores > li {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .indicadores {
+    flex-direction: column;
+  }
+}

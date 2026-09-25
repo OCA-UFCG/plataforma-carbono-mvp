@@ -41,6 +41,29 @@
   height: 18px;
 }
 
+.outlined .icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* The Sobre instances are 166px tall whatever their text (18988:8714,
+ * 18988:8731), with the figure in a 34px box and the 1px stroke drawn inside
+ * the card, as Figma draws strokes. A CSS border adds to the box instead, so
+ * the bottom padding gives up those 2px. min-height rather than height, so a
+ * description that wraps further at narrow widths grows the card instead of
+ * being clipped. */
+.outlined {
+  min-height: 166px;
+}
+
+.outlined .body {
+  padding-bottom: 22px;
+}
+
+.outlined .value {
+  line-height: 34px;
+}
+
 .label {
   color: var(--role-marca-ancora-texto-sobre);
   margin: 0;

@@ -103,6 +103,10 @@ GPS no EXIF. A conversão (recorte central para 340/250 e Pillow, WebP qualidade
 todos os metadados; **ao substituir essas fotos, não publicar os originais**, porque a de
 "Carbono e comunidades" mostra uma casa em comunidade. Autoria também não registrada.
 
+`carbono-e-comunidades.webp` também aparece em "Conheça a Caatinga", ao lado de "Um bioma de
+natureza e pessoas" (nó 18988:8735, 298×219): é o mesmo preenchimento no Figma (asset 46b29) e o
+quadro tem a mesma proporção 1,36, então o arquivo é reaproveitado em vez de duplicado.
+
 ## Faixas das páginas internas (public/images/faixas/)
 
 Fotos de fundo das faixas acima do rodapé nas páginas internas (componente `PhotoBand`):
