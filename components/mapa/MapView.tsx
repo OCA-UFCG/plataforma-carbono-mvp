@@ -515,6 +515,19 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       map.addControl(draw as any)
       drawRef.current = draw
 
+      // Clear the persistent "selected" feature-state used by the
+      // click-to-stats flow. Does NOT touch the ResultsSidebar content -
+      // callers decide whether to clear the store's measurements too. Declared
+      // before `handleDrawCommit`, which the saved-drawing restore below calls
+      // while this closure is still running.
+      const clearSelectedFeature = () => {
+        const sel = selectedFeatureRef.current
+        if (sel) {
+          map.setFeatureState(sel, { selected: false })
+          selectedFeatureRef.current = null
+        }
+      }
+
       // Unified handler for create/update, computes measurements and raster
       // stats / pixel value for the first (and only) feature currently in
       // the draw buffer. Fires both on initial finish AND when the user
@@ -711,17 +724,6 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           hovered = null
         }
         hoverPopup.remove()
-      }
-
-      // Clear the persistent "selected" feature-state used by the
-      // click-to-stats flow. Does NOT touch the ResultsSidebar content -
-      // callers decide whether to clear the store's measurements too.
-      const clearSelectedFeature = () => {
-        const sel = selectedFeatureRef.current
-        if (sel) {
-          map.setFeatureState(sel, { selected: false })
-          selectedFeatureRef.current = null
-        }
       }
 
       // The analysis half of click-to-stats, lifted out so the search can run
