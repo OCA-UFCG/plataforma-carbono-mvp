@@ -103,6 +103,42 @@ describe('marketing nav registry', () => {
   })
 })
 
+// The landing's "Ver mais" controls (MoreLink) open the internal page of their
+// section. Read from the components' source, like renderedSectionIds above, so
+// a MoreLink left without a destination, or pointed at a page that does not
+// exist, fails here rather than shipping as a button that goes nowhere.
+function moreLinkHrefs(): { file: string; href: string | null }[] {
+  const dir = path.join(process.cwd(), 'components/marketing')
+  const found: { file: string; href: string | null }[] = []
+
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.tsx') || file === 'MoreLink.tsx') continue
+
+    const source = readFileSync(path.join(dir, file), 'utf8')
+    for (const [tag] of source.matchAll(/<MoreLink\b[^>]*>/g)) {
+      const href = tag.match(/\bhref="([^"]+)"/)
+      found.push({ file, href: href ? href[1] : null })
+    }
+  }
+
+  return found
+}
+
+describe('"Ver mais" links', () => {
+  it('sends each section to its internal page', () => {
+    expect(moreLinkHrefs()).toEqual([
+      { file: 'Comunicacao.tsx', href: '/comunicacao' },
+      { file: 'Plataforma.tsx', href: '/sobre' },
+    ])
+  })
+
+  it('points only at pages that exist', () => {
+    for (const { file, href } of moreLinkHrefs()) {
+      expect(href && routeExists(href), `${file}: ${href}`).toBe(true)
+    }
+  })
+})
+
 describe('activeNavHref', () => {
   it('marks the header entry that owns the current route', () => {
     expect(activeNavHref('/')).toBe('/')

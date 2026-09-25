@@ -150,8 +150,8 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 
 - **"Entrar" vira "Sair".** O Figma mostra um botão "Entrar" no header, mas `app/(marketing)/layout.tsx` já redireciona todo visitante não autenticado para `/login` — quem vê a landing já está logado. O slot mostra "Sair" e executa as duas etapas do logout já estabelecido (`DELETE /api/session`, depois `firebaseSignOut`) antes de redirecionar.
 - **PT-BR / En não funciona.** O seletor de idioma é renderizado mas inerte; internacionalização está fora do escopo desta reconstrução.
-- **"Ver mais" foi omitido.** Não há páginas internas para esses botões apontarem ainda.
-- **Três das quatro abas de "Conheça a plataforma" estão vazias** ("Conteúdo em preparação."). Só "O que é a CaatiVAR?" tinha conteúdo desenhado; não existe texto para as outras três em lugar nenhum do handoff.
+- **"Ver mais" leva às páginas internas.** O de "Conheça a plataforma" abre `/sobre` e o de "Comunicação" abre `/comunicacao` (issue #52); antes dessas páginas existirem, os dois eram inertes.
+- **As quatro abas de "Conheça a plataforma" têm conteúdo.** Na primeira reconstrução só "O que é a CaatiVAR?" estava desenhada e as outras três mostravam "Conteúdo em preparação."; a atualização do Figma de setembro de 2026 trouxe o texto e a foto das três (PR #43), e o estado vazio foi removido.
 - **Divergência numérica a confirmar com o time de conteúdo:** o cartão de destaque cita **40%** "das remoções de gases de efeito estufa do Brasil em 2022"; a landing anterior dizia **48%** "da remoção bruta de carbono do país" (hoje em `lib/content/dimensoes.ts`). Podem ser números diferentes e corretos — todos os GEE versus só carbono — mas ninguém confirmou.
 - **Não existe e-mail de contato.** A coluna "CONTATO" do rodapé sai com o rótulo e nada embaixo; o `contato@Caativar.gov.br` do Figma é texto de preenchimento (`.gov.br` não é o domínio do projeto), por isso nada foi inventado no lugar.
 - **O crédito da foto do hero nunca aparece**, porque nenhuma foto do repositório carrega dado de crédito; "Foto: [nome da equipe]" no Figma também é placeholder.

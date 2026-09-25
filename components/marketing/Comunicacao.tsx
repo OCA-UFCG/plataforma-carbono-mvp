@@ -46,9 +46,8 @@ const DESCRICAO_CARTILHA =
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
 // so the choice of which ones is fixed by the task brief rather than by this
 // component: the caderno (labelled "CADERNO TEMÁTICO") and cartilhas[0]
-// (labelled "CARTILHA"). The header row's "Ver mais" control is rendered but
-// inert, the same as Plataforma.tsx: the internal page it would open does not
-// exist yet. See MoreLink.
+// (labelled "CARTILHA"). The header row's "Ver mais" opens the Comunicação
+// page, which lists every publication.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
   const [primeiraCartilha] = conteudo.cartilhas;
 
@@ -86,10 +85,10 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
     <section id="comunicacao" className={styles.comunicacao} aria-label="Comunicação">
       <div className={`container ${styles.inner}`}>
         {/* Heading left, "Ver mais" right — the 40px header row of Figma node
-            18862:8576. The control is inert; see MoreLink. */}
+            18862:8576. */}
         <div className={styles.headerRow}>
           <h2 className={`${styles.heading} text-h2`}>Comunicação</h2>
-          <MoreLink />
+          <MoreLink href="/comunicacao" contexto="materiais de comunicação" />
         </div>
 
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
