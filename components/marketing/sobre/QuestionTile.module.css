@@ -1,0 +1,101 @@
+/* QuestionTile, Figma 18988:8887: an 80px number column in
+ * --role-categorica1-padrao, rounded on the left, then an --am-050 body with
+ * 24px padding, rounded on the right; the question and an 85px icon 24px
+ * apart. The tile fills its grid cell, so tiles in a row share a height. */
+.tile {
+  display: flex;
+  height: 100%;
+}
+
+/* The design sets the number in Rubik ExtraBold (800), 48/48. The marketing
+ * layout loads Rubik up to 700 only, and font loading is being reworked in
+ * PR #57, so this is 700 until that lands. White on the fill is 5.76:1. */
+.numero {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  padding-block: 24px;
+  border-radius: 8px 0 0 8px;
+  background: var(--role-categorica1-padrao);
+  color: var(--ctx-informativo-texto-sobre);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 48px;
+  letter-spacing: -0.576px;
+}
+
+.corpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 0 8px 8px 0;
+  background: var(--am-050);
+}
+
+/* The h3 step, Rubik SemiBold 24/32, in --role-categorica1-padrao (5.22:1). */
+.pergunta {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--role-categorica1-padrao);
+  margin: 0;
+}
+
+.icone {
+  position: relative;
+  flex: none;
+  width: 85px;
+  height: 85px;
+}
+
+.camada {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* An <img> does not stretch to the box its insets describe (a replaced
+ * element keeps its intrinsic size), so the glyph is sized from them. */
+.glyph {
+  position: absolute;
+  top: var(--inset-y);
+  left: var(--inset-x);
+  width: calc(100% - 2 * var(--inset-x));
+  height: calc(100% - 2 * var(--inset-y));
+}
+
+/* At phone width the tile's fixed parts (number column, padding, icon, gap)
+ * would leave the question too narrow for its longest word ("monitoramento");
+ * each shrinks so about 175px of the 327px column is left for the text. */
+@media (max-width: 520px) {
+  .numero {
+    width: 56px;
+    font-size: 36px;
+    line-height: 36px;
+  }
+
+  .corpo {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .icone {
+    width: 48px;
+    height: 48px;
+  }
+
+  .pergunta {
+    font-size: 20px;
+    line-height: 28px;
+    overflow-wrap: break-word;
+  }
+}
