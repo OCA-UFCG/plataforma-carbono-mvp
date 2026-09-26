@@ -64,12 +64,7 @@ export default function Header({ theme, month }: Props) {
           }}>
             <IcLeaf size={17} />
           </div>
-          <div>
-            <div style={{ fontSize: 16.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', color: '#a5a294', textTransform: 'uppercase', lineHeight: 1.4 }}>
-              Observatório da Caatinga, OCA
-            </div>
-          </div>
+          <div style={{ fontSize: 16.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
         </a>
 
         {/* Chip do mês + seletor */}
