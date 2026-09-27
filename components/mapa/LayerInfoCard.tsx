@@ -2,6 +2,7 @@
 
 import { useStore } from '@/lib/mapa/store'
 import { LAYER_META } from '@/config/mapa/layerMeta'
+import { dataRangeFor } from '@/lib/mapa/dataRange'
 import { IcX } from './icons'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
@@ -31,6 +32,7 @@ export default function LayerInfoCard({
 }) {
   const layers = useStore((s) => s.layers)
   const toggleLayer = useStore((s) => s.toggleLayer)
+  const temporalDate = useStore((s) => s.temporalDate[layerId])
   const layer = layers.find((l: LayerConfig) => l.id === layerId)
   const c = theme.colors
   if (!layer) return null
@@ -38,6 +40,11 @@ export default function LayerInfoCard({
   const raster = layer.type === 'raster' ? (layer as RasterLayerConfig) : null
   const palette = raster?.gee?.visParams?.palette
   const rescale = raster?.rescale
+  // Real extremes of the data at the ends, as in the floating legend.
+  const real = dataRangeFor(layerId, temporalDate)
+  const fmt = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+  const low = real?.min ?? rescale?.[0]
+  const high = real?.max ?? rescale?.[1]
 
   return (
     <div
@@ -70,9 +77,9 @@ export default function LayerInfoCard({
           <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>Legenda</div>
           <div style={{ height: 10, borderRadius: 3, background: `linear-gradient(90deg, ${palette.join(', ')})` }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3, fontSize: 11.5, color: c.dim, fontVariantNumeric: 'tabular-nums' }}>
-            <span>{rescale ? rescale[0] : ''}</span>
+            <span>{low != null ? fmt(low) : ''}</span>
             <span>{raster.unit}</span>
-            <span>{rescale ? rescale[1] : ''}</span>
+            <span>{high != null ? fmt(high) : ''}</span>
           </div>
         </div>
       )}

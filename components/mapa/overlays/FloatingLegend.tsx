@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
+import { dataRangeFor } from '@/lib/mapa/dataRange'
 import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
@@ -227,6 +228,12 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
   const palette = layer.gee?.visParams?.palette
   const min = layer.gee?.visParams?.min ?? layer.rescale?.[0]
   const max = layer.gee?.visParams?.max ?? layer.rescale?.[1]
+  // The ends print the real extremes of the data; the bar keeps the color
+  // stretch, so values past it share the end color.
+  const temporalDate = useStore((s) => s.temporalDate[layer.id])
+  const real = dataRangeFor(layer.id, temporalDate)
+  const low = real?.min ?? min
+  const high = real?.max ?? max
 
   // Use the real raster palette so the bar matches the map; fall back to a
   // neutral accent gradient only when no palette is configured.
@@ -283,16 +290,16 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
             marginTop: 2,
           }}
         >
-          <FluxEnd value={min} theme={theme} format={fmt} align="left" />
+          <FluxEnd value={low!} theme={theme} format={fmt} align="left" />
           {layer.unit && (
             <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
               {layer.unit}
             </span>
           )}
-          <FluxEnd value={max} theme={theme} format={fmt} align="right" />
+          <FluxEnd value={high!} theme={theme} format={fmt} align="right" />
         </div>
       ) : (
-        (min != null || max != null || layer.unit) && (
+        (low != null || high != null || layer.unit) && (
           <div
             style={{
               display: 'flex',
@@ -302,13 +309,13 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
               marginTop: 2,
             }}
           >
-            <span style={endStyle}>{min != null ? fmt(min) : ''}</span>
+            <span style={endStyle}>{low != null ? fmt(low) : ''}</span>
             {layer.unit && (
               <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
                 {layer.unit}
               </span>
             )}
-            <span style={endStyle}>{max != null ? fmt(max) : ''}</span>
+            <span style={endStyle}>{high != null ? fmt(high) : ''}</span>
           </div>
         )
       )}
