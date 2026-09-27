@@ -38,7 +38,7 @@ export const LAYER_META: Record<string, LayerMeta> = {
   // A second GPP estimate, to measure the divergence between sources. It comes
   // out continuous and yearly on purpose: the classified version of MOD17
   // returns a percentage per class in the zonal statistics, not a comparable value.
-  gpp_pml:          { description: 'produtividade primária bruta anual, estimativa independente da do MODIS', source: 'PML-V2 v018, 500 m', kind: 'Raster contínuo' },
+  gpp_pml:          { description: 'produtividade primária bruta anual, estimativa independente da do MODIS', source: 'PML-V2.2a, 500 m', kind: 'Raster contínuo' },
   biomassa_gedi:    { description: 'biomassa aérea',                 source: 'GEDI L4B, 1 km',      kind: 'Raster contínuo' },
   biomassa_spawn:   { description: 'carbono da biomassa aérea',      source: 'Spawn & Gibbs, 300 m', kind: 'Raster contínuo' },
   // The pair below comes from the same asset and differs only in how pixels

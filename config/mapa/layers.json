@@ -821,15 +821,15 @@
       "gee": {
         "asset": {
           "type": "imageCollection",
-          "id": "CAS/IGSNRR/PML/V2_v018",
+          "id": "projects/pml_evapotranspiration/PML/OUTPUT/PML_V22a",
           "band": "GPP",
           "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
+            "2024-01-01",
+            "2025-01-01"
           ],
           "reducer": "mean",
           "scale": 500,
-          "multiplier": 365
+          "multiplier": 3.65
         },
         "visParams": {
           "min": 0,
@@ -848,7 +848,7 @@
         "temporal": {
           "dateRange": [
             "2001-01-01",
-            "2023-01-01"
+            "2024-01-01"
           ]
         }
       },

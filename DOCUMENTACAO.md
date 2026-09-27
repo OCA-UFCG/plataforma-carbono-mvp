@@ -259,7 +259,7 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `solo_carbono_embrapa` | Carbono Orgânico do Solo (Embrapa) | `ee-ulissesalencar17/assets/carbono_g_kg_2020`, banda `b1` | contínua, 2 a 16 | g/kg |
 | `gpp_modis` | Produtividade Primária Bruta (GPP) | `MODIS/061/MOD17A2HGF`, banda `Gpp`, 2023 | Jenks 5 classes | kg C/m2/8d |
 | `npp_modis` | Produtividade Primária Líquida (NPP) | `MODIS/061/MOD17A3HGF`, banda `Npp`, 2023 | Jenks 5 classes | kg C/m2/ano |
-| `gpp_pml` | Produtividade Primária Bruta (GPP, PML-V2 2023) | `CAS/IGSNRR/PML/V2_v018`, banda `GPP`, 2023, média ×365 | contínua | g C/m2/ano |
+| `gpp_pml` | Produtividade Primária Bruta (GPP, PML-V2) | `projects/pml_evapotranspiration/PML/OUTPUT/PML_V22a`, banda `GPP`, 2024, média ×3,65 | contínua | g C/m2/ano |
 | `biomassa_gedi` | Biomassa Aérea (GEDI L4B) | `LARSE/GEDI/GEDI04_B_002`, banda `MU` | contínua | Mg/ha |
 | `biomassa_spawn` | Carbono na Biomassa Aérea (Spawn e Gibbs 2010) | `NASA/ORNL/biomass_carbon_density/v1`, banda `agb` | contínua | Mg C/ha |
 | `biomassa_esa_lenhosa` | Biomassa Aérea, vegetação lenhosa (ESA CCI 2022) | `sat-io/.../ESA/ESA_CCI_AGB`, banda `AGB`, 2022 | contínua | Mg/ha |
@@ -317,8 +317,13 @@ percentual de pixels por classe, que não se compara com nada. As duas se
 aproximam na média sobre o bioma em 2023 e divergem nas caudas, com o PML-V2
 chegando a zero em solo exposto e afloramento enquanto o MOD17 mantém um piso
 diferente de zero em todo pixel, comportamento que é a limitação registrada no
-inventário para o MOD17 em bioma semiárido. A versão é a `v018`, que vai até
-27/12/2023; a `v017` que consta do inventário para em 26/12/2020.
+inventário para o MOD17 em bioma semiárido. A versão é a `PML_V22a`, que vai
+até 26/12/2024 e substituiu a `v018` descontinuada no catálogo do Earth Engine.
+A banda vem em inteiro com fator 0,01 g C/m²/dia, daí a média das composições
+multiplicada por 3,65. Em 2018, na Caatinga, a `v018` chegava a 10.335
+g C/m²/ano em pixels de borda de açude, que a `PML_V22a` mascara como água; o
+máximo passou a ficar entre 5.200 e 5.650 e a mediana subiu de 1.515 para
+1.699.
 
 A evapotranspiração do mesmo produto ficou de fora de propósito, e a ressalva
 está registrada nos TODOs.
