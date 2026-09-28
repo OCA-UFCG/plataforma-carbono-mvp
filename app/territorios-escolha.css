@@ -1,0 +1,350 @@
+/*
+ * The Territórios chooser: a 360 px column (back, question, search, location)
+ * beside the map of every territory of a type on a computer; the same column
+ * above a map of 45svh on a phone, where the confirmation rises as a sheet from
+ * the bottom edge. Imported by components/territorios/TerritoryChooser.tsx and
+ * read with the tokens and button classes of globals.css and territorios.css.
+ */
+
+/* The map runs to the window's edges, so the page column steps aside. */
+.territorios:has(> .territorios-escolha) {
+  max-width: none;
+  padding: 0;
+}
+
+.territorios-escolha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'painel'
+    'mapa';
+}
+
+/* The panels below set their own display, which would override the attribute. */
+.territorios-escolha [hidden] {
+  display: none !important;
+}
+
+.territorios-escolha-painel {
+  grid-area: painel;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-width: 0;
+  padding: 8px 16px 20px;
+}
+
+.territorios-escolha-topo {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.territorios-escolha-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 12px 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-interno);
+  cursor: pointer;
+}
+
+.territorios-escolha-voltar:hover {
+  background: var(--am-100);
+}
+
+.territorios-escolha-voltar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.territorios-escolha-caminhos {
+  display: grid;
+  gap: 24px;
+}
+
+/* Search */
+.territorios-escolha-resultados {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.territorios-escolha-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--role-marca-ancora-hover);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.territorios-escolha-link:hover {
+  color: var(--role-marca-ancora-pressionado);
+}
+
+/* Location */
+.territorios-escolha-local {
+  display: grid;
+  gap: 8px;
+}
+
+.territorios-escolha-localizar {
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
+}
+
+.territorios-escolha-nota {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-escolha-mensagem {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-escolha-mensagem--aviso {
+  padding: 8px 12px;
+  background: var(--ctx-negativo-container);
+  border-radius: var(--radius-interno);
+}
+
+.territorios-escolha-proximos {
+  margin-top: 4px;
+  list-style: none;
+  border-top: 1px solid var(--am-100);
+}
+
+.territorios-escolha-proximo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--am-100);
+  cursor: pointer;
+}
+
+.territorios-escolha-proximo:hover {
+  color: var(--role-marca-ancora-hover);
+  background: var(--am-050);
+}
+
+.territorios-escolha-distancia {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--am-400);
+}
+
+/* Confirmation: a card in the column */
+.territorios-escolha-cartao {
+  scroll-margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  background: var(--am-050);
+  border-radius: var(--radius);
+}
+
+.territorios-escolha-cartao-titulo {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-escolha-cartao-nome {
+  font-family: var(--font-titulo);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-escolha-cartao-detalhe {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-escolha-cartao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.territorios-escolha-cartao-acoes .territorios-btn {
+  flex: 1 1 auto;
+  min-height: 48px;
+  white-space: normal;
+  text-align: center;
+}
+
+/* Map */
+.territorios-escolha-mapa {
+  grid-area: mapa;
+  position: relative;
+  /* The floor gives way on a phone held sideways, so a strip of page stays
+     outside the map, whose one-finger drag pans it instead of the page. */
+  height: clamp(min(240px, 75svh), 45svh, 520px);
+  background: var(--am-050);
+  border-top: 1px solid var(--am-100);
+}
+
+.territorios-escolha-mapa:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: -2px;
+}
+
+/* Sized by width and height for the reason territorios-mapa.css gives at .territorios-mapa-canvas. */
+.territorios-escolha-mapa-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* The home's typeface and focus ring on MapLibre's controls, as on the story map. */
+.territorios-escolha-mapa .territorios-escolha-mapa-canvas.maplibregl-map {
+  font-family: var(--font-sans), sans-serif;
+}
+
+.territorios-escolha-mapa .maplibregl-ctrl-group button:focus:focus-visible,
+.territorios-escolha-mapa .maplibregl-ctrl .maplibregl-ctrl-attrib-button:focus:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.territorios-escolha-mapa .maplibregl-canvas:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: -2px;
+}
+
+.territorios-escolha-mapa-estado {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  color: var(--am-400);
+}
+
+/* Hover label. Three classes deep: maplibre-gl.css loads after this file. */
+.territorios-escolha-mapa .territorios-escolha-rotulo .maplibregl-popup-content {
+  padding: 4px 10px;
+  border-radius: var(--radius-interno);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+@media (pointer: coarse) {
+  .territorios-escolha-mapa .maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Phone: the confirmation becomes a sheet over the bottom edge, leaving the
+   question and the map with the territory in focus above it. */
+@media (max-width: 767px) {
+  .territorios-escolha-cartao {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    max-height: 70svh;
+    overflow-y: auto;
+    padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+    background: var(--bg-fundo);
+    border-top: 1px solid var(--am-200);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 -8px 24px rgb(0 15 21 / 0.18);
+    animation: territorios-folha 0.22s ease-out;
+  }
+
+  /* Room under the map for the sheet, so the page can scroll the map clear of it. */
+  .territorios-escolha:has(.territorios-escolha-cartao) {
+    padding-bottom: 240px;
+  }
+}
+
+@keyframes territorios-folha {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (min-width: 768px) {
+  .territorios-escolha {
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-areas: 'painel mapa';
+    align-items: start;
+    min-height: 100svh;
+  }
+
+  .territorios-escolha-painel {
+    gap: 32px;
+    padding: 24px;
+  }
+
+  .territorios-escolha-mapa {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    border-top: 0;
+    border-left: 1px solid var(--am-100);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .territorios-escolha *,
+  .territorios-escolha *::before,
+  .territorios-escolha *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
