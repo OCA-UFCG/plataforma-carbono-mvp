@@ -13,11 +13,15 @@ export interface ThemeInfo {
   subthemes: SubthemeInfo[]
 }
 
+// The reference cuts (bioma, estados, municípios, territórios). "Limpar" in the
+// layer panel spares them: they frame the analysis rather than being its subject.
+export const TERRITORY_THEME_ID = 'territorio'
+
 // The order of this structure defines the panel navigation. Layers declare only
 // their theme and subtheme ids in layers.json.
 export const THEMES: ThemeInfo[] = [
   {
-    id: 'territorio', label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',
+    id: TERRITORY_THEME_ID, label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },
       { id: 'territorios', label: 'Territórios e assentamentos', exclusive: false },

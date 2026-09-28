@@ -26,10 +26,9 @@
   gap: 16px;
 }
 
-/* Brand mark + wordmark, left side of the bar. Allowed to shrink (unlike
- * `.nav`/`.actions` below, which stay `flex: none`) so `.brandTagline`'s
- * ellipsis can actually engage under pressure instead of being permanently
- * dead code. */
+/* Brand mark + wordmark, left side of the bar. The only part of the bar
+ * allowed to shrink (`.nav`/`.actions` below stay `flex: none`). The
+ * observatory's name under the wordmark was removed at the team's request. */
 .brand {
   display: flex;
   align-items: center;
@@ -46,23 +45,10 @@
   flex: none;
 }
 
-.brandText {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 .brandName {
   color: var(--bg-texto-primario);
   text-transform: uppercase;
   white-space: nowrap;
-}
-
-.brandTagline {
-  color: var(--am-400);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Inline nav: HEADER_LINKS + the Mapas button. */

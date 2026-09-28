@@ -14,8 +14,7 @@ import styles from "./SiteHeader.module.css";
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
 // `.actions` are 250 + 486 + 247px with 16px gaps between them (1015px),
 // none of it allowed to shrink below content (`flex: none` on `.nav` and
-// `.actions`, deliberately — only `.brand` shrinks, for its tagline
-// ellipsis), plus `--gutter` (80px, still 80 in this range — it only drops
+// `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px, still 80 in this range — it only drops
 // to 24 at <=768px) on both sides. 1015 + 160 = 1175px is the narrowest
 // viewport the inline header actually fits; 1200 clears it with margin. This
 // is the only JS/CSS breakpoint pair on the branch — this value, the
@@ -148,12 +147,7 @@ export default function SiteHeader() {
             height={38}
             className={styles.brandMark}
           />
-          <span className={styles.brandText}>
-            <span className={`${styles.brandName} text-p-ui`}>Caativar</span>
-            <span className={`${styles.brandTagline} text-subtle`}>
-              Observatório da Caatinga, OCA
-            </span>
-          </span>
+          <span className={`${styles.brandName} text-p-ui`}>Caativar</span>
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">

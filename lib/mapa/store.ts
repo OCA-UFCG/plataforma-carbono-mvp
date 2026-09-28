@@ -12,7 +12,7 @@ import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
-import { isExclusiveSubtheme } from '@/config/mapa/groups'
+import { isExclusiveSubtheme, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import {
   readPersisted,
   writePersisted,
@@ -45,6 +45,13 @@ export function setLayerVisibility(layers: LayerConfig[], id: string, visible: b
     }
     return layer
   })
+}
+
+/** Turns off every layer outside the Território theme; those stay as they were. */
+export function hideThematicLayers(layers: LayerConfig[]) {
+  return layers.map((layer) =>
+    layer.visible && layer.theme !== TERRITORY_THEME_ID ? { ...layer, visible: false } : layer,
+  )
 }
 
 // Store shape
@@ -103,6 +110,7 @@ interface MapaStore {
   /** Turns every layer off, leaves only the municipal boundaries on and returns to the biome view. */
   showOnlyMunicipios: () => void
   showLayer:     (id: string) => void
+  clearThematicLayers: () => void
   setOpacity:    (id: string, opacity: number) => void
   reorderLayer:  (id: string, toIndex: number) => void
 
@@ -217,6 +225,21 @@ export const useStore = create<MapaStore>((set, get) => ({
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, true),
     })),
+
+  // Opacity, order, chosen year and cached tiles stay, so switching a layer
+  // back on is instant. Dropping the loading mark is what keeps a GEE raster
+  // still being fetched from lighting up once its tile arrives.
+  clearThematicLayers: () =>
+    set((s) => {
+      const layers = hideThematicLayers(s.layers)
+      const staysOn = new Set(layers.filter((l) => l.visible).map((l) => l.id))
+      return {
+        layers,
+        loadingLayers: Object.fromEntries(
+          Object.entries(s.loadingLayers).filter(([id]) => staysOn.has(id)),
+        ),
+      }
+    }),
 
   setOpacity: (id, opacity) =>
     set((s) => ({
@@ -339,7 +362,10 @@ export const useStore = create<MapaStore>((set, get) => ({
         set((s) => ({ jenksBreaks: { ...s.jenksBreaks, [id]: breaks } }))
       }
 
-      // 4. Success: cache URL, flip visible, clear loading
+      // 4. Success: cache URL, flip visible, clear loading. A missing loading
+      //    mark means clearThematicLayers ran while the request was in flight:
+      //    the tile is kept, but the layer stays off.
+      const stillWanted = !!get().loadingLayers[id]
       if (temporal && temporalDate) {
         // Temporal: cache under date key, set initial date
         set((s) => ({
@@ -349,14 +375,14 @@ export const useStore = create<MapaStore>((set, get) => ({
           },
           temporalDate:  { ...s.temporalDate, [id]: temporalDate },
           loadingLayers: omitKey(s.loadingLayers, id),
-          layers: setLayerVisibility(s.layers, id, true),
+          layers: stillWanted ? setLayerVisibility(s.layers, id, true) : s.layers,
         }))
       } else {
         // Static: single cached URL
         set((s) => ({
           fetchedTileUrls: { ...s.fetchedTileUrls, [id]: tileUrl },
           loadingLayers:   omitKey(s.loadingLayers, id),
-          layers: setLayerVisibility(s.layers, id, true),
+          layers: stillWanted ? setLayerVisibility(s.layers, id, true) : s.layers,
         }))
       }
     } catch (err) {

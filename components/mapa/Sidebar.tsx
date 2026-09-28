@@ -7,7 +7,7 @@ import {
 import { useStore } from '@/lib/mapa/store'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { THEMES, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
+import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -22,6 +22,7 @@ interface Props {
 export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
   const showOnlyMunicipios = useStore((s) => s.showOnlyMunicipios)
+  const clearThematicLayers = useStore((s) => s.clearThematicLayers)
   const [query, setQuery] = useState('')
 
   const normalizedQuery = normalizeSearch(query.trim())
@@ -44,6 +45,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
     }))
     .filter(({ subtemas }) => subtemas.length > 0)
   const activeCount = layers.filter((l) => l.visible).length
+  const thematicCount = layers.filter((l) => l.visible && l.theme !== TERRITORY_THEME_ID).length
 
   // One theme and one subtheme open at a time keep the list from getting too long.
   const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
@@ -118,6 +120,23 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
             <IcChevronLeft size={16} />
           </button>
         </div>
+
+        {/* Clear strip. Outside the scrolling body so it stays in reach however
+            far down the list the user went to switch layers on. */}
+        {thematicCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: c.accentBg, borderBottom: `1px solid ${c.accentBd}`, flex: 'none' }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: c.text }}>
+              {thematicCount === 1 ? '1 camada temática ligada' : `${thematicCount} camadas temáticas ligadas`}
+            </span>
+            <button onClick={clearThematicLayers}
+              aria-label="Desligar as camadas temáticas"
+              title="Desligar todas as camadas, exceto as de Território"
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: c.accent, color: c.onAccent, border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '6px 12px' }}>
+              <IcX size={12} />
+              Desligar
+            </button>
+          </div>
+        )}
 
         {/* Body */}
         <div style={{ overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
