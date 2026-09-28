@@ -11,6 +11,8 @@ import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { computeZonalStats } from '@/lib/mapa/zonalStats'
+import { getResultLayer, resolveTemporalDate } from '@/lib/mapa/resultsRegistry'
+import { computeLayerResult } from '@/lib/mapa/layerResult'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -31,9 +33,9 @@ interface ReqBody {
   // as the map colors and legend, instead of recomputing breaks per feature.
   breaks?:   number[]
   colorType?: 'categorical' | 'continuous'
-  // Layer id. When it declares `gee.stocks`, the response is the stock report
-  // instead of the statistics of the visible band. Only the id travels: the
-  // configuration is resolved on the server.
+  // Layer id. A layer with a result profile (config/mapa/resultProfiles.ts)
+  // is computed from the id alone and the fields above are ignored. Without a
+  // profile, a layer declaring `gee.stocks` still gets the stock report here.
   layerId?:  string
 }
 
@@ -56,6 +58,35 @@ export async function POST(req: Request) {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  // Results panel: a layer with a result profile needs only its id. The whole
+  // configuration is resolved on the server (lib/mapa/resultsRegistry.ts) and
+  // any asset block in the body is ignored, so a caller cannot ask for a
+  // transformed image of an allowed asset.
+  const entry = typeof body.layerId === 'string' ? getResultLayer(body.layerId) : null
+  if (entry) {
+    const geomCheck = validatePolygonGeometry(body.geometry)
+    if (!geomCheck.ok) {
+      return NextResponse.json({ error: geomCheck.error }, { status: 400 })
+    }
+    const temporalDate = resolveTemporalDate(entry.layer, body.temporalDate)
+    if (temporalDate === null) {
+      return NextResponse.json({ error: 'invalid temporalDate' }, { status: 400 })
+    }
+    try {
+      await initGee()
+    } catch (err) {
+      console.error('[/api/gee/stats] auth error:', err)
+      return NextResponse.json({ error: 'Earth Engine unavailable' }, { status: 503 })
+    }
+    try {
+      const result = await computeLayerResult(getEe(), { entry, geometry: body.geometry, temporalDate })
+      return NextResponse.json(result)
+    } catch (err) {
+      console.error('[/api/gee/stats] error:', err)
+      return NextResponse.json({ error: 'Failed to process Earth Engine request' }, { status: 500 })
+    }
   }
 
   if (!isValidAsset(body.asset)) {

@@ -219,6 +219,41 @@ export type RasterStatsResult =
   | { kind: 'timeseries';  series: TimeSeriesPoint[] }
   | { kind: 'stocks';      report: StockReport }
 
+/** Area of the region inside one value band; `to` is null for the open top band. */
+export interface AreaBin {
+  from:   number
+  to:     number | null
+  areaHa: number
+}
+
+/** Area at one accumulated fire count, and how much of it burned in the year itself. */
+export interface RecurrenceCount {
+  count:           number
+  areaHa:          number
+  burnedInYearHa:  number
+}
+
+/**
+ * A layer's own result in the "Resultados" panel, one shape per archetype
+ * declared in config/mapa/resultProfiles.ts. Kept apart from
+ * `RasterStatsResult` on purpose: the territorial report shares that union,
+ * its narrative and its charts, and the panel must leave the report untouched.
+ *
+ * Every total is the sum of value × geodesic pixel area, in the unit the
+ * profile declares; every `*Ha` is area in hectares. `scaleM` is the scale the
+ * reduction actually ran at, which grows past the layer's native scale on a
+ * large region.
+ */
+export type ProfiledResult =
+  | { kind: 'amount';       total: number; validHa: number; zeroHa: number; bins: AreaBin[]; scaleM: number }
+  | { kind: 'distribution'; p10: number; p50: number; p90: number; mean: number; validHa: number; bins: AreaBin[]; scaleM: number }
+  | { kind: 'flux';         positive: number; negative: number; positiveHa: number; negativeHa: number; validHa: number; scaleM: number }
+  | { kind: 'annual';       mean: number; total: number | null; validHa: number; scaleM: number }
+  | { kind: 'recurrence';   year: number; regionHa: number; byCount: RecurrenceCount[]; scaleM: number }
+
+/** What the results panel can hold for a layer: the report's shapes or a profiled result. */
+export type PanelResult = RasterStatsResult | ProfiledResult
+
 /**
  * One layer's outcome within a single analysis (one click, one geometry).
  *
@@ -232,7 +267,7 @@ export interface LayerResult {
   /** Temporal stop these numbers refer to; absent for a static layer. */
   date?: string
   status: 'loading' | 'ready' | 'error'
-  stats: RasterStatsResult | null
+  stats: PanelResult | null
   pixelValue: PixelValueResult | null
   error: string | null
 }

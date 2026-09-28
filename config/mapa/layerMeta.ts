@@ -51,7 +51,7 @@ export const LAYER_META: Record<string, LayerMeta> = {
   gfw_netflux:      { description: 'fluxo líquido de carbono florestal', source: 'GFW, 30 m',       kind: 'Raster contínuo' },
   gfw_emissions:    { description: 'emissões brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
   gfw_removals:     { description: 'remoções brutas de carbono',     source: 'GFW, 30 m',           kind: 'Raster contínuo' },
-  lulc_mapbiomas:   { description: 'uso e cobertura da terra',       source: 'MapBiomas col. 10, 30 m', kind: 'Raster categórico' },
+  lulc_mapbiomas:   { description: 'uso e cobertura da terra',       source: 'MapBiomas col. 10.1, 30 m', kind: 'Raster categórico' },
   fogo_frequencia:  { description: 'frequência de fogo (1985-2023)', source: 'MapBiomas Fogo, 30 m', kind: 'Raster contínuo' },
   degradacao_terra: { description: 'nível de degradação da terra, do nível 5 (mais degradado) ao conservado', source: 'OCA, índice v4, 2021, 500 m', kind: 'Raster categórico' },
   ndvi_modis:       { description: 'índice de vegetação NDVI',       source: 'MODIS, 250 m',        kind: 'Raster contínuo' },

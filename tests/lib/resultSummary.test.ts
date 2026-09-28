@@ -94,7 +94,8 @@ describe('resultSummary', () => {
   })
 
   it('gives the total for a stock report', () => {
-    const summary = resultSummary(layer(), result({
+    // A layer without a result profile keeps the report's total.
+    const summary = resultSummary(layer({ id: 'sem_perfil' }), result({
       stats: {
         kind: 'stocks',
         report: { totalTc: 4_760_123.4, areaHa: 62_140, unit: 't C', pools: [], classes: [] },
@@ -104,18 +105,29 @@ describe('resultSummary', () => {
     expect(summary).toBe('total 4.760.123 t C')
   })
 
-  it('gives the pixel value with its class label for a point analysis', () => {
+  it('gives the class name alone for a point on a class layer', () => {
     const summary = resultSummary(
       layer({ unit: 'classe' }),
       result({ pixelValue: { value: 3, label: 'Pastagem' } }),
     )
 
-    expect(summary).toBe('3,00 classe · Pastagem')
+    expect(summary).toBe('Pastagem')
   })
 
   it('gives the bare pixel value when the layer has no classes', () => {
     const summary = resultSummary(layer(), result({ pixelValue: { value: 38.24 } }))
 
     expect(summary).toBe('38,24 t C/ha')
+  })
+
+  it('gives the headline of a layer with a result profile', () => {
+    const summary = resultSummary(layer(), result({
+      stats: {
+        kind: 'stocks',
+        report: { totalTc: 1_852_000, areaHa: 47_115, unit: 't C', pools: [], classes: [] },
+      },
+    }))
+
+    expect(summary).toBe('1,9 Mt C')
   })
 })

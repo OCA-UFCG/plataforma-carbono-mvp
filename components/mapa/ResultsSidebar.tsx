@@ -6,6 +6,9 @@ import LayerResultCard from './LayerResultCard'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
+import { getResultProfile } from '@/config/mapa/resultProfiles'
+import { LAYER_META } from '@/config/mapa/layerMeta'
+import { ContextLine, Empty, Pair, Stack } from './results/blocks'
 import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
@@ -25,8 +28,8 @@ interface Props {
  * raster is active but nothing was analysed yet, in which case it shows an
  * onboarding hint.
  *
- * Anatomy: cut chip + feature name, "Área analisada" hero card, length card,
- * one collapsible result card per visible raster, provenance footer. Below
+ * Anatomy: header with the cut, the feature name and its area; the length;
+ * one collapsible result card per visible raster; the CSV download. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
 export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Props) {
@@ -132,6 +135,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         year:         temporalDate[raster.id]?.slice(0, 4),
         pixelValue:   results[raster.id]?.pixelValue ?? null,
         stats:        results[raster.id]?.stats ?? null,
+        profile:      getResultProfile(raster.id),
+        source:       LAYER_META[raster.id]?.source,
       })),
     })
 
@@ -193,40 +198,19 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
     )
   }
 
-  // Shared card + label styles (handoff typographic scale).
-  const card: React.CSSProperties = {
-    background: c.accentBg,
-    border: `1px solid ${c.accentBd}`,
-    borderRadius: 12,
-    padding: '12px 14px',
-    marginBottom: 8,
-    flexShrink: 0,
-  }
-  const eyebrow: React.CSSProperties = {
-    fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: '.14em',
-    textTransform: 'uppercase',
-    color: c.dim,
-  }
-  const heroNumber: React.CSSProperties = {
-    fontSize: 36,
-    fontWeight: 800,
-    color: c.text,
-    lineHeight: 1.05,
-    fontVariantNumeric: 'tabular-nums',
-  }
-  const heroUnit: React.CSSProperties = {
-    fontSize: 18,
-    fontWeight: 700,
-    color: c.accent,
-  }
+  // Leftovers of an earlier analysis (a deleted drawing, a hint with nothing
+  // analysed) must not name the panel.
+  const title = hasContent ? (analysisLabel ?? analysisKind ?? 'Resultados') : 'Resultados'
 
   return (
     <div
+      role="region"
+      aria-label="Resultados"
       style={{
         position: 'absolute',
-        zIndex: 10,
+        // The phone drawer rises into the map controls' column (zIndex 12), which
+        // would cover its close button; it goes above them.
+        zIndex: narrow ? 13 : 10,
         ...(narrow
           ? { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0' }
             // Goes down to the bottom edge of the map. The controls and the legend
@@ -244,79 +228,57 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
         // The clipping lives in the container and the scrolling in the body, so the
         // header and the feature name do not go out of sight when scrolling a long result.
         overflow: 'hidden',
-        padding: '14px 14px',
+        padding: '20px 20px',
       }}
     >
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 10px', flexShrink: 0 }}>
-        <span style={{ ...eyebrow, fontSize: 12.5 }}>Resultados</span>
+      {/* Header: what was analysed and how big it is. Stays in view while the
+          results scroll. */}
+      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: '0 0 24px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, paddingTop: 4 }}>
+          {hasContent && analysisKind && analysisLabel && analysisKind !== analysisLabel && (
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: c.textDim }}>
+              {analysisKind}
+            </span>
+          )}
+          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.01em', color: c.text, overflowWrap: 'anywhere' }}>
+            {title}
+          </h2>
+          {drawnArea !== null && (
+            <span style={{ fontSize: 14, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
+              {nfInt.format(drawnArea * 100)} ha analisados
+            </span>
+          )}
+        </div>
         <button
           onClick={() => onSetCollapsed(true)}
           aria-label="Ocultar resultados"
           title="Ocultar resultados"
           style={{
-            width: 28, height: 28, borderRadius: 999,
-            background: 'transparent',
+            width: 40, height: 40, borderRadius: 999, flexShrink: 0,
+            background: c.bgCard,
             border: `1px solid ${c.border}`,
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: c.textDim,
+            color: c.text,
           }}
         >
-          <IcX size={14} />
+          <IcX size={16} />
         </button>
-      </div>
+      </header>
 
-      {/* Cut chip + feature name */}
-      {(analysisKind || analysisLabel) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 10px', flexShrink: 0 }}>
-          {analysisKind && (
-            <span style={{
-              fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
-              color: c.accentInk, background: c.accentBg, border: `1px solid ${c.accentBd}`,
-              borderRadius: 5, padding: '2px 8px',
-            }}>
-              {analysisKind}
-            </span>
-          )}
-          {analysisLabel && (
-            <span style={{ fontSize: 15, fontWeight: 700, color: c.text }}>{analysisLabel}</span>
-          )}
-        </div>
-      )}
-
-      {/* Scrollable body: the header, the feature name, the download and the
-          footer stay in view. Its children must not shrink -- the body scrolls
-          instead; `LayerResultCard` carries the same guard. */}
+      {/* Scrollable body: the header and the download stay in view. Its children
+          must not shrink -- the body scrolls instead; `LayerResultCard` carries
+          the same guard. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Área analisada (hero) */}
-      {drawnArea !== null && (
-        <div style={card}>
-          <div style={{ ...eyebrow, marginBottom: 4 }}>Área analisada</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <span style={heroNumber}>{nf.format(drawnArea)}</span>
-            <span style={heroUnit}>km²</span>
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: c.dim, fontVariantNumeric: 'tabular-nums', marginTop: 3 }}>
-            {nfInt.format(drawnArea * 100)} hectares
-          </div>
-        </div>
-      )}
-
-      {/* Comprimento */}
       {drawnLength !== null && (
-        <div style={card}>
-          <div style={{ ...eyebrow, marginBottom: 4 }}>Comprimento</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <span style={{ ...heroNumber, fontSize: 28 }}>{nf.format(drawnLength)}</span>
-            <span style={{ ...heroUnit, fontSize: 15.5 }}>km</span>
-          </div>
+        <div style={{ marginBottom: 24, flexShrink: 0 }}>
+          <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
         </div>
       )}
 
       {/* One card per visible raster. Gated on the selection because a card with
-          no result yet renders as "Calculando...": with nothing selected -- or with
+          no result yet renders as "Calculando": with nothing selected -- or with
           only a line drawn, which no raster is measured over -- that skeleton would
           never resolve, and it would sit above the onboarding hint on first load. */}
       {selectedGeometry && rasters.map((raster) => {
@@ -331,69 +293,48 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
             onToggle={() => toggle(raster.id)}
             theme={theme}
             geometry={selectedGeometry}
+            polygonHa={drawnArea !== null ? drawnArea * 100 : null}
           />
         )
       })}
 
       {showEmptyHint && (
-        <div style={{
-          background: c.bgCard,
-          border: `1px dashed ${c.border}`,
-          borderRadius: 12,
-          padding: '14px 12px',
-          display: 'flex', flexDirection: 'column', gap: 8,
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.35 }}>
-            Analisar {activeRaster.name}
-          </span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: c.dim, lineHeight: 1.5 }}>
-            {analysisHint(recortes)}
-          </span>
-        </div>
+        <Stack>
+          <ContextLine theme={theme} title={activeRaster.name} />
+          <Empty theme={theme} text={analysisHint(recortes)} />
+        </Stack>
       )}
       </div>
 
-      {/* Baixar a análise */}
+      {/* Baixar a análise, pinned below the scrollable body like the header above
+          it, so the download stays in view however many cards are open. */}
       {canDownload && (
         <button
           className="ui-press"
           onClick={handleDownload}
           title="Baixar esta análise em CSV"
           style={{
-            // Pinned below the scrollable body, like the header above it, so the
-            // download stays in view however many cards are open.
-            marginTop: 8,
+            marginTop: 16,
             width: '100%',
-            height: 36,
+            height: 44,
             flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 7,
-            background: c.accentBg,
-            border: `1px solid ${c.accentBd}`,
+            gap: 8,
+            background: c.accentInk,
+            border: 'none',
             borderRadius: 10,
             cursor: 'pointer',
-            color: c.accentInk,
+            color: c.bgCard,
             fontFamily: 'var(--font-app), sans-serif',
-            fontSize: 13.5,
-            fontWeight: 700,
+            fontSize: 14,
+            fontWeight: 600,
           }}
         >
-          <IcDownload size={14} />
+          <IcDownload size={16} />
           Baixar CSV
         </button>
-      )}
-
-      {/* Provenance footer */}
-      {hasContent && (
-        <div style={{
-          marginTop: 10, paddingTop: 10, borderTop: `1px solid ${c.border}`,
-          flexShrink: 0,
-          fontSize: 11.5, fontWeight: 600, color: c.caption, textAlign: 'center',
-        }}>
-          Estatística zonal, Google Earth Engine
-        </div>
       )}
     </div>
   )

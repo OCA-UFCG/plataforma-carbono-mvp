@@ -1,5 +1,9 @@
-import type { RasterLayerConfig, RasterStatsResult, TimeSeriesPoint } from '@/types/mapa'
+import type { PanelResult, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
 import { useStore } from '@/lib/mapa/store'
+import { getResultProfile } from '@/config/mapa/resultProfiles'
+
+/** Response kinds of the results panel's own computation (lib/mapa/layerResult.ts). */
+const LAYER_RESULT_KINDS = new Set(['amount', 'distribution', 'flux', 'annual', 'recurrence'])
 
 // GeoJSON Feature with (Multi)Polygon geometry.
 type StatsFeature = {
@@ -18,7 +22,7 @@ export async function getRasterStats(
   layer: RasterLayerConfig,
   feature: StatsFeature,
   temporalDate?: string,
-): Promise<RasterStatsResult> {
+): Promise<PanelResult> {
   return getGeeStats(layer, feature, temporalDate)
 }
 
@@ -27,39 +31,43 @@ export async function getRasterStats(
 // Dedupe concurrent identical stats requests (e.g. a double-click fires two
 // clicks before the first response fills the store cache). Keyed by the exact
 // request body; the entry is cleared when the request settles.
-const inFlightStats = new Map<string, Promise<RasterStatsResult>>()
+const inFlightStats = new Map<string, Promise<PanelResult>>()
 
 async function getGeeStats(
   layer: RasterLayerConfig,
   feature: StatsFeature,
   temporalDate?: string,
-): Promise<RasterStatsResult> {
+): Promise<PanelResult> {
   if (!layer.gee?.asset) {
     throw new Error(`GEE layer "${layer.id}" is missing gee.asset`)
   }
 
-  const body = JSON.stringify({
-    asset:     layer.gee.asset,
-    geometry:  feature.geometry,
-    temporalDate,
-    // The stats route branches on these three fields:
-    //   - classify present  -> Jenks + counts per Jenks class
-    //   - colorType === 'categorical' -> frequency histogram on raw image
-    //   - otherwise -> continuous stats (mean/median/std/...)
-    classify:  layer.gee.classify,
-    // Biome-wide Jenks breaks from the tile request, so the chart classes
-    // match the map colors instead of being recomputed per feature.
-    breaks:    useStore.getState().jenksBreaks[layer.id],
-    colorType: layer.colorType,
-    // Stock layer: the server resolves the configuration by id and returns the
-    // report instead of the statistics of the visible band.
-    layerId:   layer.gee.stocks ? layer.id : undefined,
-  })
+  // A layer with a result profile is computed from its id alone; the server
+  // resolves the rest from layers.json.
+  const body = getResultProfile(layer.id)
+    ? JSON.stringify({ layerId: layer.id, geometry: feature.geometry, temporalDate })
+    : JSON.stringify({
+        asset:     layer.gee.asset,
+        geometry:  feature.geometry,
+        temporalDate,
+        // The stats route branches on these three fields:
+        //   - classify present  -> Jenks + counts per Jenks class
+        //   - colorType === 'categorical' -> frequency histogram on raw image
+        //   - otherwise -> continuous stats (mean/median/std/...)
+        classify:  layer.gee.classify,
+        // Biome-wide Jenks breaks from the tile request, so the chart classes
+        // match the map colors instead of being recomputed per feature.
+        breaks:    useStore.getState().jenksBreaks[layer.id],
+        colorType: layer.colorType,
+        // Stock layer: the server resolves the configuration by id and returns the
+        // report instead of the statistics of the visible band.
+        layerId:   layer.gee.stocks ? layer.id : undefined,
+      })
 
   const existing = inFlightStats.get(body)
   if (existing) return existing
 
-  const request = (async (): Promise<RasterStatsResult> => {
+  const request = (async (): Promise<PanelResult> => {
     const res = await fetch('/api/gee/stats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -72,6 +80,9 @@ async function getGeeStats(
     }
 
     const payload = await res.json()
+    if (LAYER_RESULT_KINDS.has(payload.kind)) {
+      return payload as PanelResult
+    }
     if (payload.kind === 'stocks') {
       return { kind: 'stocks', report: payload.report }
     }
@@ -108,12 +119,13 @@ export async function getTemporalTimeSeries(
   const res = await fetch('/api/gee/timeseries', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      asset:     layer.gee.asset,
-      lon,
-      lat,
-      dateRange: layer.gee.temporal.dateRange,
-    }),
+    // A layer with a result profile sends only its id; the server resolves the
+    // asset and the years, in the unit the results panel shows.
+    body: JSON.stringify(
+      getResultProfile(layer.id)
+        ? { layerId: layer.id, lon, lat }
+        : { asset: layer.gee.asset, lon, lat, dateRange: layer.gee.temporal.dateRange },
+    ),
   })
 
   if (!res.ok) {

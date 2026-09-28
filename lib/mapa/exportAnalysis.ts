@@ -1,5 +1,14 @@
-import type { PixelValueResult, RasterClass, RasterStatsResult } from '@/types/mapa'
+import type {
+  AreaBin,
+  PanelResult,
+  PixelValueResult,
+  ProfiledResult,
+  RasterClass,
+  RasterStatsResult,
+} from '@/types/mapa'
+import type { ResultProfile } from '@/config/mapa/resultProfiles'
 import { isoDate, numeroCsv, slug } from '@/lib/mapa/format'
+import { sourceNote } from '@/lib/mapa/results/format'
 
 /** One layer's part of the file: its identity and its numbers. */
 export interface LayerSnapshot {
@@ -12,7 +21,11 @@ export interface LayerSnapshot {
   /** Layer whose values are a signed flux, negative where carbon was removed. */
   signedFlux?: boolean
   pixelValue: PixelValueResult | null
-  stats: RasterStatsResult | null
+  stats: PanelResult | null
+  /** Result profile of the layer, which names and scales the results panel's totals. */
+  profile?: ResultProfile
+  /** Source line of the layer (layerMeta); the file names it without the resolution. */
+  source?: string
 }
 
 /**
@@ -53,7 +66,6 @@ function metadataRows(snap: AnalysisSnapshot): string[] {
   const out = ['# Caativar']
   if (recorte) out.push(`# Recorte: ${recorte}`)
   out.push(`# Gerado em: ${isoDate(snap.generatedAt)}`)
-  out.push('# Fonte: Estatística zonal, Google Earth Engine')
   return out
 }
 
@@ -66,6 +78,8 @@ function layerHeaderRows(layer: LayerSnapshot): string[] {
     out.push('# Convenção: valor negativo = sequestro, positivo = emissão')
   }
   if (layer.year) out.push(`# Ano: ${layer.year}`)
+  const fonte = sourceNote(layer.source)
+  if (fonte) out.push(`# ${fonte.replace(/\.$/, '')}`)
   return out
 }
 
@@ -85,8 +99,8 @@ function measurementRows(snap: AnalysisSnapshot): string[] {
 function pixelRows(layer: LayerSnapshot): string[] {
   if (layer.pixelValue === null) return []
   const out = [row(['medida', 'valor', 'unidade'])]
-  out.push(row(['Valor do pixel', layer.pixelValue.value, layer.layerUnit ?? '']))
-  if (layer.pixelValue.label) out.push(row(['Classe do pixel', layer.pixelValue.label, '']))
+  out.push(row(['Valor no ponto', layer.pixelValue.value, layer.layerUnit ?? '']))
+  if (layer.pixelValue.label) out.push(row(['Classe no ponto', layer.pixelValue.label, '']))
   return out
 }
 
@@ -101,7 +115,8 @@ function continuousRows(s: RasterStatsResult & { kind: 'continuous' }, unit: str
   push('Média', s.stats.mean)
   push('Mediana', s.stats.median)
   push('Desvio padrão', s.stats.std)
-  push('Soma', s.stats.sum)
+  // No "Soma": the sum of per-hectare values over pixels is no total of
+  // anything, and a spreadsheet user would read it as one.
   push('Contagem de pixels', s.stats.count, false)
   return out
 }
@@ -156,14 +171,73 @@ function stockRows(s: RasterStatsResult & { kind: 'stocks' }): string[] {
   return out
 }
 
+// Value bands of a histogram: from, to (empty for the open top band), hectares.
+function binRows(bins: AreaBin[], unit: string): string[] {
+  return [
+    row(['faixa_de', 'faixa_ate', 'unidade', 'area_ha']),
+    ...bins.map((b) => row([b.from, b.to ?? '', unit, b.areaHa])),
+  ]
+}
+
+// The results panel's own kinds. Each block keeps the sign and the unit of the
+// panel's headline numbers.
+function profiledRows(s: ProfiledResult, profile: ResultProfile | undefined, unit: string): string[] {
+  const out = [row(['estatistica', 'valor', 'unidade'])]
+  switch (s.kind) {
+    case 'amount': {
+      const p = profile?.archetype === 'amount' ? profile : undefined
+      const perHa = p ? `${p.totalUnit}/ha` : unit
+      out.push(row([p?.totalLabel ?? 'Total', s.total, p?.totalUnit ?? '']))
+      if (p?.carbonFraction) out.push(row(['Carbono', s.total * p.carbonFraction, 't C']))
+      if (s.validHa > 0) out.push(row(['Média por hectare', s.total / s.validHa, perHa]))
+      out.push(row(['Área com dado', s.validHa, 'ha']))
+      out.push(row(['Área com valor zero', s.zeroHa, 'ha']))
+      return [...out, '', ...binRows(s.bins, perHa)]
+    }
+    case 'distribution':
+      out.push(row(['Percentil 10', s.p10, unit]))
+      out.push(row(['Mediana', s.p50, unit]))
+      out.push(row(['Percentil 90', s.p90, unit]))
+      out.push(row(['Média', s.mean, unit]))
+      out.push(row(['Área com dado', s.validHa, 'ha']))
+      return [...out, '', ...binRows(s.bins, unit)]
+    case 'flux': {
+      const u = profile?.archetype === 'flux' ? profile.totalUnit : ''
+      out.push(row(['Total', s.positive + s.negative, u]))
+      out.push(row(['Soma dos valores positivos', s.positive, u]))
+      out.push(row(['Soma dos valores negativos', s.negative, u]))
+      out.push(row(['Área com valor positivo', s.positiveHa, 'ha']))
+      out.push(row(['Área com valor negativo', s.negativeHa, 'ha']))
+      out.push(row(['Área com dado', s.validHa, 'ha']))
+      return out
+    }
+    case 'annual': {
+      const p = profile?.archetype === 'annual' ? profile : undefined
+      out.push(row(['Média da área', s.mean, p?.unit || unit]))
+      if (s.total !== null && p?.total) out.push(row([p.total.label, s.total, p.total.unit]))
+      out.push(row(['Área com dado', s.validHa, 'ha']))
+      return out
+    }
+    case 'recurrence':
+      return [
+        row(['anos_com_fogo', 'area_ha', `queimou_em_${s.year}_ha`]),
+        ...s.byCount.map((c) => row([c.count, c.areaHa, c.burnedInYearHa])),
+        row(['Total', s.regionHa, s.byCount.reduce((a, c) => a + c.burnedInYearHa, 0)]),
+      ]
+  }
+}
+
 function statsRows(layer: LayerSnapshot): string[] {
   const unit = layer.layerUnit ?? ''
-  switch (layer.stats?.kind) {
-    case 'continuous':  return continuousRows(layer.stats, unit)
-    case 'categorical': return categoricalRows(layer.stats, layer.layerClasses ?? [])
-    case 'timeseries':  return timeSeriesRows(layer.stats, unit)
-    case 'stocks':      return stockRows(layer.stats)
-    default:            return []
+  const stats = layer.stats
+  if (!stats) return []
+  switch (stats.kind) {
+    case 'continuous':  return continuousRows(stats, unit)
+    case 'categorical': return categoricalRows(stats, layer.layerClasses ?? [])
+    // The point series of a yearly profile comes back in the profile's unit.
+    case 'timeseries':  return timeSeriesRows(stats, layer.profile?.archetype === 'annual' && layer.profile.unit ? layer.profile.unit : unit)
+    case 'stocks':      return stockRows(stats)
+    default:            return profiledRows(stats, layer.profile, unit)
   }
 }
 
