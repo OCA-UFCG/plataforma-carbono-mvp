@@ -51,6 +51,7 @@ import {
   raiseSpotlight,
   showSpotlight,
   spotlightPadding,
+  type MapOverlay,
 } from '@/lib/mapa/selectionSpotlight'
 import { basemaps } from '@/config/mapa/basemaps'
 import type {
@@ -399,6 +400,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   // panel opened for that selection, not from the offsets before it.
   const [fitRequest, setFitRequest] = useState<{ bbox: [number, number, number, number] } | null>(null)
   const panelInsetsRef = useRef({ leftEdge, rightOffset })
+  // The floating boxes over the bottom of the map, measured at fit time so the
+  // feature does not land under them.
+  const legendRef = useRef<HTMLDivElement>(null)
+  const sliderRef = useRef<HTMLDivElement>(null)
   const [mapReady, setMapReady] = useState(false)
   // Draw toolbar visibility. It starts closed; the pencil in the control
   // cluster opens and closes it, and the results hint names that pencil. On a
@@ -1254,16 +1259,28 @@ useEffect(() => {
     panelInsetsRef.current = { leftEdge, rightOffset }
   }, [leftEdge, rightOffset])
 
-  // Brings the camera to a selected recorte, framed in the map the panels
-  // leave free. Keyed on the request alone: opening or collapsing a panel later
-  // must not pull the camera back to the feature.
+  // Brings the camera to a selected recorte, framed in the map the panels and
+  // the floating boxes leave free. Keyed on the request alone: opening or
+  // collapsing a panel later must not pull the camera back to the feature.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady || !fitRequest) return
-    const { leftEdge: left, rightOffset: right } = panelInsetsRef.current
-    const canvas = map.getContainer()
+    const panels = panelInsetsRef.current
+    const box = map.getContainer().getBoundingClientRect()
+    const measure = (el: HTMLDivElement | null): MapOverlay | null => {
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      return { width: r.width, height: r.height, bottom: box.bottom - r.bottom, right: box.right - r.right }
+    }
+    const legend = measure(legendRef.current)
     map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, {
-      padding: spotlightPadding(canvas.clientWidth, canvas.clientHeight, left, right),
+      padding: spotlightPadding({ width: box.width, height: box.height }, panels, {
+        // The legend slides to the new rightOffset over .3s when the results
+        // panel opens, which is when this runs; its measured `right` is
+        // mid-slide, so it takes the offset it is sliding to.
+        legend: legend && { ...legend, right: panels.rightOffset },
+        slider: measure(sliderRef.current),
+      }),
       maxZoom: 13,
     })
   }, [fitRequest, mapReady])
@@ -1467,8 +1484,8 @@ useEffect(() => {
             onClose={() => setDrawOpen(false)}
             onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
           />
-          <FloatingLegend theme={theme} rightOffset={rightOffset} />
-          <TemporalSlider theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
+          <FloatingLegend ref={legendRef} theme={theme} rightOffset={rightOffset} />
+          <TemporalSlider ref={sliderRef} theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
           <CursorCoordinates mapRef={mapRef} theme={theme} />
         </>
       )}

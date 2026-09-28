@@ -89,17 +89,52 @@ export function isSameFeature(current: FeatureRef | null, next: FeatureRef): boo
 
 /** Least map, in px, left between the panels before the padding gives up on them. */
 const MIN_FRAME = 200
+/** Clearance, in px, between the feature and a box floating over the map. */
+const GAP = 16
+
+type Padding = { top: number; bottom: number; left: number; right: number }
+
+/** A box floating over the bottom of the map, in px from the map's bottom and right edges. */
+export interface MapOverlay { width: number; height: number; bottom: number; right: number }
 
 /**
  * Padding that frames the selected feature in the part of the map the panels
- * leave free: the Temas panel on the left (`leftEdge`), the results panel on
- * the right (`rightOffset`), the search bar on top. On a map too small for
- * that, an even margin, since MapLibre refuses a fit whose padding leaves no
- * room.
+ * and the floating boxes leave free: the Temas panel on the left (`leftEdge`),
+ * the results panel on the right (`rightOffset`), the search bar on top.
+ *
+ * At the bottom, the year slider spans the middle of the map, so only a higher
+ * bottom margin clears it. The legend sits in the bottom-right corner and can
+ * be cleared either way, over its top or past its left edge; the padding takes
+ * whichever leaves more map, so a short legend lifts the bottom and a tall one
+ * narrows the right.
+ *
+ * When clearing the legend would leave too little map, the feature may touch
+ * it; when even the panels do, an even margin, since MapLibre refuses a fit
+ * whose padding leaves no room.
  */
-export function spotlightPadding(width: number, height: number, leftEdge: number, rightOffset: number) {
-  const padding = { top: 80, bottom: 60, left: leftEdge + 24, right: rightOffset + 24 }
-  const roomy = width - padding.left - padding.right >= MIN_FRAME
-    && height - padding.top - padding.bottom >= MIN_FRAME
-  return roomy ? padding : { top: 40, bottom: 40, left: 40, right: 40 }
+export function spotlightPadding(
+  map: { width: number; height: number },
+  panels: { leftEdge: number; rightOffset: number },
+  overlays: { legend?: MapOverlay | null; slider?: MapOverlay | null } = {},
+): Padding {
+  const frame = (p: Padding) => ({ w: map.width - p.left - p.right, h: map.height - p.top - p.bottom })
+  const roomy = (p: Padding) => frame(p).w >= MIN_FRAME && frame(p).h >= MIN_FRAME
+  const area = (p: Padding) => frame(p).w * frame(p).h
+
+  const base = { top: 80, bottom: 60, left: panels.leftEdge + 24, right: panels.rightOffset + 24 }
+  let padding = base
+
+  const { legend, slider } = overlays
+  if (slider) {
+    padding = { ...padding, bottom: Math.max(padding.bottom, slider.bottom + slider.height + GAP) }
+  }
+  if (legend && legend.bottom + legend.height + GAP > padding.bottom) {
+    const over = { ...padding, bottom: legend.bottom + legend.height + GAP }
+    const past = { ...padding, right: Math.max(padding.right, legend.right + legend.width + GAP) }
+    const options = [over, past].filter(roomy)
+    if (options.length > 0) padding = options.reduce((best, p) => (area(p) > area(best) ? p : best))
+  }
+
+  if (roomy(padding)) return padding
+  return roomy(base) ? base : { top: 40, bottom: 40, left: 40, right: 40 }
 }

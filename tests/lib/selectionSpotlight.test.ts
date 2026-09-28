@@ -106,11 +106,41 @@ describe('isSameFeature', () => {
 })
 
 describe('spotlightPadding', () => {
+  const desktop = { width: 1440, height: 900 }
+  const panels = { leftEdge: 360, rightOffset: 396 }
+  // The legend sits on the map's bottom-right corner, against the results panel.
+  const legend = (height: number) => ({ width: 256, height, bottom: 14, right: 396 })
+
   it('frames the feature between the panels', () => {
-    expect(spotlightPadding(1440, 900, 360, 396)).toEqual({ top: 80, bottom: 60, left: 384, right: 420 })
+    expect(spotlightPadding(desktop, panels)).toEqual({ top: 80, bottom: 60, left: 384, right: 420 })
+  })
+
+  it('lifts the bottom over a short legend, the cheaper way around it', () => {
+    expect(spotlightPadding(desktop, panels, { legend: legend(90) }))
+      .toEqual({ top: 80, bottom: 120, left: 384, right: 420 })
+  })
+
+  it('narrows the right past a tall legend instead of lifting the whole bottom', () => {
+    expect(spotlightPadding(desktop, panels, { legend: legend(400) }))
+      .toEqual({ top: 80, bottom: 60, left: 384, right: 668 })
+  })
+
+  it('lifts the bottom over the year slider, which spans the middle of the map', () => {
+    const slider = { width: 560, height: 52, bottom: 88, right: 420 }
+    expect(spotlightPadding(desktop, panels, { slider }))
+      .toEqual({ top: 80, bottom: 156, left: 384, right: 420 })
+    // A legend lower than the slider is cleared by the same margin.
+    expect(spotlightPadding(desktop, panels, { slider, legend: legend(90) }))
+      .toEqual({ top: 80, bottom: 156, left: 384, right: 420 })
+  })
+
+  it('keeps the panel margins when no way around the legend leaves enough map', () => {
+    expect(spotlightPadding({ width: 900, height: 700 }, { leftEdge: 64, rightOffset: 396 }, { legend: legend(420) }))
+      .toEqual({ top: 80, bottom: 60, left: 88, right: 420 })
   })
 
   it('falls back to an even margin when the panels leave too little map', () => {
-    expect(spotlightPadding(700, 500, 360, 396)).toEqual({ top: 40, bottom: 40, left: 40, right: 40 })
+    expect(spotlightPadding({ width: 700, height: 500 }, panels, { legend: legend(90) }))
+      .toEqual({ top: 40, bottom: 40, left: 40, right: 40 })
   })
 })
