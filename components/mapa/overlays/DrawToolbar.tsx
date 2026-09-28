@@ -35,8 +35,8 @@ const HINT: Record<string, string> = {
 /**
  * Horizontal drawing toolbar (glass pill), anchored to the edge of the Temas
  * panel (`left = leftEdge + 12`) on the second row of the left cluster, under
- * the Relatório button. It opens with the map; the pencil in the control
- * cluster hides and shows it. Tools as text (Polígono/Retângulo/Linha/Ponto)
+ * the Relatório button. It starts closed; the pencil in the control cluster
+ * shows and hides it. Tools as text (Polígono/Retângulo/Linha/Ponto)
  * + Coordenadas + Limpar.
  *
  * Coordenadas opens a form under the pill, for defining the same geometries by
@@ -55,8 +55,7 @@ export default function DrawToolbar({
 
   // Esc escalates: it closes the coordinate form first, then cancels the armed
   // tool, and only closes the toolbar when neither is up. Doing all three at
-  // once would cost the user the toolbar every time they gave up on a polygon,
-  // and the toolbar now opens with the map.
+  // once would cost the user the toolbar every time they gave up on a polygon.
   useEffect(() => {
     if (!open) return
     const onEsc = (e: KeyboardEvent) => {

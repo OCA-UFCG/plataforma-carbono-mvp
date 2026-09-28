@@ -164,8 +164,7 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
 
       {/* draw, active state is the fixed "ink" chip from the handoff (#26241d
           in light; adapts via c.text/c.bg so it stays legible in dark). The
-          toolbar opens with the map, so the label follows the state: from here
-          the button usually hides the toolbar rather than revealing it. */}
+          label follows the state: it shows the toolbar, or hides it once open. */}
       <button
         onClick={onToggleDraw}
         aria-label={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}

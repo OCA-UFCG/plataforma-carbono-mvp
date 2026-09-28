@@ -21,10 +21,10 @@ import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
 const recorteList = new Intl.ListFormat('pt-BR', { style: 'long', type: 'disjunction' })
 
 // Every branch of the hint ends the same way: the drawing tools are the way
-// out when no recorte fits. They live in DrawToolbar, anchored to the Temas
-// panel on the left -- the copy this replaced sent people to the right edge.
+// out when no recorte fits. The toolbar starts closed, so the hint names the
+// pencil button that opens it.
 const DRAW_FALLBACK =
-  'ou delimite a área com Polígono, Ponto ou Coordenadas, na barra de ferramentas à esquerda.'
+  'ou delimite a área com Polígono, Ponto ou Coordenadas, nas ferramentas de desenho do botão do lápis.'
 
 /** Index of the topmost visible raster; -1 when none is on. */
 export function topVisibleRasterIndex(layers: LayerConfig[]): number {

@@ -117,12 +117,11 @@ describe('analysisHint', () => {
     expect(analysisHint([bioma, municipios])).toContain('Bioma Caatinga ou Municípios')
   })
 
-  it('points at the drawing tools on the left, where the toolbar actually is', () => {
-    // DrawToolbar is anchored to the Temas panel (left: leftEdge + 12); the
-    // old copy sent people to the right edge, where there is nothing.
+  it('points at the pencil that opens the drawing tools', () => {
+    // The toolbar starts closed, so a hint naming where it sits would point at
+    // nothing; the pencil in the control cluster is what opens it.
     for (const hint of [analysisHint([]), analysisHint([vector('bioma', true)])]) {
-      expect(hint).toContain('esquerda')
-      expect(hint).not.toContain('direita')
+      expect(hint).toContain('lápis')
       expect(hint).toContain('Coordenadas')
     }
   })

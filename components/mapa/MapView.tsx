@@ -384,11 +384,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   // called by the coordinate form in the draw toolbar.
   const commitCoordinatesRef = useRef<((feature: GeoJSON.Feature) => void) | null>(null)
   const [mapReady, setMapReady] = useState(false)
-  // Draw toolbar visibility. It opens with the map at every width: reaching the
-  // tools only through the pencil in the control cluster was too discreet a way
-  // in. On a narrow screen the five tools wrap onto a second line rather than
-  // staying hidden, which is the intended trade. The pencil still toggles it.
-  const [drawOpen, setDrawOpen] = useState(true)
+  // Draw toolbar visibility. It starts closed; the pencil in the control
+  // cluster opens and closes it, and the results hint names that pencil. On a
+  // narrow screen the tools wrap onto a second line once it is open.
+  const [drawOpen, setDrawOpen] = useState(false)
 
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)
