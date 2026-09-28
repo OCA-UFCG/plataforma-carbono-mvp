@@ -60,7 +60,7 @@ export function unauthorizedResponse() {
  */
 export function safeRedirect(value: string | string[] | undefined): string {
   if (typeof value !== 'string') return '/'
-  for (const base of ['/mapa', '/relatorio', '/sobre', '/comunicacao']) {
+  for (const base of ['/mapa', '/relatorio', '/sobre', '/comunicacao', '/territorios']) {
     if (value === base || value.startsWith(`${base}/`) || value.startsWith(`${base}?`)) {
       return value
     }

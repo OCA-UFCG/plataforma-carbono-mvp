@@ -1,0 +1,1097 @@
+/*
+ * Styles of the Territórios story. Sibling of mapa.css and relatorio.css: it
+ * loads only under app/(territorios), so nothing here reaches the landing page,
+ * the map or the report.
+ *
+ * The layout imports globals.css first, so every token (--role-*, --bg-*,
+ * --am-*, --radius*, --shadow*) and type class (.text-*) is the home's own;
+ * this file only adds the story's aliases and overrides the base rules it
+ * needs otherwise.
+ */
+
+:root {
+  /* The map components the story reuses read these two names. */
+  --font-app: var(--font-sans);
+  --font-raleway: var(--font-sans);
+  --font-titulo: var(--font-display), var(--font-sans), sans-serif;
+
+  /* The sticky map and the section anchors sit below the sticky step rail;
+     44 px is also the touch target of its buttons. */
+  --trilha-altura: 44px;
+}
+
+/* globals.css animates every scroll of the viewport. Each scroll of the story
+   names its own behavior, and the corrections useActiveSection.ts makes while
+   the charts change height must land at once. */
+html {
+  scroll-behavior: auto;
+}
+
+/* Rubik and Archivo Narrow already draw lining figures; declared so a font
+   swap cannot bring old-style ones back into the data. */
+body {
+  font-size: 16px;
+  line-height: 24px;
+  font-variant-numeric: lining-nums;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+/* globals.css strips every underline; a link inside the story's prose keeps
+   one, since color alone would not tell it apart. */
+.territorios a:not([class]) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+.territorios-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Page */
+.territorios {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+.territorios-aviso {
+  padding: 12px 16px;
+  background: var(--ctx-negativo-container);
+  color: var(--bg-texto-primario);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.territorios-aviso a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.territorios-rotulo {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+}
+
+.territorios-pergunta {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--bg-texto-primario);
+}
+
+/* Buttons */
+.territorios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: var(--borda-largura) solid transparent;
+  border-radius: var(--radius-interno);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.territorios-btn--primario {
+  background: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.territorios-btn--primario:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+.territorios-btn--contorno {
+  background: var(--bg-fundo);
+  border-color: var(--role-categorica1-padrao);
+  color: var(--role-categorica1-padrao);
+}
+
+.territorios-btn--contorno:hover {
+  background: var(--am-100);
+  color: var(--role-categorica1-hover);
+}
+
+.territorios-btn:disabled,
+.territorios-btn[aria-disabled='true'] {
+  background: var(--am-050);
+  border-color: var(--am-200);
+  color: var(--role-neutro-texto-desabilitado);
+  cursor: default;
+}
+
+/* Opening: the home's header, the title band, then the type cards. The screen
+   runs edge to edge like the home's pages, so the page column steps aside. */
+.territorios:has(> .territorios-intro) {
+  max-width: none;
+  padding: 0;
+}
+
+.territorios-intro-faixa {
+  background: var(--am-100);
+}
+
+.territorios-intro-faixa-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 32px;
+}
+
+.territorios-intro-sobretitulo {
+  color: var(--bg-texto-secundario);
+  text-transform: uppercase;
+}
+
+/* 4.01:1 on --am-100, as PageIntro's title: large text only (30 px, 600). */
+.territorios-intro-titulo {
+  color: var(--role-marca-ancora-padrao);
+}
+
+.territorios-intro-corpo {
+  padding-block: 32px 48px;
+}
+
+.territorios-intro-embreve {
+  margin-top: 24px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+/* Type cards: art above the name on a computer, rows of 72 px on a phone. */
+.territorios-tipos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  list-style: none;
+}
+
+.territorios-tipo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+  text-align: left;
+  color: var(--bg-texto-primario);
+  background: var(--bg-fundo);
+  border: 1px solid var(--am-100);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.territorios-tipo:hover {
+  border-color: var(--am-200);
+  box-shadow: var(--shadow-lg);
+}
+
+.territorios-tipo-imagem {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--am-050);
+}
+
+.territorios-tipo-nome {
+  padding: 16px;
+  font-family: var(--font-titulo);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.territorios-tipo-seta {
+  display: none;
+}
+
+/* Search */
+.territorios-campo {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  /* 16px keeps mobile Safari from zooming into the field on focus. */
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  background: var(--bg-fundo);
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius-interno);
+}
+
+.territorios-input:focus-visible {
+  border-color: var(--role-marca-ancora-padrao);
+}
+
+.territorios-contagem {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-resultados {
+  margin-top: 8px;
+  list-style: none;
+  border-top: 1px solid var(--am-100);
+}
+
+.territorios-resultado {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  text-align: left;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--am-100);
+  cursor: pointer;
+}
+
+.territorios-resultado:hover {
+  color: var(--role-marca-ancora-hover);
+  background: var(--am-050);
+}
+
+/* Story header and step rail */
+.territorios-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--am-100);
+}
+
+.territorios-nome {
+  margin-top: 4px;
+  font-family: var(--font-titulo);
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 700;
+  line-height: 1.08;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-trilha {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  height: var(--trilha-altura);
+  margin-top: 8px;
+  background: var(--bg-fundo);
+  border-bottom: 1px solid var(--am-100);
+}
+
+.territorios-trilha-logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding-right: 16px;
+  border-right: 1px solid var(--am-100);
+  border-radius: var(--radius-interno);
+}
+
+.territorios-trilha-logo img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.territorios-trilha-logo:focus-visible {
+  outline-offset: -2px;
+}
+
+.territorios-trilha-nav {
+  flex: 1;
+  min-width: 0;
+}
+
+.territorios-trilha-alternar {
+  display: none;
+}
+
+.territorios-trilha-lista {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  /* A scrollbar would push the rail past the height the sticky map sits under;
+     the rail scrolls itself to the active step. */
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.territorios-trilha-lista::-webkit-scrollbar {
+  display: none;
+}
+
+.territorios-trilha-lista li {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* The bar below the active step takes the step's color (--etapa-cor, set
+   inline from STEP_COLORS); each one is 5.3:1 or more on --bg-fundo. */
+.territorios-etapa {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 4px 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: left;
+  white-space: nowrap;
+  color: var(--am-400);
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+
+.territorios-etapa:hover {
+  color: var(--bg-texto-primario);
+  background: var(--am-050);
+}
+
+/* The rail clips anything drawn outside its height. */
+.territorios-etapa:focus-visible {
+  outline-offset: -2px;
+}
+
+.territorios-etapa[aria-current='step'] {
+  color: var(--bg-texto-primario);
+  border-bottom-color: var(--etapa-cor, var(--role-marca-ancora-padrao));
+}
+
+/* Story: the sections scroll beside the sticky map. No ancestor of the rail or
+   the map may set overflow, or they stop sticking. Native scroll anchoring is
+   off because useActiveSection.ts holds the active section in place itself,
+   which Safari before 27 needs; with both, Chrome and Firefox would move twice. */
+.territorios-historia {
+  display: grid;
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  grid-template-areas: 'secoes mapa';
+  gap: 0 40px;
+  align-items: start;
+  overflow-anchor: none;
+}
+
+.territorios-secoes {
+  grid-area: secoes;
+  min-width: 0;
+}
+
+.territorios-historia-mapa {
+  grid-area: mapa;
+  position: sticky;
+  top: calc(var(--trilha-altura) + 24px);
+  height: calc(100svh - var(--trilha-altura) - 48px);
+  min-height: 320px;
+  margin-top: 32px;
+}
+
+/* One section: color bar, question, answer, chart, then the buttons. The
+   minimum height lets every section reach the trigger line. */
+.territorios-passo,
+.territorios-resumo {
+  min-height: 70svh;
+  padding-top: 32px;
+  scroll-margin-top: calc(var(--trilha-altura) + 8px);
+}
+
+/* The summary stops right under the rail, where the story's grid ends, so no
+   strip of the sticky map shows above it; its band lands where a step's does. */
+.territorios-resumo {
+  padding-top: 40px;
+  scroll-margin-top: var(--trilha-altura);
+}
+
+/* The last step keeps the sticky map whole until the summary comes up. */
+.territorios-passo:last-child {
+  min-height: calc(100svh - var(--trilha-altura) - 8px);
+}
+
+.territorios-passo {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+/* The background comes inline, one color per step; white reads on each at
+   5.38:1 or more. */
+.territorios-faixa {
+  padding: 8px 16px;
+  border-radius: var(--radius-interno);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-transform: uppercase;
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+/* Focused by the scroll to its section or by a change of screen, not by the visitor. */
+.territorios-faixa:focus,
+.territorios-nome:focus {
+  outline: none;
+}
+
+.territorios-passo-texto {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.territorios-resposta {
+  display: grid;
+  gap: 8px;
+}
+
+.territorios-resposta-frase {
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-graficos {
+  display: grid;
+  gap: 24px;
+}
+
+.territorios-estado {
+  padding: 24px;
+  border: 1px dashed var(--bg-borda);
+  border-radius: var(--radius);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--am-400);
+}
+
+.territorios-estado .territorios-btn {
+  margin-top: 16px;
+}
+
+.territorios-navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 24px 0 32px;
+  border-top: 1px solid var(--am-100);
+}
+
+/* Land use map year, on a computer; the phone's sheet has its own over the map. */
+.territorios-passo-anos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-passo-anos span {
+  margin-right: 8px;
+}
+
+.territorios-passo-anos button {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: var(--borda-largura) solid var(--role-categorica1-padrao);
+  border-radius: var(--radius-interno);
+  background: var(--bg-fundo);
+  color: var(--role-categorica1-padrao);
+  font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+  cursor: pointer;
+}
+
+.territorios-passo-anos button[aria-pressed='true'] {
+  background: var(--bg-texto-primario);
+  border-color: var(--bg-texto-primario);
+  color: var(--bg-fundo);
+}
+
+.territorios-navegacao--resumo {
+  margin-top: 40px;
+}
+
+/* The map opens as a sheet on a phone only. */
+.territorios-ver-mapa,
+.territorios-folha-fundo,
+.territorios-folha-topo {
+  display: none;
+}
+
+/* Final sheet: full width under the story, no live map. */
+.territorios-ficha-cabecalho {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.territorios-ficha-nome {
+  font-family: var(--font-titulo);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.08;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-detalhe {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-ficha {
+  display: grid;
+  margin-top: 24px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--am-100);
+}
+
+/* One line per theme: figure and reading, the sentence, the bar. --tema-cor
+   comes inline from STEP_COLORS. */
+.territorios-ficha-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr) minmax(0, 300px);
+  grid-template-areas:
+    'titulo titulo titulo'
+    'valor frase grafico';
+  gap: 8px 32px;
+  align-items: start;
+  padding: 16px 0 24px 16px;
+  border-bottom: 1px solid var(--am-100);
+  border-left: 4px solid var(--tema-cor, var(--am-400));
+  break-inside: avoid;
+}
+
+.territorios-ficha-titulo {
+  grid-area: titulo;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-ficha-valor {
+  grid-area: valor;
+  display: grid;
+  gap: 4px;
+}
+
+.territorios-ficha-grafico {
+  grid-area: grafico;
+}
+
+/* The step figure, one size down for the lines side by side. */
+.territorios-ficha-valor .tg-step-figure-value {
+  font-size: 40px;
+}
+
+.territorios-ficha-valor .tg-step-figure-unit {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.territorios-ficha-leitura {
+  justify-self: start;
+  padding: 2px 8px;
+  border: 1px solid var(--am-200);
+  border-radius: var(--radius-interno);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-frase {
+  grid-area: frase;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-estado {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-sobre {
+  margin-top: 32px;
+  border-top: 1px solid var(--am-100);
+  border-bottom: 1px solid var(--am-100);
+}
+
+.territorios-sobre summary {
+  min-height: 44px;
+  padding: 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.territorios-sobre summary:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+.territorios-sobre dl {
+  display: grid;
+  gap: 12px;
+  max-width: 72ch;
+  padding-bottom: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.territorios-sobre dt {
+  font-weight: 600;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-sobre dd {
+  margin: 0;
+  color: var(--am-400);
+}
+
+.territorios-sobre-data {
+  padding-bottom: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-aviso-link {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-aviso-link:empty {
+  display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .territorios-historia {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 24px;
+  }
+
+  .territorios-ficha-linha {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'titulo titulo'
+      'valor frase'
+      'grafico grafico';
+  }
+}
+
+/* Phone: one column, and the map as a sheet over the page, opened from each
+   step's button. */
+@media (max-width: 767px) {
+  .territorios-historia {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'secoes';
+    gap: 0;
+  }
+
+  .territorios-historia-mapa {
+    display: none;
+  }
+
+  .territorios-historia-mapa[data-aberta] {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    height: 70svh;
+    min-height: 0;
+    margin: 0;
+    padding: 8px 8px 0;
+    background: var(--bg-fundo);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .territorios-historia-mapa[data-aberta] .territorios-mapa {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .territorios-folha-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    display: block;
+    background: var(--bg-overlay);
+  }
+
+  .territorios-folha-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px 8px;
+  }
+
+  .territorios-folha-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  .territorios-ver-mapa {
+    display: inline-flex;
+  }
+
+  .territorios-passo,
+  .territorios-passo:last-child {
+    min-height: 0;
+    padding-top: 24px;
+  }
+
+  .territorios-resumo {
+    min-height: 0;
+    padding-top: 32px;
+  }
+
+  .territorios-passo {
+    gap: 16px;
+  }
+
+  .territorios-passo-texto {
+    gap: 16px;
+  }
+
+  .territorios-passo-anos {
+    display: none;
+  }
+
+  /* The page's padding would sit above the sticky rail; the header gets the room below it. */
+  .territorios.territorios--historia {
+    padding-top: 0;
+  }
+
+  .territorios-trilha {
+    margin-top: 0;
+  }
+
+  .territorios-cabecalho {
+    padding: 16px 0;
+  }
+
+  .territorios-ficha-linha {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'titulo' 'valor' 'frase' 'grafico';
+    padding-left: 12px;
+  }
+
+  .territorios-navegacao {
+    margin-top: 0;
+    padding: 16px 0 24px;
+  }
+}
+
+@media (min-width: 640px) {
+  .territorios {
+    padding: 48px clamp(24px, 4vw, 48px) 80px;
+  }
+}
+
+@media (max-width: 767px) {
+  .territorios-tipos {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .territorios-tipo {
+    flex-direction: row;
+    align-items: center;
+    height: 72px;
+    border-color: var(--am-200);
+    box-shadow: none;
+  }
+
+  .territorios-tipo-imagem {
+    flex: none;
+    width: 96px;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .territorios-tipo-nome {
+    flex: 1;
+    min-width: 0;
+    padding: 0 12px 0 16px;
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  .territorios-tipo-seta {
+    display: block;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-right: 16px;
+    color: var(--am-400);
+  }
+
+  .territorios-intro-faixa-conteudo {
+    padding-block: 24px;
+  }
+
+  .territorios-intro-corpo {
+    padding-block: 16px 32px;
+  }
+
+  .territorios-intro-embreve {
+    margin-top: 16px;
+  }
+
+  /* The rail folds into a bar naming the current step; its button drops the
+     same list down, over the map. */
+  .territorios-trilha {
+    gap: 12px;
+  }
+
+  .territorios-trilha-logo {
+    min-width: 44px;
+    justify-content: center;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .territorios-trilha-alternar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 0 4px;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: left;
+    color: var(--bg-texto-primario);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .territorios-trilha-alternar:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .territorios-trilha-posicao {
+    flex: none;
+    color: var(--am-400);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .territorios-trilha-atual {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .territorios-trilha-alternar svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.18s ease;
+  }
+
+  .territorios-trilha[data-aberta] .territorios-trilha-alternar svg {
+    transform: rotate(180deg);
+  }
+
+  .territorios-trilha-lista {
+    display: none;
+  }
+
+  .territorios-trilha[data-aberta] .territorios-trilha-lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: block;
+    height: auto;
+    padding: 4px 0;
+    overflow: visible;
+    background: var(--bg-fundo);
+    border: 1px solid var(--am-200);
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .territorios-trilha[data-aberta] .territorios-etapa {
+    height: 44px;
+    padding: 0 16px 0 12px;
+    border-bottom: 0;
+    border-left: 4px solid transparent;
+  }
+
+  .territorios-trilha[data-aberta] .territorios-etapa[aria-current='step'] {
+    border-left-color: var(--etapa-cor, var(--role-marca-ancora-padrao));
+  }
+}
+
+@media (max-width: 519px) {
+  .territorios-pergunta {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .territorios-navegacao .territorios-btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* MapLibre's zoom buttons are 29 px, and on the phone story map, where one
+   finger scrolls the page, they are the quickest way to zoom. */
+@media (pointer: coarse) {
+  .territorios-mapa .maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 15mm;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .territorios {
+    max-width: none;
+    padding: 0;
+  }
+
+  .territorios-trilha,
+  .territorios-cabecalho,
+  .territorios-historia,
+  .territorios-navegacao,
+  .territorios-no-print {
+    display: none !important;
+  }
+
+  .territorios-resumo {
+    min-height: 0;
+    padding-top: 0;
+  }
+
+  .territorios-ficha-linha {
+    grid-template-columns: 50mm minmax(0, 1fr) 55mm;
+    grid-template-areas:
+      'titulo titulo titulo'
+      'valor frase grafico';
+    gap: 4px 6mm;
+    padding: 8px 0 10px 10px;
+  }
+
+  .territorios-ficha-valor .tg-step-figure-value {
+    font-size: 30px;
+  }
+
+  .territorios-sobre summary {
+    min-height: 0;
+    list-style: none;
+  }
+
+  .territorios-sobre summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Browsers drop background colors and some borders by default when printing. */
+  .territorios-ficha-linha,
+  .territorios-faixa,
+  .tg-chart {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

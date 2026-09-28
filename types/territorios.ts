@@ -1,0 +1,242 @@
+// Contract of the Territórios storytelling experiment (/territorios).
+//
+// Shared by the two API routes, the precompute script and the client. The
+// story is a sequence of steps over one recorte feature; each theme step is one
+// request to /api/territorios/tema and one answer of this shape.
+
+import type { StockReport, TimeSeriesPoint } from '@/types/mapa'
+
+export type ThemeId = 'estoque' | 'fluxo' | 'uso' | 'degradacao' | 'chuva'
+
+export type StepId = 'territorio' | ThemeId | 'resumo'
+
+/**
+ * `no_pixels` is a settled answer (the data has nothing over this territory)
+ * and is cached like `available`. `unavailable` is a failure worth retrying
+ * and is never cached.
+ */
+export type ThemeStatus = 'available' | 'no_pixels' | 'unavailable'
+
+/**
+ * `point` means the zonal reduction found no pixel with weight and the value
+ * is the pixel under an interior point of the territory. `precomputed` means
+ * the answer came from config/territorios/precomputed.json.
+ */
+export type ThemeOrigin = 'zonal' | 'point' | 'precomputed'
+
+export type TerritoryTypeId =
+  | 'bioma'
+  | 'estado'
+  | 'municipio'
+  | 'terra_indigena'
+  | 'territorio_quilombola'
+  | 'assentamento'
+  | 'propriedade_rural'
+  | 'unidade_conservacao'
+
+type Geometry = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
+
+/**
+ * Biome-wide references every step compares the territory with, read from the
+ * precomputed biome entry. Each value divides by the same base the territory's
+ * value does, so the two sit on one axis.
+ */
+export interface BiomeReference {
+  /** Total reference stock of the biome in t C, computed from the same raster. */
+  stockTotalTc: number | null
+  /** Reference stock per hectare with stock data, t C/ha (total / report.areaHa). */
+  stockDensityTcHa: number | null
+  /** Percent (0..100) of the region inside the GFW forest extent. */
+  forestSharePct: number | null
+  /** Signed net flux 2001-2024 per hectare of GFW forest, Mg CO2e/ha. Negative = removal. */
+  fluxPerForestHaMg: number | null
+  /** Percent (0..100) of native vegetation, per year. */
+  nativeSharePct: { '1985': number; '2024': number } | null
+  /** Percent (0..100) of the biome area with degradation codes 1 to 5. */
+  degradedSharePct: number | null
+  /** Percent (0..100) of the region per degradation code 1..6, and 0 for the masked area. */
+  degradationSharesPct: Record<number, number> | null
+  /** Mean annual rainfall 1985-2024, in mm. */
+  rainMeanMm: number | null
+}
+
+// Inputs of the story's charts. storyValues computes them from a theme answer
+// and the biome reference; the chart components only draw them.
+
+/** A value of the territory beside the same value for the whole Caatinga. */
+export interface Comparison {
+  here:      number
+  /** null when the biome has no value, and the marker is left out. */
+  reference: number | null
+}
+
+export interface StockChart {
+  /** t C per hectare. */
+  density: Comparison
+}
+
+export interface FluxChart {
+  /** Percent (0..100) of the area inside the GFW forest extent. */
+  forestShare: Comparison
+  /**
+   * Mg CO2e per hectare of forest, as magnitudes. null when the territory and
+   * the biome went opposite ways, where two lengths on one axis would compare
+   * a removal with an emission.
+   */
+  perForestHa: Comparison | null
+}
+
+export interface LandUseChart {
+  /** Native vegetation share (0..100) in 1985 and 2024. */
+  here:      { from: number; to: number }
+  reference: { from: number; to: number } | null
+}
+
+/** Share (0..100) of the region per degradation code; code 0 is the masked area. */
+export interface DegradationShare {
+  code: number
+  pct:  number
+}
+
+export interface DegradationChart {
+  here:      DegradationShare[]
+  reference: DegradationShare[] | null
+}
+
+export type RainYearKind = 'seco' | 'normal' | 'chuvoso'
+
+export interface RainChartData {
+  years: { year: number; valueMm: number | null; kind: RainYearKind | null }[]
+  /** The territory's own 1985-2024 mean, which classifies the years. */
+  meanMm:         number
+  highlightYear:  number
+  /** Mean annual rainfall: here against the Caatinga. */
+  mean: Comparison
+}
+
+/** The answer of one step while the story runs: a figure and one short sentence. */
+export interface StepAnswer {
+  question: string
+  /** Big figure; null when the step has no number to show (no data, point fallback without a value). */
+  headline: { value: string; unit: string } | null
+  /** One sentence, at most about 20 words. */
+  sentence: string
+}
+
+/** Where the territory stands against the Caatinga, in words that judge nothing. */
+export type Reading = 'acima' | 'abaixo' | 'perto'
+
+/** One line of the final sheet. */
+export interface SummaryRow {
+  theme:    ThemeId
+  title:    string
+  headline: { value: string; unit: string } | null
+  sentence: string
+  reading:  Reading | null
+}
+
+/** One item of the "Sobre os dados" block at the end. */
+export interface AboutItem {
+  title: string
+  text:  string
+}
+
+/** GET /api/territorios/territorio?recorte=&feicao= */
+export interface TerritoryPayload {
+  recorteId:   string
+  recorteName: string
+  featureId:   string
+  featureName: string
+  /** State abbreviation, from the layer's contextField. */
+  context?:    string
+  /** Geodesic area inside the biome boundary, in hectares. */
+  areaHa:      number
+  biomaAreaHa: number
+  bbox:        [number, number, number, number]
+  boundary:    'full' | 'simplified'
+  geometry:    Geometry
+  biome:       BiomeReference
+}
+
+export interface StockThemeData {
+  theme:  'estoque'
+  report: StockReport
+}
+
+export interface FluxThemeData {
+  theme: 'fluxo'
+  /** Signed net flux 2001-2024 over the GFW forest extent, in Mg CO2e. Negative = removal. */
+  totalMgCo2e:  number
+  /** Area of the GFW forest extent inside the territory (unmasked pixels), in hectares. */
+  forestAreaHa: number
+  /**
+   * Area of the whole territory weighted by the same reduction, in hectares. The
+   * forest share divides by this, not by the geodesic area: a reduction weights
+   * edge pixels by coverage, and small polygons come out below their geodesic
+   * area (51% and 75% measured in Phase 0), so mixing the two bases skews the share.
+   */
+  regionAreaHa: number
+}
+
+export interface LandUseThemeData {
+  theme: 'uso'
+  /** Area in m² per MapBiomas class code, per year. Only shares are trusted, not the m² total. */
+  areas: { '1985': Record<string, number>; '2024': Record<string, number> }
+}
+
+export interface DegradationThemeData {
+  theme: 'degradacao'
+  /** Area in m² per class code (1..6). null when the point fallback was used. */
+  areas:     Record<string, number> | null
+  /**
+   * Area of the whole territory weighted by a pixelArea reduction at the index
+   * scale, in m², masked pixels included. Every share divides by this, because
+   * the index masks part of the land (1.9% of the biome) and a share of the
+   * classes alone would describe the area with data as if it were the territory.
+   * null when the point fallback was used.
+   */
+  regionAreaM2: number | null
+  /** Class code of the pixel under the interior point. null unless origin is 'point'. */
+  pointCode: number | null
+}
+
+export interface RainThemeData {
+  theme:  'chuva'
+  /** Annual rainfall in mm, 1985 to 2024; null for a year with no data. */
+  series: TimeSeriesPoint[]
+}
+
+export type ThemeData =
+  | StockThemeData
+  | FluxThemeData
+  | LandUseThemeData
+  | DegradationThemeData
+  | RainThemeData
+
+/** GET /api/territorios/tema?recorte=&feicao=&tema= */
+export interface ThemeResponse {
+  recorteId: string
+  featureId: string
+  theme:     ThemeId
+  status:    ThemeStatus
+  origin:    ThemeOrigin | null
+  /** Reduction scale in metres when it is coarser than the layer's native scale, else null. */
+  coarseScaleM: number | null
+  data:      ThemeData | null
+}
+
+/** Shape of config/territorios/precomputed.json. */
+export interface PrecomputedThemeEntry {
+  status:       Exclude<ThemeStatus, 'unavailable'>
+  coarseScaleM: number | null
+  data:         ThemeData | null
+}
+
+export interface PrecomputedFile {
+  generatedAt: string
+  /** Keyed by `${recorteId}|${featureId}`. */
+  entries: Record<string, {
+    featureName: string
+    themes: Partial<Record<ThemeId, PrecomputedThemeEntry>>
+  }>
+}

@@ -5,12 +5,9 @@
 // merged) so a raster can be clipped to it. The report needs the opposite:
 // one feature.
 //
-// Feature labels are not unique (34 homonymous municipalities, 213 settlements)
-// and the GeoJSONs in public/data/vector carry no official code. So the id is
-// the slug of the label plus an ordinal suffix, in file order. Regenerating the
-// vectors in a different order can migrate a suffix; the fix is to key on the
-// official code, which scripts/build-recortes.py now preserves but this
-// registry does not yet read. Recorded as a follow-up in the design doc.
+// Feature ids come from lib/territorios/featureIds.ts, which the Territórios
+// chooser also runs over the same GeoJSON in the browser; that file explains
+// the slug and ordinal suffix rule.
 
 import 'server-only'
 
@@ -19,10 +16,15 @@ import path from 'node:path'
 import { area as turfArea } from '@turf/area'
 import appConfig from '@/config/mapa/layers.json'
 import { computeBbox } from '@/lib/mapa/computeBbox'
-import { slug } from '@/lib/mapa/format'
+import {
+  featureEntries,
+  labelFieldOf,
+  type FeatureLike,
+  type PolygonalGeometry,
+} from '@/lib/territorios/featureIds'
 
 type Bbox = [number, number, number, number]
-type Geometry = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
+type Geometry = PolygonalGeometry
 
 export interface RecorteInfo {
   layerId:    string
@@ -81,16 +83,6 @@ function vectorLayers(): VectorEntry[] {
   return (appConfig.layers as VectorEntry[]).filter((l) => l.type === 'vector')
 }
 
-/**
- * Property that names a feature. `labelField` is the persistent map label and
- * `hoverLabelField` the popup one; either identifies the feature, so whichever
- * is declared wins, with the persistent label preferred. Today all six vector
- * layers declare only the hover one.
- */
-function labelFieldOf(layer: VectorEntry): string | undefined {
-  return layer.labelField ?? layer.hoverLabelField
-}
-
 /** The recorte layers that can be a report unit: the vectors that have a label. */
 export function listRecortes(): RecorteInfo[] {
   return vectorLayers().flatMap((layer) => {
@@ -100,32 +92,10 @@ export function listRecortes(): RecorteInfo[] {
   })
 }
 
-/**
- * Pull the polygonal geometry out of a feature. Usually the geometry already
- * is a Polygon or MultiPolygon, but `limite_caatinga_clip.geojson` (the only
- * `_clip` file today) wraps the simplified boundary in a GeometryCollection
- * alongside a handful of stray LineStrings — simplification slivers left by
- * the tool that produced it. The Polygon inside is the real boundary; the
- * lines carry no area and are dropped.
- */
-function extractPolygonal(geometry: unknown): Geometry | null {
-  const g = geometry as { type?: string; geometries?: unknown[] } | null
-  if (!g) return null
-  if (g.type === 'Polygon' || g.type === 'MultiPolygon') return g as Geometry
-  if (g.type === 'GeometryCollection' && Array.isArray(g.geometries)) {
-    for (const inner of g.geometries) {
-      const found = extractPolygonal(inner)
-      if (found) return found
-    }
-  }
-  return null
-}
-
 function buildIndex(recorteId: string): RecorteIndex | null {
   const layer = vectorLayers().find((l) => l.id === recorteId)
   const labelField = layer ? labelFieldOf(layer) : undefined
   if (!layer?.url || !labelField) return null
-  const contextField = layer.contextField
 
   // Prefer the pre-simplified `<name>_clip.geojson`, the same preference order
   // clipRegistry documents and for the same reason: the full biome boundary is
@@ -136,48 +106,18 @@ function buildIndex(recorteId: string): RecorteIndex | null {
   const usesCoarse = existsSync(coarsePath)
   const filePath = usesCoarse ? coarsePath : path.join(process.cwd(), 'public', layer.url)
 
-  let geojson: { features?: { geometry: unknown; properties?: Record<string, unknown> }[] }
+  let geojson: { features?: FeatureLike[] }
   try {
     geojson = JSON.parse(readFileSync(filePath, 'utf-8'))
   } catch {
     return null
   }
 
-  const features = geojson.features ?? []
-  // Ordinal suffix per slug, assigned in file order: the first occurrence keeps
-  // the bare slug, so the common case reads as a plain name in the URL.
-  const seen = new Map<string, number>()
-  const feicoes: IndexedFeicao[] = []
-
-  for (const feature of features) {
-    const geometry = extractPolygonal(feature.geometry)
-    if (!geometry) continue
-
-    const raw = feature.properties?.[labelField]
-    // A single-feature recorte is named by its layer. The simplified biome file
-    // has empty properties, so there is no label to read, and "Bioma Caatinga"
-    // is the right name anyway. Restricted to one feature on purpose: applying
-    // it to a multi-feature layer would collapse every id into one.
-    const name = typeof raw === 'string' && raw.trim()
-      ? raw.trim()
-      : features.length === 1 ? layer.name : null
-    if (!name) continue
-
-    const base = slug(name)
-    if (!base) continue
-    const count = (seen.get(base) ?? 0) + 1
-    seen.set(base, count)
-
-    const rawContext = contextField ? feature.properties?.[contextField] : undefined
-    const context = typeof rawContext === 'string' && rawContext ? rawContext : undefined
-
-    feicoes.push({
-      id: count === 1 ? base : `${base}-${count}`,
-      name,
-      ...(context ? { context } : {}),
-      geometry,
-    })
-  }
+  const feicoes: IndexedFeicao[] = featureEntries(geojson.features ?? [], {
+    labelField,
+    contextField: layer.contextField,
+    layerName:    layer.name,
+  })
 
   return { feicoes, boundary: usesCoarse ? 'simplified' : 'full' }
 }

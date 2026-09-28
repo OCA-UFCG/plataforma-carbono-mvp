@@ -1,0 +1,108 @@
+import { describe, expect, it } from 'vitest'
+import appConfig from '@/config/mapa/layers.json'
+import { LAYER_META } from '@/config/mapa/layerMeta'
+import { CHOOSER } from '@/config/territorios/chooserScript'
+import { STEP_COLORS } from '@/config/territorios/palette'
+import {
+  LAND_USE_YEARS,
+  RAIN_FIRST_YEAR,
+  RAIN_LAST_YEAR,
+  STORY_THEMES,
+  TERRITORY_TYPES,
+  storyTheme,
+} from '@/config/territorios/story'
+import { STATE_LOCATIVE } from '@/config/territorios/storyScript'
+import { contrast } from '@/lib/color'
+import { listFeicoes } from '@/lib/mapa/recorteRegistry'
+import { ano, paradas } from '@/lib/mapa/temporal'
+import type { LayerConfig } from '@/types/mapa'
+
+const MIN_CONTRAST = 4.5
+
+const layers = appConfig.layers as LayerConfig[]
+
+function yearsOf(layerId: string): string[] {
+  const layer = layers.find((l) => l.id === layerId)
+  const temporal = layer?.type === 'raster' ? layer.gee?.temporal : undefined
+  return temporal ? paradas(temporal).map(ano) : []
+}
+
+describe('STORY_THEMES', () => {
+  it('names raster layers of layers.json that LAYER_META gives a source', () => {
+    for (const theme of STORY_THEMES) {
+      const layer = layers.find((l) => l.id === theme.layerId)
+      expect(layer?.type).toBe('raster')
+      expect(LAYER_META[theme.layerId]?.source).toBeTruthy()
+    }
+  })
+
+  it('asks the land use and rain layers only for years they have', () => {
+    const landUseYears = yearsOf(storyTheme('uso').layerId)
+    for (const year of LAND_USE_YEARS) expect(landUseYears).toContain(year)
+
+    const rainYears = yearsOf(storyTheme('chuva').layerId)
+    expect(rainYears).toContain(String(RAIN_FIRST_YEAR))
+    expect(rainYears).toContain(String(RAIN_LAST_YEAR))
+  })
+
+  it('carries white-legible colors', () => {
+    // The theme heading and the summary card border carry white text.
+    for (const theme of STORY_THEMES) {
+      expect(contrast(theme.color, '#ffffff')).toBeGreaterThanOrEqual(MIN_CONTRAST)
+    }
+  })
+
+  it('takes each color from the palette, so the band and the chart agree', () => {
+    for (const theme of STORY_THEMES) expect(theme.color).toBe(STEP_COLORS[theme.id])
+  })
+})
+
+describe('STATE_LOCATIVE', () => {
+  it('places every state a territory of an enabled type names', () => {
+    for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
+      for (const feature of listFeicoes(type.recorteId!)) {
+        for (const uf of feature.context?.split('/') ?? []) expect(STATE_LOCATIVE[uf], `${type.id} ${uf}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('has the ten states the answer of the biome counts', () => {
+    // ANSWER_SCRIPT.territorio.biome: "A Caatinga inteira, em dez estados."
+    expect(listFeicoes('estados')).toHaveLength(10)
+    expect(Object.keys(STATE_LOCATIVE)).toHaveLength(10)
+  })
+})
+
+describe('TERRITORY_TYPES', () => {
+  it('points every enabled type at a vector layer', () => {
+    const enabled = TERRITORY_TYPES.filter((t) => t.enabled)
+    expect(enabled.map((t) => t.id)).toEqual([
+      'bioma', 'estado', 'municipio', 'terra_indigena', 'territorio_quilombola', 'assentamento',
+    ])
+    for (const type of enabled) {
+      expect(layers.find((l) => l.id === type.recorteId)?.type).toBe('vector')
+    }
+  })
+
+  it('leaves the two types with no data yet disabled and without a layer', () => {
+    const disabled = TERRITORY_TYPES.filter((t) => !t.enabled)
+    expect(disabled.map((t) => [t.id, t.recorteId])).toEqual([
+      ['propriedade_rural', null],
+      ['unidade_conservacao', null],
+    ])
+  })
+})
+
+describe('CHOOSER', () => {
+  it('never prints a zero distance for a territory the location is not in', () => {
+    expect(CHOOSER.distance(0.04)).toBe('a menos de 0,1 km')
+    expect(CHOOSER.distance(0.1)).toBe('a 0,1 km')
+    expect(CHOOSER.distance(12.4)).toBe('a 12 km')
+  })
+
+  it('has a lead for overlapping territories on every type the chooser opens', () => {
+    for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
+      expect(CHOOSER.overlapLead[type.id]).toBeTruthy()
+    }
+  })
+})

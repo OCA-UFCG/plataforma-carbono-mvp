@@ -9,6 +9,9 @@ describe('safeRedirect', () => {
     expect(safeRedirect('/relatorio')).toBe('/relatorio')
     expect(safeRedirect('/relatorio?recorte=municipios&feicao=campina-grande'))
       .toBe('/relatorio?recorte=municipios&feicao=campina-grande')
+    expect(safeRedirect('/territorios')).toBe('/territorios')
+    expect(safeRedirect('/territorios?recorte=municipios&feicao=campina-grande&etapa=chuva'))
+      .toBe('/territorios?recorte=municipios&feicao=campina-grande&etapa=chuva')
   })
 
   it('keeps the internal marketing pages', () => {
@@ -24,6 +27,7 @@ describe('safeRedirect', () => {
     expect(safeRedirect('//evil.com')).toBe('/')
     expect(safeRedirect('https://evil.com')).toBe('/')
     expect(safeRedirect('/relatoriofalso')).toBe('/')
+    expect(safeRedirect('/territoriosfalso')).toBe('/')
     expect(safeRedirect(undefined)).toBe('/')
     expect(safeRedirect(['/mapa'])).toBe('/')
   })
