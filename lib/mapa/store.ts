@@ -77,6 +77,8 @@ interface MapaStore {
   // rendered as the chip above the label in the results panel.
   analysisKind: string | null
   clearSignal: number
+  /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
+  homeSignal: number
   basemapId: string
   darkMode: boolean
   // Current viewport and drawing. They live in the store so persistence has a
@@ -105,6 +107,8 @@ interface MapaStore {
   pixelCache: Record<string, PixelValueResult | null>
 
   toggleLayer:   (id: string) => void
+  /** Turns every layer off, leaves only the municipal boundaries on and returns to the biome view. */
+  showOnlyMunicipios: () => void
   showLayer:     (id: string) => void
   clearThematicLayers: () => void
   setOpacity:    (id: string, opacity: number) => void
@@ -144,6 +148,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   analysisLabel: null,
   analysisKind: null,
   clearSignal: 0,
+  homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
   // Dark mode: hydrates from localStorage on the client and, with no stored
   // mark, follows the operating system preference.
@@ -204,6 +209,18 @@ export const useStore = create<MapaStore>((set, get) => ({
 
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
+    }))
+  },
+
+  // A vector layer needs no fetch to turn on, so a plain visibility flip is
+  // enough; rasters only go off here. Every loading mark goes too, as in
+  // clearThematicLayers, or a GEE raster still being fetched would light up
+  // once its tile arrives.
+  showOnlyMunicipios: () => {
+    set((s) => ({
+      layers: s.layers.map((l) => ({ ...l, visible: l.id === 'municipios' })),
+      loadingLayers: {},
+      homeSignal: s.homeSignal + 1,
     }))
   },
 
@@ -349,8 +366,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       }
 
       // 4. Success: cache URL, flip visible, clear loading. A missing loading
-      //    mark means clearThematicLayers ran while the request was in flight:
-      //    the tile is kept, but the layer stays off.
+      //    mark means clearThematicLayers or showOnlyMunicipios ran while the
+      //    request was in flight: the tile is kept, but the layer stays off.
       const stillWanted = !!get().loadingLayers[id]
       if (temporal && temporalDate) {
         // Temporal: cache under date key, set initial date

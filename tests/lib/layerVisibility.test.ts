@@ -73,3 +73,28 @@ describe('clearThematicLayers', () => {
     expect(state.fetchedTileUrls.biomassa_gedi).toBe('https://tiles.example/gedi')
   })
 })
+
+describe('showOnlyMunicipios', () => {
+  const initial = useStore.getState()
+  afterEach(() => {
+    useStore.setState(initial, true)
+    vi.unstubAllGlobals()
+  })
+
+  it('keeps a GEE raster that was still loading off once its tile arrives', async () => {
+    let respond!: (res: Response) => void
+    vi.stubGlobal('fetch', () => new Promise<Response>((resolve) => { respond = resolve }))
+
+    const gedi = useStore.getState().layers.find((layer) => layer.id === 'biomassa_gedi') as RasterLayerConfig
+    const activation = useStore.getState().activateDynamicLayer(gedi)
+    useStore.getState().showOnlyMunicipios()
+    respond(new Response(JSON.stringify({ tileUrl: 'https://tiles.example/gedi' })))
+    await activation
+
+    const state = useStore.getState()
+    expect(state.layers.find((layer) => layer.id === 'biomassa_gedi')?.visible).toBe(false)
+    expect(state.layers.find((layer) => layer.id === 'municipios')?.visible).toBe(true)
+    expect(state.loadingLayers).toEqual({})
+    expect(state.fetchedTileUrls.biomassa_gedi).toBe('https://tiles.example/gedi')
+  })
+})

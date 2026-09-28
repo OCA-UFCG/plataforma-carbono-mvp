@@ -393,6 +393,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)
   const clearSignal       = useStore((s) => s.clearSignal)
+  const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
   const darkMode          = useStore((s) => s.darkMode)
   const setBasemap        = useStore((s) => s.setBasemap)
@@ -1192,6 +1193,13 @@ useEffect(() => {
       wfsAbortControllersRef.current = {}
     }
   }, [layers, mapReady])
+
+  // Back to the biome view when the sidebar resets the layers.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || homeSignal === 0) return
+    map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom })
+  }, [homeSignal, mapReady])
 
   // Swap temporal tile URLs when date changes
   useEffect(() => {

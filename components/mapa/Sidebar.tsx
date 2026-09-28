@@ -21,6 +21,7 @@ interface Props {
 
 export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
+  const showOnlyMunicipios = useStore((s) => s.showOnlyMunicipios)
   const clearThematicLayers = useStore((s) => s.clearThematicLayers)
   const [query, setQuery] = useState('')
 
@@ -103,8 +104,19 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
           <span style={{ fontSize: 12, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 999, padding: '2px 8px' }}>
             {activeCount} ativa{activeCount === 1 ? '' : 's'}
           </span>
+          <button
+            className="ui-press"
+            onClick={showOnlyMunicipios}
+            title="Desativar todas as camadas e voltar à vista do bioma"
+            style={{
+              marginLeft: 'auto', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 999,
+              cursor: 'pointer', color: c.textDim, fontSize: 12, fontWeight: 700, padding: '2px 9px',
+            }}
+          >
+            Início
+          </button>
           <button onClick={onCollapse} aria-label="Recolher painel" title="Recolher"
-            style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 4, display: 'flex' }}>
+            style={{ marginLeft: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 4, display: 'flex' }}>
             <IcChevronLeft size={16} />
           </button>
         </div>
