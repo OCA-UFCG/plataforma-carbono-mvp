@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
+import type { Locale } from "@/i18n/config";
+import { useLocale } from "@/i18n/useLocale";
 import { HEADER_LINKS, MAPA_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
@@ -65,25 +67,23 @@ function SessionAction({ className }: { className?: string }) {
   );
 }
 
-type Language = "pt-BR" | "en";
-
-const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
+const LANGUAGE_OPTIONS: { value: Locale; label: string }[] = [
   { value: "pt-BR", label: "PT-BR" },
   { value: "en", label: "En" },
 ];
 
 // The PT-BR / En control from the Figma design (I18862:8515;16825:136014).
-// Both options are buttons that only move the active state for now: no text on
-// the site is translated yet. The selected value lives in SiteHeader, so the
-// desktop and the mobile-panel instances stay in sync.
+// Both options are buttons that only record the choice for now (cookie, via
+// useLocale): no text on the site is translated yet. The value is read once in
+// SiteHeader, so the desktop and the mobile-panel instances stay in sync.
 function LanguageSwitch({
   className,
   value,
   onChange,
 }: {
   className?: string;
-  value: Language;
-  onChange: (language: Language) => void;
+  value: Locale;
+  onChange: (locale: Locale) => void;
 }) {
   return (
     <div className={className} role="group" aria-label="Idioma">
@@ -111,7 +111,7 @@ function LanguageSwitch({
 // "inicio" id on its own <section>.
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const [language, setLanguage] = useState<Language>("pt-BR");
+  const [language, setLanguage] = useLocale();
   const activeHref = activeNavHref(usePathname());
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
