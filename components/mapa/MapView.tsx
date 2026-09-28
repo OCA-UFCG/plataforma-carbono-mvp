@@ -44,6 +44,14 @@ import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTar
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import {
+  addSpotlightLayers,
+  clearSpotlight,
+  isSameFeature,
+  raiseSpotlight,
+  showSpotlight,
+  spotlightPadding,
+} from '@/lib/mapa/selectionSpotlight'
 import { basemaps } from '@/config/mapa/basemaps'
 import type {
   LayerConfig,
@@ -138,6 +146,19 @@ function lineStringLengthKm(coords: number[][]): number {
   return total
 }
 
+// A vector fill brightens under the cursor only. The selected feature used to
+// take the same bump, which covered the raster inside it with the recorte's
+// color; the selection spotlight (lib/mapa/selectionSpotlight.ts) marks it now.
+
+function vectorFillOpacity(opacity: number): maplibregl.ExpressionSpecification {
+  return [
+    'case',
+    ['boolean', ['feature-state', 'hover'], false],
+    (opacity / 100) * 0.7,
+    (opacity / 100) * 0.35,
+  ]
+}
+
 // Generic: add any layer to the MapLibre map
 
 function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
@@ -175,7 +196,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       }
     }
 
-    // Fill, opacity bumps when feature-state.hover OR feature-state.selected
+    // Fill, opacity bumps under the cursor
     map.addLayer({
       id: `${l.id}-fill`,
       type: 'fill',
@@ -184,15 +205,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       layout: { visibility: vis },
       paint: {
         'fill-color': l.color,
-        'fill-opacity': [
-          'case',
-          ['any',
-            ['boolean', ['feature-state', 'hover'],    false],
-            ['boolean', ['feature-state', 'selected'], false],
-          ],
-          (l.opacity / 100) * 0.7,
-          (l.opacity / 100) * 0.35,
-        ],
+        'fill-opacity': vectorFillOpacity(l.opacity),
       },
     })
 
@@ -321,15 +334,7 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
       }
     }
     if (map.getLayer(`${l.id}-fill`)) {
-      map.setPaintProperty(`${l.id}-fill`, 'fill-opacity', [
-        'case',
-        ['any',
-          ['boolean', ['feature-state', 'hover'],    false],
-          ['boolean', ['feature-state', 'selected'], false],
-        ],
-        (l.opacity / 100) * 0.7,
-        (l.opacity / 100) * 0.35,
-      ])
+      map.setPaintProperty(`${l.id}-fill`, 'fill-opacity', vectorFillOpacity(l.opacity))
       map.setPaintProperty(`${l.id}-outline`, 'line-opacity', l.opacity / 100)
     }
     if (map.getLayer(`${l.id}-circle`)) {
@@ -383,6 +388,17 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   // init effect, where the draw instance and the commit handler live, and
   // called by the coordinate form in the draw toolbar.
   const commitCoordinatesRef = useRef<((feature: GeoJSON.Feature) => void) | null>(null)
+  // Selection teardown, assigned inside the map init effect where the draw
+  // instance lives, for the "Limpar" and "Início" effects below. The first
+  // clears the highlight and the spotlight only; the second also empties the
+  // results panel, like a click on empty map.
+  const clearSelectedFeatureRef = useRef<(() => void) | null>(null)
+  const dismissFeatureSelectionRef = useRef<(() => void) | null>(null)
+  // Camera fit to a selected recorte. Requested from the init effect and run
+  // by an effect, so the padding comes from the render in which the results
+  // panel opened for that selection, not from the offsets before it.
+  const [fitRequest, setFitRequest] = useState<{ bbox: [number, number, number, number] } | null>(null)
+  const panelInsetsRef = useRef({ leftEdge, rightOffset })
   const [mapReady, setMapReady] = useState(false)
   // Draw toolbar visibility. It starts closed; the pencil in the control
   // cluster opens and closes it, and the results hint names that pencil. On a
@@ -494,6 +510,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         })
       }
 
+      // Empty until a recorte is selected; the z-order sync lifts it above the
+      // user layers as they are added.
+      addSpotlightLayers(map)
+
       // mapbox-gl-draw setup with MapLibre-compatible styles + custom
       // rectangle mode. Default mode is 'simple_select' (the library's
       // built-in idle mode); 'static' is NOT a default mode in v1.5.
@@ -516,7 +536,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       drawRef.current = draw
 
       // Clear the persistent "selected" feature-state used by the
-      // click-to-stats flow. Does NOT touch the ResultsSidebar content -
+      // click-to-stats flow, and the spotlight around it. Does NOT touch the
+      // ResultsSidebar content -
       // callers decide whether to clear the store's measurements too. Declared
       // before `handleDrawCommit`, which the saved-drawing restore below calls
       // while this closure is still running.
@@ -526,7 +547,26 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           map.setFeatureState(sel, { selected: false })
           selectedFeatureRef.current = null
         }
+        clearSpotlight(map)
       }
+      clearSelectedFeatureRef.current = clearSelectedFeature
+
+      // Drops a recorte selection and the results it filled, as a click on
+      // empty map does. A drawing is left alone: it is committed user work,
+      // cleared through "Limpar".
+      const dismissFeatureSelection = () => {
+        const hasDrawing = draw.getAll().features.length > 0
+        if (hasDrawing || !selectedFeatureRef.current) return
+        bumpAnalysisSeq()
+        clearSelectedFeature()
+        setSelectedGeometry(null)
+        setDrawnArea(null)
+        setDrawnLength(null)
+        clearResults()
+        setAnalysisLabel(null)
+        setAnalysisKind(null)
+      }
+      dismissFeatureSelectionRef.current = dismissFeatureSelection
 
       // Unified handler for create/update, computes measurements and raster
       // stats / pixel value for the first (and only) feature currently in
@@ -733,12 +773,19 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       // it too: picking a feature in the search behaves exactly as if the user
       // had clicked it. `properties` and `fallbackGeometry` come from the
       // rendered feature on a click, and from the source GeoJSON on a search,
-      // which has no rendered feature and so passes no fallback.
+      // which has no rendered feature and so passes no fallback. `fit` brings
+      // the camera to the feature; a click on the feature already selected
+      // leaves it where the user took it. The search's own bbox stands in for
+      // the camera when the complete geometry cannot be read.
       const runFeatureAnalysis = async (
         vector: VectorLayerConfig,
         featureId: number | string | undefined,
         properties: GeoJSON.GeoJsonProperties,
-        fallbackGeometry?: GeoJSON.Geometry,
+        { fallbackGeometry, fallbackBbox, fit }: {
+          fallbackGeometry?: GeoJSON.Geometry
+          fallbackBbox?: [number, number, number, number]
+          fit: boolean
+        },
       ) => {
         // A new selection invalidates any in-flight stats response.
         const seq = bumpAnalysisSeq()
@@ -775,7 +822,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // has already replaced.
         setSelectedGeometry(null)
 
-        // Persistently highlight the selected feature (same visual as hover).
+        // Persistently mark the selected feature. The spotlight around it waits
+        // for the complete geometry below.
         clearSelectedFeature()
         if (featureId !== undefined && featureId !== null) {
           selectedFeatureRef.current = {
@@ -804,13 +852,20 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // A click falls back to the rendered geometry when the source lookup
         // fails; a search has no rendered feature, so there is nothing to
         // measure and the zoom + highlight stand on their own.
-        if (!geom) return
+        if (!geom) {
+          if (fit && fallbackBbox) setFitRequest({ bbox: fallbackBbox })
+          return
+        }
 
         // The feature's own size replaces the drawing's in the panel, whether
         // or not there is anything to measure over it.
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
           setDrawnArea(turfArea({ type: 'Feature', geometry: geom, properties: {} }) / 1_000_000)
+          showSpotlight(map, geom)
         }
+        // After setDrawnArea, which is what opens the results panel: the fit
+        // effect then frames the feature in the map the panel leaves free.
+        if (fit) setFitRequest({ bbox: computeBbox(geom) })
 
         // A recorte below the rasters names and highlights its feature and
         // stops there. Installing the selection would not merely measure once:
@@ -861,20 +916,16 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         setAnalysisKind(null)
         selectedFeatureRef.current = { source: layerId, id: featureId }
         map.setFeatureState({ source: layerId, id: featureId }, { selected: true })
-        map.fitBounds(bbox as maplibregl.LngLatBoundsLike, {
-          padding: 60,
-          maxZoom: 13,
-        })
 
         // Analyse the searched feature as if the user had clicked it. The
         // properties come from the source GeoJSON rather than from a rendered
-        // tile, so this does not have to wait for fitBounds to settle. With no
-        // raster visible there is nothing to measure, and the zoom + highlight
-        // above are the whole outcome, exactly like a click.
+        // tile. With no raster visible there is nothing to measure, and the
+        // zoom + spotlight are the whole outcome, exactly like a click. The
+        // camera always moves: picking a result is a request to go there.
         void (async () => {
           const source = await loadVectorFeatureCollection(layer.url)
           const properties = source?.features?.[featureId]?.properties ?? null
-          await runFeatureAnalysis(layer, featureId, properties)
+          await runFeatureAnalysis(layer, featureId, properties, { fallbackBbox: bbox, fit: true })
         })()
       }
 
@@ -958,26 +1009,14 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           // highlight *only* if the current content came from a vector
           // selection (not from a drawing tool). Drawings are explicitly
           // cleared via the "Limpar" button in the drawing toolbar.
-          const hasDrawing = draw.getAll().features.length > 0
-          if (!hasDrawing && selectedFeatureRef.current) {
-            bumpAnalysisSeq()
-            clearSelectedFeature()
-            setSelectedGeometry(null)
-            setDrawnArea(null)
-            setDrawnLength(null)
-            clearResults()
-            setAnalysisLabel(null)
-            setAnalysisKind(null)
-          }
+          dismissFeatureSelection()
           return
         }
 
-        await runFeatureAnalysis(
-          hit.vector,
-          hit.feature.id,
-          hit.feature.properties,
-          hit.feature.geometry,
-        )
+        await runFeatureAnalysis(hit.vector, hit.feature.id, hit.feature.properties, {
+          fallbackGeometry: hit.feature.geometry,
+          fit: !isSameFeature(selectedFeatureRef.current, { source: hit.vector.id, id: hit.feature.id }),
+        })
       })
 
       setMapReady(true)
@@ -1056,7 +1095,9 @@ useEffect(() => {
       }
     }
 
-    // Keep mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
+    // The selection spotlight dims every user layer, so it goes above them,
+    // and mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
+    raiseSpotlight(map)
     const style = map.getStyle()
     for (const l of style?.layers ?? []) {
       if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
@@ -1197,12 +1238,35 @@ useEffect(() => {
     }
   }, [layers, mapReady])
 
-  // Back to the biome view when the sidebar resets the layers.
+  // Back to the biome view when the sidebar resets the layers. A reset, so a
+  // recorte selection goes too: its spotlight would dim the biome the camera
+  // is flying back to.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady || homeSignal === 0) return
+    dismissFeatureSelectionRef.current?.()
     map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom })
   }, [homeSignal, mapReady])
+
+  // Latest panel offsets for the fit below. Declared before it, so within one
+  // commit the fit reads the offsets of that same render.
+  useEffect(() => {
+    panelInsetsRef.current = { leftEdge, rightOffset }
+  }, [leftEdge, rightOffset])
+
+  // Brings the camera to a selected recorte, framed in the map the panels
+  // leave free. Keyed on the request alone: opening or collapsing a panel later
+  // must not pull the camera back to the feature.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !fitRequest) return
+    const { leftEdge: left, rightOffset: right } = panelInsetsRef.current
+    const canvas = map.getContainer()
+    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, {
+      padding: spotlightPadding(canvas.clientWidth, canvas.clientHeight, left, right),
+      maxZoom: 13,
+    })
+  }, [fitRequest, mapReady])
 
   // Swap temporal tile URLs when date changes
   useEffect(() => {
@@ -1307,6 +1371,9 @@ useEffect(() => {
     // handler that does bump the sequence never fires on this path.
     bumpAnalysisSeq()
     drawRef.current?.deleteAll()
+    // clearDrawings has emptied the selection in the store; the highlight and
+    // the spotlight on the map are this side's to clear.
+    clearSelectedFeatureRef.current?.()
   }, [clearSignal])
 
   // Swap basemap (raster XYZ) without touching user layers
