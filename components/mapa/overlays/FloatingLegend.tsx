@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type Ref } from 'react'
 import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
@@ -11,9 +11,11 @@ interface Props {
   theme: PlatformTheme
   /** right offset (px), matches the control cluster (396 open / 14 closed). */
   rightOffset: number
+  /** Root box, open or collapsed; MapView measures it to keep a fit clear of it. */
+  ref?: Ref<HTMLDivElement>
 }
 
-export default function FloatingLegend({ theme, rightOffset }: Props) {
+export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)
   const [collapsed, setCollapsed] = useState(false)
 
@@ -26,7 +28,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
   // Collapsed: small button
   if (collapsed) {
     return (
-      <div style={{ position: 'absolute', bottom: 14, right: rightOffset, zIndex: 10, transition: 'right .3s' }}>
+      <div ref={ref} style={{ position: 'absolute', bottom: 14, right: rightOffset, zIndex: 10, transition: 'right .3s' }}>
         <button
           className="ui-press"
           onClick={() => setCollapsed(false)}
@@ -56,6 +58,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
 
   return (
     <div
+      ref={ref}
       style={{
         position: 'absolute',
         bottom: 14,

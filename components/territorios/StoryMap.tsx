@@ -23,7 +23,7 @@ import {
   type Legend,
   type TileRequest,
 } from '@/lib/territorios/mapStyle'
-import { outsideMask } from '@/lib/territorios/outsideMask'
+import { outsideMask } from '@/lib/outsideMask'
 import type { StepId, TerritoryPayload, ThemeId } from '@/types/territorios'
 
 export type LandUseYear = (typeof LAND_USE_YEARS)[number]
