@@ -115,17 +115,23 @@
 
 .languageOption {
   padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
   color: var(--bg-texto-primario);
+  cursor: pointer;
 }
 
-.languageOptionActive {
+.languageOption:hover,
+.languageOption:focus-visible {
+  background: var(--am-100);
+}
+
+.languageOptionActive,
+.languageOptionActive:hover,
+.languageOptionActive:focus-visible {
   background: var(--role-categorica1-padrao);
   color: var(--role-primario-texto-sobre);
-}
-
-.language [aria-disabled="true"] {
-  color: var(--role-neutro-texto-desabilitado);
-  cursor: not-allowed;
 }
 
 .sessionButton {

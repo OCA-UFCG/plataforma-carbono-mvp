@@ -65,31 +65,43 @@ function SessionAction({ className }: { className?: string }) {
   );
 }
 
-// The PT-BR / En control from the Figma design (I18862:8515;16825:136014),
-// rendered as designed but inert: internationalisation is out of scope, so
-// selecting "En" does nothing. --role-neutro-texto-desabilitado is the token
-// for that disabled state; it measures 2.50:1 against the background, which
-// WCAG allows for an inactive control but not for informative text, so it is
-// used only here. `aria-disabled` is documentation for the next developer,
-// not something assistive tech consumes — the <span> has no role (it maps
-// to `generic`, which does not support `aria-disabled`), so without the
-// visually-hidden suffix below it would announce as plain "En", giving no
-// indication it does nothing. `title` is not announced on a non-focusable
-// element and does not exist on touch, so it is decorative only.
-function LanguageSwitch({ className }: { className?: string }) {
+type Language = "pt-BR" | "en";
+
+const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
+  { value: "pt-BR", label: "PT-BR" },
+  { value: "en", label: "En" },
+];
+
+// The PT-BR / En control from the Figma design (I18862:8515;16825:136014).
+// Both options are buttons that only move the active state for now: no text on
+// the site is translated yet. The selected value lives in SiteHeader, so the
+// desktop and the mobile-panel instances stay in sync.
+function LanguageSwitch({
+  className,
+  value,
+  onChange,
+}: {
+  className?: string;
+  value: Language;
+  onChange: (language: Language) => void;
+}) {
   return (
     <div className={className} role="group" aria-label="Idioma">
-      <span className={`${styles.languageOption} ${styles.languageOptionActive} text-subtle-semibold`}>
-        PT-BR
-      </span>
-      <span
-        className={`${styles.languageOption} text-subtle-semibold`}
-        aria-disabled="true"
-        title="Disponível em breve"
-      >
-        En
-        <span className="sr-only"> (disponível em breve)</span>
-      </span>
+      {LANGUAGE_OPTIONS.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={`${styles.languageOption}${active ? ` ${styles.languageOptionActive}` : ""} text-subtle-semibold`}
+            aria-pressed={active}
+            lang={option.value}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -99,6 +111,7 @@ function LanguageSwitch({ className }: { className?: string }) {
 // "inicio" id on its own <section>.
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [language, setLanguage] = useState<Language>("pt-BR");
   const activeHref = activeNavHref(usePathname());
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
@@ -174,7 +187,7 @@ export default function SiteHeader() {
         </nav>
 
         <div className={styles.actions}>
-          <LanguageSwitch className={styles.language} />
+          <LanguageSwitch className={styles.language} value={language} onChange={setLanguage} />
           <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
 
           <button
@@ -216,7 +229,7 @@ export default function SiteHeader() {
           </a>
         </nav>
         <div className={styles.panelActions}>
-          <LanguageSwitch className={styles.language} />
+          <LanguageSwitch className={styles.language} value={language} onChange={setLanguage} />
           <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
         </div>
       </div>
