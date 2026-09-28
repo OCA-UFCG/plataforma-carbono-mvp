@@ -330,11 +330,17 @@ async function recurrence(
   // (Campina Grande: 1.863 of 59.299 ha carry a value). Left masked, the
   // never-burned area vanishes from the denominator and a first fire vanishes
   // from the year-on-year difference, so both counts are filled with zero.
-  const count = buildEeImage(ee, asset, `${year}-01-01`).unmask(0)
+  const current = buildEeImage(ee, asset, `${year}-01-01`)
+  const count = current.unmask(0)
   const previous = year > profile.firstYear
     ? buildEeImage(ee, asset, `${year - 1}-01-01`).unmask(0)
     : ee.Image.constant(0)
-  const key = count.multiply(2).add(count.gt(previous)).toInt()
+  // The key is built on the native grid. Past it, Earth Engine would read the
+  // counts from the asset's mean pyramid: a coarse pixel only partly burned
+  // keeps a fractional mask that unmask(0) leaves alone, and its whole area
+  // lands in a burned key (the biome at 120 m read 17,6% ever burned instead
+  // of 12,8%). Reprojected, each coarse pixel takes the key of one real pixel.
+  const key = count.multiply(2).add(count.gt(previous)).toInt().reproject(current.projection())
 
   const raw = await evaluate<Groups<'k'>>(groupedHa(key, 'k', scale, false))
   const byCount = countsFromGroups(raw.groups ?? [])
