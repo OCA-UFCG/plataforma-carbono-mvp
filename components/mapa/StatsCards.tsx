@@ -8,54 +8,32 @@
 
 import type { PlatformTheme } from '@/types/mapa'
 
-// Error card (stats request failed)
+// Error (stats request failed): a sentence in the result's own body style.
 
-export function ErrorCard({ message }: { message: string }) {
+export function ErrorCard({ theme, message }: { theme: PlatformTheme; message: string }) {
   return (
-    <div
-      style={{
-        background: '#fee2e2',
-        border: '1px solid #fecaca',
-        borderRadius: 8,
-        padding: '10px 12px',
-        marginBottom: 8,
-        fontFamily: "var(--font-raleway), sans-serif",
-        fontSize: 13.5,
-        color: '#b91c1c',
-        lineHeight: 1.4,
-      }}
-    >
+    <p role="alert" style={{ margin: 0, fontSize: 14.5, lineHeight: 1.4, color: theme.colors.body }}>
       {message}
-    </div>
+    </p>
   )
 }
 
-// Skeleton loader (animated placeholder while stats are loading)
+// Skeleton (while stats are loading), shaped like a result: the headline, the
+// box of secondary figures and the bars.
 
 export function SkeletonChart({ theme }: { theme: PlatformTheme }) {
+  const c = theme.colors
+  const bar = (width: string, height: number) => (
+    <div className="skeleton-shimmer" style={{ width, height, borderRadius: 6, background: c.chip }} />
+  )
   return (
-    <CardBox title="Carregando..." theme={theme}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        {[60, 80, 45, 70, 55].map((width, i) => (
-          <div
-            key={i}
-            className="skeleton-shimmer"
-            style={{
-              height: 10,
-              width: `${width}%`,
-              borderRadius: 3,
-              background: theme.colors.bgCard,
-            }}
-          />
-        ))}
+    <div role="status" aria-label="Carregando resultado" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {bar('70%', 56)}
+      <div style={{ height: 76, border: `1px solid ${c.border}`, borderRadius: 12, background: c.bgCard }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {[80, 60, 40].map((w) => <div key={w}>{bar(`${w}%`, 10)}</div>)}
       </div>
-    </CardBox>
+    </div>
   )
 }
 

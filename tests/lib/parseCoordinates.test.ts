@@ -337,7 +337,7 @@ describe('buildCoordinateRectangle', () => {
 
   it('labels the feature as a rectangle', () => {
     const feature = buildCoordinateRectangle([-36, -8], [-35, -7])
-    expect(feature?.properties?.ccLabel).toBe('retângulo')
+    expect(feature?.properties?.ccLabel).toBe('Retângulo')
   })
 })
 
@@ -371,7 +371,7 @@ describe('buildCoordinatePolygon', () => {
       [-35, -7],
       [-35, -8],
     ])
-    expect(feature?.properties?.ccLabel).toBe('polígono · 3 vértices')
+    expect(feature?.properties?.ccLabel).toBe('Polígono de 3 vértices')
   })
 
   it('marks the feature as coming from typed coordinates', () => {

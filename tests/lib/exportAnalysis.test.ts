@@ -4,6 +4,7 @@ import {
   type AnalysisSnapshot,
   type LayerSnapshot,
 } from '@/lib/mapa/exportAnalysis'
+import { RESULT_PROFILES } from '@/config/mapa/resultProfiles'
 
 const layer = (over: Partial<LayerSnapshot> = {}): LayerSnapshot => ({
   layerName: 'Carbono Orgânico do Solo (0-30 cm)',
@@ -134,7 +135,7 @@ describe('buildAnalysisCsv', () => {
     expect(csv).toContain('# Recorte: Município - Petrolina')
     expect(csv).toContain('# Ano: 2023')
     expect(csv).toContain('# Gerado em: 2026-08-24')
-    expect(csv).toContain('# Fonte: Estatística zonal, Google Earth Engine')
+    expect(csv).not.toContain('Earth Engine')
   })
 
   it('omits metadata lines that have no value instead of writing empty ones', () => {
@@ -159,8 +160,8 @@ describe('buildAnalysisCsv', () => {
     expect(csv).toContain('Área analisada;12,48;km²')
     expect(csv).toContain('Área analisada;1248;ha')
     expect(csv).toContain('Comprimento;3,2;km')
-    expect(csv).toContain('Valor do pixel;38,25;t C/ha')
-    expect(csv).toContain('Classe do pixel;Formação Florestal;')
+    expect(csv).toContain('Valor no ponto;38,25;t C/ha')
+    expect(csv).toContain('Classe no ponto;Formação Florestal;')
   })
 
   it('quotes values carrying the delimiter so the columns do not shift', () => {
@@ -238,7 +239,7 @@ describe('buildAnalysisCsv', () => {
       })],
     })
 
-    expect(csv).toContain('Valor do pixel;-45,2;Mg CO2e/ha')
+    expect(csv).toContain('Valor no ponto;-45,2;Mg CO2e/ha')
     expect(csv).toContain('Mínimo;-95,5;Mg CO2e/ha')
     expect(csv).toContain('Média;-12,25;Mg CO2e/ha')
   })
@@ -295,5 +296,98 @@ describe('buildAnalysisCsv', () => {
     })
 
     expect(filename).toBe('caativar_2-camadas_petrolina_2026-08-24.csv')
+  })
+  // A sum of per-hectare values is not a total of anything.
+  it('leaves the pixel sum out of the continuous table', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layers: [layer({
+        layerUnit: 't C/ha',
+        stats: { kind: 'continuous', stats: { min: 1, max: 3, mean: 2, sum: 4800, count: 2400 } },
+      })],
+    })
+
+    expect(csv).not.toContain('Soma')
+  })
+
+  it('names each layer\'s data source without its grid resolution', () => {
+    const { csv } = buildAnalysisCsv({ ...base, layers: [layer({ source: 'GEDI L4B, 1 km' })] })
+
+    expect(csv).toContain('# Fonte: GEDI L4B')
+    expect(csv).not.toContain('1 km')
+  })
+
+  it('writes a density total with its carbon share and the density bands', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layers: [layer({
+        layerName: 'Biomassa Aérea (GEDI L4B)',
+        layerUnit: 'Mg/ha',
+        profile: RESULT_PROFILES.biomassa_gedi,
+        stats: {
+          kind: 'amount', total: 10_000, validHa: 500, zeroHa: 20, scaleM: 1000,
+          bins: [{ from: 0, to: 10, areaHa: 120 }, { from: 90, to: null, areaHa: 5 }],
+        },
+      })],
+    })
+
+    expect(csv).toContain('Biomassa aérea;10000;t')
+    expect(csv).toContain('Carbono;4700;t C')
+    expect(csv).toContain('Média por hectare;20;t/ha')
+    expect(csv).toContain('0;10;t/ha;120')
+    expect(csv).toContain('90;;t/ha;5')
+    expect(csv).not.toContain('Escala')
+  })
+
+  it('splits a net flux into its signed parts, in the gas unit of the layer', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layers: [layer({
+        layerUnit: 'Mg CO2e/ha',
+        signedFlux: true,
+        profile: RESULT_PROFILES.gfw_netflux,
+        stats: {
+          kind: 'flux', positive: 214_950, negative: -676_582,
+          positiveHa: 940.95, negativeHa: 7026.47, validHa: 7967.42, scaleM: 30,
+        },
+      })],
+    })
+
+    expect(csv).toContain('Total;-461632;t CO2e')
+    expect(csv).toContain('Soma dos valores negativos;-676582;t CO2e')
+    expect(csv).toContain('Área com valor negativo;7026,47;ha')
+  })
+
+  it('writes fire recurrence as area per number of years with fire', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layers: [layer({
+        stats: {
+          kind: 'recurrence', year: 2023, regionHa: 100, scaleM: 30,
+          byCount: [
+            { count: 0, areaHa: 80, burnedInYearHa: 0 },
+            { count: 1, areaHa: 12, burnedInYearHa: 2 },
+            { count: 6, areaHa: 8, burnedInYearHa: 1 },
+          ],
+        },
+      })],
+    })
+
+    expect(csv).toContain('anos_com_fogo;area_ha;queimou_em_2023_ha')
+    expect(csv).toContain('1;12;2')
+    expect(csv).toContain('Total;100;3')
+  })
+
+  it('writes a yearly point series of a MODIS productivity layer in the unit the panel shows', () => {
+    const { csv } = buildAnalysisCsv({
+      ...base,
+      layers: [layer({
+        layerUnit: 'kg*C/m²/8day',
+        profile: RESULT_PROFILES.gpp_modis,
+        stats: { kind: 'timeseries', series: [{ date: '2023-01-01', value: 1669.1 }] },
+      })],
+    })
+
+    expect(csv).toContain('2023;1669,1;g C/m²/ano')
   })
 })

@@ -177,7 +177,7 @@ export async function runLayerAnalysis(
         ...base,
         status: 'error',
         error: !layer.gee?.temporal
-          ? 'Falha ao obter o valor do pixel. Tente novamente.'
+          ? 'Falha ao obter o valor no ponto. Tente novamente.'
           : 'Falha ao calcular estatísticas. Tente novamente.',
       })
       return
@@ -204,7 +204,7 @@ export async function runLayerAnalysis(
       ...base,
       status: 'error',
       error: pointValue
-        ? 'Falha ao obter o valor do pixel. Tente novamente.'
+        ? 'Falha ao obter o valor no ponto. Tente novamente.'
         : 'Falha ao calcular estatísticas. Tente novamente.',
     })
   }

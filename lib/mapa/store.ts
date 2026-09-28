@@ -5,7 +5,7 @@ import type {
   LayerResult,
   PixelValueResult,
   RasterLayerConfig,
-  RasterStatsResult,
+  PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
 import appConfig from '@/config/mapa/layers.json'
@@ -94,7 +94,7 @@ interface MapaStore {
 
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
-  statsCache: Record<string, RasterStatsResult>
+  statsCache: Record<string, PanelResult>
   pixelCache: Record<string, PixelValueResult | null>
 
   toggleLayer:   (id: string) => void

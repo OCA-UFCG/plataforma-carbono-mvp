@@ -19,15 +19,21 @@ import { isAllowedAsset } from '@/lib/mapa/geeAllowlist'
 import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { anosDoIntervalo, computeSeries, MAX_ANOS } from '@/lib/mapa/zonalSeries'
+import { getResultLayer } from '@/lib/mapa/resultsRegistry'
+import { physicalAsset } from '@/lib/mapa/layerResult'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 interface ReqBody {
-  asset:     GeeAssetConfig
+  asset?:    GeeAssetConfig
   lon:       number
   lat:       number
-  dateRange: [string, string]  // ["1985-01-01", "2024-01-01"]
+  dateRange?: [string, string]  // ["1985-01-01", "2024-01-01"]
+  // A layer with a result profile (config/mapa/resultProfiles.ts) needs only
+  // its id: the asset and the years come from layers.json, and the MODIS
+  // productivity layers come back in the physical unit the results panel shows.
+  layerId?:  string
 }
 
 export async function POST(req: Request) {
@@ -51,16 +57,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  if (!isValidAsset(body.asset)) {
-    return NextResponse.json({ error: 'asset is required' }, { status: 400 })
-  }
-  if (!isAllowedAsset(body.asset)) {
-    return NextResponse.json({ error: 'asset not allowed' }, { status: 403 })
-  }
   if (!isValidLonLat(body.lon, body.lat)) {
     return NextResponse.json({ error: 'lon/lat must be finite and within range' }, { status: 400 })
   }
-  const anos = anosDoIntervalo(body.dateRange)
+
+  const entry = typeof body.layerId === 'string' ? getResultLayer(body.layerId) : null
+  let asset: GeeAssetConfig
+  let anos: number[] | null
+  if (entry) {
+    const temporal = entry.layer.gee?.temporal
+    if (!temporal) {
+      return NextResponse.json({ error: 'layer has no yearly series' }, { status: 400 })
+    }
+    asset = physicalAsset(entry.asset, entry.profile)
+    anos = anosDoIntervalo(temporal.dateRange)
+  } else {
+    if (!isValidAsset(body.asset)) {
+      return NextResponse.json({ error: 'asset is required' }, { status: 400 })
+    }
+    if (!isAllowedAsset(body.asset)) {
+      return NextResponse.json({ error: 'asset not allowed' }, { status: 403 })
+    }
+    asset = body.asset
+    anos = anosDoIntervalo(body.dateRange)
+  }
   if (!anos) {
     return NextResponse.json(
       { error: `dateRange must be two ISO dates spanning at most ${MAX_ANOS} years` },
@@ -79,7 +99,7 @@ export async function POST(req: Request) {
 
   try {
     const series = await computeSeries(ee, {
-      asset: body.asset,
+      asset,
       anos,
       region: { kind: 'point', lon: body.lon, lat: body.lat },
     })

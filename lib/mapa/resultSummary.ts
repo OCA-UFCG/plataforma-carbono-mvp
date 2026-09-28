@@ -6,6 +6,8 @@
 // here and this is the part of the card that can be checked directly.
 
 import { classShares } from '@/lib/mapa/classShares'
+import { getResultProfile } from '@/config/mapa/resultProfiles'
+import { profiledSummary } from '@/lib/mapa/results/headline'
 import { numero } from '@/lib/mapa/format'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
 
@@ -21,12 +23,17 @@ export function resultSummary(
 
   if (result.pixelValue) {
     const { value, label } = result.pixelValue
-    const shown = `${numero(value, 2)}${suffix(layer.unit)}`
-    return label ? `${shown} · ${label}` : shown
+    // A class code means nothing to the reader: the class name stands alone.
+    return label ?? `${numero(value, 2)}${suffix(layer.unit)}`
   }
 
   const stats = result.stats
   if (!stats) return null
+
+  // A layer with a result profile answers with its own headline number.
+  const profile = getResultProfile(layer.id)
+  const profiled = profile ? profiledSummary(layer, profile, stats) : null
+  if (profiled) return profiled
 
   switch (stats.kind) {
     case 'continuous':
@@ -51,5 +58,8 @@ export function resultSummary(
 
     case 'stocks':
       return `total ${numero(stats.report.totalTc, 0)} ${stats.report.unit}`
+
+    default:
+      return null
   }
 }

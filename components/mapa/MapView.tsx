@@ -557,7 +557,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // which comes back as a bare GeoJSON feature -- keeps its chip.
         const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
         setAnalysisLabel(typed ? (feature.properties?.ccLabel ?? null) : null)
-        setAnalysisKind(typed ? 'Coordenadas' : 'Área desenhada')
+        const drawnKind = feature.geometry.type === 'Point' ? 'Ponto desenhado'
+          : feature.geometry.type === 'LineString' ? 'Linha desenhada'
+            : 'Área desenhada'
+        setAnalysisKind(typed ? 'Coordenadas' : drawnKind)
         clearSelectedFeature()
         setSelectedGeometry(null)
 
@@ -790,7 +793,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         setAnalysisLabel(
           featureName != null && featureName !== '' ? String(featureName) : vector.name,
         )
-        setAnalysisKind(vector.name)
+        // Singular, as the header's eyebrow over the feature name ("Município").
+        setAnalysisKind(vector.unitName ?? vector.name)
 
         // Use the COMPLETE geometry from the source GeoJSON, not the
         // tile-clipped one from queryRenderedFeatures, so area and zonal

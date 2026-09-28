@@ -263,7 +263,7 @@ export function buildCoordinateRectangle(
         [minLon, minLat],
       ]],
     },
-    properties: coordinateProperties('retângulo'),
+    properties: coordinateProperties('Retângulo'),
   }
 }
 
@@ -284,7 +284,7 @@ export function buildCoordinatePolygon(
       type: 'Polygon',
       coordinates: [[...vertices.map(([lon, lat]) => [lon, lat]), [...vertices[0]]]],
     },
-    properties: coordinateProperties(`polígono · ${vertices.length} vértices`),
+    properties: coordinateProperties(`Polígono de ${vertices.length} vértices`),
   }
 }
 
