@@ -213,10 +213,13 @@ export const useStore = create<MapaStore>((set, get) => ({
   },
 
   // A vector layer needs no fetch to turn on, so a plain visibility flip is
-  // enough; rasters only go off here.
+  // enough; rasters only go off here. Every loading mark goes too, as in
+  // clearThematicLayers, or a GEE raster still being fetched would light up
+  // once its tile arrives.
   showOnlyMunicipios: () => {
     set((s) => ({
       layers: s.layers.map((l) => ({ ...l, visible: l.id === 'municipios' })),
+      loadingLayers: {},
       homeSignal: s.homeSignal + 1,
     }))
   },
@@ -363,8 +366,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       }
 
       // 4. Success: cache URL, flip visible, clear loading. A missing loading
-      //    mark means clearThematicLayers ran while the request was in flight:
-      //    the tile is kept, but the layer stays off.
+      //    mark means clearThematicLayers or showOnlyMunicipios ran while the
+      //    request was in flight: the tile is kept, but the layer stays off.
       const stillWanted = !!get().loadingLayers[id]
       if (temporal && temporalDate) {
         // Temporal: cache under date key, set initial date
