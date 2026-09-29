@@ -290,7 +290,7 @@ functions, and those are tested first.
   - `relatedPublicacoes` excludes the current publication, keeps the order and caps at 5.
 - **Date:** `formatPublicationDate` maps `2025-05-14` and `2025-05-14T00:00:00.000Z` to `14/05/25`
   (never `13/05/25`). Empty or invalid input gives `null`.
-- **`lib/marketing/pdfZoom.ts`:** the next step up and down, from on-step and off-step values, and
+- **`lib/marketing/pdfViewerControls.ts`:** the next step up and down, from on-step and off-step values, and
   the ends.
 - **`parsePageInput`:** `"10"` of 20 gives 10; `"0"`, `"21"`, `"abc"` and `""` give `null`.
 - **`tests/scripts/contentfulProvision.test.ts`:** the three new fields are provisioned and
@@ -342,7 +342,7 @@ which would drop the whole Comunicação content to the shipped fallback. The or
 **New**
 - `app/(marketing)/comunicacao/[slug]/page.tsx`
 - `components/marketing/conteudo/{ConteudoHeader,BackButton,PdfViewerLoader,PdfViewer,ConteudoSemPdf,RelatedContent}.tsx` and their `.module.css`
-- `lib/marketing/pdfZoom.ts` (zoom steps and `parsePageInput`)
+- `lib/marketing/pdfViewerControls.ts` (zoom steps and `parsePageInput`)
 - `public/icons/conteudo/*.svg`
 
 **Changed**
