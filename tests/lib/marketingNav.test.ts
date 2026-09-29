@@ -2,6 +2,8 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { MAPA_URL } from '@/lib/config'
+import ptSubnav from '@/translations/pt/SobreSubnav.json'
+import enSubnav from '@/translations/en/SobreSubnav.json'
 import {
   FOOTER_LINKS,
   HEADER_LINKS,
@@ -100,6 +102,19 @@ describe('marketing nav registry', () => {
       'Entenda essa relação',
       'Como funciona',
     ])
+  })
+
+  // `label` is the Portuguese text; the sub-navigation renders the translation
+  // under `key`, which the Portuguese file must repeat word for word.
+  it('backs every Sobre page with a label in every language', () => {
+    for (const { SobreSubnav } of [ptSubnav, enSubnav]) {
+      for (const page of SOBRE_PAGES) {
+        expect(SobreSubnav.pages[page.key], page.key).toBeTruthy()
+      }
+    }
+    for (const page of SOBRE_PAGES) {
+      expect(ptSubnav.SobreSubnav.pages[page.key]).toBe(page.label)
+    }
   })
 })
 

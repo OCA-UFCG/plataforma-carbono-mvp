@@ -1,0 +1,32 @@
+{
+  "Destaques": {
+    "ariaLabel": "Highlights",
+    "label": "Highlights",
+    "items": {
+      "population": {
+        "label": "Biome population",
+        "value": "26",
+        "unit": "million",
+        "text": "people live in the biome."
+      },
+      "removal": {
+        "label": "Carbon removal",
+        "value": "48",
+        "unit": "%",
+        "text": "of Brazil's gross carbon removal in 2022, while covering about 10% of the territory."
+      },
+      "efficiency": {
+        "label": "Carbon efficiency",
+        "value": "60",
+        "unit": "%",
+        "text": "carbon-use efficiency, one of the highest in Brazil and in the world."
+      },
+      "capacity": {
+        "label": "Removal capacity",
+        "value": "1.5–5",
+        "unit": "t CO₂/ha/yr",
+        "text": "of carbon removal capacity."
+      }
+    }
+  }
+}

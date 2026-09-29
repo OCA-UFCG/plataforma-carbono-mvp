@@ -1,5 +1,12 @@
+import { useTranslations } from "next-intl";
 import type { Publicacao } from "@/lib/content/comunicacao";
 import styles from "./PublicationCard.module.css";
+
+// The type as lib/content/comunicacao.ts spells it -> its key in the translations.
+const TIPOS: Record<Publicacao["tipo"], "notebook" | "booklet"> = {
+  "Caderno temático": "notebook",
+  Cartilha: "booklet",
+};
 
 // One publication of the Comunicação page, Figma component instances
 // 18978:2075–2079 (hover 18988:10598): the cover art in a bordered frame, a
@@ -8,8 +15,11 @@ import styles from "./PublicationCard.module.css";
 // The cover shows the publication's cover ART (`cover`), unlike the landing's
 // Comunicação cards, which use photographs (see FOTOS in Comunicacao.tsx):
 // here the design frames the covers themselves, portrait. Its alt is empty
-// because the art restates the title, which is right below it in text.
+// because the art restates the title, which is right below it in text. The
+// type label and the badge are UI text, translated here; the title comes from
+// Contentful and is shown as delivered.
 export default function PublicationCard({ publicacao }: { publicacao: Publicacao }) {
+  const t = useTranslations("ComunicacaoPagePublicationCard");
   const { key, tipo, title, cover, pdf } = publicacao;
   const titleId = `publicacao-${key}-title`;
   const tipoId = `publicacao-${key}-tipo`;
@@ -23,12 +33,12 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
         {/* The badge promises a file to open, so only a card with a PDF has it. */}
         {pdf && (
           <span id={pdfId} className={styles.pdfBadge}>
-            PDF
+            {t("pdfBadge")}
           </span>
         )}
       </div>
       <span id={tipoId} className={styles.tipo}>
-        {tipo}
+        {t(`types.${TIPOS[tipo]}`)}
       </span>
       <h3 id={titleId} className={styles.title}>
         {title}

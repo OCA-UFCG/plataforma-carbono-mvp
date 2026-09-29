@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { ABAS_PLATAFORMA } from '@/lib/content/plataforma'
+import pt from '@/translations/pt/Plataforma.json'
+import en from '@/translations/en/Plataforma.json'
 
 describe('plataforma tabs', () => {
   it('declares the four tabs the design shows', () => {
-    expect(ABAS_PLATAFORMA.map((a) => a.label)).toEqual([
+    expect(ABAS_PLATAFORMA.map((a) => pt.Plataforma.tabs[a.key].label)).toEqual([
       'O que é a CaatiVAR?',
       'A Caatinga',
       'Carbono e comunidades',
@@ -11,11 +13,19 @@ describe('plataforma tabs', () => {
     ])
   })
 
-  it('gives every tab its content, titled after the tab', () => {
+  it('gives every tab its copy in every language, titled after the tab', () => {
+    for (const { Plataforma } of [pt, en]) {
+      for (const aba of ABAS_PLATAFORMA) {
+        const tab = Plataforma.tabs[aba.key]
+        expect(Object.keys(tab).sort(), aba.id).toEqual(['body', 'highlight', 'imageAlt', 'label', 'title'])
+        expect(tab.title, aba.id).toBe(tab.label)
+      }
+    }
+  })
+
+  it('points every tab at its image', () => {
     for (const aba of ABAS_PLATAFORMA) {
-      expect(aba.conteudo, aba.id).not.toBeNull()
-      expect(aba.conteudo?.titulo).toBe(aba.label)
-      expect(aba.conteudo?.imagem).toMatch(/^\/images\/plataforma\/[a-z0-9-]+\.webp$/)
+      expect(aba.imagem).toMatch(/^\/images\/plataforma\/[a-z0-9-]+\.webp$/)
     }
   })
 

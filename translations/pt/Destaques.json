@@ -1,0 +1,32 @@
+{
+  "Destaques": {
+    "ariaLabel": "Destaques",
+    "label": "Destaques",
+    "items": {
+      "population": {
+        "label": "População do bioma",
+        "value": "26",
+        "unit": "milhões",
+        "text": "de pessoas vivem no bioma."
+      },
+      "removal": {
+        "label": "Remoção de carbono",
+        "value": "48",
+        "unit": "%",
+        "text": "da remoção bruta de carbono do Brasil em 2022, ocupando cerca de 10% do território."
+      },
+      "efficiency": {
+        "label": "Eficiência de carbono",
+        "value": "60",
+        "unit": "%",
+        "text": "de eficiência no uso do carbono, uma das maiores do Brasil e do mundo."
+      },
+      "capacity": {
+        "label": "Capacidade de remoção",
+        "value": "1,5–5",
+        "unit": "t CO₂/ha/ano",
+        "text": "de capacidade de remoção de carbono."
+      }
+    }
+  }
+}

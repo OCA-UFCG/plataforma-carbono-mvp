@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import type { Locale } from "@/i18n/config";
-import { useLocale } from "@/i18n/useLocale";
+import type { Locale } from "@/translations/config";
+import { useLocaleSwitch } from "@/translations/useLocaleSwitch";
 import { HEADER_LINKS, MAPA_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
@@ -40,6 +41,7 @@ const MOBILE_PANEL_ID = "site-header-mobile-panel";
 // then Firebase client state), with the same try/finally discipline so a failed
 // fetch still clears client state.
 function SessionAction({ className }: { className?: string }) {
+  const t = useTranslations("SiteHeader");
   const [pending, setPending] = useState(false);
 
   async function handleSignOut() {
@@ -62,41 +64,40 @@ function SessionAction({ className }: { className?: string }) {
       onClick={() => void handleSignOut()}
       disabled={pending}
     >
-      Sair
+      {t("signOut")}
     </button>
   );
 }
 
-const LANGUAGE_OPTIONS: { value: Locale; label: string }[] = [
-  { value: "pt-BR", label: "PT-BR" },
-  { value: "en", label: "En" },
+// Endonyms: each language names itself, so the labels are not translated.
+const LANGUAGE_OPTIONS: { value: Locale; label: string; lang: string }[] = [
+  { value: "pt", label: "PT-BR", lang: "pt-BR" },
+  { value: "en", label: "En", lang: "en" },
 ];
 
 // The PT-BR / En control from the Figma design (I18862:8515;16825:136014).
-// Both options are buttons that only record the choice for now (cookie, via
-// useLocale): no text on the site is translated yet. The value is read once in
-// SiteHeader, so the desktop and the mobile-panel instances stay in sync.
-function LanguageSwitch({
-  className,
-  value,
-  onChange,
-}: {
-  className?: string;
-  value: Locale;
-  onChange: (locale: Locale) => void;
-}) {
+// Choosing a language stores it in the NEXT_LOCALE cookie (server action), then
+// refreshes the route so the server components re-render in that language;
+// client state, like an open mobile panel, survives the refresh. Both
+// instances (desktop and mobile panel) read the same active locale, so they
+// stay in sync without sharing state.
+function LanguageSwitch({ className }: { className?: string }) {
+  const t = useTranslations("SiteHeader");
+  const { active, pending, choose } = useLocaleSwitch();
+
   return (
-    <div className={className} role="group" aria-label="Idioma">
+    <div className={className} role="group" aria-label={t("languageSwitch")}>
       {LANGUAGE_OPTIONS.map((option) => {
-        const active = option.value === value;
+        const isActive = option.value === active;
         return (
           <button
             key={option.value}
             type="button"
-            className={`${styles.languageOption}${active ? ` ${styles.languageOptionActive}` : ""} text-subtle-semibold`}
-            aria-pressed={active}
-            lang={option.value}
-            onClick={() => onChange(option.value)}
+            className={`${styles.languageOption}${isActive ? ` ${styles.languageOptionActive}` : ""} text-subtle-semibold`}
+            aria-pressed={isActive}
+            lang={option.lang}
+            disabled={pending}
+            onClick={() => choose(option.value)}
           >
             {option.label}
           </button>
@@ -111,7 +112,7 @@ function LanguageSwitch({
 // "inicio" id on its own <section>.
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const [language, setLanguage] = useLocale();
+  const t = useTranslations("SiteHeader");
   const activeHref = activeNavHref(usePathname());
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
@@ -146,9 +147,9 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header className={styles.siteHeader} aria-label="Cabeçalho">
+    <header className={styles.siteHeader} aria-label={t("ariaLabel")}>
       <div className={`container ${styles.bar}`}>
-        <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
+        <Link href="/" className={styles.brand} aria-label={t("homeAria")}>
           {/* The Figma node (I18862:8515;18808:5505) is an empty placeholder
               box labelled "logo", not a real exported mark; reusing the
               institutional logo already committed at public/logos/logo_oca.png,
@@ -163,7 +164,7 @@ export default function SiteHeader() {
           <span className={`${styles.brandName} text-p-ui`}>Caativar</span>
         </Link>
 
-        <nav className={styles.nav} aria-label="Navegação principal">
+        <nav className={styles.nav} aria-label={t("mainNav")}>
           {HEADER_LINKS.map((link) => {
             // The entry that owns the current route (activeNavHref): "Início"
             // on the landing, "Sobre a plataforma" on every /sobre/* page, as
@@ -176,18 +177,18 @@ export default function SiteHeader() {
                 className={`${styles.navLink} text-body${active ? ` ${styles.navLinkActive}` : ""}`}
                 aria-current={active ? "page" : undefined}
               >
-                {link.label}
+                {t(`nav.${link.key}`)}
               </Link>
             );
           })}
           {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
           <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-body`}>
-            {MAPA_LINK.label}
+            {t(`nav.${MAPA_LINK.key}`)}
           </a>
         </nav>
 
         <div className={styles.actions}>
-          <LanguageSwitch className={styles.language} value={language} onChange={setLanguage} />
+          <LanguageSwitch className={styles.language} />
           <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
 
           <button
@@ -195,7 +196,7 @@ export default function SiteHeader() {
             className={styles.toggle}
             aria-expanded={open}
             aria-controls={MOBILE_PANEL_ID}
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            aria-label={open ? t("closeMenu") : t("openMenu")}
             onClick={() => setOpen((value) => !value)}
           >
             {open ? <FaXmark aria-hidden /> : <FaBars aria-hidden />}
@@ -208,7 +209,7 @@ export default function SiteHeader() {
           nav stacked vertically, adapted to this header's own three links
           instead of that component's unrelated example content. */}
       <div id={MOBILE_PANEL_ID} className={styles.panel} hidden={!open}>
-        <nav className={styles.panelNav} aria-label="Navegação móvel">
+        <nav className={styles.panelNav} aria-label={t("mobileNav")}>
           {HEADER_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -217,7 +218,7 @@ export default function SiteHeader() {
               aria-current={link.href === activeHref ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
-              {link.label}
+              {t(`nav.${link.key}`)}
             </Link>
           ))}
           <a
@@ -225,11 +226,11 @@ export default function SiteHeader() {
             className={`${styles.panelMapaButton} text-body`}
             onClick={() => setOpen(false)}
           >
-            {MAPA_LINK.label}
+            {t(`nav.${MAPA_LINK.key}`)}
           </a>
         </nav>
         <div className={styles.panelActions}>
-          <LanguageSwitch className={styles.language} value={language} onChange={setLanguage} />
+          <LanguageSwitch className={styles.language} />
           <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
         </div>
       </div>

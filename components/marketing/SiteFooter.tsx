@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FOOTER_LINKS } from "@/lib/marketing/nav";
 import styles from "./SiteFooter.module.css";
 
@@ -32,8 +33,10 @@ const PARTNERS = [
 // what tests/lib/marketingNav.test.ts inspects, the same contract SiteHeader
 // follows for <header>.
 export default function SiteFooter() {
+  const t = useTranslations("SiteFooter");
+
   return (
-    <footer className={styles.siteFooter} aria-label="Rodapé">
+    <footer className={styles.siteFooter} aria-label={t("ariaLabel")}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.column}>
           <div className={styles.brand}>
@@ -56,20 +59,20 @@ export default function SiteFooter() {
               `role="listitem"` restore the implicit list semantics that
               `list-style: none` on `.navList` (SiteFooter.module.css) strips
               from <ul>/<li> in most browsers. */}
-          <nav aria-label="Navegação do rodapé">
+          <nav aria-label={t("navLabel")}>
             <ul className={styles.navList} role="list">
               {FOOTER_LINKS.map((link) =>
                 link.external ? (
                   // MAPA_LINK crosses a route group: a full page load, not next/link.
                   <li key={link.href} role="listitem">
                     <a href={link.href} className={`${styles.navLink} text-body`}>
-                      {link.label}
+                      {t(`nav.${link.key}`)}
                     </a>
                   </li>
                 ) : (
                   <li key={link.href} role="listitem">
                     <Link href={link.href} className={`${styles.navLink} text-body`}>
-                      {link.label}
+                      {t(`nav.${link.key}`)}
                     </Link>
                   </li>
                 ),
@@ -79,7 +82,7 @@ export default function SiteFooter() {
         </div>
 
         <div className={styles.column}>
-          <h2 className={`${styles.heading} text-subtle-semibold`}>Parceiros e apoio</h2>
+          <h2 className={`${styles.heading} text-subtle-semibold`}>{t("partners")}</h2>
           <div className={styles.logos}>
             {/* External partner marks, not part of the app's own optimized asset
                 pipeline; explicit width/height avoids the intrinsic-size blowup
@@ -102,7 +105,7 @@ export default function SiteFooter() {
         </div>
 
         <div className={styles.column}>
-          <h2 className={`${styles.heading} text-subtle-semibold`}>CONTATO</h2>
+          <h2 className={`${styles.heading} text-subtle-semibold`}>{t("contact")}</h2>
           {/* The Figma copy ("E-mail (ex.: contato@Caativar.gov.br)") is
               placeholder text on a domain this project does not own, and no
               real contact address turned up in README.md, DOCUMENTACAO.md or

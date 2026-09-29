@@ -1,0 +1,18 @@
+{
+  "SiteHeader": {
+    "ariaLabel": "Cabeçalho",
+    "homeAria": "Página inicial da Caativar",
+    "mainNav": "Navegação principal",
+    "mobileNav": "Navegação móvel",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "signOut": "Sair",
+    "languageSwitch": "Idioma",
+    "nav": {
+      "home": "Início",
+      "about": "Sobre a plataforma",
+      "communication": "Comunicação",
+      "maps": "Mapas"
+    }
+  }
+}

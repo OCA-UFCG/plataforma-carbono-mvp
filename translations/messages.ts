@@ -9,7 +9,26 @@ import type { Locale } from './config'
 // derived from it. tests/i18n/messages.test.ts fails if a JSON file exists
 // that is not listed here, or the locales drift apart.
 export const NAMESPACES = [
+  'Comunicacao',
+  'ComunicacaoPage',
+  'ComunicacaoPageMetadata',
+  'ComunicacaoPagePublicacoes',
+  'ComunicacaoPagePublicationCard',
+  'Destaques',
+  'Ferramenta',
+  'Hero',
   'Metadata',
+  'MoreLink',
+  'Plataforma',
+  'SiteFooter',
+  'SiteHeader',
+  'SobreCaatingaPage',
+  'SobreCarbonoComunidadesPage',
+  'SobreComoFuncionaPage',
+  'SobreIntro',
+  'SobreMetadata',
+  'SobrePlataformaPage',
+  'SobreSubnav',
 ] as const
 
 async function loadNamespace(locale: Locale, namespace: string): Promise<Record<string, unknown>> {

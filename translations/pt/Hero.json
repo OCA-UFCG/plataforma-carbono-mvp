@@ -1,0 +1,14 @@
+{
+  "Hero": {
+    "ariaLabel": "Apresentação",
+    "eyebrow": "Mercado de Carbono na Caatinga",
+    "title": "Dados abertos e mapas para entender o carbono do bioma e decidir com mais segurança",
+    "lead": "Informação aberta para que comunidades e gestores avaliem projetos de carbono e negociem em condições mais justas.",
+    "openMaps": "Abrir os mapas",
+    "viewMaterials": "Ver materiais",
+    "photoPicker": "Selecionar foto de fundo",
+    "photoAlt": "Foto {number} da Caatinga",
+    "showPhoto": "Mostrar {alt}",
+    "credit": "Foto: {name}"
+  }
+}

@@ -6,6 +6,10 @@ import { MAPA_URL } from '@/lib/config'
 // checks that every route has a page file and that SECTION_IDS matches the ids
 // the landing's section components actually render.
 export type NavLink = {
+  // Looks the label up in the translations (SiteHeader.nav.<key>,
+  // SiteFooter.nav.<key>). `label` is the Portuguese text, kept for the pages
+  // that are not translated yet.
+  key: 'home' | 'about' | 'communication' | 'maps'
   href: string
   label: string
   external: boolean
@@ -23,32 +27,39 @@ export const SECTION_IDS: readonly string[] = [
 ]
 
 // The map lives in another route group, so it is a full page load, not a <Link>.
-export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Mapas', external: true }
+export const MAPA_LINK: NavLink = { key: 'maps', href: MAPA_URL, label: 'Mapas', external: true }
 
 // Header labels from Figma node 18988:8612. "Sobre a plataforma" replaces the
 // landing-era "Conheça a plataforma" now that it opens a page of its own.
 export const HEADER_LINKS: NavLink[] = [
-  { href: '/', label: 'Início', external: false },
-  { href: '/sobre', label: 'Sobre a plataforma', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { key: 'home', href: '/', label: 'Início', external: false },
+  { key: 'about', href: '/sobre', label: 'Sobre a plataforma', external: false },
+  { key: 'communication', href: '/comunicacao', label: 'Comunicação', external: false },
 ]
 
 export const FOOTER_LINKS: NavLink[] = [
-  { href: '/', label: 'Home', external: false },
-  { href: '/sobre', label: 'Sobre', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { key: 'home', href: '/', label: 'Home', external: false },
+  { key: 'about', href: '/sobre', label: 'Sobre', external: false },
+  { key: 'communication', href: '/comunicacao', label: 'Comunicação', external: false },
   MAPA_LINK,
 ]
 
 // The four "Sobre" pages, in the order of their sub-navigation (Figma node
 // 18988:8635). Each href must have a page under app/(marketing)/.
-export type SobrePage = { slug: string; href: string; label: string }
+// `key` looks the label up in the translations (SobreSubnav.pages.<key>);
+// `label` is the Portuguese text.
+export type SobrePage = {
+  key: 'platform' | 'caatinga' | 'relation' | 'howItWorks'
+  slug: string
+  href: string
+  label: string
+}
 
 export const SOBRE_PAGES: SobrePage[] = [
-  { slug: 'plataforma', href: '/sobre', label: 'Conheça a plataforma' },
-  { slug: 'caatinga', href: '/sobre/caatinga', label: 'Conheça a Caatinga' },
-  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades', label: 'Entenda essa relação' },
-  { slug: 'como-funciona', href: '/sobre/como-funciona', label: 'Como funciona' },
+  { key: 'platform', slug: 'plataforma', href: '/sobre', label: 'Conheça a plataforma' },
+  { key: 'caatinga', slug: 'caatinga', href: '/sobre/caatinga', label: 'Conheça a Caatinga' },
+  { key: 'relation', slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades', label: 'Entenda essa relação' },
+  { key: 'howItWorks', slug: 'como-funciona', href: '/sobre/como-funciona', label: 'Como funciona' },
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the

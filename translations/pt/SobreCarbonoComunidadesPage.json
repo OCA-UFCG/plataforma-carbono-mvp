@@ -1,0 +1,80 @@
+{
+  "SobreCarbonoComunidadesPage": {
+    "before": {
+      "title": "Antes de participar de um projeto",
+      "p1": "Os territórios da Caatinga são espaços de vida, trabalho e produção. Neles, agricultores familiares, povos indígenas, comunidades quilombolas, assentamentos e outros povos e comunidades tradicionais conservam a vegetação, manejam os recursos naturais e acumulam conhecimentos sobre a convivência com o Semiárido.",
+      "p2": "A chegada do mercado de carbono a esses territórios pode gerar novas fontes de renda, mas também envolve decisões sobre a terra, o uso dos recursos naturais e a distribuição dos benefícios e dos riscos.",
+      "highlight": "Quem conserva o território deve participar das decisões e dos benefícios."
+    },
+    "income": {
+      "title": "Como o carbono pode gerar renda?",
+      "p1": "Projetos de carbono podem remunerar atividades que reduzam emissões ou retirem carbono da atmosfera, como a conservação da vegetação e a recuperação de áreas degradadas.",
+      "p2": "Essa renda, porém, não é automática nem garantida. Ela depende da quantidade de carbono reconhecida, das regras adotadas, dos custos de certificação, do preço dos créditos e dos acordos estabelecidos entre comunidades, proprietários, empresas e outros participantes.",
+      "p3": "Por isso, os recursos do mercado de carbono devem ser entendidos como uma fonte complementar de renda, e não como substitutos das políticas públicas de conservação, produção de alimentos e desenvolvimento dos territórios."
+    },
+    "landRights": {
+      "title": "Por que o direito sobre a terra importa?",
+      "imageAlt": "Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul",
+      "p1": "Para desenvolver um projeto de carbono, é necessário saber quem possui direitos sobre a área, quem utiliza seus recursos e quem será afetado pelas atividades propostas.",
+      "p2": "Em territórios com conflitos ou insegurança sobre a posse da terra, um projeto pode ampliar disputas existentes. Também pode favorecer agentes com maior capacidade financeira e jurídica, enquanto comunidades e pequenos proprietários enfrentam mais dificuldades para participar.",
+      "p3": "Reconhecer os direitos territoriais é, portanto, uma condição essencial para que os projetos não aprofundem desigualdades. A expansão de usinas eólicas e solares na Caatinga mostra o risco: benefícios concentrados em poucos agentes e custos ambientais e sociais distribuídos para as comunidades, com contratos de arrendamento de longa duração e prejuízos à agricultura familiar."
+    },
+    "law": {
+      "title": "O que a lei já garante?",
+      "p1": "A Lei nº 15.042/2024, que criou o mercado regulado de carbono no Brasil, reconhece que os créditos gerados em terras indígenas, em territórios de povos e comunidades tradicionais e em lotes de assentamentos pertencem a essas populações.",
+      "p2": "Para povos indígenas e comunidades tradicionais, os projetos dependem de consulta livre, prévia e informada, e a lei assegura a essas populações no mínimo 50% dos créditos em projetos de remoção e 70% em projetos de redução do desmatamento. Para os assentados, a lei reconhece a titularidade, mas não fixa esses percentuais mínimos nem exige a consulta.",
+      "guarantees": {
+        "removal": {
+          "label": "créditos de remoção",
+          "value": "mín. 50%"
+        },
+        "deforestation": {
+          "label": "redução do desmatamento",
+          "value": "mín. 70%"
+        }
+      },
+      "closing": "Essas garantias são importantes, mas não eliminam as diferenças de informação, capacidade técnica e poder de negociação entre comunidades e empresas. Na prática, dependem de assessoria independente, contratos transparentes e possibilidade real de recusa."
+    },
+    "decisions": {
+      "title": "Quem decide sobre os projetos?",
+      "p1": "Os povos e as comunidades devem participar desde o início, antes que as principais decisões sejam tomadas. Para isso, precisam ter acesso a informações claras sobre o funcionamento do projeto, sua duração, os resultados esperados, os riscos e as responsabilidades assumidas.",
+      "p2": "A participação deve incluir tempo adequado para discussão, apoio técnico e jurídico independente e liberdade para aceitar, propor mudanças ou recusar o projeto.",
+      "p3": "Participar não é apenas ser informado: é poder influenciar a decisão."
+    },
+    "benefits": {
+      "title": "Como os benefícios devem ser repartidos?",
+      "p1": "A repartição de benefícios deve ser definida de forma transparente e construída com as pessoas envolvidas. Os acordos precisam indicar quem receberá os recursos, como os valores serão distribuídos e quais responsabilidades caberão a cada participante.",
+      "p2": "Também é necessário considerar quem já conservava o território antes do projeto. As regras do mercado costumam pagar apenas por resultados \"adicionais\", o que pode excluir ou desvalorizar comunidades que protegem a vegetação há décadas. Da mesma forma, exigências de permanência podem transferir às famílias a responsabilidade por incêndios, secas e outros eventos fora de seu controle.",
+      "p3": "Uma repartição justa não pode se limitar a pagamentos pontuais. Deve reconhecer o trabalho, os conhecimentos e a contribuição das populações para a conservação do território."
+    },
+    "cautions": {
+      "title": "Quais cuidados devem ser observados?",
+      "introduction": "Um projeto de carbono não deve:",
+      "items": {
+        "c1": "Restringir os modos de vida e de produção das comunidades",
+        "c2": "Transferir riscos desproporcionais para as famílias",
+        "c3": "Retirar das populações o controle sobre seus dados e territórios",
+        "c4": "Impor contratos de longa duração sem compreensão de suas consequências",
+        "c5": "Concentrar os recursos em empresas e intermediários",
+        "c6": "Desconsiderar atividades como a agricultura familiar e a produção de alimentos",
+        "c7": "Substituir políticas públicas de conservação, combate à desertificação e desenvolvimento dos territórios"
+      },
+      "closing": "Para ser considerado íntegro, o projeto precisa produzir benefícios reais para o clima e respeitar os direitos, as decisões e as formas de organização das populações envolvidas."
+    },
+    "questions": {
+      "title": "Antes de participar de um projeto",
+      "introduction": "É importante saber:",
+      "items": {
+        "funder": "Quem propõe e quem financia o projeto?",
+        "rights": "Quem possui direitos sobre a terra e sobre os créditos?",
+        "duration": "Por quanto tempo o contrato será válido?",
+        "sharing": "Como os benefícios serão calculados e repartidos?",
+        "costs": "Quem assumirá os custos e os riscos?",
+        "activities": "Quais atividades poderão ser realizadas no território?",
+        "monitoring": "Como será feito o monitoramento e quem controlará os dados?",
+        "refusal": "O que acontece se a comunidade decidir não participar?"
+      }
+    },
+    "closing": "Compreender essas questões ajuda comunidades, gestores e demais interessados a avaliar se um projeto contribui para a conservação da Caatinga e para o bem-estar de quem vive em seus territórios. Em caso de dúvida, procure apoio de organizações do território, da assistência técnica, de universidades ou da Defensoria Pública antes de assinar qualquer acordo."
+  }
+}

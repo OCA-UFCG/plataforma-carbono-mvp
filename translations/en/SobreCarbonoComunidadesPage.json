@@ -1,0 +1,80 @@
+{
+  "SobreCarbonoComunidadesPage": {
+    "before": {
+      "title": "Before taking part in a project",
+      "p1": "The territories of the Caatinga are spaces of life, work and production. In them, family farmers, Indigenous peoples, quilombola communities, settlements and other traditional peoples and communities conserve the vegetation, manage natural resources and build up knowledge about living with the Semi-arid region.",
+      "p2": "The arrival of the carbon market in these territories may create new sources of income, but it also involves decisions about the land, the use of natural resources and the distribution of benefits and risks.",
+      "highlight": "Those who conserve the territory must take part in the decisions and in the benefits."
+    },
+    "income": {
+      "title": "How can carbon generate income?",
+      "p1": "Carbon projects can pay for activities that reduce emissions or remove carbon from the atmosphere, such as conserving vegetation and restoring degraded areas.",
+      "p2": "This income, however, is neither automatic nor guaranteed. It depends on the amount of carbon recognized, the rules adopted, certification costs, the price of the credits and the agreements made between communities, landowners, companies and other participants.",
+      "p3": "For this reason, carbon market revenue should be understood as a complementary source of income, not as a substitute for public policies on conservation, food production and the development of the territories."
+    },
+    "landRights": {
+      "title": "Why do land rights matter?",
+      "imageAlt": "A calm lake at the foot of a rocky hill covered in Caatinga vegetation, under a blue sky",
+      "p1": "To develop a carbon project, it is necessary to know who holds rights over the area, who uses its resources and who will be affected by the proposed activities.",
+      "p2": "In territories with conflicts or insecurity over land tenure, a project can widen existing disputes. It can also favor agents with greater financial and legal capacity, while communities and small landowners face more difficulty taking part.",
+      "p3": "Recognizing territorial rights is therefore an essential condition for projects not to deepen inequalities. The expansion of wind and solar plants in the Caatinga shows the risk: benefits concentrated in a few agents and environmental and social costs passed on to communities, with long-term lease contracts and harm to family farming."
+    },
+    "law": {
+      "title": "What does the law already guarantee?",
+      "p1": "Law No. 15,042/2024, which created the regulated carbon market in Brazil, recognizes that credits generated on Indigenous lands, in the territories of traditional peoples and communities and on settlement plots belong to those populations.",
+      "p2": "For Indigenous peoples and traditional communities, projects depend on free, prior and informed consultation, and the law guarantees these populations at least 50% of the credits in removal projects and 70% in deforestation reduction projects. For settlers, the law recognizes ownership but neither sets these minimum percentages nor requires consultation.",
+      "guarantees": {
+        "removal": {
+          "label": "removal credits",
+          "value": "min. 50%"
+        },
+        "deforestation": {
+          "label": "deforestation reduction",
+          "value": "min. 70%"
+        }
+      },
+      "closing": "These guarantees are important, but they do not eliminate the differences in information, technical capacity and bargaining power between communities and companies. In practice, they depend on independent advice, transparent contracts and a real possibility of refusal."
+    },
+    "decisions": {
+      "title": "Who decides about the projects?",
+      "p1": "Peoples and communities must take part from the start, before the main decisions are made. To do so, they need access to clear information about how the project works, how long it lasts, the expected results, the risks and the responsibilities assumed.",
+      "p2": "Participation must include adequate time for discussion, independent technical and legal support, and the freedom to accept, propose changes or refuse the project.",
+      "p3": "Taking part is not just being informed: it is being able to influence the decision."
+    },
+    "benefits": {
+      "title": "How should benefits be shared?",
+      "p1": "Benefit sharing must be defined transparently and built together with the people involved. Agreements need to state who will receive the funds, how the amounts will be distributed and what responsibilities each participant will have.",
+      "p2": "It is also necessary to consider who was already conserving the territory before the project. Market rules usually pay only for \"additional\" results, which can exclude or undervalue communities that have protected the vegetation for decades. Likewise, permanence requirements can shift to families the responsibility for fires, droughts and other events beyond their control.",
+      "p3": "A fair distribution cannot be limited to one-off payments. It must recognize the work, the knowledge and the contribution of the populations to the conservation of the territory."
+    },
+    "cautions": {
+      "title": "What precautions should be taken?",
+      "introduction": "A carbon project must not:",
+      "items": {
+        "c1": "Restrict the communities' ways of life and production",
+        "c2": "Shift disproportionate risks onto families",
+        "c3": "Take away the populations' control over their data and territories",
+        "c4": "Impose long-term contracts without understanding their consequences",
+        "c5": "Concentrate the funds in companies and intermediaries",
+        "c6": "Disregard activities such as family farming and food production",
+        "c7": "Replace public policies for conservation, combating desertification and developing the territories"
+      },
+      "closing": "To be considered sound, the project must produce real benefits for the climate and respect the rights, decisions and forms of organization of the populations involved."
+    },
+    "questions": {
+      "title": "Before taking part in a project",
+      "introduction": "It is important to know:",
+      "items": {
+        "funder": "Who proposes and who funds the project?",
+        "rights": "Who holds rights over the land and over the credits?",
+        "duration": "How long will the contract be valid?",
+        "sharing": "How will the benefits be calculated and shared?",
+        "costs": "Who will bear the costs and the risks?",
+        "activities": "What activities will be allowed in the territory?",
+        "monitoring": "How will monitoring be done and who will control the data?",
+        "refusal": "What happens if the community decides not to take part?"
+      }
+    },
+    "closing": "Understanding these questions helps communities, managers and other stakeholders assess whether a project contributes to the conservation of the Caatinga and to the well-being of those who live in its territories. If in doubt, seek support from organizations in the territory, technical assistance services, universities or the Public Defender's Office before signing any agreement."
+  }
+}

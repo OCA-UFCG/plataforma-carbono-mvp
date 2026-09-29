@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { ComunicacaoContent } from "@/lib/content/comunicacao";
 import MoreLink from "./MoreLink";
 import styles from "./Comunicacao.module.css";
@@ -31,11 +32,14 @@ const FOTOS: Record<string, string> = {
 
 // The hover state (Figma 18916:9437) reveals a description under the title.
 // The caderno carries one in the content model; cartilhas do not, so the
-// cartilha card falls back to the design's own copy, which describes the
-// series rather than any one volume. When the Cartilha model gains a
-// description field, read it here instead.
-const DESCRICAO_CARTILHA =
-  "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.";
+// cartilha card falls back to the design's own copy (Comunicacao.json,
+// booklet.description), which describes the series rather than any one
+// volume. When the Cartilha model gains a description field, read it here
+// instead.
+//
+// The publications' own titles and the caderno's description come from
+// Contentful or lib/content/comunicacao.ts, in Portuguese only: they are not
+// translated, so under "en" the labels around them are English and they are not.
 
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
 // gutter (card component 18862:7951, hover state 18916:9437). Hovering a
@@ -49,6 +53,7 @@ const DESCRICAO_CARTILHA =
 // (labelled "CARTILHA"). The header row's "Ver mais" opens the Comunicação
 // page, which lists every publication.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
+  const t = useTranslations("Comunicacao");
   const [primeiraCartilha] = conteudo.cartilhas;
 
   // Known content discrepancy, left for the content owner rather than
@@ -60,7 +65,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
   const cards: CardData[] = [
     {
       key: "caderno",
-      label: "CADERNO TEMÁTICO",
+      label: t("notebookLabel"),
       title: conteudo.caderno.title,
       description: conteudo.caderno.description,
       // Falls back to the publication's cover art if the photograph is ever removed.
@@ -71,9 +76,9 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       ? [
           {
             key: "cartilha",
-            label: "CARTILHA",
+            label: t("booklet.label"),
             title: primeiraCartilha.title,
-            description: DESCRICAO_CARTILHA,
+            description: t("booklet.description"),
             cover: FOTOS.cartilha ?? primeiraCartilha.cover,
             pdf: primeiraCartilha.pdf,
           },
@@ -82,13 +87,13 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
   ];
 
   return (
-    <section id="comunicacao" className={styles.comunicacao} aria-label="Comunicação">
+    <section id="comunicacao" className={styles.comunicacao} aria-label={t("ariaLabel")}>
       <div className={`container ${styles.inner}`}>
         {/* Heading left, "Ver mais" right — the 40px header row of Figma node
             18862:8576. */}
         <div className={styles.headerRow}>
-          <h2 className={`${styles.heading} text-h2`}>Comunicação</h2>
-          <MoreLink href="/comunicacao" contexto="materiais de comunicação" />
+          <h2 className={`${styles.heading} text-h2`}>{t("heading")}</h2>
+          <MoreLink href="/comunicacao" contexto={t("moreContext")} />
         </div>
 
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
@@ -108,6 +113,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
 // extractor (tests/lib/marketingNav.test.ts) sees exactly one wrapper tag —
 // <section id="comunicacao"> — per this file.
 function ComunicacaoCard({ card }: { card: CardData }) {
+  const t = useTranslations("Comunicacao");
   const titleId = `comunicacao-${card.key}-title`;
   const descriptionId = `comunicacao-${card.key}-description`;
   const linked = Boolean(card.pdf);
@@ -146,7 +152,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
                 The card without a PDF is not a control, so it gets none. */}
             {linked && (
               <span className={`${styles.cta} text-body`} aria-hidden="true">
-                Ver material
+                {t("viewMaterial")}
               </span>
             )}
           </div>

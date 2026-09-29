@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FaAngleRight } from "react-icons/fa6";
 import styles from "./MoreLink.module.css";
 
 type MoreLinkProps = {
   // The internal page the section opens.
   href: string;
-  // Read after "Ver mais" by assistive tech only, so the landing's two "Ver
+  // Already translated by the caller. Read after "Ver mais" by assistive tech only, so the landing's two "Ver
   // mais" links do not share one name in a screen reader's list of links
   // ("Ver mais sobre a plataforma", "Ver mais materiais de comunicação").
   // Appended, not replacing the visible text, so the accessible name still
@@ -20,9 +21,11 @@ type MoreLinkProps = {
 // exactly — note that differs from the hero and map buttons, which the design
 // binds to --role-marca-ancora-hover.
 export default function MoreLink({ href, contexto }: MoreLinkProps) {
+  const t = useTranslations("MoreLink");
+
   return (
     <Link href={href} className={`${styles.moreLink} text-body`}>
-      Ver mais
+      {t("label")}
       <span className="sr-only"> {contexto}</span>
       <FaAngleRight aria-hidden className={styles.icon} />
     </Link>

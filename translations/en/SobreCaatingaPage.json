@@ -1,0 +1,81 @@
+{
+  "SobreCaatingaPage": {
+    "opening": {
+      "p1": "The Caatinga is home to the largest and most diverse Seasonally Dry Tropical Forest in the world. It covers about 10% of the national territory and features landscapes, species and ways of life adapted to the conditions of the semi-arid climate.",
+      "p2": "More than a natural environment, the Caatinga is an inhabited territory. Its towns and communities bring together different ways of living, producing and coping with the rainy and dry seasons."
+    },
+    "vegetation": {
+      "title": "How does the vegetation work?",
+      "blocks": {
+        "b1": {
+          "l1": "The Caatinga's vegetation follows the rhythm of the rains. During the dry season, many plants shed their leaves to reduce water loss. This behavior is part of their natural adaptation to the climate."
+        },
+        "b2": {
+          "l1": "When the rain returns, new leaves appear quickly and photosynthesis resumes. In this period, the exchange of water, energy and carbon between the vegetation and the atmosphere increases.",
+          "l2": "That is why the landscape can change a lot over the year: dry tones give way to green just a few days after the first rains."
+        }
+      },
+      "highlight": "The Caatinga changes with the seasons, but it stays alive and productive."
+    },
+    "climate": {
+      "title": "Why does the Caatinga matter for the climate?",
+      "before": "Through photosynthesis, the vegetation removes carbon dioxide from the atmosphere and stores part of that carbon in the plants and in the soil.",
+      "indicator": {
+        "label": "GHG removal",
+        "value": "410 Mt",
+        "description": "removed in 2022 — about 40% of the removals carried out by Brazilian biomes that year, more than any other biome"
+      },
+      "after": "Even though it covers roughly 10% of the national territory, the Caatinga made a significant contribution to the country's carbon balance."
+    },
+    "efficiency": {
+      "title": "What is carbon use efficiency?",
+      "before": "Not all the carbon taken from the atmosphere stays stored in the vegetation. Part of it returns to the environment through the respiration of plants and of the ecosystem.",
+      "indicator": {
+        "label": "Carbon efficiency",
+        "value": "60%",
+        "description": "indicates how much of the captured carbon is converted and kept in the biomass — one of the highest values among the ecosystems of Brazil and the world"
+      },
+      "after": "This helps explain why the biome plays such an important role in carbon removal, especially during the rainy periods."
+    },
+    "storage": {
+      "title": "Where is the carbon stored?",
+      "before": "In the Caatinga, carbon is not only in the trunks, branches and leaves. An important share stays stored in the roots and in the soil.",
+      "indicators": {
+        "density": {
+          "label": "Storage",
+          "value": "125tC/ha",
+          "description": "in areas of denser vegetation, with the largest share held in the soil"
+        },
+        "capacity": {
+          "label": "Removal capacity",
+          "value": "1.5–5tCO₂/ha/yr",
+          "description": "depending on vegetation density, physiognomy and rainfall regime"
+        }
+      },
+      "after": {
+        "p1": "Dense Caatinga stores more carbon than pastures and conventional agriculture, and some agroecological production systems can accumulate carbon at a pace even higher than that of native vegetation.",
+        "p2": "Knowing where carbon is stored is essential to understand the Caatinga's contribution to the climate and to track its changes over time."
+      }
+    },
+    "people": {
+      "title": "A biome of nature and people",
+      "imageAlt": "A rural community house in the Caatinga, with a packed-earth yard and vegetation around it",
+      "paragraphs": {
+        "p1": "The Caatinga is home to towns of different sizes and a broad network of rural communities. Family farmers, Indigenous peoples, quilombola communities, agrarian reform settlements, fundo e fecho de pasto communities and other traditional peoples and communities have developed knowledge and practices for living with the Semi-arid region.",
+        "p2": "These are the people who manage the crop fields, the productive backyards and the areas of native vegetation. Any discussion about carbon in the biome is also a discussion about these territories and about who sustains them"
+      }
+    },
+    "pressure": {
+      "title": "A biome under pressure",
+      "before": "Despite its capacity to absorb and retain carbon, the Caatinga faces an ongoing process of degradation. Between 2001 and 2021, conserved areas shrank in every land tenure category, with larger losses in settlements and small properties. Between 2000 and 2020, the area affected by severe desertification grew from 74 thousand to 107 thousand km², more than the territory of Pernambuco.",
+      "comparison": {
+        "title": "In severe desertification",
+        "beforeYear": "2000",
+        "beforeValue": "74 thousand km²",
+        "afterYear": "2020",
+        "afterValue": "107 thousand km²"
+      },
+      "after": "Indigenous and quilombola territories, settlements and small properties hold a relevant share of the standing vegetation and, at the same time, are among the most exposed to degradation and land tenure insecurity. That is why the way the carbon market treats these territories will define whether it rewards those who conserved the biome or deepens inequalities."
+    }
+  }
+}

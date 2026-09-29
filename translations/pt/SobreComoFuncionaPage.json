@@ -1,0 +1,87 @@
+{
+  "SobreComoFuncionaPage": {
+    "steps": {
+      "findArea": {
+        "title": "Encontre a área de interesse",
+        "p1": "Busque um município ou estado pelo nome ou ative no mapa os limites territoriais que deseja visualizar. A plataforma apresenta os limites da Caatinga, estados, municípios, terras indígenas, territórios quilombolas e assentamentos.",
+        "p2": "Também é possível marcar ou delimitar locais no mapa usando pontos, linhas, retângulos, polígonos ou coordenadas."
+      },
+      "chooseInfo": {
+        "title": "Escolha as informações",
+        "p1": "As informações estão organizadas em quatro grupos:",
+        "groups": {
+          "territory": {
+            "label": "Território",
+            "items": {
+              "i1": "limites da Caatinga",
+              "i2": "estados",
+              "i3": "municípios",
+              "i4": "terras indígenas",
+              "i5": "territórios quilombolas",
+              "i6": "assentamentos"
+            }
+          },
+          "carbon": {
+            "label": "Carbono",
+            "items": {
+              "i1": "estoque por reservatório (solo, biomassa)",
+              "i2": "estrutura da vegetação",
+              "i3": "produtividade",
+              "i4": "fluxos de carbono"
+            }
+          },
+          "pressures": {
+            "label": "Uso da terra e pressões",
+            "items": {
+              "i1": "uso e cobertura da terra",
+              "i2": "ocorrência de fogo"
+            }
+          },
+          "environment": {
+            "label": "Ambiente",
+            "items": {
+              "i1": "vegetação",
+              "i2": "mudanças da vegetação ao longo do tempo",
+              "i3": "clima"
+            }
+          }
+        }
+      },
+      "viewMap": {
+        "title": "Visualize no mapa",
+        "p1": "Ative as informações que deseja consultar. Você pode visualizar uma camada por vez ou combinar diferentes dados no mesmo mapa.",
+        "p2": "Também é possível ajustar a transparência das camadas e consultar na legenda os valores, as cores e as unidades de medida de cada informação."
+      },
+      "choosePeriod": {
+        "title": "Escolha o período",
+        "p1": "Quando houver informações para mais de um ano, utilize a linha do tempo para consultar diferentes períodos e acompanhar as mudanças na área selecionada."
+      },
+      "details": {
+        "title": "Consulte os detalhes",
+        "p1": "Consulte a descrição, a unidade de medida, o período de referência e os anos disponíveis para cada dado. A plataforma também apresenta informações sobre as fontes e as metodologias utilizadas.",
+        "p2": "As informações disponíveis podem variar conforme o território, o dado e o período selecionados."
+      },
+      "report": {
+        "title": "Gere um relatório territorial",
+        "p1": "Reúna, em um único documento, as principais informações sobre o território escolhido. Defina o ano, escolha os dados que deseja incluir e baixe o relatório."
+      }
+    },
+    "faq": {
+      "title": "Dúvidas frequentes",
+      "items": {
+        "availability": {
+          "question": "Todos os dados estão disponíveis para todos os territórios?",
+          "answer": "Não. A disponibilidade depende da área coberta, da fonte e do período de cada dado."
+        },
+        "download": {
+          "question": "Posso baixar as informações?",
+          "answer": "Sim. Os dados disponíveis na plataforma podem ser baixados para consulta e uso em outras análises. As opções de download variam conforme o dado selecionado."
+        },
+        "sources": {
+          "question": "De onde vêm os dados?",
+          "answer": "Os dados são produzidos por instituições públicas, centros de pesquisa e outras fontes identificadas na plataforma. Também é possível consultar informações sobre as metodologias utilizadas."
+        }
+      }
+    }
+  }
+}

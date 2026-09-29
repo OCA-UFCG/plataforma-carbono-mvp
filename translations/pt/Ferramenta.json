@@ -1,0 +1,16 @@
+{
+  "Ferramenta": {
+    "ariaLabel": "Ferramenta",
+    "mapAlt": "Mapa do bioma Caatinga sobre o Nordeste do Brasil, com a cobertura vegetal em tons de verde e os estados identificados",
+    "eyebrow": "A ferramenta central da plataforma",
+    "title": "Explore os territórios da Caatinga em detalhes",
+    "body": "Consulte informações sobre diferentes áreas da Caatinga. Localize o território de interesse, combine dados no mapa, acompanhe as mudanças ao longo do tempo e gere um relatório com as informações selecionadas.",
+    "items": {
+      "data": "Dados sobre carbono, vegetação, clima e uso da terra",
+      "query": "Consulta por municípios e outros territórios da Caatinga",
+      "compare": "Comparação entre dados e períodos",
+      "report": "Geração de relatório com os dados do território escolhido"
+    },
+    "button": "Explore os dados"
+  }
+}

@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { useTranslations } from "next-intl";
 import { ABAS_PLATAFORMA } from "@/lib/content/plataforma";
-import type { ConteudoAba } from "@/lib/content/plataforma";
+import type { AbaPlataforma } from "@/lib/content/plataforma";
 import MoreLink from "./MoreLink";
 import Quote from "./sobre/Quote";
 import styles from "./Plataforma.module.css";
@@ -24,6 +25,7 @@ function panelId(id: string) {
 // selects the tab and swaps the panel). "Ver mais" opens the longer
 // version of this section, the /sobre pages.
 export default function Plataforma() {
+  const t = useTranslations("Plataforma");
   const [activeId, setActiveId] = useState(ABAS_PLATAFORMA[0].id);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -63,16 +65,16 @@ export default function Plataforma() {
   }
 
   return (
-    <section id="plataforma" className={styles.plataforma} aria-label="Plataforma">
+    <section id="plataforma" className={styles.plataforma} aria-label={t("ariaLabel")}>
       <div className={`container ${styles.inner}`}>
         {/* Label left, "Ver mais" right — the 40px header row of Figma node
             18862:8546. */}
         <div className={styles.headerRow}>
-          <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
-          <MoreLink href="/sobre" contexto="sobre a plataforma" />
+          <p className={`${styles.label} text-subtle-medium`}>{t("label")}</p>
+          <MoreLink href="/sobre" contexto={t("moreContext")} />
         </div>
 
-        <div className={styles.tablist} role="tablist" aria-label="Conheça a plataforma">
+        <div className={styles.tablist} role="tablist" aria-label={t("label")}>
           {ABAS_PLATAFORMA.map((aba) => {
             const selected = aba.id === activeId;
             return (
@@ -91,7 +93,7 @@ export default function Plataforma() {
                 onClick={() => setActiveId(aba.id)}
                 onKeyDown={handleKeyDown}
               >
-                {aba.label}
+                {t(`tabs.${aba.key}.label`)}
               </button>
             );
           })}
@@ -113,7 +115,7 @@ export default function Plataforma() {
             tabIndex={0}
             hidden={aba.id !== activeId}
           >
-            <PanelConteudo conteudo={aba.conteudo} />
+            <PanelConteudo aba={aba} />
           </div>
         ))}
       </div>
@@ -124,13 +126,15 @@ export default function Plataforma() {
 // Kept below the default export, and rooted in a <div>, so the
 // SECTION_IDS extractor (tests/lib/marketingNav.test.ts) sees exactly one
 // wrapper tag — <section id="plataforma"> — per this file.
-function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
+function PanelConteudo({ aba }: { aba: AbaPlataforma }) {
+  const t = useTranslations("Plataforma");
+
   return (
     <div className={styles.conteudo}>
       {/* eslint-disable-next-line @next/next/no-img-element -- static asset, matches Hero.tsx/Destaques.tsx */}
       <img
-        src={conteudo.imagem}
-        alt={conteudo.imagemAlt}
+        src={aba.imagem}
+        alt={t(`tabs.${aba.key}.imageAlt`)}
         width={680}
         height={500}
         className={styles.imagem}
@@ -138,13 +142,9 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
         decoding="async"
       />
       <div className={styles.texto}>
-        <h2 className={`${styles.titulo} text-h2`}>{conteudo.titulo}</h2>
-        {conteudo.paragrafos.map((paragrafo) => (
-          <p key={paragrafo} className={`${styles.paragrafo} text-body`}>
-            {paragrafo}
-          </p>
-        ))}
-        <Quote>{conteudo.destaque}</Quote>
+        <h2 className={`${styles.titulo} text-h2`}>{t(`tabs.${aba.key}.title`)}</h2>
+        <p className={`${styles.paragrafo} text-body`}>{t(`tabs.${aba.key}.body`)}</p>
+        <Quote>{t(`tabs.${aba.key}.highlight`)}</Quote>
       </div>
     </div>
   );

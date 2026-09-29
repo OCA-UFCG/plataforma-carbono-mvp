@@ -1,0 +1,40 @@
+{
+  "SobrePlataformaPage": {
+    "why": {
+      "title": "Por que criar uma plataforma para a Caatinga?",
+      "imageAlt": "Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul",
+      "blocks": {
+        "b1": {
+          "l1": "A Caatinga funciona de forma diferente de outros biomas. Sua vegetação perde as folhas durante a seca, responde rapidamente às chuvas e armazena uma parte importante do carbono no solo.",
+          "l2": "Por isso, dados e métodos criados para florestas úmidas nem sempre representam corretamente o que acontece na Caatinga."
+        },
+        "b2": {
+          "l1": "Um sistema de monitoramento que não reconheça essa dinâmica pode interpretar a perda natural das folhas como degradação, e uma referência fixa de \"quanto carbono haveria sem o projeto\" não funciona onde a chuva varia tanto de um ano para outro."
+        },
+        "b3": {
+          "l1": "Isso ajuda a explicar por que quase não há projetos de carbono certificados no bioma, e por que os que existem no Brasil se concentram na Amazônia e no Cerrado.",
+          "l2": "A CaatiVAR reúne informações sobre o bioma para apoiar análises mais adequadas à sua realidade."
+        }
+      }
+    },
+    "cards": {
+      "mission": {
+        "title": "Qual é a missão da CaatiVAR?",
+        "p1": "Ampliar o acesso a dados e conhecimentos sobre o carbono na Caatinga, apoiar o monitoramento participativo e contribuir para que o mercado de carbono, se e quando chegar aos territórios, respeite o bioma e os direitos de quem vive nele."
+      },
+      "audience": {
+        "title": "Para quem é a plataforma?",
+        "p1": "A CaatiVAR foi desenvolvida para comunidades, gestores públicos, pesquisadores, investidores e demais interessados no mercado de carbono na Caatinga.",
+        "p2": "Cada público pode utilizar as informações de acordo com suas necessidades, seja para conhecer o tema, consultar dados ou apoiar decisões."
+      }
+    },
+    "band": {
+      "title": "O que a plataforma não faz",
+      "items": {
+        "noSale": "Não vende créditos de carbono",
+        "noCertification": "Não certifica nem aprova projetos",
+        "noSubstitution": "Não substitui reguladores e certificadoras"
+      }
+    }
+  }
+}

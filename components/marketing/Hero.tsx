@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MAPA_LINK } from "@/lib/marketing/nav";
 import styles from "./Hero.module.css";
 
@@ -15,16 +16,15 @@ import styles from "./Hero.module.css";
 // in below so the overlay renders it — see the `activePhoto.credit` check.
 type HeroPhoto = {
   src: string;
-  alt: string;
   credit?: string;
 };
 
 const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero1.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero2.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero3.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero1.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero2.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero3.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero4.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero5.jpg", credit: "Artur Lourenço" },
 ];
 
 const ROTATION_INTERVAL_MS = 6000;
@@ -34,6 +34,7 @@ const ROTATION_INTERVAL_MS = 6000;
 // auto-advance every 6s unless the user prefers reduced motion, cross-fading
 // between photos rather than swapping them abruptly.
 export default function Hero() {
+  const t = useTranslations("Hero");
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function Hero() {
   const activePhoto = PHOTOS[index];
 
   return (
-    <section id="inicio" className={styles.hero} aria-label="Apresentação">
+    <section id="inicio" className={styles.hero} aria-label={t("ariaLabel")}>
       <div className={styles.background} aria-hidden>
         {PHOTOS.map((photo, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -69,35 +70,33 @@ export default function Hero() {
       <div className={`container ${styles.contentArea}`}>
         <div className={styles.content}>
           <p className={`${styles.eyebrow} text-subtle-semibold`}>
-            Mercado de Carbono na Caatinga
+            {t("eyebrow")}
           </p>
           <h1 className={styles.title}>
-            Dados abertos e mapas para entender o carbono do bioma e decidir com
-            mais segurança
+            {t("title")}
           </h1>
           <p className={`${styles.lead} text-lead`}>
-            Informação aberta para que comunidades e gestores avaliem projetos
-            de carbono e negociem em condições mais justas.
+            {t("lead")}
           </p>
           <div className={styles.actions}>
             {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
             <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-body`}>
-              Abrir os mapas
+              {t("openMaps")}
             </a>
             <a href="#comunicacao" className={`${styles.secondaryButton} text-body`}>
-              Ver materiais
+              {t("viewMaterials")}
             </a>
           </div>
         </div>
       </div>
 
-      <div className={`container ${styles.dots}`} role="group" aria-label="Selecionar foto de fundo">
+      <div className={`container ${styles.dots}`} role="group" aria-label={t("photoPicker")}>
         {PHOTOS.map((photo, i) => (
           <button
             key={photo.src}
             type="button"
             className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
-            aria-label={`Mostrar ${photo.alt}`}
+            aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
             aria-pressed={i === index}
             onClick={() => setIndex(i)}
           />
@@ -106,7 +105,7 @@ export default function Hero() {
 
       <div className={`container ${styles.creditRow}`}>
         {activePhoto.credit && (
-          <p className={`${styles.credit} text-subtle`}>Foto: {activePhoto.credit}</p>
+          <p className={`${styles.credit} text-subtle`}>{t("credit", { name: activePhoto.credit })}</p>
         )}
       </div>
     </section>
