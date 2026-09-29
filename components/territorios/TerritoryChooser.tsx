@@ -3,11 +3,12 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FeatureCollection } from 'geojson'
+import { useLocale, useTranslations } from 'next-intl'
 import '@/app/territorios-escolha.css'
 import ConfirmCard from './ConfirmCard'
 import TerritorySearch from './TerritorySearch'
 import appConfig from '@/config/mapa/layers.json'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { distanceText } from '@/config/territorios/chooserScript'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import type { TerritoryType } from '@/config/territorios/story'
 import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
@@ -141,6 +142,9 @@ async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
 }
 
 export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryChooserProps) {
+  const t = useTranslations('TerritoriosChooser')
+  const types = useTranslations('TerritoriosTypes')
+  const locale = useLocale()
   const layer = useMemo(() => vectorLayer(type.recorteId), [type.recorteId])
   const labelField = layer ? labelFieldOf(layer) : undefined
 
@@ -244,7 +248,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
     if (!data || locateState === 'locating') return
     setOptions(null)
     if (!('geolocation' in navigator)) {
-      failLocate(CHOOSER.locateUnsupported)
+      failLocate(t('locateUnsupported'))
       return
     }
     setLocateState('locating')
@@ -261,7 +265,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
     pending.timer = setTimeout(() => {
       if (!isCurrent()) return
       settle()
-      failLocate(CHOOSER.locateTimeout)
+      failLocate(t('locateTimeout'))
     }, LOCATE_GIVE_UP_MS)
 
     const maxAccuracy = MAX_ACCURACY_M[type.id] ?? DEFAULT_MAX_ACCURACY_M
@@ -277,17 +281,17 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
               return
             }
             settle()
-            failLocate(CHOOSER.locateImprecise)
+            failLocate(t('locateImprecise'))
             return
           }
           settle()
           const outcome = resolveLocation(data, type.id, position.coords.longitude, position.coords.latitude)
           if (outcome.kind === 'outside') {
-            failLocate(CHOOSER.locateOutside)
+            failLocate(t('locateOutside'))
             return
           }
           if (outcome.kind === 'uncovered') {
-            failLocate(CHOOSER.locateNotCovered)
+            failLocate(t('locateNotCovered'))
             return
           }
           setLocateState('idle')
@@ -303,9 +307,9 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
           if (!isCurrent()) return
           settle()
           failLocate(
-            error.code === error.PERMISSION_DENIED ? CHOOSER.locateDenied
-              : error.code === error.TIMEOUT ? CHOOSER.locateTimeout
-                : CHOOSER.locateUnavailable,
+            error.code === error.PERMISSION_DENIED ? t('locateDenied')
+              : error.code === error.TIMEOUT ? t('locateTimeout')
+                : t('locateUnavailable'),
           )
         },
         { enableHighAccuracy: false, timeout: LOCATE_TIMEOUT_MS, maximumAge },
@@ -322,10 +326,11 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
     region.focus({ preventScroll: true })
   }
 
-  const optionsLead = options
-    ? (options.reason === 'overlap' ? CHOOSER.overlapLead : CHOOSER.nearestLead)[type.id]
-    : undefined
-  const plural = type.plural ?? type.label
+  // Only the types the chooser opens for have a lead; the others get none.
+  const leadKey = options ? `${options.reason === 'overlap' ? 'overlapLead' : 'nearestLead'}.${type.id}` : null
+  const optionsLead = leadKey && t.has(leadKey) ? t(leadKey) : undefined
+  const typeName = (field: string) => types(`types.${type.id}.${field}`)
+  const plural = type.searchable ? typeName('plural') : typeName('label').toLowerCase()
 
   return (
     <section className="territorios-escolha">
@@ -335,15 +340,15 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
             <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
               <path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            {CHOOSER.backToTypes}
+            {t('backToTypes')}
           </button>
-          <h1 ref={headingRef} tabIndex={-1} className="territorios-pergunta">{type.searchQuestion}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="territorios-pergunta">{typeName('searchQuestion')}</h1>
         </header>
 
         {candidateEntry && (
           <ConfirmCard
             entry={candidateEntry}
-            unitLabel={type.unitLabel}
+            unitLabel={typeName('unitLabel')}
             // A state's name already says which one it is.
             context={type.id === 'estado' ? undefined : candidateEntry.context}
             onConfirm={() => onChoose(candidateEntry.id)}
@@ -355,7 +360,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
           {data && (
             <TerritorySearch
               entries={data.entries}
-              plural={type.plural}
+              plural={type.searchable ? plural : null}
               onPropose={propose}
               onShowMap={showMap}
             />
@@ -371,13 +376,13 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
               aria-disabled={locateState === 'locating' || undefined}
               aria-describedby={noteId}
             >
-              {CHOOSER.locate}
+              {t('locate')}
             </button>
-            <p id={noteId} className="territorios-escolha-nota">{CHOOSER.locateNote}</p>
+            <p id={noteId} className="territorios-escolha-nota">{t('locateNote')}</p>
 
             <div aria-live="polite">
               {locateState === 'locating' && (
-                <p className="territorios-escolha-mensagem">{CHOOSER.locating}</p>
+                <p className="territorios-escolha-mensagem">{t('locating')}</p>
               )}
               {locateState === 'error' && locateMessage && (
                 <p className="territorios-escolha-mensagem territorios-escolha-mensagem--aviso">{locateMessage}</p>
@@ -397,7 +402,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
                       <button type="button" className="territorios-escolha-proximo" onClick={() => propose(option.index)}>
                         <span>{TERRITORY_SCRIPT.title(entry.name, entry.context)}</span>
                         {options.reason === 'nearest' && (
-                          <span className="territorios-escolha-distancia">{CHOOSER.distance(option.distanceKm)}</span>
+                          <span className="territorios-escolha-distancia">{distanceText(option.distanceKm, (key, values) => t(key, values), locale)}</span>
                         )}
                       </button>
                     </li>
@@ -413,7 +418,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
         ref={mapRegionRef}
         className="territorios-escolha-mapa"
         role="region"
-        aria-label={CHOOSER.mapLabel(plural)}
+        aria-label={t('mapLabel', { plural })}
         tabIndex={-1}
       >
         {data && (
@@ -428,17 +433,17 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
           />
         )}
         {status === 'loading' && (
-          <p className="territorios-escolha-mapa-estado" role="status">{CHOOSER.loading}</p>
+          <p className="territorios-escolha-mapa-estado" role="status">{t('loading')}</p>
         )}
         {status === 'error' && (
           <div className="territorios-escolha-mapa-estado" role="alert">
-            <p>{CHOOSER.loadError}</p>
+            <p>{t('loadError')}</p>
             <button
               type="button"
               className="territorios-btn territorios-btn--contorno"
               onClick={() => setAttempt((n) => n + 1)}
             >
-              {CHOOSER.retry}
+              {t('retry')}
             </button>
           </div>
         )}

@@ -2,14 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
+import { useTranslations } from 'next-intl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '@/app/territorios-mapa.css'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { STORY_BASEMAP } from '@/config/territorios/basemap'
 import { MARK_OUTLINE_COLOR, STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STORY_THEMES } from '@/config/territorios/story'
-import { MAP_LOCALE, UI } from '@/config/territorios/storyScript'
+import { mapLocale } from '@/config/territorios/storyScript'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
+import { useStoryFmt } from './useStoryFmt'
 import { interiorPoint } from '@/lib/territorios/interiorPoint'
 import {
   CAATINGA_BBOX,
@@ -256,6 +258,7 @@ function Swatch({ color, outlined }: { color: string; outlined: boolean }) {
 }
 
 function MapLegend({ legend }: { legend: Legend }) {
+  const t = useTranslations('TerritoriosMap')
   const [open, setOpen] = useState(true)
 
   return (
@@ -266,7 +269,7 @@ function MapLegend({ legend }: { legend: Legend }) {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        Legenda
+        {t('legend')}
       </button>
       <div className="territorios-mapa-legenda-corpo">
         {legend.kind === 'classes' ? (
@@ -299,6 +302,11 @@ function MapLegend({ legend }: { legend: Legend }) {
 export default function StoryMap({
   territory, step, landUseYear, onLandUseYear, yearSwitch = false, cooperative = true, onUnauthorized,
 }: StoryMapProps) {
+  const t = useTranslations('TerritoriosMap')
+  const ui = useTranslations('TerritoriosUi')
+  const fmt = useStoryFmt()
+  // The map is built once, in the language of the first render.
+  const controlTextRef = useRef(mapLocale((key, values) => t(key, values)))
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [ready, setReady] = useState(false)
@@ -337,7 +345,7 @@ export default function StoryMap({
       bounds: [[start[0], start[1]], [start[2], start[3]]],
       fitBoundsOptions: FIT,
       attributionControl: { compact: true },
-      locale: MAP_LOCALE,
+      locale: controlTextRef.current,
       // The page scrolls past the map; a wheel over it must keep scrolling, and
       // so must one finger on a phone, where the map spans the screen's width.
       scrollZoom:      false,
@@ -535,7 +543,7 @@ export default function StoryMap({
     <div className="territorios-mapa">
       <div ref={containerRef} className="territorios-mapa-canvas" />
       {themeId === 'uso' && yearSwitch && (
-        <div className="territorios-mapa-anos" role="group" aria-label={UI.mapYear}>
+        <div className="territorios-mapa-anos" role="group" aria-label={ui('mapYear')}>
           {LAND_USE_YEARS.map((y) => (
             <button key={y} type="button" aria-pressed={y === landUseYear} onClick={() => onLandUseYear(y)}>
               {y}
@@ -543,8 +551,8 @@ export default function StoryMap({
           ))}
         </div>
       )}
-      {themeId && !unavailable && <MapLegend legend={themeLegend(themeId)} />}
-      {unavailable && <p className="territorios-mapa-aviso" role="status">{UI.mapUnavailable}</p>}
+      {themeId && !unavailable && <MapLegend legend={themeLegend(themeId, fmt)} />}
+      {unavailable && <p className="territorios-mapa-aviso" role="status">{t('unavailable')}</p>}
     </div>
   )
 }

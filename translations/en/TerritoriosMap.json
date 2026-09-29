@@ -1,0 +1,13 @@
+{
+  "TerritoriosMap": {
+    "legend": "Legend",
+    "unavailable": "Map unavailable",
+    "locale": {
+      "mapTitle": "Map",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "toggleAttribution": "Toggle attribution",
+      "twoFingers": "Use two fingers to move the map"
+    }
+  }
+}

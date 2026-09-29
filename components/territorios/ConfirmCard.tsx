@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { useTranslations } from 'next-intl'
+import { useStoryFmt } from './useStoryFmt'
+import { confirmDetailText } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
 import { ellipsoidAreaHa } from '@/lib/territorios/ellipsoidArea'
 import type { FeatureEntry } from '@/lib/territorios/featureIds'
@@ -19,6 +21,8 @@ export interface ConfirmCardProps {
 // A card in the chooser's column on a computer, a sheet rising from the bottom
 // edge on a phone (territorios-escolha.css); the markup is the same.
 export default function ConfirmCard({ entry, unitLabel, context, onConfirm, onCancel }: ConfirmCardProps) {
+  const t = useTranslations('TerritoriosChooser')
+  const fmt = useStoryFmt()
   const sectionRef = useRef<HTMLElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const headingId = useId()
@@ -52,20 +56,20 @@ export default function ConfirmCard({ entry, unitLabel, context, onConfirm, onCa
         className="territorios-escolha-cartao-titulo"
         aria-describedby={`${nameId} ${detailId}`}
       >
-        {CHOOSER.confirmTitle}
+        {t('confirmTitle')}
       </h2>
       <div aria-live="polite">
         <p id={nameId} className="territorios-escolha-cartao-nome">{TERRITORY_SCRIPT.title(entry.name)}</p>
         <p id={detailId} className="territorios-escolha-cartao-detalhe">
-          {CHOOSER.confirmDetail(unitLabel, context, formatArea(areaHa))}
+          {confirmDetailText(unitLabel, context, formatArea(areaHa, fmt), (key, values) => t(key, values))}
         </p>
       </div>
       <div className="territorios-escolha-cartao-acoes">
         <button type="button" className="territorios-btn territorios-btn--primario" onClick={onConfirm}>
-          {CHOOSER.confirm}
+          {t('confirm')}
         </button>
         <button type="button" className="territorios-btn territorios-btn--contorno" onClick={onCancel}>
-          {CHOOSER.chooseAnother}
+          {t('chooseAnother')}
         </button>
       </div>
     </section>

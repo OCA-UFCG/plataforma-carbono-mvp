@@ -1,0 +1,227 @@
+{
+  "TerritoriosStory": {
+    "values": {
+      "lessThan": "menos de {value}",
+      "lessThanOne": "menos de 1",
+      "lessThanShare": "< {value}%"
+    },
+    "area": {
+      "hectare": "ha",
+      "squareKm": "km²"
+    },
+    "tonnes": {
+      "tonne": { "one": "t", "many": "t" },
+      "thousand": { "one": "mil t", "many": "mil t" },
+      "million": { "one": "milhão de t", "many": "milhões de t" },
+      "billion": { "one": "bilhão de t", "many": "bilhões de t" }
+    },
+    "states": {
+      "AL": "em Alagoas",
+      "BA": "na Bahia",
+      "CE": "no Ceará",
+      "MA": "no Maranhão",
+      "MG": "em Minas Gerais",
+      "PB": "na Paraíba",
+      "PE": "em Pernambuco",
+      "PI": "no Piauí",
+      "RN": "no Rio Grande do Norte",
+      "SE": "em Sergipe"
+    },
+    "landUseGroups": {
+      "nativa": "Vegetação nativa",
+      "agropecuaria": "Agropecuária",
+      "urbana": "Área urbana",
+      "outros": "Água e outras áreas"
+    },
+    "legend": {
+      "degradation": {
+        "conserved": "Conservado",
+        "level1": "Nível 1 (leve)",
+        "level2": "Nível 2",
+        "level3": "Nível 3",
+        "level4": "Nível 4",
+        "level5": "Nível 5 (grave)",
+        "noData": "Sem dado"
+      },
+      "fluxRemoval": "Tirou carbono do ar",
+      "fluxEmission": "Lançou carbono no ar",
+      "ramp": {
+        "stock": "t de carbono por hectare",
+        "rainYear": "mm de chuva em {year}",
+        "rainPerYear": "mm de chuva por ano"
+      }
+    },
+    "questions": {
+      "territorio": "Onde fica e qual é o tamanho?",
+      "estoque": "Quanto carbono a vegetação original guardaria aqui?",
+      "fluxo": "As áreas com árvores tiraram ou lançaram carbono do ar?",
+      "uso": "Como mudou a vegetação nativa desde {year}?",
+      "degradacao": "Quanto da terra está degradada aqui?",
+      "chuva": "{year} foi um ano seco ou chuvoso aqui?"
+    },
+    "readings": {
+      "acima": "Acima da Caatinga",
+      "abaixo": "Abaixo da Caatinga",
+      "perto": "Perto da Caatinga"
+    },
+    "answers": {
+      "territorio": {
+        "located": "Área dentro da Caatinga, {where}.",
+        "plain": "Área dentro da Caatinga.",
+        "state": "Área dentro da Caatinga, {biomePct} do bioma.",
+        "biome": "A Caatinga inteira, em dez estados."
+      },
+      "estoque": {
+        "unit": "t de carbono por hectare",
+        "compare": {
+          "acima": "Acima da Caatinga ({biome} t por hectare).",
+          "abaixo": "Abaixo da Caatinga ({biome} t por hectare).",
+          "perto": "Perto da Caatinga ({biome} t por hectare)."
+        },
+        "total": "No total, {tonnes}.",
+        "noData": "Sem dado de carbono para esta área."
+      },
+      "fluxo": {
+        "unit": "{tonnes} de CO₂e",
+        "removal": "Tiraram mais carbono do que lançaram.",
+        "emission": "Lançaram mais carbono do que tiraram.",
+        "balance": "Tiraram e lançaram no ar a mesma quantidade de carbono.",
+        "share": {
+          "acima": "Cobrem {pct} da área, acima dos {biome} da Caatinga.",
+          "abaixo": "Cobrem {pct} da área, abaixo dos {biome} da Caatinga.",
+          "perto": "Cobrem {pct} da área, perto dos {biome} da Caatinga."
+        },
+        "shareOnly": "Cobrem {pct} da área.",
+        "noForest": "Não há áreas com árvores mapeadas aqui."
+      },
+      "uso": {
+        "unit": "de vegetação nativa em {year}",
+        "before": "Eram {pct} em {year}.",
+        "compare": {
+          "acima": "A Caatinga tem {biome}; aqui fica acima.",
+          "abaixo": "A Caatinga tem {biome}; aqui fica abaixo.",
+          "perto": "A Caatinga tem {biome}; aqui fica perto."
+        },
+        "noData": "Sem dado de uso da terra aqui."
+      },
+      "degradacao": {
+        "unit": "da área com degradação",
+        "compare": {
+          "acima": "Acima dos {biome} da Caatinga.",
+          "abaixo": "Abaixo dos {biome} da Caatinga.",
+          "perto": "Perto dos {biome} da Caatinga."
+        },
+        "severe": "Os níveis mais graves, 4 e 5, somam {pct}.",
+        "conserved": "A área conservada soma {pct}.",
+        "pointConserved": "A terra aqui está conservada.",
+        "pointLevel": "A terra aqui está no nível {level} de degradação; o 5 é o mais grave.",
+        "noData": "Sem dado de degradação aqui."
+      },
+      "chuva": {
+        "unit": "mm em {year}",
+        "meanUnit": "mm por ano, em média",
+        "chuvoso": "Chuvoso, {pct} acima da média daqui ({mean} mm).",
+        "seco": "Seco, {pct} abaixo da média daqui ({mean} mm).",
+        "normal": "Perto da média daqui ({mean} mm).",
+        "missing": "Sem dado de {year} aqui.",
+        "compare": {
+          "acima": "Essa média fica acima da Caatinga ({biome} mm).",
+          "abaixo": "Essa média fica abaixo da Caatinga ({biome} mm).",
+          "perto": "Essa média fica perto da Caatinga ({biome} mm)."
+        },
+        "noData": "Sem dado de chuva aqui."
+      }
+    },
+    "summary": {
+      "titles": {
+        "estoque": "Carbono da vegetação original",
+        "fluxo": "Carbono trocado com o ar",
+        "uso": "Vegetação nativa",
+        "degradacao": "Terra degradada",
+        "chuva": "Chuva"
+      },
+      "estoque": {
+        "unit": "t C por hectare",
+        "total": "No total, {tonnes} C.",
+        "biome": "Na Caatinga, {biome} t C por hectare."
+      },
+      "fluxo": {
+        "unit": "t de CO₂e por hectare com árvores",
+        "removal": "No saldo, as áreas com árvores tiraram do ar {tonnes} de CO₂e.",
+        "emission": "No saldo, as áreas com árvores lançaram no ar {tonnes} de CO₂e.",
+        "balance": "No saldo, as áreas com árvores tiraram e lançaram a mesma quantidade.",
+        "biome": "Na Caatinga, {biome} t por hectare com árvores.",
+        "readings": {
+          "acima": "Acima da Caatinga por hectare com árvores",
+          "abaixo": "Abaixo da Caatinga por hectare com árvores",
+          "perto": "Perto da Caatinga por hectare com árvores"
+        },
+        "biomeDirection": {
+          "removal": "Na Caatinga, tiraram mais do que lançaram.",
+          "emission": "Na Caatinga, lançaram mais do que tiraram.",
+          "neutral": "Na Caatinga, ficaram em equilíbrio."
+        }
+      },
+      "uso": {
+        "unit": "da área em {year}",
+        "before": "Eram {pct} em {year}.",
+        "biome": "Na Caatinga, de {from} para {to}."
+      },
+      "degradacao": {
+        "unit": "da área",
+        "biome": "Na Caatinga, {biome}.",
+        "conserved": "A área conservada soma {pct}."
+      },
+      "chuva": {
+        "unit": "mm por ano, em média",
+        "biome": "Na Caatinga, {biome} mm.",
+        "year": {
+          "chuvoso": "{year} foi chuvoso, com {mm} mm.",
+          "seco": "{year} foi seco, com {mm} mm.",
+          "normal": "{year} ficou perto da média, com {mm} mm."
+        },
+        "missing": "Sem dado de {year}."
+      }
+    },
+    "about": {
+      "title": "Sobre os dados",
+      "territorio": {
+        "title": "Território",
+        "text": "Área dentro do limite da Caatinga, segundo o IBGE (2019)."
+      },
+      "estoque": {
+        "title": "Estoque",
+        "text": "Quarto Inventário Nacional, em quadrados de 100 m. Carbono que a vegetação original guardaria, sem descontar o uso atual da terra; inclui o carbono do solo.",
+        "coverage": "O inventário cobre {pct} desta área; o total vale só para essa parte."
+      },
+      "fluxo": {
+        "title": "Fluxo",
+        "text": "Global Forest Watch, versão 1.4.2, 30 m; saldo de {first} a {last}. Áreas com árvores: copas cobrindo mais de 30% do chão em 2000, ou ganho de copas de 2000 a 2020."
+      },
+      "uso": {
+        "title": "Uso da terra",
+        "text": "MapBiomas, coleção 10.1, 30 m, {first} e {last}. Vegetação nativa: formações florestal, savânica e campestre, mangue, floresta alagável, restingas, campo alagado e apicum. Agropecuária inclui áreas de lavoura e pasto misturados."
+      },
+      "degradacao": {
+        "title": "Degradação",
+        "text": "Índice OCA v4, de {year}, 500 m, em cinco níveis; o 5 é o mais grave. \"Sem dado\" é a parte que o índice não cobre",
+        "noDataHere": ", {pct} aqui.",
+        "noDataPeriod": "."
+      },
+      "chuva": {
+        "title": "Chuva",
+        "text": "CHIRPS, 5,6 km, de {first} a {last}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal."
+      },
+      "units": {
+        "title": "Unidades",
+        "text": "t C é tonelada de carbono; 1 t C equivale a 3,67 t de CO₂. CO₂e soma ao CO₂ outros gases de efeito estufa, como metano e óxido nitroso."
+      },
+      "comparison": {
+        "title": "Comparação com a Caatinga",
+        "text": "Mesmas fontes e mesmo cálculo; no bioma, fluxo e uso da terra a 100 m. Perto: diferença menor que 10%."
+      },
+      "point": "Aqui, valor de um ponto do território.",
+      "coarse": "Aqui, calculado a {m} m."
+    }
+  }
+}

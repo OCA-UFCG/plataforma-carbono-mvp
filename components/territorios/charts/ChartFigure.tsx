@@ -5,6 +5,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { contrast } from '@/lib/color'
 import { MARK_OUTLINE_COLOR, SURFACE_COLOR } from '@/config/territorios/palette'
+import { fixed, type Fmt } from '@/lib/territorios/i18n'
 import { formatPercent } from '@/lib/territorios/storyValues'
 import '@/app/territorios-graficos.css'
 
@@ -70,8 +71,8 @@ export function cssVars(vars: Record<`--${string}`, string>): CSSProperties {
  * from `percentShort` in lib/mapa/results/format.ts (commit c5eab2a, branch
  * feat/resultados-por-camada).
  */
-export function formatShare(pct: number): string {
+export function formatShare(pct: number, fmt: Fmt): string {
   if (!Number.isFinite(pct) || pct <= 0) return '0%'
-  if (pct < 0.1) return '< 0,1%'
-  return formatPercent(Math.min(pct, 100))
+  if (pct < 0.1) return fmt.t('values.lessThanShare', { value: fixed(0.1, 1, fmt.locale) })
+  return formatPercent(Math.min(pct, 100), fmt)
 }

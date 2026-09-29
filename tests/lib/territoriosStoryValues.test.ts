@@ -22,6 +22,7 @@ import {
   stockChart,
   tonnesParts,
 } from '@/lib/territorios/storyValues'
+import { fmtFor } from '../helpers/territoriosI18n'
 import type { RasterLayerConfig } from '@/types/mapa'
 import type { BiomeReference, DegradationThemeData, TerritoryPayload } from '@/types/territorios'
 
@@ -155,43 +156,58 @@ describe('rain', () => {
 })
 
 describe('formatting for the visitor', () => {
+  const pt = fmtFor('pt')
+  const en = fmtFor('en')
+
   it('writes hectares below 10 km² and square kilometres from there on', () => {
-    expect(formatArea(0)).toBe('0 ha')
-    expect(formatArea(0.99)).toBe('menos de 1 ha')
+    expect(formatArea(0, pt)).toBe('0 ha')
+    expect(formatArea(0.99, pt)).toBe('menos de 1 ha')
     // One decimal below 10, as every other figure of the story.
-    expect(formatArea(1)).toBe('1,0 ha')
-    expect(formatArea(3.36)).toBe('3,4 ha')
-    expect(formatArea(9.96)).toBe('10 ha')
-    expect(formatArea(999.4)).toBe('999 ha')
+    expect(formatArea(1, pt)).toBe('1,0 ha')
+    expect(formatArea(3.36, pt)).toBe('3,4 ha')
+    expect(formatArea(9.96, pt)).toBe('10 ha')
+    expect(formatArea(999.4, pt)).toBe('999 ha')
     // Rounds to 1.000 ha, which is 10 km².
-    expect(formatArea(999.6)).toBe('10 km²')
-    expect(formatArea(5_205.1)).toBe('52 km²')
-    expect(formatArea(59_552.7)).toBe('596 km²')
-    expect(formatArea(86_617_415.5)).toBe('866.174 km²')
+    expect(formatArea(999.6, pt)).toBe('10 km²')
+    expect(formatArea(5_205.1, pt)).toBe('52 km²')
+    expect(formatArea(59_552.7, pt)).toBe('596 km²')
+    expect(formatArea(86_617_415.5, pt)).toBe('866.174 km²')
   })
 
   it('writes tonnes in "mil", "milhões" and "bilhões", with at most three significant digits', () => {
-    expect(formatTonnes(0)).toBe('0 t')
-    expect(formatTonnes(0.4)).toBe('menos de 1 t')
-    expect(formatTonnes(999)).toBe('999 t')
-    expect(formatTonnes(999.6)).toBe('1 mil t')
-    expect(formatTonnes(1_234)).toBe('1,2 mil t')
-    expect(formatTonnes(-461_632)).toBe('462 mil t')
-    expect(formatTonnes(999_700)).toBe('1 milhão de t')
-    expect(formatTonnes(1_500_000)).toBe('1,5 milhão de t')
-    expect(formatTonnes(1_960_000)).toBe('2 milhões de t')
-    expect(formatTonnes(2_727_845)).toBe('2,7 milhões de t')
-    expect(formatTonnes(4_160_240_473)).toBe('4,2 bilhões de t')
-    expect(tonnesParts(211_419)).toEqual({ value: '211', unit: 'mil t' })
+    expect(formatTonnes(0, pt)).toBe('0 t')
+    expect(formatTonnes(0.4, pt)).toBe('menos de 1 t')
+    expect(formatTonnes(999, pt)).toBe('999 t')
+    expect(formatTonnes(999.6, pt)).toBe('1 mil t')
+    expect(formatTonnes(1_234, pt)).toBe('1,2 mil t')
+    expect(formatTonnes(-461_632, pt)).toBe('462 mil t')
+    expect(formatTonnes(999_700, pt)).toBe('1 milhão de t')
+    expect(formatTonnes(1_500_000, pt)).toBe('1,5 milhão de t')
+    expect(formatTonnes(1_960_000, pt)).toBe('2 milhões de t')
+    expect(formatTonnes(2_727_845, pt)).toBe('2,7 milhões de t')
+    expect(formatTonnes(4_160_240_473, pt)).toBe('4,2 bilhões de t')
+    expect(tonnesParts(211_419, pt)).toEqual({ value: '211', unit: 'mil t' })
   })
 
   it('writes percents whole from 10 up and with one decimal below', () => {
-    expect(formatPercent(0)).toBe('0%')
-    expect(formatPercent(0.04)).toBe('menos de 0,1%')
-    expect(formatPercent(0.1)).toBe('0,1%')
-    expect(formatPercent(2.53)).toBe('2,5%')
-    expect(formatPercent(9.96)).toBe('10%')
-    expect(formatPercent(46.29)).toBe('46%')
+    expect(formatPercent(0, pt)).toBe('0%')
+    expect(formatPercent(0.04, pt)).toBe('menos de 0,1%')
+    expect(formatPercent(0.1, pt)).toBe('0,1%')
+    expect(formatPercent(2.53, pt)).toBe('2,5%')
+    expect(formatPercent(9.96, pt)).toBe('10%')
+    expect(formatPercent(46.29, pt)).toBe('46%')
+  })
+  it('writes the same figures in English notation', () => {
+    expect(formatArea(0.99, en)).toBe('less than 1 ha')
+    expect(formatArea(3.36, en)).toBe('3.4 ha')
+    expect(formatArea(86_617_415.5, en)).toBe('866,174 km²')
+    expect(formatTonnes(0.4, en)).toBe('less than 1 t')
+    expect(formatTonnes(1_234, en)).toBe('1.2 thousand t')
+    expect(formatTonnes(2_727_845, en)).toBe('2.7 million t')
+    expect(formatTonnes(4_160_240_473, en)).toBe('4.2 billion t')
+    expect(formatPercent(0.04, en)).toBe('less than 0.1%')
+    expect(formatPercent(2.53, en)).toBe('2.5%')
+    expect(formatPercent(46.29, en)).toBe('46%')
   })
 })
 

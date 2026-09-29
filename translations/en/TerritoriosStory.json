@@ -1,0 +1,227 @@
+{
+  "TerritoriosStory": {
+    "values": {
+      "lessThan": "less than {value}",
+      "lessThanOne": "less than 1",
+      "lessThanShare": "< {value}%"
+    },
+    "area": {
+      "hectare": "ha",
+      "squareKm": "km²"
+    },
+    "tonnes": {
+      "tonne": { "one": "t", "many": "t" },
+      "thousand": { "one": "thousand t", "many": "thousand t" },
+      "million": { "one": "million t", "many": "million t" },
+      "billion": { "one": "billion t", "many": "billion t" }
+    },
+    "states": {
+      "AL": "Alagoas",
+      "BA": "Bahia",
+      "CE": "Ceará",
+      "MA": "Maranhão",
+      "MG": "Minas Gerais",
+      "PB": "Paraíba",
+      "PE": "Pernambuco",
+      "PI": "Piauí",
+      "RN": "Rio Grande do Norte",
+      "SE": "Sergipe"
+    },
+    "landUseGroups": {
+      "nativa": "Native vegetation",
+      "agropecuaria": "Agriculture and livestock",
+      "urbana": "Urban area",
+      "outros": "Water and other areas"
+    },
+    "legend": {
+      "degradation": {
+        "conserved": "Conserved",
+        "level1": "Level 1 (light)",
+        "level2": "Level 2",
+        "level3": "Level 3",
+        "level4": "Level 4",
+        "level5": "Level 5 (severe)",
+        "noData": "No data"
+      },
+      "fluxRemoval": "Removed carbon from the air",
+      "fluxEmission": "Released carbon into the air",
+      "ramp": {
+        "stock": "t of carbon per hectare",
+        "rainYear": "mm of rain in {year}",
+        "rainPerYear": "mm of rain per year"
+      }
+    },
+    "questions": {
+      "territorio": "Where is it and how big is it?",
+      "estoque": "How much carbon would the original vegetation store here?",
+      "fluxo": "Did the areas with trees remove carbon from the air or release it?",
+      "uso": "How has native vegetation changed since {year}?",
+      "degradacao": "How much of the land is degraded here?",
+      "chuva": "Was {year} a dry or a wet year here?"
+    },
+    "readings": {
+      "acima": "Above the Caatinga",
+      "abaixo": "Below the Caatinga",
+      "perto": "Close to the Caatinga"
+    },
+    "answers": {
+      "territorio": {
+        "located": "Area within the Caatinga, in {where}.",
+        "plain": "Area within the Caatinga.",
+        "state": "Area within the Caatinga, {biomePct} of the biome.",
+        "biome": "The whole Caatinga, across ten states."
+      },
+      "estoque": {
+        "unit": "t of carbon per hectare",
+        "compare": {
+          "acima": "Above the Caatinga ({biome} t per hectare).",
+          "abaixo": "Below the Caatinga ({biome} t per hectare).",
+          "perto": "Close to the Caatinga ({biome} t per hectare)."
+        },
+        "total": "In total, {tonnes}.",
+        "noData": "No carbon data for this area."
+      },
+      "fluxo": {
+        "unit": "{tonnes} of CO₂e",
+        "removal": "They removed more carbon than they released.",
+        "emission": "They released more carbon than they removed.",
+        "balance": "They removed and released the same amount of carbon.",
+        "share": {
+          "acima": "They cover {pct} of the area, above the Caatinga's {biome}.",
+          "abaixo": "They cover {pct} of the area, below the Caatinga's {biome}.",
+          "perto": "They cover {pct} of the area, close to the Caatinga's {biome}."
+        },
+        "shareOnly": "They cover {pct} of the area.",
+        "noForest": "No areas with trees are mapped here."
+      },
+      "uso": {
+        "unit": "of native vegetation in {year}",
+        "before": "It was {pct} in {year}.",
+        "compare": {
+          "acima": "The Caatinga has {biome}; here it is higher.",
+          "abaixo": "The Caatinga has {biome}; here it is lower.",
+          "perto": "The Caatinga has {biome}; here it is about the same."
+        },
+        "noData": "No land use data here."
+      },
+      "degradacao": {
+        "unit": "of the area with degradation",
+        "compare": {
+          "acima": "Above the Caatinga's {biome}.",
+          "abaixo": "Below the Caatinga's {biome}.",
+          "perto": "Close to the Caatinga's {biome}."
+        },
+        "severe": "The most severe levels, 4 and 5, add up to {pct}.",
+        "conserved": "The conserved area adds up to {pct}.",
+        "pointConserved": "The land here is conserved.",
+        "pointLevel": "The land here is at degradation level {level}; 5 is the most severe.",
+        "noData": "No degradation data here."
+      },
+      "chuva": {
+        "unit": "mm in {year}",
+        "meanUnit": "mm per year, on average",
+        "chuvoso": "Wet, {pct} above the local mean ({mean} mm).",
+        "seco": "Dry, {pct} below the local mean ({mean} mm).",
+        "normal": "Close to the local mean ({mean} mm).",
+        "missing": "No {year} data here.",
+        "compare": {
+          "acima": "This mean is above the Caatinga's ({biome} mm).",
+          "abaixo": "This mean is below the Caatinga's ({biome} mm).",
+          "perto": "This mean is close to the Caatinga's ({biome} mm)."
+        },
+        "noData": "No rainfall data here."
+      }
+    },
+    "summary": {
+      "titles": {
+        "estoque": "Carbon in the original vegetation",
+        "fluxo": "Carbon exchanged with the air",
+        "uso": "Native vegetation",
+        "degradacao": "Degraded land",
+        "chuva": "Rainfall"
+      },
+      "estoque": {
+        "unit": "t C per hectare",
+        "total": "In total, {tonnes} C.",
+        "biome": "In the Caatinga, {biome} t C per hectare."
+      },
+      "fluxo": {
+        "unit": "t of CO₂e per hectare with trees",
+        "removal": "Net, the areas with trees removed {tonnes} of CO₂e from the air.",
+        "emission": "Net, the areas with trees released {tonnes} of CO₂e into the air.",
+        "balance": "Net, the areas with trees removed and released the same amount.",
+        "biome": "In the Caatinga, {biome} t per hectare with trees.",
+        "readings": {
+          "acima": "Above the Caatinga per hectare with trees",
+          "abaixo": "Below the Caatinga per hectare with trees",
+          "perto": "Close to the Caatinga per hectare with trees"
+        },
+        "biomeDirection": {
+          "removal": "In the Caatinga, they removed more than they released.",
+          "emission": "In the Caatinga, they released more than they removed.",
+          "neutral": "In the Caatinga, they were in balance."
+        }
+      },
+      "uso": {
+        "unit": "of the area in {year}",
+        "before": "It was {pct} in {year}.",
+        "biome": "In the Caatinga, from {from} to {to}."
+      },
+      "degradacao": {
+        "unit": "of the area",
+        "biome": "In the Caatinga, {biome}.",
+        "conserved": "The conserved area adds up to {pct}."
+      },
+      "chuva": {
+        "unit": "mm per year, on average",
+        "biome": "In the Caatinga, {biome} mm.",
+        "year": {
+          "chuvoso": "{year} was wet, with {mm} mm.",
+          "seco": "{year} was dry, with {mm} mm.",
+          "normal": "{year} was close to the mean, with {mm} mm."
+        },
+        "missing": "No {year} data."
+      }
+    },
+    "about": {
+      "title": "About the data",
+      "territorio": {
+        "title": "Territory",
+        "text": "Area within the Caatinga boundary, according to IBGE (2019)."
+      },
+      "estoque": {
+        "title": "Stock",
+        "text": "Fourth National Inventory, in 100 m squares. Carbon the original vegetation would store, without discounting current land use; includes soil carbon.",
+        "coverage": "The inventory covers {pct} of this area; the total holds only for that part."
+      },
+      "fluxo": {
+        "title": "Flux",
+        "text": "Global Forest Watch, version 1.4.2, 30 m; net balance from {first} to {last}. Areas with trees: canopy covering more than 30% of the ground in 2000, or canopy gain from 2000 to 2020."
+      },
+      "uso": {
+        "title": "Land use",
+        "text": "MapBiomas, collection 10.1, 30 m, {first} and {last}. Native vegetation: forest, savanna and grassland formations, mangrove, flooded forest, restinga, flooded grassland and apicum. Agriculture and livestock includes mixed cropland and pasture areas."
+      },
+      "degradacao": {
+        "title": "Degradation",
+        "text": "OCA index v4, from {year}, 500 m, in five levels; 5 is the most severe. \"No data\" is the part the index does not cover",
+        "noDataHere": ", {pct} here.",
+        "noDataPeriod": "."
+      },
+      "chuva": {
+        "title": "Rainfall",
+        "text": "CHIRPS, 5.6 km, from {first} to {last}. Dry or wet year: 10% or more below or above the territory's own mean; in between, normal."
+      },
+      "units": {
+        "title": "Units",
+        "text": "t C is a tonne of carbon; 1 t C equals 3.67 t of CO₂. CO₂e adds other greenhouse gases, such as methane and nitrous oxide, to CO₂."
+      },
+      "comparison": {
+        "title": "Comparison with the Caatinga",
+        "text": "Same sources and same calculation; for the biome, flux and land use at 100 m. Close: difference under 10%."
+      },
+      "point": "Here, value of a single point of the territory.",
+      "coarse": "Here, calculated at {m} m."
+    }
+  }
+}

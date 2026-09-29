@@ -7,6 +7,7 @@ import {
   summaryRows,
   type SummaryInput,
 } from '@/lib/territorios/storyText'
+import { fmtFor } from '../helpers/territoriosI18n'
 import type {
   AboutItem,
   BiomeReference,
@@ -23,6 +24,9 @@ import type {
 function typeOf(id: TerritoryTypeId): TerritoryType {
   return TERRITORY_TYPES.find((t) => t.id === id)!
 }
+
+const PT = fmtFor('pt')
+const EN = fmtFor('en')
 
 const municipio = typeOf('municipio')
 const assentamento = typeOf('assentamento')
@@ -160,19 +164,19 @@ const rows: SummaryRow[] = []
 const abouts: AboutItem[][] = []
 
 function step(s: Step, territory: TerritoryPayload, type: TerritoryType, response?: ThemeResponse): StepAnswer {
-  const out = stepAnswer(s, { territory, type, response })
+  const out = stepAnswer(s, { territory, type, response, fmt: PT })
   answers.push(out)
   return out
 }
 
-function sheet(input: SummaryInput): SummaryRow[] {
-  const out = summaryRows(input)
+function sheet(input: Omit<SummaryInput, 'fmt'>): SummaryRow[] {
+  const out = summaryRows({ ...input, fmt: PT })
   rows.push(...out)
   return out
 }
 
-function about(input: SummaryInput): AboutItem[] {
-  const out = aboutItems(input)
+function about(input: Omit<SummaryInput, 'fmt'>): AboutItem[] {
+  const out = aboutItems({ ...input, fmt: PT })
   abouts.push(out)
   return out
 }
@@ -449,5 +453,49 @@ describe('every answer, line and item', () => {
       ...abouts.flat().flatMap((i) => [i.title, i.text]),
     ]
     for (const line of lines) expect(line).not.toMatch(/[{}]|undefined|NaN/)
+  })
+})
+
+describe('in English', () => {
+  const answersEn = (territory: TerritoryPayload, type: TerritoryType, responses: Partial<Record<ThemeId, ThemeResponse>>) =>
+    Object.fromEntries(STEPS.map((s) => [
+      s,
+      stepAnswer(s, { territory, type, response: s === 'territorio' ? undefined : responses[s], fmt: EN }),
+    ]))
+
+  it('tells the story of Campina Grande with English words and notation', () => {
+    const out = answersEn(CG, municipio, CG_ANSWERS)
+    expect(out.territorio).toEqual({
+      question: 'Where is it and how big is it?',
+      headline: { value: '596', unit: 'km²' },
+      sentence: 'Area within the Caatinga, in Paraíba.',
+    })
+    expect(out.estoque.headline).toEqual({ value: '46', unit: 't of carbon per hectare' })
+    expect(out.estoque.sentence).toBe('Below the Caatinga (55 t per hectare). In total, 2.7 million t.')
+    expect(out.uso.question).toBe('How has native vegetation changed since 1985?')
+    expect(out.chuva.question).toBe('Was 2024 a dry or a wet year here?')
+  })
+
+  it('joins several states with the English conjunction', () => {
+    const out = stepAnswer('territorio', {
+      territory: payload({ context: 'SE/BA' }), type: municipio, fmt: EN,
+    })
+    expect(out.sentence).toBe('Area within the Caatinga, in Sergipe and Bahia.')
+  })
+
+  it('fills every template of the sheet and of "About the data"', () => {
+    const input = { responses: CG_ANSWERS, territory: CG, type: municipio, fmt: EN }
+    const lines = [
+      ...summaryRows(input).flatMap((r) => [r.title, r.sentence, r.headline?.value ?? '', r.headline?.unit ?? '']),
+      ...aboutItems(input).flatMap((i) => [i.title, i.text]),
+      ...Object.values(answersEn(CG, municipio, CG_ANSWERS)).flatMap((a) => [a.question, a.sentence]),
+    ]
+    expect(lines.length).toBeGreaterThan(30)
+    for (const line of lines) {
+      expect(line).not.toMatch(/[{}]|undefined|NaN/)
+      // A key that resolved to nothing comes back as its path.
+      expect(line).not.toMatch(/^[A-Za-z]+(\.[A-Za-z0-9]+)+$/)
+    }
+    expect(aboutItems(input).map((i) => i.title)).toContain('Comparison with the Caatinga')
   })
 })

@@ -67,6 +67,15 @@ export const NAMESPACES = [
   'SobreMetadata',
   'SobrePlataformaPage',
   'SobreSubnav',
+  'TerritoriosCharts',
+  'TerritoriosChooser',
+  'TerritoriosIntro',
+  'TerritoriosMap',
+  'TerritoriosMetadata',
+  'TerritoriosRail',
+  'TerritoriosStory',
+  'TerritoriosTypes',
+  'TerritoriosUi',
 ] as const
 
 async function loadNamespace(locale: Locale, namespace: string): Promise<Record<string, unknown>> {

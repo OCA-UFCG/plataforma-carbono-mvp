@@ -1,0 +1,57 @@
+{
+  "TerritoriosTypes": {
+    "types": {
+      "bioma": {
+        "label": "Bioma",
+        "unitLabel": "Bioma"
+      },
+      "estado": {
+        "label": "Estado",
+        "unitLabel": "Estado",
+        "plural": "estados",
+        "searchQuestion": "Qual estado?"
+      },
+      "municipio": {
+        "label": "Município",
+        "unitLabel": "Município",
+        "plural": "municípios",
+        "searchQuestion": "Qual município?"
+      },
+      "terra_indigena": {
+        "label": "Terras Indígenas",
+        "unitLabel": "Terra Indígena",
+        "plural": "terras indígenas",
+        "searchQuestion": "Qual terra indígena?"
+      },
+      "territorio_quilombola": {
+        "label": "Territórios Quilombolas",
+        "unitLabel": "Território Quilombola",
+        "plural": "territórios quilombolas",
+        "searchQuestion": "Qual território quilombola?"
+      },
+      "assentamento": {
+        "label": "Assentamentos",
+        "unitLabel": "Assentamento",
+        "plural": "assentamentos",
+        "searchQuestion": "Qual assentamento?"
+      },
+      "propriedade_rural": {
+        "label": "Propriedades Rurais",
+        "unitLabel": "Propriedade Rural"
+      },
+      "unidade_conservacao": {
+        "label": "Unidades de Conservação",
+        "unitLabel": "Unidade de Conservação"
+      }
+    },
+    "steps": {
+      "territorio": "Território",
+      "estoque": "Estoque",
+      "fluxo": "Fluxo",
+      "uso": "Uso da terra",
+      "degradacao": "Degradação",
+      "chuva": "Chuva",
+      "resumo": "Resumo"
+    }
+  }
+}

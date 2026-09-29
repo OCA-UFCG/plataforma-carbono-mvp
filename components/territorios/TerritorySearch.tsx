@@ -1,7 +1,8 @@
 'use client'
 
 import { useId, useMemo, useState } from 'react'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { useLocale, useTranslations } from 'next-intl'
+import { searchCountText, searchResultsText } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
 import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 
@@ -24,6 +25,9 @@ const MAX_SUGGESTIONS = 40
 
 export default function TerritorySearch({ entries, plural, onPropose, onShowMap }: TerritorySearchProps) {
   const [query, setQuery] = useState('')
+  const t = useTranslations('TerritoriosChooser')
+  const locale = useLocale()
+  const translate = (key: string, values?: Record<string, string | number>) => t(key, values)
   const inputId = useId()
 
   // True on the states recorte, where "mg" finds Minas Gerais; false on the
@@ -43,7 +47,7 @@ export default function TerritorySearch({ entries, plural, onPropose, onShowMap 
 
   return (
     <div className="territorios-escolha-busca">
-      <label className="territorios-campo" htmlFor={inputId}>{CHOOSER.searchLabel}</label>
+      <label className="territorios-campo" htmlFor={inputId}>{t('searchLabel')}</label>
       <input
         id={inputId}
         className="territorios-input"
@@ -55,14 +59,14 @@ export default function TerritorySearch({ entries, plural, onPropose, onShowMap 
 
       <div aria-live="polite">
         {!trimmed && plural && (
-          <p className="territorios-contagem">{CHOOSER.searchCount(entries.length, plural)}</p>
+          <p className="territorios-contagem">{searchCountText(entries.length, plural, translate, locale)}</p>
         )}
         {trimmed && matches.length === 0 && (
-          <p className="territorios-contagem">{CHOOSER.searchEmpty(trimmed)}</p>
+          <p className="territorios-contagem">{t('searchEmpty', { query: trimmed })}</p>
         )}
         {/* The list below sits outside the live region; this line announces it. */}
         {trimmed && found.length > 0 && (
-          <p className="territorios-sr">{CHOOSER.searchResults(found.length)}</p>
+          <p className="territorios-sr">{searchResultsText(found.length, translate, locale)}</p>
         )}
       </div>
 
@@ -80,7 +84,7 @@ export default function TerritorySearch({ entries, plural, onPropose, onShowMap 
 
       {trimmed && (
         <button type="button" className="territorios-escolha-link" onClick={onShowMap}>
-          {CHOOSER.searchToMap}
+          {t('searchToMap')}
         </button>
       )}
     </div>

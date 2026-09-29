@@ -1,5 +1,5 @@
 // Numbers of the Territórios story: what each theme response measures, how the
-// sentences print it in pt-BR, and the chart inputs that set it beside the
+// sentences print it in the visitor's language, and the chart inputs that set it beside the
 // whole Caatinga.
 //
 // Pure on purpose, like lib/mapa/reportNarrative.ts: no Earth Engine and no
@@ -22,7 +22,7 @@ import {
   RAIN_LAST_YEAR,
 } from '@/config/territorios/story'
 import { describeFlux } from '@/lib/mapa/carbonFlux'
-import { numero } from '@/lib/mapa/format'
+import { fixed, intlLocale, type Fmt } from '@/lib/territorios/i18n'
 import type { StockReport, TimeSeriesPoint } from '@/types/mapa'
 import type {
   DegradationChart,
@@ -48,7 +48,8 @@ export const RAIN_NEAR_MEAN_PCT = 10
 // decimal below, and a positive value too small to print never reads as zero.
 // Adapted from `adaptive`, `hectares` and `quantity` of lib/mapa/results/format.ts
 // in commit c5eab2a (the Resultados tab), with "mil t" and "milhões de t" in
-// place of kt and Mt.
+// place of kt and Mt. Each formatter takes a `Fmt`: the locale for the digits,
+// and the TerritoriosStory messages for the words ("menos de", the units).
 
 /** A figure and its unit, printed apart as the big number of a step. */
 export interface Parts {
@@ -66,50 +67,50 @@ function printedValue(n: number): number {
 }
 
 /** A magnitude: "46", "8,5", "menos de 0,1". The sign is dropped. */
-export function formatNumber(n: number): string {
+export function formatNumber(n: number, fmt: Fmt): string {
   const a = Math.abs(n)
   if (!(a > 0)) return '0'
-  if (a < 0.1) return `menos de ${numero(0.1)}`
+  if (a < 0.1) return fmt.t('values.lessThan', { value: fixed(0.1, 1, fmt.locale) })
   // 9.96 prints as "10", not "10,0".
-  return printedValue(a) >= 10 ? numero(a, 0) : numero(a, 1)
+  return printedValue(a) >= 10 ? fixed(a, 0, fmt.locale) : fixed(a, 1, fmt.locale)
 }
 
 /** `pct` is a percent, 0..100: "46%", "2,5%", "menos de 0,1%". */
-export function formatPercent(pct: number): string {
-  return `${formatNumber(pct)}%`
+export function formatPercent(pct: number, fmt: Fmt): string {
+  return `${formatNumber(pct, fmt)}%`
 }
 
 /** Hectares below 10 km², square kilometres from there on. */
-export function areaParts(ha: number): Parts {
-  if (!(ha > 0)) return { value: '0', unit: 'ha' }
-  if (ha < 1) return { value: 'menos de 1', unit: 'ha' }
-  if (ha < 10) return { value: formatNumber(ha), unit: 'ha' }
-  if (Math.round(ha) < 1_000) return { value: numero(ha, 0), unit: 'ha' }
-  return { value: numero(ha / 100, 0), unit: 'km²' }
+export function areaParts(ha: number, fmt: Fmt): Parts {
+  const hectare = fmt.t('area.hectare')
+  if (!(ha > 0)) return { value: '0', unit: hectare }
+  if (ha < 1) return { value: fmt.t('values.lessThanOne'), unit: hectare }
+  if (ha < 10) return { value: formatNumber(ha, fmt), unit: hectare }
+  if (Math.round(ha) < 1_000) return { value: fixed(ha, 0, fmt.locale), unit: hectare }
+  return { value: fixed(ha / 100, 0, fmt.locale), unit: fmt.t('area.squareKm') }
 }
 
-export function formatArea(ha: number): string {
-  return joinParts(areaParts(ha))
+export function formatArea(ha: number, fmt: Fmt): string {
+  return joinParts(areaParts(ha, fmt))
 }
 
+// Keys of TerritoriosStory `tonnes.<scale>.one|many`.
 const TONNE_SCALES = [
-  { size: 1,   one: 't',           many: 't' },
-  { size: 1e3, one: 'mil t',       many: 'mil t' },
-  { size: 1e6, one: 'milhão de t', many: 'milhões de t' },
-  { size: 1e9, one: 'bilhão de t', many: 'bilhões de t' },
+  { size: 1,   key: 'tonne' },
+  { size: 1e3, key: 'thousand' },
+  { size: 1e6, key: 'million' },
+  { size: 1e9, key: 'billion' },
 ]
-
-const scaledNumber = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
 
 /**
  * A mass in tonnes, at most three significant digits once it is large:
  * "812 t", "462 mil t", "2,7 milhões de t", "1,6 bilhão de t". The sign is
  * dropped. The unit is singular below 2, as pt-BR writes "1,5 milhão".
  */
-export function tonnesParts(t: number): Parts {
+export function tonnesParts(t: number, fmt: Fmt): Parts {
   const a = Math.abs(t)
-  if (!(a > 0)) return { value: '0', unit: 't' }
-  if (a < 1) return { value: 'menos de 1', unit: 't' }
+  if (!(a > 0)) return { value: '0', unit: fmt.t('tonnes.tonne.one') }
+  if (a < 1) return { value: fmt.t('values.lessThanOne'), unit: fmt.t('tonnes.tonne.one') }
 
   let i = 0
   while (i < TONNE_SCALES.length - 1 && a >= TONNE_SCALES[i + 1].size) i++
@@ -118,12 +119,14 @@ export function tonnesParts(t: number): Parts {
 
   const scale = TONNE_SCALES[i]
   const v = a / scale.size
-  const value = i === 0 ? numero(v, 0) : v >= 10 ? numero(v, 0) : scaledNumber.format(printedValue(v))
-  return { value, unit: printedValue(v) < 2 ? scale.one : scale.many }
+  const value = i === 0 || v >= 10
+    ? fixed(v, 0, fmt.locale)
+    : (printedValue(v)).toLocaleString(intlLocale(fmt.locale), { maximumFractionDigits: 1 })
+  return { value, unit: fmt.t(`tonnes.${scale.key}.${printedValue(v) < 2 ? 'one' : 'many'}`) }
 }
 
-export function formatTonnes(t: number): string {
-  return joinParts(tonnesParts(t))
+export function formatTonnes(t: number, fmt: Fmt): string {
+  return joinParts(tonnesParts(t, fmt))
 }
 
 // Territory
@@ -150,7 +153,7 @@ export function fluxMetrics(data: FluxThemeData): FluxMetrics | null {
 
   const flux = describeFlux(data.totalMgCo2e)
   // A total that rounds to 0 t would state a direction the printed number cannot show.
-  const neutral = flux.direction === 'neutral' || numero(flux.magnitude, 0) === numero(0, 0)
+  const neutral = flux.direction === 'neutral' || Math.round(flux.magnitude) === 0
   const direction = neutral ? 'neutral' : (flux.direction as 'emission' | 'removal')
 
   return {
@@ -165,7 +168,6 @@ export function fluxMetrics(data: FluxThemeData): FluxMetrics | null {
 
 export interface GroupShare {
   id:       string
-  label:    string
   color:    string
   sharePct: number
 }
@@ -187,7 +189,7 @@ export function landUseGroupShares(areas: Record<string, number>): GroupShare[] 
   if (total <= 0) return []
 
   return LAND_USE_GROUPS
-    .map((g) => ({ id: g.id, label: g.label, color: g.color, sharePct: ((byGroup.get(g.id) ?? 0) / total) * 100 }))
+    .map((g) => ({ id: g.id, color: g.color, sharePct: ((byGroup.get(g.id) ?? 0) / total) * 100 }))
     .filter((g) => g.id !== UNCLASSIFIED_GROUP_ID || g.sharePct > 0)
 }
 
@@ -199,6 +201,21 @@ const NATIVE_GROUP_IDS = new Set(LAND_USE_GROUPS.filter((g) => g.native).map((g)
 const DEGRADED_CODES = [1, 2, 3, 4, 5]
 const SEVERE_CODES = [1, 2]
 export const CONSERVED_CODE = 6
+
+/**
+ * Message key of each class code, under `legend.degradation` and
+ * `TerritoriosCharts.degradacao.levels`: code 6 is Conservado, code 1 is
+ * level 5 and code 0 the masked area.
+ */
+export const DEGRADATION_KEYS: Record<number, string> = {
+  6: 'conserved',
+  5: 'level1',
+  4: 'level2',
+  3: 'level3',
+  2: 'level4',
+  1: 'level5',
+  0: 'noData',
+}
 
 /** Level 1 (lightest) to 5 (worst) of a degraded class code; null otherwise. */
 export function degradationLevel(code: number): number | null {

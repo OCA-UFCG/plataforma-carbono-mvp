@@ -2,6 +2,7 @@
 // marker on the same scale. The territory's label sits above the bar and the
 // Caatinga's below it, so the two never collide, however close the values.
 
+import { useTranslations } from 'next-intl'
 import { REFERENCE_COLOR } from '@/config/territorios/palette'
 import { ChartFigure, anchorAt, cssVars, outlineOf, scalePct } from './ChartFigure'
 import '@/app/territorios-graficos.css'
@@ -15,7 +16,9 @@ export interface ComparisonBarProps {
   color:     string
   /** Short title above the bar. */
   label?:          string
+  /** "Aqui" when left out. */
   hereLabel?:      string
+  /** "Caatinga" when left out. */
   referenceLabel?: string
   /** Smaller bar and text, for the final sheet. */
   compact?:        boolean
@@ -24,8 +27,11 @@ export interface ComparisonBarProps {
 
 export default function ComparisonBar({
   here, reference, max, format, color, label,
-  hereLabel = 'Aqui', referenceLabel = 'Caatinga', compact = false, description,
+  hereLabel: hereLabelProp, referenceLabel: referenceLabelProp, compact = false, description,
 }: ComparisonBarProps) {
+  const t = useTranslations('TerritoriosCharts')
+  const hereLabel = hereLabelProp ?? t('here')
+  const referenceLabel = referenceLabelProp ?? t('biome')
   const herePct = scalePct(here, max)
   const refPct = reference === null ? null : scalePct(reference, max)
 
