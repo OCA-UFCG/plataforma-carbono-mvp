@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
+import type { PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import "pdfjs-dist/web/pdf_viewer.css";
-import { formatZoom, nextZoomStep, parsePageInput } from "@/lib/marketing/pdfViewerControls";
+import { formatZoom, nextZoomStep, resolvePageField } from "@/lib/marketing/pdfViewerControls";
 import leitor from "./Leitor.module.css";
 import styles from "./PdfViewer.module.css";
 
@@ -17,9 +17,17 @@ export type PdfViewerProps = {
 
 type Status = "loading" | "ready" | "error";
 
-// Below this width the reader opens fitted to the width; Leitor.module.css and
-// PdfViewer.module.css switch the toolbar at the same width.
-const MOBILE_QUERY = "(max-width: 767px)";
+// Where the page fits its width rather than showing whole: a phone in either
+// orientation. The width matches the toolbar's breakpoint (Leitor.module.css,
+// PdfViewer.module.css); the height catches a phone on its side, where a whole
+// page in the short reading area would shrink to a quarter of the width.
+const FIT_WIDTH_QUERY = "(max-width: 767px), (max-height: 500px)";
+
+// The fit the reader keeps until someone picks a zoom: the whole page on a
+// desktop, the page's width on a phone (spec §5.2).
+function fitPreset(): "page-fit" | "page-width" {
+  return window.matchMedia(FIT_WIDTH_QUERY).matches ? "page-width" : "page-fit";
+}
 
 // The publication reader, Figma node 19015:13068: pdf.js's own PDFViewer
 // (lazy page rendering, text layer, links) driven by the design's toolbar,
@@ -32,6 +40,12 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
   const viewerRef = useRef<PDFViewer | null>(null);
   const documentRef = useRef<PDFDocumentProxy | null>(null);
   const scaleBeforeFullscreen = useRef<number | null>(null);
+  // Set once someone uses the zoom buttons: from then on a resize keeps their
+  // zoom instead of refitting the page.
+  const manualZoomRef = useRef(false);
+  // Set while a page number is being typed, so the scroll running on under
+  // the field does not overwrite it.
+  const editingPageRef = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -44,6 +58,9 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
 
   useEffect(() => {
     let cancelled = false;
+    let viewer: PDFViewer | undefined;
+    let linkService: PDFLinkService | undefined;
+    let resizeObserver: ResizeObserver | undefined;
     let destroyTask: (() => Promise<void>) | undefined;
 
     async function open() {
@@ -65,12 +82,12 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
       if (cancelled || !container || !viewerElement) return;
 
       const eventBus = new EventBus();
-      const linkService = new PDFLinkService({
+      linkService = new PDFLinkService({
         eventBus,
         externalLinkTarget: LinkTarget.BLANK,
         externalLinkRel: "noopener noreferrer",
       });
-      const viewer = new Viewer({
+      const pdfViewer = new Viewer({
         container,
         viewer: viewerElement,
         eventBus,
@@ -82,17 +99,32 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
         annotationMode: pdfjs.AnnotationMode.ENABLE,
         annotationEditorMode: pdfjs.AnnotationEditorType.DISABLE,
       });
-      linkService.setViewer(viewer);
-      viewerRef.current = viewer;
+      viewer = pdfViewer;
+      linkService.setViewer(pdfViewer);
+      viewerRef.current = pdfViewer;
 
       eventBus.on("pagesinit", () => {
-        viewer.currentScaleValue = window.matchMedia(MOBILE_QUERY).matches ? "page-width" : "page-fit";
+        pdfViewer.currentScaleValue = fitPreset();
       });
       eventBus.on("pagechanging", ({ pageNumber }: { pageNumber: number }) => {
         setPage(pageNumber);
-        setPageField(String(pageNumber));
+        if (!editingPageRef.current) setPageField(String(pageNumber));
       });
       eventBus.on("scalechanging", ({ scale: next }: { scale: number }) => setScale(next));
+
+      // PDFViewer only tracks its container's size; refitting is left to the
+      // app, as pdf.js's own viewer does on resize. The preset fit survives a
+      // window resize or a phone rotation until someone picks a zoom, and in
+      // fullscreen the page always fits the screen.
+      resizeObserver = new ResizeObserver(() => {
+        // Nothing to fit yet, or the reader is leaving: React detaches the DOM
+        // before this effect's cleanup disconnects the observer, and pdf.js
+        // cannot scroll a detached container.
+        if (pdfViewer.pagesCount === 0 || !container.isConnected || container.clientWidth === 0) return;
+        if (document.fullscreenElement === frameRef.current) pdfViewer.currentScaleValue = "page-fit";
+        else if (!manualZoomRef.current) pdfViewer.currentScaleValue = fitPreset();
+      });
+      resizeObserver.observe(container);
 
       // No eval hardening to pass: the font code path behind CVE-2024-4367
       // (code execution through a crafted font) no longer compiles code at all
@@ -103,7 +135,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
       if (cancelled) return;
 
       documentRef.current = pdfDocument;
-      viewer.setDocument(pdfDocument);
+      pdfViewer.setDocument(pdfDocument);
       linkService.setDocument(pdfDocument, null);
       setPageCount(pdfDocument.numPages);
       setStatus("ready");
@@ -115,6 +147,14 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
 
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
+      // setDocument(null) is how pdf.js's own viewer closes a document: it
+      // cancels rendering and the text layers. Left registered, those keep
+      // their document-level selection listeners and pin the detached pages,
+      // canvases included, for the life of the tab. The typings leave out
+      // null; pdf.js's app.js passes it.
+      viewer?.setDocument(null as unknown as PDFDocumentProxy);
+      linkService?.setDocument(null);
       viewerRef.current = null;
       documentRef.current = null;
       void destroyTask?.();
@@ -147,24 +187,26 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
   function zoom(direction: 1 | -1) {
     const viewer = viewerRef.current;
     const next = viewer ? nextZoomStep(viewer.currentScale, direction) : null;
-    if (viewer && next !== null) viewer.currentScale = next;
+    if (!viewer || next === null) return;
+
+    manualZoomRef.current = true;
+    viewer.currentScale = next;
   }
 
-  function goToTypedPage() {
-    const target = parsePageInput(pageField, pageCount);
+  // Enter always navigates; leaving the field only does when it holds a
+  // different page (resolvePageField), so tabbing through the toolbar or
+  // clicking back into the document keeps the reading position.
+  function commitPageField(trigger: "submit" | "blur") {
+    editingPageRef.current = false;
+    const { navigate, field } = resolvePageField(pageField, pageCount, page, trigger);
 
-    if (target === null || !viewerRef.current) {
-      setPageField(String(page));
-      return;
-    }
-
-    viewerRef.current.currentPageNumber = target;
-    setPageField(String(target));
+    if (navigate !== null && viewerRef.current) viewerRef.current.currentPageNumber = navigate;
+    setPageField(field);
   }
 
   function onPageSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    goToTypedPage();
+    commitPageField("submit");
   }
 
   function toggleFullscreen() {
@@ -212,8 +254,11 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               inputMode="numeric"
               autoComplete="off"
               value={pageField}
-              onChange={(event) => setPageField(event.target.value)}
-              onBlur={goToTypedPage}
+              onChange={(event) => {
+                editingPageRef.current = true;
+                setPageField(event.target.value);
+              }}
+              onBlur={() => commitPageField("blur")}
               disabled={!ready}
             />
             <span className={styles.total}>

@@ -28,6 +28,27 @@ export function parsePageInput(value: string, pageCount: number): number | null 
   return page >= 1 && page <= pageCount ? page : null
 }
 
+// What the page field does when the reader presses Enter (`submit`) or leaves
+// it (`blur`): the page to go to, or null to stay put, and what the field shows
+// afterwards. Leaving the field on the page already shown must not navigate:
+// pdf.js scrolls back to the top of that page even when the number is the
+// same, which would throw away the reader's position every time focus moves
+// through the toolbar. Enter always navigates, so it can re-align a page.
+export function resolvePageField(
+  value: string,
+  pageCount: number,
+  currentPage: number,
+  trigger: 'submit' | 'blur',
+): { navigate: number | null; field: string } {
+  const target = parsePageInput(value, pageCount)
+
+  if (target === null || (trigger === 'blur' && target === currentPage)) {
+    return { navigate: null, field: String(currentPage) }
+  }
+
+  return { navigate: target, field: String(target) }
+}
+
 export function formatZoom(scale: number): string {
   return `${Math.round(scale * 100)}%`
 }
