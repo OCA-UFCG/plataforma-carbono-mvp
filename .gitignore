@@ -11,6 +11,7 @@ next-env.d.ts
 # credenciais da service account do Google Earth Engine
 gen-lang-client-*.json
 service-account*.json
+ee-*.json
 
 # caches de bytecode do Python (scripts/)
 __pycache__/
