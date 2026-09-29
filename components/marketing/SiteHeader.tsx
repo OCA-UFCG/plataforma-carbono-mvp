@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
@@ -12,10 +11,10 @@ import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 250 + 486 + 247px with 16px gaps between them (1015px),
+// `.actions` are 153 + 466 + 247px with 16px gaps between them (898px),
 // none of it allowed to shrink below content (`flex: none` on `.nav` and
 // `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px, still 80 in this range — it only drops
-// to 24 at <=768px) on both sides. 1015 + 160 = 1175px is the narrowest
+// to 24 at <=768px) on both sides. 898 + 160 = 1058px is the narrowest
 // viewport the inline header actually fits; 1200 clears it with margin. This
 // is the only JS/CSS breakpoint pair on the branch — this value, the
 // `max-width: 1199px` / `min-width: 1200px` pair in SiteHeader.module.css,
@@ -136,18 +135,20 @@ export default function SiteHeader() {
     <header className={styles.siteHeader} aria-label="Cabeçalho">
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
-          {/* The Figma node (I18862:8515;18808:5505) is an empty placeholder
-              box labelled "logo", not a real exported mark; reusing the
-              institutional logo already committed at public/logos/logo_oca.png,
-              the same asset the pre-redesign header rendered here. */}
-          <Image
-            src="/logos/logo_oca.png"
+          {/* The Caativar lockup, Figma I18862:8515;19090:30266 (153x38). The
+              header places it as a raster PNG; public/logos/caativar.svg is
+              the same artwork exported as vectors from the logo board on the
+              "Área trabalho" page (node 19099:6670); rendered at the PNG's
+              1381px width, its bounds match the PNG's to the pixel. The
+              link's aria-label names it, so the image itself is decorative. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma logo */}
+          <img
+            src="/logos/caativar.svg"
             alt=""
-            width={38}
+            width={153}
             height={38}
-            className={styles.brandMark}
+            className={styles.brandLogo}
           />
-          <span className={`${styles.brandName} text-p-ui`}>Caativar</span>
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">

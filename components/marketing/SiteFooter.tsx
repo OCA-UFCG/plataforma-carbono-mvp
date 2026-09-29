@@ -14,7 +14,8 @@ import styles from "./SiteFooter.module.css";
 // alpha (5-10 KB each).
 //
 // The colour PNGs in public/logos/ are not orphaned by this: logo_oca.png
-// still serves the header (and the auth/mapa/relatorio layouts), while
+// still serves the brand mark below, every layout's favicon and the
+// Territórios step rail (components/territorios/StepRail.tsx), while
 // logo_ufcg.png, logo_sudene.png and logo_insa.png are kept alive solely by
 // components/mapa/Welcome.tsx. Do not delete them as unused.
 //
@@ -37,9 +38,11 @@ export default function SiteFooter() {
       <div className={`container ${styles.inner}`}>
         <div className={styles.column}>
           <div className={styles.brand}>
-            {/* Same institutional mark as the header's brand lockup
-                (public/logos/logo_oca.png); the wordmark beside it already
-                names the platform, so the mark itself is decorative here. */}
+            {/* The design's footer still holds the empty "logo" placeholder
+                (the Caativar lockup reached only the header), so this keeps
+                the institutional mark at public/logos/logo_oca.png; the
+                wordmark beside it already names the platform, so the mark
+                itself is decorative here. */}
             <Image
               src="/logos/logo_oca.png"
               alt=""
