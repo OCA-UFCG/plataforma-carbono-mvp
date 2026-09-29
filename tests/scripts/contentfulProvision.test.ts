@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONTENT_TYPES } from '@/scripts/contentful-provision.mjs'
+import { CONTENT_TYPES, toCmaField } from '@/scripts/contentful-provision.mjs'
 import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
 
 // The GraphQL API rejects a query naming a field the content model does not
@@ -53,6 +53,23 @@ describe('the provisioned content model', () => {
       if (!COMUNICACAO_QUERY.includes(`${collection}(order: order_ASC`)) continue
 
       expect(fieldIds(COLLECTIONS[collection as keyof typeof COLLECTIONS])).toContain('order')
+    }
+  })
+
+  it('gives both publication types an address, a date and a description', () => {
+    for (const contentTypeId of ['cartilha', 'caderno']) {
+      expect(fieldIds(contentTypeId)).toEqual(
+        expect.arrayContaining(['slug', 'publicationDate', 'description']),
+      )
+    }
+  })
+
+  it('makes the address required and unique', () => {
+    for (const contentTypeId of ['cartilha', 'caderno']) {
+      const slug = CONTENT_TYPES.find((c) => c.id === contentTypeId)?.fields.find((f) => f.id === 'slug')
+
+      expect(slug).toMatchObject({ type: 'Symbol', required: true, unique: true })
+      expect(toCmaField(slug).validations).toContainEqual({ unique: true })
     }
   })
 })

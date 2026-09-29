@@ -3,6 +3,7 @@ import {
   DEFAULT_CADERNO,
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
+  DESCRICAO_CARTILHA,
   getComunicacaoContent,
   listPublicacoes,
 } from '@/lib/content/comunicacao'
@@ -13,6 +14,7 @@ describe('getComunicacaoContent without Contentful', () => {
 
     expect(content.cartilhas).toHaveLength(4)
     expect(content.cartilhas[0]).toEqual({
+      slug: 'cartilha-1-o-que-e-credito-de-carbono',
       volume: 'Volume 1',
       title: 'O que é crédito de carbono?',
       cover: '/images/cartilhas/vol1.jpg',
@@ -191,5 +193,98 @@ describe('listPublicacoes', () => {
     const lista = listPublicacoes(await getComunicacaoContent(null))
     expect(lista).toHaveLength(1 + DEFAULT_CARTILHAS.length)
     expect(lista.every((p) => p.pdf === undefined)).toBe(true)
+  })
+})
+
+const WITH_PUBLICATION_FIELDS = {
+  cartilhaCollection: {
+    items: [
+      {
+        slug: 'cartilha-5-certificacao',
+        volume: 'Volume 5',
+        title: 'Certificação participativa',
+        description: 'Uma cartilha sobre certificação.',
+        publicationDate: '2025-05-14T00:00:00.000Z',
+        cover: { url: 'https://images.ctfassets.net/vol5.jpg' },
+        pdf: { url: 'https://assets.ctfassets.net/vol5.pdf', fileName: 'cartilha-5.pdf' },
+      },
+      {
+        slug: null,
+        volume: 'Volume 6',
+        title: 'Sem endereço ainda',
+        description: null,
+        publicationDate: null,
+        cover: { url: 'https://images.ctfassets.net/vol6.jpg' },
+        pdf: null,
+      },
+    ],
+  },
+  cadernoCollection: {
+    items: [
+      {
+        slug: 'caderno-2027',
+        title: 'Caderno 2027',
+        description: 'Segunda edição do caderno temático.',
+        publicationDate: null,
+        cover: { url: 'https://images.ctfassets.net/caderno2027.jpg' },
+        pdf: null,
+      },
+    ],
+  },
+  fotoFormacaoCollection: PUBLISHED.fotoFormacaoCollection,
+}
+
+describe('publication fields', () => {
+  it('maps the address, the date, the description and the file name', async () => {
+    const content = await getComunicacaoContent(clientReturning(WITH_PUBLICATION_FIELDS))
+
+    expect(content.cartilhas[0]).toEqual({
+      slug: 'cartilha-5-certificacao',
+      volume: 'Volume 5',
+      title: 'Certificação participativa',
+      description: 'Uma cartilha sobre certificação.',
+      publicationDate: '2025-05-14T00:00:00.000Z',
+      cover: 'https://images.ctfassets.net/vol5.jpg',
+      pdf: 'https://assets.ctfassets.net/vol5.pdf',
+      pdfFileName: 'cartilha-5.pdf',
+    })
+    expect(content.caderno.slug).toBe('caderno-2027')
+    expect(content.caderno.publicationDate).toBeUndefined()
+  })
+
+  it('keeps an entry without an address listed, with no slug', async () => {
+    const content = await getComunicacaoContent(clientReturning(WITH_PUBLICATION_FIELDS))
+
+    expect(content.cartilhas.map((c) => c.volume)).toEqual(['Volume 5', 'Volume 6'])
+    expect(content.cartilhas[1].slug).toBeUndefined()
+  })
+
+  it('selects the new fields in the query', async () => {
+    const queries: string[] = []
+    await getComunicacaoContent(clientReturning(WITH_PUBLICATION_FIELDS, queries))
+
+    expect(queries[0]).toContain('slug')
+    expect(queries[0]).toContain('publicationDate')
+    expect(queries[0]).toContain('pdf { url fileName }')
+  })
+})
+
+describe('listPublicacoes publication fields', () => {
+  it('gives a cartilha without a description the series copy', () => {
+    const lista = listPublicacoes({
+      caderno: { title: 'Caderno', description: 'Resumo', cover: '/c.jpg' },
+      cartilhas: [{ volume: 'Volume 1', title: 'Um', cover: '/1.jpg' }],
+      fotosFormacao: [],
+    })
+
+    expect(lista.map((p) => p.description)).toEqual(['Resumo', DESCRICAO_CARTILHA])
+  })
+
+  it('ships a unique address for every default publication', async () => {
+    const lista = listPublicacoes(await getComunicacaoContent(null))
+    const slugs = lista.map((p) => p.slug)
+
+    expect(slugs.every(Boolean)).toBe(true)
+    expect(new Set(slugs).size).toBe(slugs.length)
   })
 })

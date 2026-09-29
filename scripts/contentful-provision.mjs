@@ -22,6 +22,9 @@ export const CONTENT_TYPES = [
     fields: [
       { id: 'volume', name: 'Volume', type: 'Symbol', required: true },
       { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true },
+      { id: 'description', name: 'Descrição', type: 'Text', required: false },
+      { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
       { id: 'order', name: 'Ordem', type: 'Integer', required: true },
@@ -34,7 +37,9 @@ export const CONTENT_TYPES = [
     displayField: 'title',
     fields: [
       { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true },
       { id: 'description', name: 'Descrição', type: 'Text', required: true },
+      { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
     ],
@@ -70,10 +75,14 @@ function loadEnv() {
   } catch {}
 }
 
-function toCmaField(field) {
+export function toCmaField(field) {
   const validations = []
   if (field.image) validations.push({ linkMimetypeGroup: ['image'] })
   if (field.pdf) validations.push({ linkMimetypeGroup: ['pdfdocument'] })
+  // A publication's address is its URL. Contentful enforces this per content
+  // type only, so a cartilha and the caderno can still clash
+  // (lib/content/comunicacao.ts, findPublicacao).
+  if (field.unique) validations.push({ unique: true })
 
   return {
     id: field.id,

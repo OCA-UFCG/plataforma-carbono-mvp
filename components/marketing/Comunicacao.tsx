@@ -1,4 +1,4 @@
-import type { ComunicacaoContent } from "@/lib/content/comunicacao";
+import { DESCRICAO_CARTILHA, type ComunicacaoContent } from "@/lib/content/comunicacao";
 import MoreLink from "./MoreLink";
 import styles from "./Comunicacao.module.css";
 
@@ -28,14 +28,6 @@ const FOTOS: Record<string, string> = {
   caderno: "/images/comunicacao/caderno.webp",
   cartilha: "/images/comunicacao/cartilha.webp",
 };
-
-// The hover state (Figma 18916:9437) reveals a description under the title.
-// The caderno carries one in the content model; cartilhas do not, so the
-// cartilha card falls back to the design's own copy, which describes the
-// series rather than any one volume. When the Cartilha model gains a
-// description field, read it here instead.
-const DESCRICAO_CARTILHA =
-  "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.";
 
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
 // gutter (card component 18862:7951, hover state 18916:9437). Hovering a
@@ -73,7 +65,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
             key: "cartilha",
             label: "CARTILHA",
             title: primeiraCartilha.title,
-            description: DESCRICAO_CARTILHA,
+            description: primeiraCartilha.description ?? DESCRICAO_CARTILHA,
             cover: FOTOS.cartilha ?? primeiraCartilha.cover,
             pdf: primeiraCartilha.pdf,
           },
