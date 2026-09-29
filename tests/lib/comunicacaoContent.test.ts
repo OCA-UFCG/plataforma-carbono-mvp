@@ -290,6 +290,12 @@ describe('listPublicacoes publication fields', () => {
     expect(slugs.every(Boolean)).toBe(true)
     expect(new Set(slugs).size).toBe(slugs.length)
   })
+
+  it('ships addresses an editor could type under the provisioned rule', async () => {
+    const lista = listPublicacoes(await getComunicacaoContent(null))
+
+    for (const p of lista) expect(p.slug, p.title).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  })
 })
 
 describe('findPublicacao', () => {

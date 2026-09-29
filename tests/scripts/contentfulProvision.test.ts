@@ -72,4 +72,18 @@ describe('the provisioned content model', () => {
       expect(toCmaField(slug).validations).toContainEqual({ unique: true })
     }
   })
+
+  // The address is typed by hand in Contentful and pasted into /comunicacao/<slug>:
+  // a space, an accent, "#" or "?" would give a broken or ugly link.
+  it('only accepts an address made of lowercase words joined by hyphens', () => {
+    for (const contentTypeId of ['cartilha', 'caderno']) {
+      const slug = CONTENT_TYPES.find((c) => c.id === contentTypeId)?.fields.find((f) => f.id === 'slug')
+      const regexp = toCmaField(slug).validations.find((v) => 'regexp' in v)
+      const pattern = new RegExp(regexp?.regexp?.pattern ?? '(?!)')
+
+      for (const good of ['cartilha-5-certificacao', 'caderno-2027', 'a1']) expect(pattern.test(good), good).toBe(true)
+      for (const bad of ['Cartilha 5', 'certificação', 'a#b', 'a?b', '-a', 'a-', 'a--b', '']) expect(pattern.test(bad), bad).toBe(false)
+      expect(regexp?.message).toBeTruthy()
+    }
+  })
 })
