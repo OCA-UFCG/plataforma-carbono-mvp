@@ -5,7 +5,8 @@ import SiteHeader from "@/components/marketing/SiteHeader";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import ConteudoHeader from "@/components/marketing/conteudo/ConteudoHeader";
 import ConteudoSemPdf from "@/components/marketing/conteudo/ConteudoSemPdf";
-import { findPublicacao, getComunicacaoContent } from "@/lib/content/comunicacao";
+import RelatedContent from "@/components/marketing/conteudo/RelatedContent";
+import { findPublicacao, getComunicacaoContent, relatedPublicacoes } from "@/lib/content/comunicacao";
 import { getContentfulClient } from "@/lib/contentful";
 import styles from "./page.module.css";
 
@@ -39,6 +40,7 @@ export default async function ConteudoPage({ params }: Props) {
           <ConteudoHeader publicacao={publicacao} />
           <ConteudoSemPdf publicacao={publicacao} />
         </div>
+        <RelatedContent publicacoes={relatedPublicacoes(conteudo, slug)} />
       </main>
       <SiteFooter />
     </>

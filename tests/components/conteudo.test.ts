@@ -4,6 +4,10 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import ConteudoHeader from '@/components/marketing/conteudo/ConteudoHeader'
 import ConteudoSemPdf from '@/components/marketing/conteudo/ConteudoSemPdf'
 import type { Publicacao } from '@/lib/content/comunicacao'
+import PublicationCard from '@/components/marketing/PublicationCard'
+import Comunicacao from '@/components/marketing/Comunicacao'
+import RelatedContent from '@/components/marketing/conteudo/RelatedContent'
+import { getComunicacaoContent } from '@/lib/content/comunicacao'
 
 const html = <P extends object>(component: ComponentType<P>, props: P) =>
   renderToStaticMarkup(createElement(component, props))
@@ -53,5 +57,52 @@ describe('ConteudoSemPdf', () => {
     expect(markup).toContain('O que é crédito de carbono?')
     expect(markup).toContain('src="/images/cartilhas/vol1.jpg"')
     expect(markup).not.toContain('Baixar PDF')
+  })
+})
+
+describe('PublicationCard', () => {
+  it('leads to the publication page, in the same tab', () => {
+    const markup = html(PublicationCard, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })
+
+    expect(markup).toContain('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')
+    expect(markup).not.toContain('target="_blank"')
+    expect(markup).not.toContain('https://x/v1.pdf')
+  })
+
+  it('is a link even without a PDF, and badges only a PDF', () => {
+    const markup = html(PublicationCard, { publicacao: PUBLICACAO })
+
+    expect(markup).toContain('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')
+    expect(markup).not.toContain('>PDF<')
+    expect(html(PublicationCard, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })).toContain('>PDF<')
+  })
+
+  it('is not a link without an address', () => {
+    expect(html(PublicationCard, { publicacao: { ...PUBLICACAO, slug: undefined } })).not.toContain('<a')
+  })
+})
+
+describe('the landing Comunicação cards', () => {
+  it('lead to the publication pages', async () => {
+    const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) })
+
+    expect(markup).toContain('href="/comunicacao/caderno-mercado-de-carbono-florestal-na-caatinga"')
+    expect(markup).toContain('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')
+    expect(markup).toContain('Ver material')
+  })
+})
+
+describe('RelatedContent', () => {
+  it('lists one card per related publication under its heading', () => {
+    const markup = html(RelatedContent, {
+      publicacoes: [PUBLICACAO, { ...PUBLICACAO, key: 'cartilha-1', slug: 'dois', title: 'Dois' }],
+    })
+
+    expect(markup).toMatch(/<h2[^>]*>Conteúdos Relacionados<\/h2>/)
+    expect(markup.match(/<li/g)).toHaveLength(2)
+  })
+
+  it('renders nothing when there is nothing related', () => {
+    expect(html(RelatedContent, { publicacoes: [] })).toBe('')
   })
 })
