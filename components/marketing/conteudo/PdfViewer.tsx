@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import "pdfjs-dist/web/pdf_viewer.css";
-import { formatZoom, loadProgress, nextZoomStep, resolvePageField } from "@/lib/marketing/pdfViewerControls";
+import { formatZoom, loadProgress, nextZoomStep, pageFieldDigits, resolvePageField } from "@/lib/marketing/pdfViewerControls";
 import leitor from "./Leitor.module.css";
 import styles from "./PdfViewer.module.css";
 
@@ -256,6 +256,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
           <form className={styles.pages} onSubmit={onPageSubmit}>
             <input
               className={`${styles.field} ${styles.pageField}`}
+              style={{ "--page-digits": pageFieldDigits(pageCount) } as CSSProperties}
               aria-label="Página"
               inputMode="numeric"
               autoComplete="off"

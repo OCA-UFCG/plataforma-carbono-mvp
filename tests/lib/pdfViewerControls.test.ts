@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatZoom, loadProgress, nextZoomStep, parsePageInput, resolvePageField } from '@/lib/marketing/pdfViewerControls'
+import { formatZoom, loadProgress, nextZoomStep, pageFieldDigits, parsePageInput, resolvePageField } from '@/lib/marketing/pdfViewerControls'
 
 describe('nextZoomStep', () => {
   it('moves one step up and down from a step', () => {
@@ -87,5 +87,17 @@ describe('loadProgress', () => {
     expect(loadProgress(500, 0)).toBeNull()
     expect(loadProgress(500, Number.NaN)).toBeNull()
     expect(loadProgress(500, -1)).toBeNull()
+  })
+})
+
+describe('pageFieldDigits', () => {
+  it('sizes the page field to the longest page number', () => {
+    expect(pageFieldDigits(9)).toBe(1)
+    expect(pageFieldDigits(32)).toBe(2)
+    expect(pageFieldDigits(100)).toBe(3)
+  })
+
+  it('holds two digits until the page count is known', () => {
+    expect(pageFieldDigits(0)).toBe(2)
   })
 })

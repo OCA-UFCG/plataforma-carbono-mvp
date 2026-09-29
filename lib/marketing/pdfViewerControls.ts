@@ -60,6 +60,14 @@ export function loadProgress(loaded: number, total: number): number | null {
   return Math.min(100, Math.floor((loaded / total) * 100))
 }
 
+// How many digits the page field is sized for: the document's page count, so
+// the field stays as narrow as the Figma's (33px for one digit) and grows only
+// for longer documents. Two until the count is known, which covers most
+// publications without the field changing width when the PDF arrives.
+export function pageFieldDigits(pageCount: number): number {
+  return pageCount > 0 ? String(pageCount).length : 2
+}
+
 export function formatZoom(scale: number): string {
   return `${Math.round(scale * 100)}%`
 }

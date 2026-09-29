@@ -35,16 +35,24 @@
   color: var(--am-400);
 }
 
+/* As wide as the page count's digits (--page-digits, set by PdfViewer): one
+ * digit gives the Figma's 33px; 1ch is 10.2px in Rubik 16. The 22px are the
+ * 10px of padding on each side plus the border. */
 .pageField {
-  width: calc(3ch + 26px);
+  width: calc(var(--page-digits, 2) * 1ch + 22px);
+  padding-inline: 10px;
   text-align: center;
 }
 
+/* One width for every step up to "300%" (42px of text in Rubik 16), so the
+ * zoom-out button does not shift as the percentage changes. The Figma draws
+ * this field 50px wide for "75%", which does not fit "100%". */
 .zoomField {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
+  min-width: 60px;
+  padding-inline: 8px;
 }
 
 .total {
@@ -135,14 +143,10 @@
 }
 
 @media (max-width: 767px) {
-  /* Page field, zoom and fullscreen on one row at 390px (≈310 of 318px); the
+  /* Page field, zoom and fullscreen on one row at 390px (≈300 of 318px); the
    * download moves under the description (ConteudoHeader). */
   .controls {
     gap: 12px;
-  }
-
-  .zoomField {
-    min-width: 56px;
   }
 
   .download {
