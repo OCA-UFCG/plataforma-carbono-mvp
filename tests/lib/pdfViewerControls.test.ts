@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatZoom, nextZoomStep, parsePageInput, resolvePageField } from '@/lib/marketing/pdfViewerControls'
+import { formatZoom, loadProgress, nextZoomStep, parsePageInput, resolvePageField } from '@/lib/marketing/pdfViewerControls'
 
 describe('nextZoomStep', () => {
   it('moves one step up and down from a step', () => {
@@ -68,5 +68,24 @@ describe('resolvePageField', () => {
       expect(resolvePageField('999', 20, 12, trigger)).toEqual({ navigate: null, field: '12' })
       expect(resolvePageField('abc', 20, 12, trigger)).toEqual({ navigate: null, field: '12' })
     }
+  })
+})
+
+describe('loadProgress', () => {
+  it('gives the whole percentage downloaded', () => {
+    expect(loadProgress(0, 1000)).toBe(0)
+    expect(loadProgress(400, 1000)).toBe(40)
+    expect(loadProgress(999, 1000)).toBe(99)
+    expect(loadProgress(1000, 1000)).toBe(100)
+  })
+
+  it('never passes 100, whatever the server reported', () => {
+    expect(loadProgress(1200, 1000)).toBe(100)
+  })
+
+  it('gives nothing when the size is unknown', () => {
+    expect(loadProgress(500, 0)).toBeNull()
+    expect(loadProgress(500, Number.NaN)).toBeNull()
+    expect(loadProgress(500, -1)).toBeNull()
   })
 })

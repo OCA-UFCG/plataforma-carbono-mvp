@@ -49,6 +49,17 @@ export function resolvePageField(
   return { navigate: target, field: String(target) }
 }
 
+// The share of the PDF downloaded so far, as a whole percentage, or null when
+// the server did not say how big the file is. Contentful's CDN hides the
+// header pdf.js needs to fetch only the first page's bytes, so a publication
+// loads whole before anything shows, and this is what the reader has to say
+// meanwhile (docs: DOCUMENTACAO.md, "Conteúdo editorial da landing").
+export function loadProgress(loaded: number, total: number): number | null {
+  if (!Number.isFinite(total) || total <= 0) return null
+
+  return Math.min(100, Math.floor((loaded / total) * 100))
+}
+
 export function formatZoom(scale: number): string {
   return `${Math.round(scale * 100)}%`
 }

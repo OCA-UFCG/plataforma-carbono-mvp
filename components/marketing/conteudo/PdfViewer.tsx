@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "re
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import "pdfjs-dist/web/pdf_viewer.css";
-import { formatZoom, nextZoomStep, resolvePageField } from "@/lib/marketing/pdfViewerControls";
+import { formatZoom, loadProgress, nextZoomStep, resolvePageField } from "@/lib/marketing/pdfViewerControls";
 import leitor from "./Leitor.module.css";
 import styles from "./PdfViewer.module.css";
 
@@ -47,6 +47,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
   // the field does not overwrite it.
   const editingPageRef = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
+  const [progress, setProgress] = useState<number | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageField, setPageField] = useState("1");
@@ -131,6 +132,11 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
       // in pdf.js 6, which dropped the `isEvalSupported` option with it.
       const task = pdfjs.getDocument({ url });
       destroyTask = () => task.destroy();
+      // Fires for every chunk received; the state only changes per whole percent.
+      task.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+        const next = loadProgress(loaded, total);
+        setProgress((current) => (current === next ? current : next));
+      };
       const pdfDocument = await task.promise;
       if (cancelled) return;
 
@@ -321,9 +327,12 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
           <div ref={viewerElementRef} className="pdfViewer" />
         </div>
 
+        {/* The percentage is for the eye: announced, it would repeat on every
+            step, so assistive tech hears "Carregando documento…" once. */}
         {status === "loading" && (
           <p className={leitor.status} role="status">
             Carregando documento…
+            {progress !== null && <span aria-hidden="true"> {progress}%</span>}
           </p>
         )}
 
