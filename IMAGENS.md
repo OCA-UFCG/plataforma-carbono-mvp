@@ -19,13 +19,13 @@ Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", p
 | Arquivo | Origem | Uso |
 |---|---|---|
 | `vol1.jpg` a `vol4.jpg` | `cartilhas/01.png` a `04.png` | Grade dos 4 volumes |
-| `caderno.jpg` | `cartilhas/boletim.png` | Bloco de destaque do caderno temático |
+| `caderno.jpg` | página 1 do PDF final do caderno (29/09/2026), renderizada com Ghostscript a 150 dpi e reduzida para 760×1075 | Capa do caderno temático |
 
 `colecao_banner.jpg` (recorte de `cartilhas/todas.png`, usado no remate da seção) foi removido junto com o trecho que o usava; o arquivo não existe mais em `public/images/cartilhas/`.
 
 Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
 
-Observação: a arte da capa do caderno ainda traz o rótulo "Boletim temático", nome anterior da publicação. O rótulo na landing e o content type no Contentful já usam "Caderno Temático"; a imagem discorda porque o texto está embutido no design. Para alinhar, é preciso editar o original, regerar o JPEG e substituir o asset no Contentful — a página usa o asset do CMS, e o `caderno.jpg` só entra no fallback, então as duas cópias precisam ser trocadas.
+A capa do caderno vem da versão final da publicação ("Caderno temático… desafios, riscos e perspectivas"), que substituiu a arte antiga ("Boletim temático… Desafios, Ameaças e Perspectivas") em 29/09/2026, junto com o título. A troca foi feita nas duas cópias: o asset da capa no Contentful, que a página usa, e o `caderno.jpg`, que só entra no fallback.
 
 ## Comunicação (public/images/comunicacao/)
 

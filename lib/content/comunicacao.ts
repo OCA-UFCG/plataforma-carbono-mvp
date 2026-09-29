@@ -72,7 +72,7 @@ export const DEFAULT_CARTILHAS: Cartilha[] = [
 export const DEFAULT_CADERNO: Caderno = {
   slug: 'caderno-mercado-de-carbono-florestal-na-caatinga',
   title:
-    'A aproximação do mercado de carbono florestal no bioma Caatinga: desafios, ameaças e perspectivas',
+    'A aproximação do mercado de carbono florestal no bioma Caatinga: desafios, riscos e perspectivas',
   description:
     'Reúne o que a ciência revela, o que a legislação estabelece e o que está em jogo para a Caatinga, em cinco seções que norteiam cidadãos, gestores públicos, organizações e investidores antes de se posicionarem no debate.',
   cover: '/images/cartilhas/caderno.jpg',
