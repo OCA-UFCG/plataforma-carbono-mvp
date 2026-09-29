@@ -331,3 +331,46 @@ export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
     ),
   ]
 }
+
+// The publication a /comunicacao/<slug> page shows. Contentful keeps an
+// address unique within one content type only, so a cartilha and the caderno
+// could share one: the first in list order wins, and the clash is logged for
+// the editor to fix (tests/lib/contentfulSpace.test.ts fails on it too).
+export function findPublicacao(conteudo: ComunicacaoContent, slug: string): Publicacao | null {
+  const matches = listPublicacoes(conteudo).filter((p) => p.slug === slug)
+
+  if (matches.length > 1) {
+    console.warn(
+      JSON.stringify({ event: 'comunicacao_duplicate_slug', slug, keys: matches.map((p) => p.key) }),
+    )
+  }
+
+  return matches[0] ?? null
+}
+
+// "Conteúdos Relacionados" (Figma 19015:13091) holds a row of five cards.
+export const MAX_RELACIONADOS = 5
+
+// Every other publication, in list order, up to the row's five.
+export function relatedPublicacoes(conteudo: ComunicacaoContent, slug: string): Publicacao[] {
+  const lista = listPublicacoes(conteudo)
+  const atual = lista.find((p) => p.slug === slug)
+
+  return lista.filter((p) => p !== atual).slice(0, MAX_RELACIONADOS)
+}
+
+// "Publicado em: 14/05/25" (Figma 19015:13064). Contentful answers a Date field
+// as an ISO string, "2025-05-14T00:00:00.000Z" for a date with no time. The
+// calendar date is read off the string rather than through Date: formatted in
+// the Northeast's UTC-3, midnight UTC would print the day before (the spec's
+// "formatted in UTC" guards the same thing), and a value written with its own
+// offset keeps the day the editor chose.
+export function formatPublicationDate(value?: string | null): string | null {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return null
+
+  const [, year, month, day] = match
+  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return null
+
+  return `${day}/${month}/${year.slice(2)}`
+}

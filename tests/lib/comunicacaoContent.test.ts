@@ -4,8 +4,11 @@ import {
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
   DESCRICAO_CARTILHA,
+  findPublicacao,
+  formatPublicationDate,
   getComunicacaoContent,
   listPublicacoes,
+  relatedPublicacoes,
 } from '@/lib/content/comunicacao'
 
 describe('getComunicacaoContent without Contentful', () => {
@@ -286,5 +289,80 @@ describe('listPublicacoes publication fields', () => {
 
     expect(slugs.every(Boolean)).toBe(true)
     expect(new Set(slugs).size).toBe(slugs.length)
+  })
+})
+
+describe('findPublicacao', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const conteudo = {
+    caderno: { slug: 'caderno', title: 'Caderno', description: 'Resumo', cover: '/c.jpg' },
+    cartilhas: [
+      { slug: 'um', volume: 'Volume 1', title: 'Um', cover: '/1.jpg' },
+      { slug: 'dois', volume: 'Volume 2', title: 'Dois', cover: '/2.jpg' },
+    ],
+    fotosFormacao: [],
+  }
+
+  it('finds a publication by its address', () => {
+    expect(findPublicacao(conteudo, 'dois')?.title).toBe('Dois')
+  })
+
+  it('returns null for an unknown address', () => {
+    expect(findPublicacao(conteudo, 'tres')).toBeNull()
+  })
+
+  it('takes the first of two publications sharing an address, and says so', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const clash = { ...conteudo, cartilhas: [{ ...conteudo.cartilhas[0], slug: 'caderno' }] }
+
+    expect(findPublicacao(clash, 'caderno')?.tipo).toBe('Caderno temático')
+    expect(warn).toHaveBeenCalledOnce()
+  })
+})
+
+describe('relatedPublicacoes', () => {
+  const cartilhas = Array.from({ length: 6 }, (_, i) => ({
+    slug: `c${i + 1}`,
+    volume: `Volume ${i + 1}`,
+    title: `Cartilha ${i + 1}`,
+    cover: `/${i + 1}.jpg`,
+  }))
+  const conteudo = {
+    caderno: { slug: 'caderno', title: 'Caderno', description: 'Resumo', cover: '/c.jpg' },
+    cartilhas,
+    fotosFormacao: [],
+  }
+
+  it('lists the other publications in list order', () => {
+    const small = { ...conteudo, cartilhas: cartilhas.slice(0, 2) }
+    expect(relatedPublicacoes(small, 'c1').map((p) => p.slug)).toEqual(['caderno', 'c2'])
+  })
+
+  it('stops at five', () => {
+    expect(relatedPublicacoes(conteudo, 'caderno').map((p) => p.slug)).toEqual(['c1', 'c2', 'c3', 'c4', 'c5'])
+  })
+})
+
+describe('formatPublicationDate', () => {
+  it('prints a date as the design does', () => {
+    expect(formatPublicationDate('2025-05-14')).toBe('14/05/25')
+  })
+
+  it('keeps the calendar day of a midnight-UTC value', () => {
+    expect(formatPublicationDate('2025-05-14T00:00:00.000Z')).toBe('14/05/25')
+  })
+
+  it('keeps the day an editor wrote with an offset', () => {
+    expect(formatPublicationDate('2025-05-14T23:00:00-03:00')).toBe('14/05/25')
+  })
+
+  it('omits a missing or malformed value', () => {
+    expect(formatPublicationDate(undefined)).toBeNull()
+    expect(formatPublicationDate('')).toBeNull()
+    expect(formatPublicationDate('banana')).toBeNull()
+    expect(formatPublicationDate('2025-13-40')).toBeNull()
   })
 })
