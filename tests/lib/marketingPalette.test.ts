@@ -82,6 +82,12 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-hover', '--am-050'],
   ['--role-alerta-risco-hover', '--am-050'],
   ['--role-categorica3-padrao', '--am-050'],
+  // Publication page (Figma 19015:13056): "Voltar" on the page, the reader's
+  // toolbar title and page count on --am-050, and its loading/error text on
+  // the --am-200 frame.
+  ['--role-categorica1-padrao', '--bg-fundo'],
+  ['--bg-texto-primario', '--am-050'],
+  ['--bg-texto-primario', '--am-200'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
