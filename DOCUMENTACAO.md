@@ -178,11 +178,11 @@ Modelo de conteúdo, criado por `npm run contentful:provision` (IDs dos campos e
 
 | Content type | Campos |
 |---|---|
-| `cartilha` | `volume`, `title`, `cover` (imagem), `pdf` (opcional), `order` |
-| `caderno` | `title`, `description`, `cover` (imagem), `pdf` (opcional) |
+| `cartilha` | `volume`, `title`, `slug` (endereço, obrigatório e único), `description` (opcional), `publicationDate` (opcional), `cover` (imagem), `pdf` (opcional), `order` |
+| `caderno` | `title`, `slug` (endereço, obrigatório e único), `description`, `publicationDate` (opcional), `cover` (imagem), `pdf` (opcional) |
 | `fotoFormacao` | `caption`, `alt`, `photo` (imagem), `order` |
 
-A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`), e não a data de criação da entry. O `pdf` é opcional: a capa da cartilha e o caderno só ganham link quando ele estiver publicado, o que é a forma de disponibilizar o material para download. `tests/scripts/contentfulProvision.test.ts` compara o modelo com a query e falha se um campo for renomeado em apenas um dos dois lados.
+A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`), e não a data de criação da entry. Cada publicação tem uma página em `/comunicacao/<slug>`, com o leitor de PDF embutido (pdf.js) quando o `pdf` estiver publicado e a capa no lugar dele enquanto não estiver; os cartões da landing e de `/comunicacao` levam a essa página. O `slug` precisa ser único também entre cartilhas e caderno, que o Contentful só garante dentro de cada tipo, e deve repetir o do conteúdo embutido no código (`lib/content/comunicacao.ts`), para que um link compartilhado continue funcionando quando o site cai no conteúdo padrão. A `publicationDate` aparece como "Publicado em: dd/mm/aa" e some quando vazia; uma cartilha sem `description` usa o texto da série. `tests/scripts/contentfulProvision.test.ts` compara o modelo com a query e falha se um campo for renomeado em apenas um dos dois lados, e `tests/lib/contentfulSpace.test.ts` falha enquanto alguma publicação estiver sem endereço.
 
 ## Camadas
 

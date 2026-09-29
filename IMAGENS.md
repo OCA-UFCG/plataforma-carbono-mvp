@@ -136,6 +136,8 @@ Os ícones das perguntas numeradas (`public/icons/sobre/`) são os SVGs exportad
 alteração. Dois deles ("paid" e "calendar month") vêm em duas camadas, um quadro vazio de 85 px e
 o glifo posicionado dentro dele; as duas são usadas como o design as compõe.
 
+Os ícones da página de publicação (`public/icons/conteudo/`) são os SVGs exportados do Figma (frame 19015:13056) sem alteração de desenho: a seta de "Voltar", as lupas de zoom, a tela cheia e o download. O download é a exceção de exportação: o `get_design_context` devolve para esse nó o ícone padrão do componente (um envelope), e não o trocado na instância, então o arquivo é o caminho do ícone tirado do SVG do botão inteiro, recortado por `viewBox` no quadro de 16 px que ele ocupa.
+
 ## Hero
 
 O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar a constante `PHOTOS` em `components/marketing/Hero.tsx`; o crédito exibido ("Foto: Artur Lourenço") vem do campo `credit` de cada entrada dessa constante e só aparece quando ele está preenchido.
