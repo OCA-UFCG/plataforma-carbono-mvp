@@ -1,0 +1,162 @@
+/* Toolbar controls, Figma nodes 19015:13073 (the page field and the zoom
+ * group, 24px apart) and 19015:13086 (fullscreen and "Baixar PDF", 16px). */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pages,
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The page and zoom fields (19015:13076, 19015:13083): 40px tall, Rubik
+ * 16/24 in --am-400 on --bg-fundo (5.32:1), 6px corners. Their border is the
+ * design's --input (#dcdbdc), which has no token; --am-200 is the nearest. */
+.field {
+  box-sizing: border-box;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--am-200);
+  border-radius: var(--radius-interno);
+  background: var(--bg-fundo);
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--am-400);
+}
+
+/* As wide as the page count's digits (--page-digits, set by PdfViewer): one
+ * digit gives the Figma's 33px; 1ch is 10.2px in Rubik 16. The 22px are the
+ * 10px of padding on each side plus the border. */
+.pageField {
+  width: calc(var(--page-digits, 2) * 1ch + 22px);
+  padding-inline: 10px;
+  text-align: center;
+}
+
+/* One width for every step up to "300%" (42px of text in Rubik 16), so the
+ * zoom-out button does not shift as the percentage changes. The Figma draws
+ * this field 50px wide for "75%", which does not fit "100%". */
+.zoomField {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding-inline: 8px;
+}
+
+.total {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+  white-space: nowrap;
+}
+
+/* Icon buttons (19015:13081, 13085, 13088): 40x40 on --bg-fundo with an
+ * --am-100 border and 4px corners (no token for 4px), the 24px icon inside. */
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid var(--am-100);
+  border-radius: 4px;
+  background: var(--bg-fundo);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.iconButton:hover:not(:disabled),
+.iconButton:focus-visible {
+  background: var(--am-100);
+}
+
+.iconButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* "Baixar PDF" (19015:13089): white on --role-marca-ancora-padrao (4.86:1),
+ * 4px corners, the 16px icon 8px before the label; hover steps to -hover. */
+.download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.download:hover,
+.download:focus-visible {
+  background: var(--role-marca-ancora-hover);
+}
+
+/* pdf.js's PDFViewer measures and scrolls its container itself, and requires
+ * it to be absolutely positioned. */
+.container {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
+.container:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: -2px;
+}
+
+.error {
+  flex-direction: column;
+  gap: 16px;
+}
+
+.errorCover {
+  max-height: 50%;
+  width: auto;
+}
+
+.errorText {
+  margin: 0;
+}
+
+.errorLink {
+  color: var(--bg-texto-primario);
+  text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+  /* Page field, zoom and fullscreen on one row at 390px (≈300 of 318px); the
+   * download moves under the description (ConteudoHeader). */
+  .controls {
+    gap: 12px;
+  }
+
+  .download {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton,
+  .download {
+    transition: none;
+  }
+}

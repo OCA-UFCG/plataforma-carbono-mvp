@@ -1,4 +1,5 @@
-import type { ComunicacaoContent } from "@/lib/content/comunicacao";
+import Link from "next/link";
+import { DESCRICAO_CARTILHA, type ComunicacaoContent } from "@/lib/content/comunicacao";
 import MoreLink from "./MoreLink";
 import styles from "./Comunicacao.module.css";
 
@@ -8,7 +9,7 @@ type CardData = {
   title: string;
   description: string;
   cover: string;
-  pdf?: string;
+  slug?: string;
 };
 
 // The design fills these cards with PHOTOGRAPHS: Figma nodes 18862:8581 and
@@ -29,18 +30,10 @@ const FOTOS: Record<string, string> = {
   cartilha: "/images/comunicacao/cartilha.webp",
 };
 
-// The hover state (Figma 18916:9437) reveals a description under the title.
-// The caderno carries one in the content model; cartilhas do not, so the
-// cartilha card falls back to the design's own copy, which describes the
-// series rather than any one volume. When the Cartilha model gains a
-// description field, read it here instead.
-const DESCRICAO_CARTILHA =
-  "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.";
-
 // Comunicação, Figma node 18862:8575, two 626x480 photo cards with a 24px
 // gutter (card component 18862:7951, hover state 18916:9437). Hovering a
 // card (or focusing a linked one) deepens its gradient and reveals the
-// description, plus a "Ver material" button when there is a PDF to open; on
+// description, plus a "Ver material" button on a card that has a publication page; on
 // touch screens, which have no hover, that expanded state is the resting
 // state (see Comunicacao.module.css). The module
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
@@ -65,7 +58,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       description: conteudo.caderno.description,
       // Falls back to the publication's cover art if the photograph is ever removed.
       cover: FOTOS.caderno ?? conteudo.caderno.cover,
-      pdf: conteudo.caderno.pdf,
+      slug: conteudo.caderno.slug,
     },
     ...(primeiraCartilha
       ? [
@@ -73,9 +66,9 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
             key: "cartilha",
             label: "CARTILHA",
             title: primeiraCartilha.title,
-            description: DESCRICAO_CARTILHA,
+            description: primeiraCartilha.description ?? DESCRICAO_CARTILHA,
             cover: FOTOS.cartilha ?? primeiraCartilha.cover,
-            pdf: primeiraCartilha.pdf,
+            slug: primeiraCartilha.slug,
           },
         ]
       : []),
@@ -110,7 +103,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
 function ComunicacaoCard({ card }: { card: CardData }) {
   const titleId = `comunicacao-${card.key}-title`;
   const descriptionId = `comunicacao-${card.key}-description`;
-  const linked = Boolean(card.pdf);
+  const linked = Boolean(card.slug);
 
   const content = (
     <>
@@ -143,7 +136,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
             {/* The whole card is the link; this is its visual call to
                 action, not a second control, hence a <span> hidden from
                 assistive tech (the link's name already says where it goes).
-                The card without a PDF is not a control, so it gets none. */}
+                The card without a page is not a control, so it gets none. */}
             {linked && (
               <span className={`${styles.cta} text-body`} aria-hidden="true">
                 Ver material
@@ -165,21 +158,19 @@ function ComunicacaoCard({ card }: { card: CardData }) {
   if (linked) {
     return (
       <li className={styles.card} role="listitem">
-        <a
-          href={card.pdf}
-          target="_blank"
-          rel="noreferrer"
+        <Link
+          href={`/comunicacao/${card.slug}`}
           aria-labelledby={titleId}
           aria-describedby={descriptionId}
           className={styles.surface}
         >
           {content}
-        </a>
+        </Link>
       </li>
     );
   }
 
-  // No PDF: the card is a photograph with a caption, not a control — no
+  // No page: the card is a photograph with a caption, not a control — no
   // href to give an <a>, and no click handler bolted onto a <div> either.
   return (
     <li className={styles.card} role="listitem">

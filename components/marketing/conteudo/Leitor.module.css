@@ -1,0 +1,102 @@
+/* The reader, Figma node 19015:13068: an --am-200 frame (#bfcace) with the
+ * toolbar (19015:13069) over the reading area. PdfViewer, its loading
+ * skeleton (LeitorCarregando) and the no-PDF state (ConteudoSemPdf) all build
+ * on it, so the three hold the same footprint and none reflows into another. */
+.frame {
+  display: flex;
+  flex-direction: column;
+  background: var(--am-200);
+}
+
+/* 72px: 16px of block padding around the 40px controls, on --am-050, the
+ * bottom corners rounded 8px. The title takes the design's 351px at most, and
+ * space-between puts the controls where the design places them. */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 72px;
+  padding: 16px 24px;
+  background: var(--am-050);
+  border-radius: 0 0 8px 8px;
+}
+
+/* Rubik Medium 16/24 comes from .text-p-ui; 15.80:1 on --am-050. */
+.title {
+  flex: 0 1 351px;
+  min-width: 0;
+  margin: 0;
+  color: var(--bg-texto-primario);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The design's reading area is 1127px tall. Capped at the viewport minus the
+ * site header and the toolbar, so the whole reader fits on screen once
+ * scrolled to, and its own scroll never runs taller than the window. */
+.area {
+  position: relative;
+  height: min(1127px, calc(100svh - var(--header-height) - 72px));
+}
+
+/* A still page: the cover at the area's full height, centred, where the first
+ * page of the PDF would be. */
+.still {
+  display: flex;
+  justify-content: center;
+}
+
+.cover {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  /* When the width is what limits it (a portrait cover at 390px), the cover
+   * sits at the top of the area, where the PDF's first page would start. */
+  object-position: center top;
+}
+
+/* Loading and error messages over the area; 10.42:1 on --am-200. */
+.status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  background: var(--am-200);
+  color: var(--bg-texto-primario);
+}
+
+.frame:fullscreen {
+  height: 100dvh;
+}
+
+.frame:fullscreen .area {
+  flex: 1;
+  height: auto;
+}
+
+@media (max-width: 767px) {
+  /* The title is the h1 just above; the compact toolbar keeps the controls,
+   * and wraps rather than overflowing if they ever outgrow 390px. */
+  .toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 12px;
+  }
+
+  .title,
+  .titleOnly {
+    display: none;
+  }
+
+  .area {
+    height: 70svh;
+  }
+}

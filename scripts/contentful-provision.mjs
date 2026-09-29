@@ -12,6 +12,12 @@
 // Portuguese because they are what the editor reads in the web interface.
 import { readFileSync } from 'node:fs'
 
+// A publication's address, /comunicacao/<slug>: lowercase words joined by
+// single hyphens, so an editor cannot type a space, an accent, "#" or "?".
+const SLUG_PATTERN = '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+const SLUG_MESSAGE =
+  'Use só letras minúsculas sem acento, números e hífens entre as palavras, como em cartilha-5-certificacao.'
+
 export const CONTENT_TYPES = [
   {
     id: 'cartilha',
@@ -22,6 +28,9 @@ export const CONTENT_TYPES = [
     fields: [
       { id: 'volume', name: 'Volume', type: 'Symbol', required: true },
       { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true, slug: true },
+      { id: 'description', name: 'Descrição', type: 'Text', required: false },
+      { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
       { id: 'order', name: 'Ordem', type: 'Integer', required: true },
@@ -34,7 +43,9 @@ export const CONTENT_TYPES = [
     displayField: 'title',
     fields: [
       { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true, slug: true },
       { id: 'description', name: 'Descrição', type: 'Text', required: true },
+      { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
     ],
@@ -70,10 +81,15 @@ function loadEnv() {
   } catch {}
 }
 
-function toCmaField(field) {
+export function toCmaField(field) {
   const validations = []
   if (field.image) validations.push({ linkMimetypeGroup: ['image'] })
   if (field.pdf) validations.push({ linkMimetypeGroup: ['pdfdocument'] })
+  // A publication's address is its URL. Contentful enforces this per content
+  // type only, so a cartilha and the caderno can still clash
+  // (lib/content/comunicacao.ts, findPublicacao).
+  if (field.unique) validations.push({ unique: true })
+  if (field.slug) validations.push({ regexp: { pattern: SLUG_PATTERN }, message: SLUG_MESSAGE })
 
   return {
     id: field.id,

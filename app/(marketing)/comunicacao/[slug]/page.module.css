@@ -1,0 +1,8 @@
+/* "Ver conteúdo", Figma node 19015:13058: 32px of block padding, the head and
+ * the reader 16px apart. */
+.inner {
+  padding-block: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

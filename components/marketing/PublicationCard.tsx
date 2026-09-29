@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Publicacao } from "@/lib/content/comunicacao";
 import styles from "./PublicationCard.module.css";
 
@@ -10,7 +11,7 @@ import styles from "./PublicationCard.module.css";
 // here the design frames the covers themselves, portrait. Its alt is empty
 // because the art restates the title, which is right below it in text.
 export default function PublicationCard({ publicacao }: { publicacao: Publicacao }) {
-  const { key, tipo, title, cover, pdf } = publicacao;
+  const { key, slug, tipo, title, cover, pdf } = publicacao;
   const titleId = `publicacao-${key}-title`;
   const tipoId = `publicacao-${key}-tipo`;
   const pdfId = `publicacao-${key}-pdf`;
@@ -36,27 +37,27 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
     </>
   );
 
-  // Named from the title alone, with the type and the PDF badge as its
-  // description, so a screen reader announces "<title>, link" and then
-  // "Cartilha PDF" rather than reading the badge before the title.
-  if (pdf) {
+  // Every publication with an address has a page (app/(marketing)/comunicacao/
+  // [slug]), which reads the PDF in place when there is one; the card leads
+  // there, in the same tab. Named from the title alone, with the type (and the
+  // PDF badge, when there is a file) as its description, so a screen reader
+  // announces "<title>, link" rather than reading the badge first.
+  if (slug) {
     return (
       <li className={styles.card} role="listitem">
-        <a
-          href={pdf}
-          target="_blank"
-          rel="noreferrer"
+        <Link
+          href={`/comunicacao/${slug}`}
           className={styles.surface}
           aria-labelledby={titleId}
-          aria-describedby={`${tipoId} ${pdfId}`}
+          aria-describedby={pdf ? `${tipoId} ${pdfId}` : tipoId}
         >
           {content}
-        </a>
+        </Link>
       </li>
     );
   }
 
-  // No PDF: a cover with a caption, not a control.
+  // No address yet (spec §3.2): a cover with a caption, not a control.
   return (
     <li className={styles.card} role="listitem">
       <div className={styles.surface}>{content}</div>
