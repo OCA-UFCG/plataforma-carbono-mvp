@@ -144,12 +144,10 @@ All in `components/marketing/conteudo/`:
 
 - **`ConteudoHeader`** (server): the Voltar/date row, the `<h1>` and the description. Below 768px,
   and only when there is a PDF, it also holds the full-width "Baixar PDF" button (§5.4).
-- **`BackButton`** (client):
-  - It is a `next/link` to `/comunicacao`, so it works without JavaScript.
-  - On click, when `document.referrer` is same-origin and there is history, it calls
-    `router.back()` instead, so the visitor returns to where they came from (the landing or the
-    listing).
-  - Arriving from an external link, it stays a link to `/comunicacao` rather than leaving the site.
+- **`BackButton`**: a `next/link` to `/comunicacao`, always. Changed after testing on 2026-09-29: the
+  first version stepped back through history when the visitor came from within the site, and that
+  walked a reader who had hopped along the related cards back through every publication they had
+  opened. The browser's own back button still offers the step-by-step history.
 - **`PdfViewerLoader`** (client): wraps `PdfViewer` in `next/dynamic` with `ssr: false`, which the
   App Router only allows in a client component. Its `loading` is the skeleton of §5.5.
 - **`PdfViewer`** (client): the reader, §5.
