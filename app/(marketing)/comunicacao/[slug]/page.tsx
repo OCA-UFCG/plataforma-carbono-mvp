@@ -5,6 +5,7 @@ import SiteHeader from "@/components/marketing/SiteHeader";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import ConteudoHeader from "@/components/marketing/conteudo/ConteudoHeader";
 import ConteudoSemPdf from "@/components/marketing/conteudo/ConteudoSemPdf";
+import PdfViewerLoader from "@/components/marketing/conteudo/PdfViewerLoader";
 import RelatedContent from "@/components/marketing/conteudo/RelatedContent";
 import { findPublicacao, getComunicacaoContent, relatedPublicacoes } from "@/lib/content/comunicacao";
 import { getContentfulClient } from "@/lib/contentful";
@@ -38,7 +39,16 @@ export default async function ConteudoPage({ params }: Props) {
       <main>
         <div className={`container ${styles.inner}`}>
           <ConteudoHeader publicacao={publicacao} />
-          <ConteudoSemPdf publicacao={publicacao} />
+          {publicacao.pdf ? (
+            <PdfViewerLoader
+              url={publicacao.pdf}
+              title={publicacao.title}
+              fileName={publicacao.pdfFileName ?? `${slug}.pdf`}
+              cover={publicacao.cover}
+            />
+          ) : (
+            <ConteudoSemPdf publicacao={publicacao} />
+          )}
         </div>
         <RelatedContent publicacoes={relatedPublicacoes(conteudo, slug)} />
       </main>
