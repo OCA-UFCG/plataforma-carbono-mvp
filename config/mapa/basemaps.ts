@@ -1,4 +1,5 @@
 import type { Basemap } from '@/types/mapa'
+import { lookup, type MapaText } from '@/lib/mapa/text'
 
 /**
  * CARTO began requiring an API key on its raster basemaps in August 2026:
@@ -97,3 +98,8 @@ export const basemaps: Record<string, Basemap> = {
 }
 
 export const defaultBasemapId = 'carto-positron'
+
+/** Name of a basemap in the user's language (the provider name without a `MapaText`). */
+export function basemapName(basemap: Pick<Basemap, 'id' | 'name'>, tx?: MapaText): string {
+  return lookup(tx, `MapaBasemaps.names.${basemap.id}`, basemap.name)
+}

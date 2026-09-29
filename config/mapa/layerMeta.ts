@@ -1,6 +1,12 @@
 // Per-layer UI metadata (one-line description + source label + type), consumed
 // by the themes panel (chips) and by the layer info card (ⓘ). Kept separate
 // from layers.json (data/GEE) so presentation is not mixed with config.
+//
+// The text is Portuguese here and translated by id from the MapaLayers namespace
+// through `layerMetaText(id, tx)`; `description` and `source` are what the
+// components render.
+
+import { layerDescription, layerKind, layerSource, type MapaText } from '@/lib/mapa/text'
 
 export type LayerKind = 'Raster contínuo' | 'Raster categórico' | 'Vetorial'
 
@@ -58,4 +64,24 @@ export const LAYER_META: Record<string, LayerMeta> = {
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5 km',        kind: 'Raster contínuo' },
   lst_modis:        { description: 'temperatura de superfície',      source: 'MODIS, 1 km',         kind: 'Raster contínuo' },
+}
+
+/**
+ * The metadata of a layer in the user's language, or undefined when the layer
+ * has none. Without a `MapaText` it is the Portuguese `LAYER_META` entry.
+ */
+export function layerMetaText(layerId: string, tx?: MapaText): LayerMeta | undefined {
+  const meta = LAYER_META[layerId]
+  if (!meta || !tx) return meta
+  return {
+    // `kind` stays the typed Portuguese key; use `layerKindLabel` to display it.
+    kind: meta.kind,
+    description: layerDescription(layerId, meta.description, tx),
+    source: layerSource(layerId, meta.source, tx),
+  }
+}
+
+/** Display label of a layer kind ("Raster contínuo" / "Continuous raster"). */
+export function layerKindLabel(kind: LayerKind, tx?: MapaText): string {
+  return layerKind(kind, tx)
 }

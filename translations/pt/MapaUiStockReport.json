@@ -1,0 +1,10 @@
+{
+  "MapaUiStockReport": {
+    "empty": "Não há estoque mapeado nesta área.",
+    "others": "outras {count}",
+    "totalStock": "Estoque total",
+    "perHectare": "Por hectare",
+    "byPool": "Por reservatório",
+    "byPhytophysiognomy": "Por fitofisionomia"
+  }
+}

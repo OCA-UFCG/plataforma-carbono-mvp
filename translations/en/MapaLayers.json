@@ -1,0 +1,245 @@
+{
+  "MapaLayers": {
+    "layers": {
+      "bioma": {
+        "name": "Caatinga Biome",
+        "unitName": "Biome",
+        "description": "official biome boundary",
+        "source": "IBGE 2019"
+      },
+      "estados": {
+        "name": "States",
+        "unitName": "State",
+        "description": "state borders",
+        "source": "IBGE"
+      },
+      "municipios": {
+        "name": "Municipalities",
+        "unitName": "Municipality",
+        "description": "municipal boundaries",
+        "source": "IBGE"
+      },
+      "terras_indigenas": {
+        "name": "Indigenous Lands",
+        "unitName": "Indigenous Land",
+        "description": "indigenous lands",
+        "source": "Funai"
+      },
+      "quilombolas": {
+        "name": "Quilombola Territories",
+        "unitName": "Quilombola Territory",
+        "description": "quilombola territories",
+        "source": "Incra"
+      },
+      "assentamentos": {
+        "name": "Settlements (INCRA)",
+        "unitName": "Settlement",
+        "description": "rural settlements",
+        "source": "Incra"
+      },
+      "estoque_carbono": {
+        "name": "Carbon Stock (Fourth National Inventory)",
+        "description": "carbon stock of the five pools, broken down by pool and by phytophysiognomy when an area is clicked",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "estoque_c_agb": {
+        "name": "Aboveground Biomass (Fourth Inventory)",
+        "description": "carbon in aboveground biomass",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "estoque_c_bgb": {
+        "name": "Belowground Biomass (Fourth Inventory)",
+        "description": "carbon in belowground biomass, roots",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "estoque_c_dw": {
+        "name": "Dead Wood (Fourth Inventory)",
+        "description": "carbon in dead wood",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "estoque_c_litter": {
+        "name": "Litter (Fourth Inventory)",
+        "description": "carbon in litter",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "estoque_c_solo": {
+        "name": "Soil Organic Carbon (Fourth Inventory)",
+        "description": "soil organic carbon, a second estimate alongside the MapBiomas one",
+        "source": "Fourth National Inventory, 100 m"
+      },
+      "solo_carbono": {
+        "name": "Soil Organic Carbon (MapBiomas)",
+        "description": "soil organic carbon (0-30 cm)",
+        "source": "MapBiomas Solo, 30 m"
+      },
+      "solo_carbono_embrapa": {
+        "name": "Soil Organic Carbon (Embrapa)",
+        "description": "soil organic carbon concentration",
+        "source": "Embrapa, 2020, 928 m"
+      },
+      "biomassa_gedi": {
+        "name": "Aboveground Biomass (GEDI L4B)",
+        "description": "aboveground biomass",
+        "source": "GEDI L4B, 1 km"
+      },
+      "altura_dossel": {
+        "name": "Canopy Height (Meta and WRI 2023)",
+        "description": "height of the vegetation above the ground, estimated by a neural network over aerial imagery",
+        "source": "Meta e WRI, 1 m"
+      },
+      "biomassa_esa_lenhosa": {
+        "name": "Aboveground Biomass, woody vegetation (ESA CCI)",
+        "description": "aboveground biomass measured only where there is woody vegetation, leaving bare soil and the herbaceous layer out of the count",
+        "source": "ESA CCI Biomass v6, 100 m"
+      },
+      "biomassa_esa_territorial": {
+        "name": "Aboveground Biomass, territorial mean (ESA CCI)",
+        "description": "the same biomass spread over the whole territory, counting non-woody land as zero",
+        "source": "ESA CCI Biomass v6, 100 m"
+      },
+      "biomassa_spawn": {
+        "name": "Aboveground Biomass Carbon (Spawn & Gibbs 2010)",
+        "description": "aboveground biomass carbon",
+        "source": "Spawn & Gibbs, 300 m"
+      },
+      "gpp_modis": {
+        "name": "Gross Primary Productivity (GPP, MODIS)",
+        "description": "gross primary productivity",
+        "source": "MODIS, 500 m",
+        "classes": {
+          "1": "Very low",
+          "2": "Low",
+          "3": "Medium",
+          "4": "High",
+          "5": "Very high"
+        }
+      },
+      "npp_modis": {
+        "name": "Net Primary Productivity (NPP, MODIS)",
+        "description": "net primary productivity",
+        "source": "MODIS, 500 m",
+        "classes": {
+          "1": "Very low",
+          "2": "Low",
+          "3": "Medium",
+          "4": "High",
+          "5": "Very high"
+        }
+      },
+      "gpp_pml": {
+        "name": "Gross Primary Productivity (GPP, PML-V2)",
+        "description": "annual gross primary productivity, an estimate independent of MODIS",
+        "source": "PML-V2 v018, 500 m"
+      },
+      "gfw_netflux": {
+        "name": "Net Forest Carbon Flux (GFW)",
+        "description": "net forest carbon flux",
+        "source": "GFW, 30 m"
+      },
+      "gfw_emissions": {
+        "name": "Gross Forest Carbon Emissions (GFW)",
+        "description": "gross carbon emissions",
+        "source": "GFW, 30 m"
+      },
+      "gfw_removals": {
+        "name": "Gross Forest Carbon Removals (GFW)",
+        "description": "gross carbon removals",
+        "source": "GFW, 30 m"
+      },
+      "ndvi_modis": {
+        "name": "NDVI (MODIS)",
+        "description": "NDVI vegetation index",
+        "source": "MODIS, 250 m"
+      },
+      "evi_modis": {
+        "name": "EVI (MODIS)",
+        "description": "EVI vegetation index",
+        "source": "MODIS, 250 m"
+      },
+      "chirps_precip": {
+        "name": "Annual Precipitation (CHIRPS)",
+        "description": "annual precipitation",
+        "source": "CHIRPS, 5 km"
+      },
+      "lst_modis": {
+        "name": "Land Surface Temperature (MODIS)",
+        "description": "surface temperature",
+        "source": "MODIS, 1 km"
+      },
+      "lulc_mapbiomas": {
+        "name": "Land Use and Land Cover (MapBiomas coll. 10.1)",
+        "description": "land use and land cover",
+        "source": "MapBiomas coll. 10.1, 30 m",
+        "classes": {
+          "3": "Forest Formation",
+          "4": "Savanna Formation",
+          "5": "Mangrove",
+          "6": "Flooded Forest",
+          "49": "Wooded Sandbank Vegetation",
+          "11": "Wetland and Swamp",
+          "12": "Grassland Formation",
+          "32": "Hypersaline Tidal Flat",
+          "29": "Rocky Outcrop",
+          "50": "Herbaceous Sandbank Vegetation",
+          "15": "Pasture",
+          "18": "Agriculture",
+          "39": "Soybean",
+          "20": "Sugarcane",
+          "40": "Rice",
+          "62": "Cotton (beta)",
+          "41": "Other Temporary Crops",
+          "46": "Coffee",
+          "47": "Citrus",
+          "35": "Oil Palm",
+          "48": "Other Perennial Crops",
+          "9": "Forestry",
+          "21": "Mosaic of Uses",
+          "23": "Beach, Dune and Sand",
+          "24": "Urban Area",
+          "30": "Mining",
+          "75": "Photovoltaic Power Plant (beta)",
+          "25": "Other Non-Vegetated Areas",
+          "33": "River, Lake and Ocean",
+          "31": "Aquaculture"
+        }
+      },
+      "fogo_frequencia": {
+        "name": "Cumulative Fire Frequency (MapBiomas Fire coll. 3)",
+        "description": "fire frequency (1985-2023)",
+        "source": "MapBiomas Fogo, 30 m"
+      },
+      "degradacao_terra": {
+        "name": "Land Degradation Index (2021)",
+        "description": "land degradation level, from level 5 (most degraded) to conserved",
+        "source": "OCA, index v4, 2021, 500 m",
+        "classes": {
+          "1": "Level 5",
+          "2": "Level 4",
+          "3": "Level 3",
+          "4": "Level 2",
+          "5": "Level 1",
+          "6": "Conserved"
+        }
+      }
+    },
+    "kinds": {
+      "continuousRaster": "Continuous raster",
+      "categoricalRaster": "Categorical raster",
+      "vector": "Vector"
+    },
+    "units": {
+      "kgCPerM2Year": "kg C/m²/yr",
+      "gCPerM2Year": "g C/m²/yr",
+      "tCPerYear": "t C/yr",
+      "mmPerYear": "mm/yr",
+      "yearsWithFire": "years with fire"
+    },
+    "stockPools": {
+      "b2": "Aboveground biomass",
+      "b3": "Belowground biomass",
+      "b4": "Dead wood",
+      "b5": "Litter",
+      "b6": "Soil organic carbon"
+    }
+  }
+}

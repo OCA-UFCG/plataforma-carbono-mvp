@@ -1,7 +1,11 @@
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { useTranslations } from 'next-intl'
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
+import { formatNumber } from '@/lib/mapa/locale'
+import { poolLabel } from '@/lib/mapa/text'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { PlatformTheme, StockReport } from '@/types/mapa'
 
 interface Props {
@@ -19,8 +23,8 @@ const COR_POOL = ['#597636', '#6b7d34', '#8a9b4a', '#c9a227', '#a66a2e']
 
 const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
 
-const nf = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
-const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
+const nf = (value: number, locale: string) => formatNumber(value, locale, { maximumFractionDigits: 0 })
+const nf1 = (value: number, locale: string) => formatNumber(value, locale, { maximumFractionDigits: 1 })
 
 /**
  * Large numbers are tiring to read in tC; above a thousand it moves to kt and
@@ -33,11 +37,14 @@ const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 })
  * inventory scale — a state's or a biome's stock in bare tC is a long string
  * of digits nobody parses at a glance — so the hero now calls this too rather
  * than the other way around.
+ *
+ * `locale` is the message locale ('pt' | 'en', `tx.locale`) and picks the
+ * decimal and grouping marks; the units are universal.
  */
-export function formatarTc(tc: number): { valor: string; unidade: string } {
-  if (Math.abs(tc) >= 1e6) return { valor: nf1.format(tc / 1e6), unidade: 'Mt C' }
-  if (Math.abs(tc) >= 1e3) return { valor: nf1.format(tc / 1e3), unidade: 'kt C' }
-  return { valor: nf.format(tc), unidade: 't C' }
+export function formatarTc(tc: number, locale = 'pt'): { valor: string; unidade: string } {
+  if (Math.abs(tc) >= 1e6) return { valor: nf1(tc / 1e6, locale), unidade: 'Mt C' }
+  if (Math.abs(tc) >= 1e3) return { valor: nf1(tc / 1e3, locale), unidade: 'kt C' }
+  return { valor: nf(tc, locale), unidade: 't C' }
 }
 
 interface Fatia {
@@ -46,15 +53,15 @@ interface Fatia {
   cor:  string
 }
 
-/** Groups the tail into "outras", so the doughnut does not become a comb of slices. */
-function agrupar(fatias: Fatia[], corOutras: string): Fatia[] {
+/** Groups the tail into "outras" ("others"), so the doughnut does not become a comb of slices. */
+function agrupar(fatias: Fatia[], corOutras: string, rotulo: (count: number) => string): Fatia[] {
   if (fatias.length <= MAX_FATIAS) return fatias
   const cabeca = fatias.slice(0, MAX_FATIAS - 1)
   const cauda = fatias.slice(MAX_FATIAS - 1)
   return [
     ...cabeca,
     {
-      nome: `outras ${cauda.length}`,
+      nome: rotulo(cauda.length),
       tc:   cauda.reduce((s, f) => s + f.tc, 0),
       cor:  corOutras,
     },
@@ -62,19 +69,21 @@ function agrupar(fatias: Fatia[], corOutras: string): Fatia[] {
 }
 
 export default function StockReportView({ report, theme, caption }: Props) {
+  const t = useTranslations('MapaUiStockReport')
+  const tx = useMapaText()
   const c = theme.colors
   const total = report.totalTc
 
   if (!total || !report.classes.length) {
     return (
       <p style={{ fontSize: 13.5, color: c.textDim, fontFamily: 'var(--font-app), sans-serif' }}>
-        Não há estoque mapeado nesta área.
+        {t('empty')}
       </p>
     )
   }
 
   const porPool: Fatia[] = report.pools
-    .map((p, i) => ({ nome: p.label, tc: p.tc, cor: COR_POOL[i % COR_POOL.length] }))
+    .map((p, i) => ({ nome: poolLabel(p.band, p.label, tx), tc: p.tc, cor: COR_POOL[i % COR_POOL.length] }))
     .filter((f) => f.tc > 0)
     .sort((a, b) => b.tc - a.tc)
 
@@ -83,6 +92,7 @@ export default function StockReportView({ report, theme, caption }: Props) {
       .filter((k) => k.tc > 0)
       .map((k) => ({ nome: k.sigla, tc: k.tc, cor: COR_CLASSE.get(k.sigla) ?? c.textDim })),
     c.textDim,
+    (count) => t('others', { count }),
   )
 
   const densidade = report.areaHa > 0 ? total / report.areaHa : 0
@@ -93,9 +103,10 @@ export default function StockReportView({ report, theme, caption }: Props) {
         <p style={{ fontSize: 12.5, color: c.textDim, margin: 0 }}>{caption}</p>
       )}
 
-      {/* A área não entra aqui: o cartão "Área analisada" do painel já a traz, e
-          as duas divergem um pouco, porque nem todo hectare da feição tem dado
-          de estoque. Repetir número parecido com significado diferente confunde. */}
+      {/* The area does not go in here: the panel's "Área analisada" ("Analyzed
+          area") card already carries it, and the two differ a little, because
+          not every hectare of the feature has stock data. Repeating a similar
+          number with a different meaning confuses. */}
       {/* `minmax(0, 1fr)`, not `1fr`: a bare `1fr` is `minmax(auto, 1fr)`, whose
           minimum is the content's min-content width. The value here is 19px and
           bold, so the pair refuses to shrink below it and overflows any column
@@ -103,21 +114,21 @@ export default function StockReportView({ report, theme, caption }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
         <Cartao
           theme={theme}
-          rotulo="Estoque total"
-          valor={formatarTc(total).valor}
-          unidade={formatarTc(total).unidade}
+          rotulo={t('totalStock')}
+          valor={formatarTc(total, tx.locale).valor}
+          unidade={formatarTc(total, tx.locale).unidade}
           destaque
         />
         <Cartao
           theme={theme}
-          rotulo="Por hectare"
-          valor={nf1.format(densidade)}
+          rotulo={t('perHectare')}
+          valor={nf1(densidade, tx.locale)}
           unidade="t C/ha"
         />
       </div>
 
-      <Rosca titulo="Por reservatório" fatias={porPool} total={total} theme={theme} />
-      <Rosca titulo="Por fitofisionomia" fatias={porClasse} total={total} theme={theme} />
+      <Rosca titulo={t('byPool')} fatias={porPool} total={total} theme={theme} />
+      <Rosca titulo={t('byPhytophysiognomy')} fatias={porClasse} total={total} theme={theme} />
     </div>
   )
 }
@@ -159,6 +170,7 @@ function Rosca({
   titulo: string; fatias: Fatia[]; total: number; theme: PlatformTheme
 }) {
   const c = theme.colors
+  const tx = useMapaText()
   if (!fatias.length) return null
 
   return (
@@ -221,7 +233,7 @@ function Rosca({
                   color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums',
                 }}
               >
-                {nf1.format((100 * f.tc) / total)}%
+                {nf1((100 * f.tc) / total, tx.locale)}%
               </span>
             </li>
           ))}

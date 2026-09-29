@@ -1,0 +1,18 @@
+{
+  "MapaCoordinates": {
+    "errors": {
+      "invalidLine": "Linha {line}: coordenada inválida",
+      "minVertices": "Informe ao menos três vértices"
+    },
+    "labels": {
+      "rectangle": "Retângulo",
+      "polygon": "Polígono de {count} vértices"
+    },
+    "hemispheres": {
+      "north": "N",
+      "south": "S",
+      "east": "L",
+      "west": "O"
+    }
+  }
+}

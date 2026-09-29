@@ -1,4 +1,7 @@
 import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
+import { intlLocale } from '@/lib/mapa/locale'
+import { layerName, PT_TEXT, type MapaText } from '@/lib/mapa/text'
+import { subthemeLabel, themeLabel, THEMES, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 
 /**
  * What a click on the map is actually able to analyse.
@@ -17,14 +20,9 @@ import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
  * the instruction and the behavior cannot drift apart.
  */
 
-// Portuguese list with "ou": "Bioma Caatinga ou Municípios".
-const recorteList = new Intl.ListFormat('pt-BR', { style: 'long', type: 'disjunction' })
-
 // Every branch of the hint ends the same way: the drawing tools are the way
 // out when no recorte fits. The toolbar starts closed, so the hint names the
-// pencil button that opens it.
-const DRAW_FALLBACK =
-  'ou delimite a área com Polígono, Ponto ou Coordenadas, nas ferramentas de desenho do botão do lápis.'
+// pencil button that opens it (MapaAnalysis hint.fallback).
 
 /** Index of the topmost visible raster; -1 when none is on. */
 export function topVisibleRasterIndex(layers: LayerConfig[]): number {
@@ -48,16 +46,30 @@ export function clickableRecortes(layers: LayerConfig[]): VectorLayerConfig[] {
  * What the results panel tells someone who has a raster on but nothing
  * analysed yet. Names the recortes a click can land on, rather than promising
  * a municipality that may well be turned off.
+ *
+ * The recorte names are looked up by layer id, so the layers may be the store's
+ * Portuguese ones or already localized. The English text names the panel path
+ * ("Themes › Territory › Reference boundaries") and the drawing tools
+ * ("Polygon, Point or Coordinates"), which the UI labels must keep matching.
  */
-export function analysisHint(recortes: VectorLayerConfig[]): string {
+export function analysisHint(recortes: VectorLayerConfig[], tx: MapaText = PT_TEXT): string {
+  const fallback = tx.t('MapaAnalysis.hint.fallback')
+
   if (recortes.length === 0) {
-    return (
-      'Nenhum recorte territorial ativo, então o clique no mapa não tem o que selecionar. ' +
-      'Ligue um em Temas › Território › Limites de referência, ' +
-      DRAW_FALLBACK
-    )
+    const territory = THEMES.find((theme) => theme.id === TERRITORY_THEME_ID)!
+    const limits = territory.subthemes.find((sub) => sub.id === TERRITORY_HINT.subtheme)!
+    const path = tx.t('MapaAnalysis.hint.path', {
+      theme:    themeLabel(territory, tx),
+      subtheme: subthemeLabel(territory.id, limits, tx),
+    })
+    return tx.t('MapaAnalysis.hint.noneActive', { path, fallback })
   }
 
-  const names = recorteList.format(recortes.map((layer) => layer.name))
-  return `Clique no mapa sobre ${names} para ver estatísticas desta camada, ${DRAW_FALLBACK}`
+  // A disjunction list: "Bioma Caatinga ou Municípios" / "Caatinga Biome or Municipalities".
+  const list = new Intl.ListFormat(intlLocale(tx.locale), { style: 'long', type: 'disjunction' })
+  const names = list.format(recortes.map((layer) => layerName(layer, tx)))
+  return tx.t('MapaAnalysis.hint.click', { names, fallback })
 }
+
+/** Where the hint tells the user to switch a recorte on. */
+const TERRITORY_HINT = { subtheme: 'limites' } as const

@@ -1,0 +1,30 @@
+{
+  "MapaUiWelcome": {
+    "dialogLabel": "Boas-vindas",
+    "closeLabel": "Fechar",
+    "tagline": "Observatório da Caatinga, OCA",
+    "headline": "A cor da interface acompanha o mês do bioma",
+    "intro": "Módulo de mapas e análises da Caativar. A interface veste a cor do mês corrente, apurada desde 1985 no acompanhamento da vegetação nativa por imagens do satélite Landsat e por uma câmera instalada em campo. Estão disponíveis camadas de solo, biomassa, produtividade, fluxo, fogo e uso da terra, sobre as quais se calcula estatística por município, território ou área desenhada.",
+    "monthOption": "{month}, {phase}",
+    "viewInMonth": "Ver a interface em {month}",
+    "cycleNote": "{phase}. A altura de cada barra acompanha o quanto a vegetação está enfolhada no mês, apurado ao longo de quarenta anos; o ponto marca o mês de hoje.",
+    "photoAlt": "Caatinga na fase {phase}",
+    "photoCaption": "{phase}, foto de {date}. Acervo do projeto.",
+    "steps": {
+      "activate": {
+        "title": "Ative uma camada",
+        "description": "Ligue uma camada de carbono ou ambiente no painel de temas."
+      },
+      "clickOrDraw": {
+        "title": "Clique ou desenhe",
+        "description": "Clique num município ou desenhe uma área sobre o mapa."
+      },
+      "readAndExport": {
+        "title": "Leia e exporte",
+        "description": "Veja a estatística zonal e exporte em CSV ou PNG."
+      }
+    },
+    "start": "Começar a explorar",
+    "supporters": "Realização e apoio"
+  }
+}

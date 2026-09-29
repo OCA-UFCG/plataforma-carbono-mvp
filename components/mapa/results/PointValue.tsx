@@ -4,46 +4,55 @@
 // the class name, or the number with the layer's unit, or a signed flux with its
 // direction in words.
 
+import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
 import { adaptive } from '@/lib/mapa/results/format'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import { localizeClassLabel, localizeLayer } from '@/lib/mapa/text'
 import type { PixelValueResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 import { Footnote, Hero, Stack } from './blocks'
 import { sourceOf } from './LayerResultView'
 
-export default function PointValue({ theme, layer, pixel }: {
+export default function PointValue({ theme, layer: rawLayer, pixel }: {
   theme: PlatformTheme; layer: RasterLayerConfig; pixel: PixelValueResult
 }) {
   const c = theme.colors
+  const t = useTranslations('MapaOvResults')
+  const tx = useMapaText()
+  const layer = useMemo(() => localizeLayer(rawLayer, tx), [rawLayer, tx])
+  // `pixelCache` keeps the class label in Portuguese.
+  const label = localizeClassLabel(layer.id, pixel.label, tx)
   let hero: React.ReactNode
   if (layer.signedFlux) {
-    const flux = describeFlux(pixel.value)
+    const flux = describeFlux(pixel.value, tx)
     hero = (
       <Hero
         theme={theme}
-        value={adaptive(flux.magnitude)}
+        value={adaptive(flux.magnitude, tx)}
         unit={layer.unit}
         ink={fluxInk(flux.direction, c)}
-        caption={flux.direction === 'removal' ? 'de sequestro neste ponto'
-          : flux.direction === 'emission' ? 'de emissão neste ponto'
-            : 'em equilíbrio neste ponto'}
+        caption={flux.direction === 'removal' ? t('point.removal')
+          : flux.direction === 'emission' ? t('point.emission')
+            : t('point.balance')}
       />
     )
-  } else if (pixel.label) {
+  } else if (label) {
     hero = (
-      <Hero theme={theme} caption="classe neste ponto">
+      <Hero theme={theme} caption={t('point.class')}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 32, fontWeight: 800, lineHeight: 1.1, color: c.text }}>
           {pixel.color && <span style={{ width: 18, height: 18, borderRadius: 4, background: pixel.color, flexShrink: 0 }} />}
-          {pixel.label}
+          {label}
         </span>
       </Hero>
     )
   } else {
-    hero = <Hero theme={theme} value={adaptive(pixel.value)} unit={layer.unit} caption="neste ponto" />
+    hero = <Hero theme={theme} value={adaptive(pixel.value, tx)} unit={layer.unit} caption={t('point.value')} />
   }
   return (
     <Stack>
       {hero}
-      <Footnote theme={theme} notes={[sourceOf(layer)]} />
+      <Footnote theme={theme} notes={[sourceOf(layer, tx)]} />
     </Stack>
   )
 }

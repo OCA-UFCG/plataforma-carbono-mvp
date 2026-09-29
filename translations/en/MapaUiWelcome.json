@@ -1,0 +1,30 @@
+{
+  "MapaUiWelcome": {
+    "dialogLabel": "Welcome",
+    "closeLabel": "Close",
+    "tagline": "Caatinga Observatory, OCA",
+    "headline": "The interface color follows the biome's month",
+    "intro": "Caativar's maps and analysis module. The interface wears the color of the current month, measured since 1985 by tracking the native vegetation with Landsat satellite imagery and a camera installed in the field. Layers on soil, biomass, productivity, flux, fire and land use are available, and statistics are computed over them by municipality, territory or drawn area.",
+    "monthOption": "{month}, {phase}",
+    "viewInMonth": "View the interface in {month}",
+    "cycleNote": "{phase}. The height of each bar follows how leafed-out the vegetation is in that month, measured over forty years; the dot marks the current month.",
+    "photoAlt": "Caatinga in the {phase} phase",
+    "photoCaption": "{phase}, photo from {date}. Project archive.",
+    "steps": {
+      "activate": {
+        "title": "Turn on a layer",
+        "description": "Switch on a carbon or environment layer in the themes panel."
+      },
+      "clickOrDraw": {
+        "title": "Click or draw",
+        "description": "Click a municipality or draw an area on the map."
+      },
+      "readAndExport": {
+        "title": "Read and export",
+        "description": "See the zonal statistics and export them as CSV or PNG."
+      }
+    },
+    "start": "Start exploring",
+    "supporters": "Organizers and supporters"
+  }
+}

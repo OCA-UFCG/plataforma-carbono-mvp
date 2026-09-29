@@ -44,13 +44,13 @@ const STATE_NAMES: Record<string, string> = {
  * side answers. Prefix rather than equality so the results narrow while the
  * user is still typing the state.
  */
-function namesState(hint: string, context: string): boolean {
+function namesState(hint: string, context: string, locale: string): boolean {
   return context.split('/').some((part) => {
     const uf = part.trim()
     if (!uf) return false
-    if (normalizeSearch(uf).startsWith(hint)) return true
+    if (normalizeSearch(uf, locale).startsWith(hint)) return true
     const spelled = STATE_NAMES[uf.toUpperCase()]
-    return spelled !== undefined && normalizeSearch(spelled).startsWith(hint)
+    return spelled !== undefined && normalizeSearch(spelled, locale).startsWith(hint)
   })
 }
 
@@ -67,6 +67,13 @@ function namesState(hint: string, context: string): boolean {
  * which is what stops a bare "PI" from listing all 180 municipalities of Piauí.
  */
 export interface MatchOptions {
+  /**
+   * Locale code (`tx.locale`, 'pt' | 'en') the query is normalized in. Only the
+   * case mapping depends on it; accents are dropped either way, so "sao" finds
+   * "São" in both languages. State names are proper nouns and are the same in
+   * English. Defaults to Portuguese.
+   */
+  locale?: string
   /**
    * Whether the context identifies a feature on its own, which makes a bare
    * context a legitimate query. True for the states layer, where there is one
@@ -96,12 +103,13 @@ export function matchTerritory(
   context?: string,
   options: MatchOptions = {},
 ): LabelMatch | null {
-  const normQuery = normalizeSearch(query).split(/\s+/).filter(Boolean).join(' ')
+  const locale = options.locale ?? 'pt'
+  const normQuery = normalizeSearch(query, locale).split(/\s+/).filter(Boolean).join(' ')
   if (!normQuery) return null
 
   // normalizeSearch only lowercases and drops combining marks, so an offset in
   // the normalized label is the same offset in the original.
-  const normLabel = normalizeSearch(label)
+  const normLabel = normalizeSearch(label, locale)
 
   const direct = normLabel.indexOf(normQuery)
   if (direct >= 0) return { start: direct, length: normQuery.length }
@@ -112,7 +120,7 @@ export function matchTerritory(
   if (words.length < 2) {
     // "RN" has to find Rio Grande do Norte, whose label does not contain those
     // two letters. A zero-length run because nothing in the label matched.
-    if (options.contextIdentifies && namesState(normQuery, context)) {
+    if (options.contextIdentifies && namesState(normQuery, context, locale)) {
       return { start: 0, length: 0 }
     }
     return null
@@ -120,6 +128,6 @@ export function matchTerritory(
 
   const name = words.slice(0, -1).join(' ')
   const start = normLabel.indexOf(name)
-  if (start < 0 || !namesState(words[words.length - 1], context)) return null
+  if (start < 0 || !namesState(words[words.length - 1], context, locale)) return null
   return { start, length: name.length }
 }

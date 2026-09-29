@@ -10,6 +10,7 @@
 import { classShares, type ClassShare } from '@/lib/mapa/classShares'
 import type { CompositionProfile } from '@/config/mapa/resultProfiles'
 import type { RasterClass } from '@/types/mapa'
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
 export interface GroupShare {
   label:  string
@@ -41,8 +42,6 @@ export interface OrdinalSummary {
   dominantDegraded: ClassShare | null
 }
 
-const UNGROUPED = 'Não classificada'
-
 function areaHaOf(areas: Record<string, number>, codes: number[]): number {
   return codes.reduce((s, c) => s + (areas[String(c)] ?? 0), 0) / 10_000
 }
@@ -55,6 +54,7 @@ export function nominalSummary(
   areas: Record<string, number>,
   classes: RasterClass[],
   nominal: NonNullable<CompositionProfile['nominal']>,
+  tx: MapaText = PT_TEXT,
 ): NominalSummary {
   const validHa = validHaOf(areas)
   const pct = (ha: number) => (validHa > 0 ? (ha / validHa) * 100 : 0)
@@ -68,11 +68,11 @@ export function nominalSummary(
   // A code the data carries but no group lists: without this bucket the
   // groups stop adding up to 100% with no sign that anything is missing.
   if (restHa > 1e-9) {
-    groups.push({ label: UNGROUPED, color: '#9e9e9e', areaHa: restHa, share: pct(restHa) })
+    groups.push({ label: tx.t('MapaResults.unclassified.group'), color: '#9e9e9e', areaHa: restHa, share: pct(restHa) })
   }
 
   const nativeHa = areaHaOf(areas, nominal.native)
-  const shares = classShares(areas, classes)
+  const shares = classShares(areas, classes, tx)
 
   return {
     validHa,

@@ -11,6 +11,12 @@
 // Only layer ids and bands of layers.json are referenced, never an asset, so
 // the file is safe on the client. The server reads the same file to decide what
 // to compute (lib/mapa/resultsRegistry.ts); nothing here travels in a request.
+//
+// The prose (notes, labels, group names) is written here in Portuguese and is
+// translated by `getResultProfile(layerId, tx)`, from the MapaResults namespace
+// (profiles.<layerId>.<field>; the six stock layers share profiles.stocks).
+
+import { lookup, unitLabel, type MapaText } from '@/lib/mapa/text'
 
 export type Archetype =
   | 'stocks'
@@ -83,6 +89,8 @@ export interface AnnualProfile extends Common {
 }
 
 export interface MacroGroup {
+  /** Key of the group's translation (MapaResults profiles.<layer>.groups.<id>). */
+  id: string
   label: string
   color: string
   codes: number[]
@@ -274,11 +282,11 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     nominal: {
       native: [...NATIVE_FOREST, ...NATIVE_NONFOREST],
       groups: [
-        { label: 'Vegetação nativa florestal', color: '#1f8d49', codes: NATIVE_FOREST },
-        { label: 'Vegetação nativa campestre e arbustiva', color: '#d6bc74', codes: NATIVE_NONFOREST },
-        { label: 'Agropecuária', color: '#ffefc3', codes: [9, 15, 18, 20, 21, 35, 39, 40, 41, 46, 47, 48, 62] },
-        { label: 'Área não vegetada', color: '#d4271e', codes: [23, 24, 25, 29, 30, 75] },
-        { label: 'Água', color: '#2532e4', codes: [31, 33] },
+        { id: 'nativeForest', label: 'Vegetação nativa florestal', color: '#1f8d49', codes: NATIVE_FOREST },
+        { id: 'nativeNonForest', label: 'Vegetação nativa campestre e arbustiva', color: '#d6bc74', codes: NATIVE_NONFOREST },
+        { id: 'farming', label: 'Agropecuária', color: '#ffefc3', codes: [9, 15, 18, 20, 21, 35, 39, 40, 41, 46, 47, 48, 62] },
+        { id: 'nonVegetated', label: 'Área não vegetada', color: '#d4271e', codes: [23, 24, 25, 29, 30, 75] },
+        { id: 'water', label: 'Água', color: '#2532e4', codes: [31, 33] },
       ],
     },
   },
@@ -303,6 +311,73 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
   },
 }
 
-export function getResultProfile(layerId: string): ResultProfile | undefined {
-  return RESULT_PROFILES[layerId]
+/**
+ * A copy of the profile with its prose (and the units that carry Portuguese
+ * words) in the user's language. Everything numeric is left untouched.
+ */
+export function localizeProfile(layerId: string, profile: ResultProfile, tx: MapaText): ResultProfile {
+  // The stock layers are six ids sharing one profile, so they share one text.
+  const id = profile.archetype === 'stocks' ? 'stocks' : layerId
+  const text = (field: string, fallback: string) =>
+    lookup(tx, `MapaResults.profiles.${id}.${field}`, fallback)
+  const optional = (field: string, value: string | undefined) =>
+    value === undefined ? undefined : text(field, value)
+
+  const common = { note: optional('note', profile.note), period: optional('period', profile.period) }
+  const defined = <T extends object>(obj: T): T =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T
+
+  switch (profile.archetype) {
+    case 'stocks':
+    case 'recurrence':
+      return { ...profile, ...defined(common) }
+    case 'amount':
+      return { ...profile, ...defined(common), totalLabel: text('totalLabel', profile.totalLabel) }
+    case 'distribution':
+      return {
+        ...profile,
+        ...defined(common),
+        ...(profile.threshold
+          ? { threshold: { ...profile.threshold, label: text('threshold', profile.threshold.label) } }
+          : {}),
+      }
+    case 'flux':
+      return { ...profile, ...defined(common), totalLabel: text('totalLabel', profile.totalLabel) }
+    case 'annual':
+      return {
+        ...profile,
+        ...defined(common),
+        meanLabel: text('meanLabel', profile.meanLabel),
+        unit: unitLabel(profile.unit, tx),
+        ...(profile.total
+          ? { total: { ...profile.total, label: text('totalLabel', profile.total.label), unit: unitLabel(profile.total.unit, tx) } }
+          : {}),
+      }
+    case 'composition':
+      return {
+        ...profile,
+        ...defined(common),
+        ...(profile.nominal
+          ? {
+              nominal: {
+                ...profile.nominal,
+                groups: profile.nominal.groups.map((g) => ({ ...g, label: text(`groups.${g.id}`, g.label) })),
+              },
+            }
+          : {}),
+        ...(profile.ordinal
+          ? { ordinal: { ...profile.ordinal, severeLabel: text('severeLabel', profile.ordinal.severeLabel) } }
+          : {}),
+      }
+  }
+}
+
+/**
+ * The result profile of a layer. With a `MapaText` the prose comes back
+ * translated; without one it is the Portuguese the file carries (what the
+ * server-side registry and the tests read).
+ */
+export function getResultProfile(layerId: string, tx?: MapaText): ResultProfile | undefined {
+  const profile = RESULT_PROFILES[layerId]
+  return profile && tx ? localizeProfile(layerId, profile, tx) : profile
 }

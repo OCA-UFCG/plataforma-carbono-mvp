@@ -1,0 +1,72 @@
+{
+  "MapaPhenology": {
+    "months": {
+      "jan": {
+        "label": "January",
+        "short": "Jan"
+      },
+      "fev": {
+        "label": "February",
+        "short": "Feb"
+      },
+      "mar": {
+        "label": "March",
+        "short": "Mar"
+      },
+      "abr": {
+        "label": "April",
+        "short": "Apr"
+      },
+      "mai": {
+        "label": "May",
+        "short": "May"
+      },
+      "jun": {
+        "label": "June",
+        "short": "Jun"
+      },
+      "jul": {
+        "label": "July",
+        "short": "Jul"
+      },
+      "ago": {
+        "label": "August",
+        "short": "Aug"
+      },
+      "set": {
+        "label": "September",
+        "short": "Sep"
+      },
+      "out": {
+        "label": "October",
+        "short": "Oct"
+      },
+      "nov": {
+        "label": "November",
+        "short": "Nov"
+      },
+      "dez": {
+        "label": "December",
+        "short": "Dec"
+      }
+    },
+    "phases": {
+      "folha": {
+        "label": "Caatinga in leaf",
+        "photoDate": "Jan 2025"
+      },
+      "queda": {
+        "label": "Leaves on the ground",
+        "photoDate": "Jun 2024"
+      },
+      "branca": {
+        "label": "Mata branca",
+        "photoDate": "Dec 2024"
+      },
+      "chuva": {
+        "label": "First rains",
+        "photoDate": "Jan 2025"
+      }
+    }
+  }
+}

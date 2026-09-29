@@ -1,0 +1,8 @@
+{
+  "MapaOvFloatingLegend": {
+    "title": "Legenda",
+    "minimize": "Minimizar",
+    "noActiveLayers": "Nenhuma camada ativa",
+    "balanceTick": "Equilíbrio: nem emissão nem sequestro"
+  }
+}

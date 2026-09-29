@@ -1,0 +1,10 @@
+{
+  "MapaUiStockReport": {
+    "empty": "There is no mapped stock in this area.",
+    "others": "{count} others",
+    "totalStock": "Total stock",
+    "perHectare": "Per hectare",
+    "byPool": "By pool",
+    "byPhytophysiognomy": "By vegetation type"
+  }
+}

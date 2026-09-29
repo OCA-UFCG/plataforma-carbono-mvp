@@ -1,0 +1,41 @@
+{
+  "MapaGroups": {
+    "themes": {
+      "territorio": {
+        "label": "Territory",
+        "subthemes": {
+          "limites": "Reference boundaries",
+          "territorios": "Territories and settlements"
+        }
+      },
+      "carbono": {
+        "label": "Carbon",
+        "subthemes": {
+          "estoques": "Total stock",
+          "reservatorios": "Carbon pools",
+          "solo": "Soil carbon",
+          "biomassa": "Biomass",
+          "estrutura": "Vegetation structure",
+          "gpp": "Gross primary productivity (GPP)",
+          "npp": "Net primary productivity (NPP)",
+          "fluxos": "Carbon fluxes"
+        }
+      },
+      "uso_solo": {
+        "label": "Land use and pressures",
+        "subthemes": {
+          "cobertura": "Land use and land cover",
+          "fogo": "Fire",
+          "degradacao": "Land degradation"
+        }
+      },
+      "ambiente": {
+        "label": "Environment",
+        "subthemes": {
+          "vegetacao": "Vegetation and phenology",
+          "clima": "Climate"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "MapaOvTemporalSlider": {
+    "previousYear": "Ano anterior",
+    "nextYear": "Próximo ano",
+    "yearOf": "Ano de {name}",
+    "loading": "carregando"
+  }
+}

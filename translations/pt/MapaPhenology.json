@@ -1,0 +1,72 @@
+{
+  "MapaPhenology": {
+    "months": {
+      "jan": {
+        "label": "Janeiro",
+        "short": "Jan"
+      },
+      "fev": {
+        "label": "Fevereiro",
+        "short": "Fev"
+      },
+      "mar": {
+        "label": "Março",
+        "short": "Mar"
+      },
+      "abr": {
+        "label": "Abril",
+        "short": "Abr"
+      },
+      "mai": {
+        "label": "Maio",
+        "short": "Mai"
+      },
+      "jun": {
+        "label": "Junho",
+        "short": "Jun"
+      },
+      "jul": {
+        "label": "Julho",
+        "short": "Jul"
+      },
+      "ago": {
+        "label": "Agosto",
+        "short": "Ago"
+      },
+      "set": {
+        "label": "Setembro",
+        "short": "Set"
+      },
+      "out": {
+        "label": "Outubro",
+        "short": "Out"
+      },
+      "nov": {
+        "label": "Novembro",
+        "short": "Nov"
+      },
+      "dez": {
+        "label": "Dezembro",
+        "short": "Dez"
+      }
+    },
+    "phases": {
+      "folha": {
+        "label": "Caatinga em folha",
+        "photoDate": "jan 2025"
+      },
+      "queda": {
+        "label": "Folhas ao chão",
+        "photoDate": "jun 2024"
+      },
+      "branca": {
+        "label": "Mata branca",
+        "photoDate": "dez 2024"
+      },
+      "chuva": {
+        "label": "Primeiras chuvas",
+        "photoDate": "jan 2025"
+      }
+    }
+  }
+}

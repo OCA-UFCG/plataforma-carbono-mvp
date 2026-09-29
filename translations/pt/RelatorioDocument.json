@@ -1,0 +1,34 @@
+{
+  "RelatorioDocument": {
+    "progress": {
+      "analyses": "{done} de {total} análises prontas",
+      "noMaps": "Nenhum mapa a gerar",
+      "ready": "{analyses} análises e {maps} mapas prontos",
+      "maps": "{done} de {total} mapas gerados"
+    },
+    "backToMaps": "Voltar aos mapas",
+    "print": "Imprimir ou salvar em PDF",
+    "printDisabledHint": "Disponível quando todas as análises e mapas terminarem",
+    "expired": {
+      "prefix": "Sua sessão expirou.",
+      "link": "Entrar novamente",
+      "suffix": "para completar o relatório."
+    },
+    "title": "Relatório territorial de carbono",
+    "byline": "Caativar — Observatório da Caatinga, OCA / UFCG-INSA",
+    "fields": {
+      "analysisArea": "Área de análise",
+      "area": "Área",
+      "referenceYear": "Ano de referência",
+      "generatedOn": "Gerado em",
+      "variables": "Variáveis"
+    },
+    "simplifiedBoundary": "(limite simplificado)",
+    "methodology": {
+      "title": "Notas metodológicas e fontes",
+      "source": "Fonte",
+      "disclaimer": "Documento gerado automaticamente a partir de estatística zonal calculada no Google Earth Engine sobre o recorte indicado. Os números refletem os dados disponíveis na data de geração."
+    },
+    "footer": "Caativar · OCA / UFCG-INSA · gerado em {date}"
+  }
+}

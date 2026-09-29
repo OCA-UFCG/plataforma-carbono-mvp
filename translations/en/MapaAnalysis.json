@@ -1,0 +1,14 @@
+{
+  "MapaAnalysis": {
+    "hint": {
+      "noneActive": "No territorial unit is active, so clicking the map has nothing to select. Turn one on in {path}, {fallback}",
+      "click": "Click the map over {names} to see statistics for this layer, {fallback}",
+      "path": "Themes › {theme} › {subtheme}",
+      "fallback": "or outline the area with Polygon, Point or Coordinates, in the drawing tools of the pencil button."
+    },
+    "errors": {
+      "pointValue": "Failed to get the value at the point. Please try again.",
+      "stats": "Failed to compute statistics. Please try again."
+    }
+  }
+}

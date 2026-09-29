@@ -1,0 +1,15 @@
+{
+  "RelatorioClient": {
+    "errors": {
+      "badRequest": "The report request is incomplete or invalid.",
+      "notFound": "Territorial unit, area or layer not found.",
+      "rateLimited": "Too many requests right now. Wait a moment and try again.",
+      "generic": "Could not complete this operation. Please try again.",
+      "shellFailed": "Failed to build the report.",
+      "analysisFailed": "Failed to load this analysis."
+    },
+    "failureTitle": "Could not build the report",
+    "backToMaps": "Back to maps",
+    "loading": "Building the report…"
+  }
+}

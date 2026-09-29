@@ -1,0 +1,13 @@
+{
+  "MapaOvMapControls": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "myLocation": "My location",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "resetNorth": "Reset bearing to north",
+    "basemap": "Base map",
+    "drawTools": "Drawing tools",
+    "hideDrawTools": "Hide drawing tools"
+  }
+}

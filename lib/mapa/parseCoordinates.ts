@@ -1,4 +1,5 @@
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
 /**
  * Reading and writing geographic coordinates typed by hand, plus the GeoJSON
@@ -159,7 +160,7 @@ export type VertexListResult =
  * one the user sees in the textarea. A closing vertex repeating the first is
  * dropped, since the ring is closed when the geometry is built.
  */
-export function parseVertexList(text: string): VertexListResult {
+export function parseVertexList(text: string, tx: MapaText = PT_TEXT): VertexListResult {
   const vertices: LonLat[] = []
 
   const lines = text.split('\n')
@@ -167,7 +168,7 @@ export function parseVertexList(text: string): VertexListResult {
     const line = lines[i].trim()
     if (!line) continue
     const vertex = parseLatLonPair(line)
-    if (!vertex) return { ok: false, error: `Linha ${i + 1}: coordenada inválida` }
+    if (!vertex) return { ok: false, error: tx.t('MapaCoordinates.errors.invalidLine', { line: i + 1 }) }
     vertices.push(vertex)
   }
 
@@ -177,7 +178,7 @@ export function parseVertexList(text: string): VertexListResult {
     vertices.pop()
   }
 
-  if (vertices.length < 3) return { ok: false, error: 'Informe ao menos três vértices' }
+  if (vertices.length < 3) return { ok: false, error: tx.t('MapaCoordinates.errors.minVertices') }
   return { ok: true, vertices }
 }
 
@@ -185,8 +186,11 @@ export function parseVertexList(text: string): VertexListResult {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-/** Write a coordinate as degrees/minutes/seconds, e.g. `7°12'36"S`. */
-export function formatDms(value: number, axis: Axis): string {
+/**
+ * Write a coordinate as degrees/minutes/seconds, e.g. `7°12'36"S`. The west and
+ * east letters follow the language: `O`/`L` in Portuguese, `W`/`E` in English.
+ */
+export function formatDms(value: number, axis: Axis, tx: MapaText = PT_TEXT): string {
   const absolute = Math.abs(value)
 
   let degrees = Math.floor(absolute)
@@ -204,9 +208,10 @@ export function formatDms(value: number, axis: Axis): string {
     degrees += 1
   }
 
-  const letter = axis === 'lat'
-    ? value < 0 ? 'S' : 'N'
-    : value < 0 ? 'O' : 'L'
+  const hemisphere = axis === 'lat'
+    ? value < 0 ? 'south' : 'north'
+    : value < 0 ? 'west' : 'east'
+  const letter = tx.t(`MapaCoordinates.hemispheres.${hemisphere}`)
 
   return `${degrees}°${pad(minutes)}'${pad(seconds)}"${letter}`
 }
@@ -221,18 +226,51 @@ type CoordinateFeature<G extends GeoJSON.Geometry> = GeoJSON.Feature<G>
  * `ccLabel` is the text shown under it. They live on the feature, and not in a
  * call argument, because the drawing is persisted as a GeoJSON feature: read
  * from the properties, the chip survives a reload.
+ *
+ * `ccLabel` is the text in the language the feature was typed in. A persisted
+ * drawing outlives a language switch, so the UI should call `coordinateLabel`
+ * to rebuild the label in the current language; `ccKind` tells it which shape
+ * the feature is (a rectangle and a four-vertex polygon share a geometry).
  */
-function coordinateProperties(label: string) {
-  return { ccOrigin: COORDINATE_ORIGIN, ccLabel: label }
+function coordinateProperties(kind: CoordinateKind, label: string) {
+  return { ccOrigin: COORDINATE_ORIGIN, ccKind: kind, ccLabel: label }
+}
+
+type CoordinateKind = 'point' | 'rectangle' | 'polygon'
+
+/**
+ * The label under the "Coordenadas" chip, in the current language, rebuilt from
+ * the feature: a point reads as its coordinates, a rectangle as such, a polygon
+ * by its vertex count. Null for a feature that was not typed. Falls back to the
+ * stored `ccLabel` for a drawing persisted before `ccKind` existed.
+ */
+export function coordinateLabel(
+  feature: { geometry?: GeoJSON.Geometry | null; properties?: GeoJSON.GeoJsonProperties },
+  tx: MapaText = PT_TEXT,
+): string | null {
+  const props = feature.properties
+  if (props?.ccOrigin !== COORDINATE_ORIGIN) return null
+  const geometry = feature.geometry
+
+  if (props.ccKind === 'point' && geometry?.type === 'Point') {
+    const [lon, lat] = geometry.coordinates
+    return `${formatDms(lat, 'lat', tx)}, ${formatDms(lon, 'lon', tx)}`
+  }
+  if (props.ccKind === 'rectangle') return tx.t('MapaCoordinates.labels.rectangle')
+  if (props.ccKind === 'polygon' && geometry?.type === 'Polygon') {
+    // The ring is closed, so its last position repeats the first.
+    return tx.t('MapaCoordinates.labels.polygon', { count: (geometry.coordinates[0]?.length ?? 1) - 1 })
+  }
+  return typeof props.ccLabel === 'string' ? props.ccLabel : null
 }
 
 /** A point at the given coordinate. */
-export function buildCoordinatePoint(point: LonLat): CoordinateFeature<GeoJSON.Point> {
+export function buildCoordinatePoint(point: LonLat, tx: MapaText = PT_TEXT): CoordinateFeature<GeoJSON.Point> {
   const [lon, lat] = point
   return {
     type: 'Feature',
     geometry: { type: 'Point', coordinates: [lon, lat] },
-    properties: coordinateProperties(`${formatDms(lat, 'lat')}, ${formatDms(lon, 'lon')}`),
+    properties: coordinateProperties('point', `${formatDms(lat, 'lat', tx)}, ${formatDms(lon, 'lon', tx)}`),
   }
 }
 
@@ -244,6 +282,7 @@ export function buildCoordinatePoint(point: LonLat): CoordinateFeature<GeoJSON.P
 export function buildCoordinateRectangle(
   a: LonLat,
   b: LonLat,
+  tx: MapaText = PT_TEXT,
 ): CoordinateFeature<GeoJSON.Polygon> | null {
   const minLon = Math.min(a[0], b[0])
   const maxLon = Math.max(a[0], b[0])
@@ -263,7 +302,7 @@ export function buildCoordinateRectangle(
         [minLon, minLat],
       ]],
     },
-    properties: coordinateProperties('Retângulo'),
+    properties: coordinateProperties('rectangle', tx.t('MapaCoordinates.labels.rectangle')),
   }
 }
 
@@ -274,6 +313,7 @@ export function buildCoordinateRectangle(
  */
 export function buildCoordinatePolygon(
   vertices: LonLat[],
+  tx: MapaText = PT_TEXT,
 ): CoordinateFeature<GeoJSON.Polygon> | null {
   if (vertices.length < 3) return null
   if (Math.abs(ringArea(vertices)) < 1e-12) return null
@@ -284,7 +324,7 @@ export function buildCoordinatePolygon(
       type: 'Polygon',
       coordinates: [[...vertices.map(([lon, lat]) => [lon, lat]), [...vertices[0]]]],
     },
-    properties: coordinateProperties(`Polígono de ${vertices.length} vértices`),
+    properties: coordinateProperties('polygon', tx.t('MapaCoordinates.labels.polygon', { count: vertices.length })),
   }
 }
 

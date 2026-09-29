@@ -1,0 +1,5 @@
+{
+  "MapaUiLayerErrors": {
+    "wfs": "Falha ao carregar WFS: {message}"
+  }
+}

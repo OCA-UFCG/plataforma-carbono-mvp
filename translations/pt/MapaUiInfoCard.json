@@ -1,0 +1,10 @@
+{
+  "MapaUiInfoCard": {
+    "active": "Ativa",
+    "closeAria": "Fechar ficha",
+    "legend": "Legenda",
+    "classes": "Classes",
+    "deactivate": "Desativar camada",
+    "activate": "Ativar camada"
+  }
+}

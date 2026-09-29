@@ -1,0 +1,9 @@
+{
+  "MapaOvSearchBar": {
+    "placeholder": "Buscar território...",
+    "close": "Fechar",
+    "loading": "Carregando dados...",
+    "noResults": "Nenhum resultado encontrado",
+    "scope": "Busca em todos os recortes territoriais."
+  }
+}

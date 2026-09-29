@@ -1,0 +1,15 @@
+{
+  "RelatorioClient": {
+    "errors": {
+      "badRequest": "O pedido do relatório está incompleto ou inválido.",
+      "notFound": "Recorte, área ou camada não encontrados.",
+      "rateLimited": "Muitas requisições no momento. Aguarde um instante e tente novamente.",
+      "generic": "Não foi possível concluir esta operação. Tente novamente.",
+      "shellFailed": "Falha ao montar o relatório.",
+      "analysisFailed": "Falha ao carregar esta análise."
+    },
+    "failureTitle": "Não foi possível montar o relatório",
+    "backToMaps": "Voltar aos mapas",
+    "loading": "Montando o relatório…"
+  }
+}

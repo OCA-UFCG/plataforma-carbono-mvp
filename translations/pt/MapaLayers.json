@@ -1,0 +1,245 @@
+{
+  "MapaLayers": {
+    "layers": {
+      "bioma": {
+        "name": "Bioma Caatinga",
+        "unitName": "Bioma",
+        "description": "limite oficial do bioma",
+        "source": "IBGE 2019"
+      },
+      "estados": {
+        "name": "Estados",
+        "unitName": "Estado",
+        "description": "divisas estaduais",
+        "source": "IBGE"
+      },
+      "municipios": {
+        "name": "Municípios",
+        "unitName": "Município",
+        "description": "malha municipal",
+        "source": "IBGE"
+      },
+      "terras_indigenas": {
+        "name": "Terras Indígenas",
+        "unitName": "Terra Indígena",
+        "description": "terras indígenas",
+        "source": "Funai"
+      },
+      "quilombolas": {
+        "name": "Territórios Quilombolas",
+        "unitName": "Território Quilombola",
+        "description": "territórios quilombolas",
+        "source": "Incra"
+      },
+      "assentamentos": {
+        "name": "Assentamentos (INCRA)",
+        "unitName": "Assentamento",
+        "description": "assentamentos rurais",
+        "source": "Incra"
+      },
+      "estoque_carbono": {
+        "name": "Estoque de Carbono (Quarto Inventário Nacional)",
+        "description": "estoque de carbono dos cinco reservatórios, decomposto por reservatório e por fitofisionomia ao clicar numa área",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "estoque_c_agb": {
+        "name": "Biomassa acima do solo (Quarto Inventário)",
+        "description": "carbono na biomassa acima do solo",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "estoque_c_bgb": {
+        "name": "Biomassa abaixo do solo (Quarto Inventário)",
+        "description": "carbono na biomassa abaixo do solo, raízes",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "estoque_c_dw": {
+        "name": "Madeira morta (Quarto Inventário)",
+        "description": "carbono na madeira morta",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "estoque_c_litter": {
+        "name": "Serrapilheira (Quarto Inventário)",
+        "description": "carbono na serrapilheira",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "estoque_c_solo": {
+        "name": "Carbono orgânico do solo (Quarto Inventário)",
+        "description": "carbono orgânico do solo, segunda estimativa ao lado da do MapBiomas",
+        "source": "Quarto Inventário Nacional, 100 m"
+      },
+      "solo_carbono": {
+        "name": "Carbono Orgânico do Solo (MapBiomas)",
+        "description": "carbono orgânico do solo (0-30 cm)",
+        "source": "MapBiomas Solo, 30 m"
+      },
+      "solo_carbono_embrapa": {
+        "name": "Carbono Orgânico do Solo (Embrapa)",
+        "description": "concentração de carbono orgânico do solo",
+        "source": "Embrapa, 2020, 928 m"
+      },
+      "biomassa_gedi": {
+        "name": "Biomassa Aérea (GEDI L4B)",
+        "description": "biomassa aérea",
+        "source": "GEDI L4B, 1 km"
+      },
+      "altura_dossel": {
+        "name": "Altura do Dossel (Meta e WRI 2023)",
+        "description": "altura da vegetação acima do solo, estimada por rede neural sobre imagem aérea",
+        "source": "Meta e WRI, 1 m"
+      },
+      "biomassa_esa_lenhosa": {
+        "name": "Biomassa Aérea, vegetação lenhosa (ESA CCI)",
+        "description": "biomassa aérea medida apenas onde há vegetação lenhosa, com solo exposto e estrato herbáceo fora da conta",
+        "source": "ESA CCI Biomass v6, 100 m"
+      },
+      "biomassa_esa_territorial": {
+        "name": "Biomassa Aérea, média territorial (ESA CCI)",
+        "description": "a mesma biomassa distribuída por todo o território, contando como zero o que não é lenhoso",
+        "source": "ESA CCI Biomass v6, 100 m"
+      },
+      "biomassa_spawn": {
+        "name": "Carbono na Biomassa Aérea (Spawn & Gibbs 2010)",
+        "description": "carbono da biomassa aérea",
+        "source": "Spawn & Gibbs, 300 m"
+      },
+      "gpp_modis": {
+        "name": "Produtividade Primária Bruta (GPP, MODIS)",
+        "description": "produtividade primária bruta",
+        "source": "MODIS, 500 m",
+        "classes": {
+          "1": "Muito baixo",
+          "2": "Baixo",
+          "3": "Médio",
+          "4": "Alto",
+          "5": "Muito alto"
+        }
+      },
+      "npp_modis": {
+        "name": "Produtividade Primária Líquida (NPP, MODIS)",
+        "description": "produtividade primária líquida",
+        "source": "MODIS, 500 m",
+        "classes": {
+          "1": "Muito baixo",
+          "2": "Baixo",
+          "3": "Médio",
+          "4": "Alto",
+          "5": "Muito alto"
+        }
+      },
+      "gpp_pml": {
+        "name": "Produtividade Primária Bruta (GPP, PML-V2)",
+        "description": "produtividade primária bruta anual, estimativa independente da do MODIS",
+        "source": "PML-V2 v018, 500 m"
+      },
+      "gfw_netflux": {
+        "name": "Fluxo Líquido de Carbono Florestal (GFW)",
+        "description": "fluxo líquido de carbono florestal",
+        "source": "GFW, 30 m"
+      },
+      "gfw_emissions": {
+        "name": "Emissões Brutas de Carbono Florestal (GFW)",
+        "description": "emissões brutas de carbono",
+        "source": "GFW, 30 m"
+      },
+      "gfw_removals": {
+        "name": "Remoções Brutas de Carbono Florestal (GFW)",
+        "description": "remoções brutas de carbono",
+        "source": "GFW, 30 m"
+      },
+      "ndvi_modis": {
+        "name": "NDVI (MODIS)",
+        "description": "índice de vegetação NDVI",
+        "source": "MODIS, 250 m"
+      },
+      "evi_modis": {
+        "name": "EVI (MODIS)",
+        "description": "índice de vegetação EVI",
+        "source": "MODIS, 250 m"
+      },
+      "chirps_precip": {
+        "name": "Precipitação Anual (CHIRPS)",
+        "description": "precipitação anual",
+        "source": "CHIRPS, 5 km"
+      },
+      "lst_modis": {
+        "name": "Temperatura de Superfície (MODIS)",
+        "description": "temperatura de superfície",
+        "source": "MODIS, 1 km"
+      },
+      "lulc_mapbiomas": {
+        "name": "Uso e Cobertura da Terra (MapBiomas col. 10.1)",
+        "description": "uso e cobertura da terra",
+        "source": "MapBiomas col. 10.1, 30 m",
+        "classes": {
+          "3": "Formação Florestal",
+          "4": "Formação Savânica",
+          "5": "Mangue",
+          "6": "Floresta Alagável",
+          "49": "Restinga Arbórea",
+          "11": "Campo Alagado e Área Pantanosa",
+          "12": "Formação Campestre",
+          "32": "Apicum",
+          "29": "Afloramento Rochoso",
+          "50": "Restinga Herbácea",
+          "15": "Pastagem",
+          "18": "Agricultura",
+          "39": "Soja",
+          "20": "Cana",
+          "40": "Arroz",
+          "62": "Algodão (beta)",
+          "41": "Outras Lavouras Temporárias",
+          "46": "Café",
+          "47": "Citrus",
+          "35": "Dendê",
+          "48": "Outras Lavouras Perenes",
+          "9": "Silvicultura",
+          "21": "Mosaico de Usos",
+          "23": "Praia, Duna e Areal",
+          "24": "Área Urbanizada",
+          "30": "Mineração",
+          "75": "Usina Fotovoltaica (beta)",
+          "25": "Outras Áreas não Vegetadas",
+          "33": "Rio, Lago e Oceano",
+          "31": "Aquicultura"
+        }
+      },
+      "fogo_frequencia": {
+        "name": "Frequência de Fogo acumulada (MapBiomas Fogo col. 3)",
+        "description": "frequência de fogo (1985-2023)",
+        "source": "MapBiomas Fogo, 30 m"
+      },
+      "degradacao_terra": {
+        "name": "Índice de Degradação da Terra (2021)",
+        "description": "nível de degradação da terra, do nível 5 (mais degradado) ao conservado",
+        "source": "OCA, índice v4, 2021, 500 m",
+        "classes": {
+          "1": "Nível 5",
+          "2": "Nível 4",
+          "3": "Nível 3",
+          "4": "Nível 2",
+          "5": "Nível 1",
+          "6": "Conservado"
+        }
+      }
+    },
+    "kinds": {
+      "continuousRaster": "Raster contínuo",
+      "categoricalRaster": "Raster categórico",
+      "vector": "Vetorial"
+    },
+    "units": {
+      "kgCPerM2Year": "kg C/m²/ano",
+      "gCPerM2Year": "g C/m²/ano",
+      "tCPerYear": "t C/ano",
+      "mmPerYear": "mm/ano",
+      "yearsWithFire": "anos com fogo"
+    },
+    "stockPools": {
+      "b2": "Biomassa acima do solo",
+      "b3": "Biomassa abaixo do solo",
+      "b4": "Madeira morta",
+      "b5": "Serrapilheira",
+      "b6": "Carbono orgânico do solo"
+    }
+  }
+}

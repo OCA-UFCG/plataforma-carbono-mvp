@@ -1,0 +1,110 @@
+{
+  "MapaOvResults": {
+    "empty": {
+      "noData": "No data from this layer in this area.",
+      "noClass": "No mapped class in this area.",
+      "allConserved": "All the area with data is conserved.",
+      "noStock": "No mapped stock in this area.",
+      "outsideForest": "Area outside the forest mapped by the GFW model.",
+      "noFire": "No fire mapped since {year}."
+    },
+    "bands": {
+      "title": "Area by range",
+      "above": "above {from}",
+      "range": "{from} to {to}"
+    },
+    "amount": {
+      "perHectare": {
+        "valid": "Per hectare",
+        "woody": "Per hectare of woody vegetation",
+        "territory": "Per hectare of territory"
+      },
+      "woodySubject": "Woody vegetation",
+      "carbon": "Carbon",
+      "caption": "of {label} {where}",
+      "whereData": "in the part with data",
+      "whereArea": "in the analyzed area"
+    },
+    "distribution": {
+      "range80": "Range covering 80% of the area",
+      "mean": "Mean",
+      "range": "{min} to {max}",
+      "median": "median in the analyzed area"
+    },
+    "flux": {
+      "netRemoval": "of net removal in the period",
+      "netEmission": "of net emissions in the period",
+      "netBalance": "in balance between emissions and removals in the period",
+      "total": "of {label} in the period",
+      "sinkArea": "Sink area",
+      "sourceArea": "Source area",
+      "perHectare": "Per hectare",
+      "removalArea": "Area with removal",
+      "emissionArea": "Area with emissions",
+      "forestSubject": "Forest in the GFW model"
+    },
+    "annual": {
+      "caption": "{label} in the analyzed area"
+    },
+    "recurrence": {
+      "caption": "of the area burned at least once since {year}",
+      "burnedInYear": "Burned in the year",
+      "recurrent": "{from} or more years with fire",
+      "title": "Area by years with fire"
+    },
+    "composition": {
+      "conserved": "Conserved",
+      "degradedCaption": "of the area with some level of degradation",
+      "degradedTitle": "Degraded area by level",
+      "degradedHint": "1 mild, 5 severe",
+      "nativeCaption": "of the area with native vegetation",
+      "classesTitle": "Area by class",
+      "others": "{count} others"
+    },
+    "stocks": {
+      "perHectare": "Per hectare",
+      "ofTotal": "Of total stock",
+      "title": "Stock by phytophysiognomy",
+      "others": "{count} others",
+      "poolCaption": {
+        "b2": "of carbon in aboveground biomass",
+        "b3": "of carbon in belowground biomass",
+        "b4": "of carbon in dead wood",
+        "b5": "of carbon in litter",
+        "b6": "of organic carbon in the soil"
+      },
+      "poolFallback": "of carbon in {pool}",
+      "totalWithData": "of stored carbon in the part with data",
+      "totalArea": "of stored carbon in the area"
+    },
+    "point": {
+      "removal": "of removal at this point",
+      "emission": "of emissions at this point",
+      "balance": "in balance at this point",
+      "class": "class at this point",
+      "value": "at this point"
+    },
+    "series": {
+      "noData": "No data from this layer at this point.",
+      "classCaption": "class at this point in {year}",
+      "noDataShort": "No data",
+      "classChanges": "Class changes",
+      "classByYear": "Class by year",
+      "cellClass": "{year}: {label}",
+      "cellNoData": "{year}: no data",
+      "fireCaption": "years with fire at this point",
+      "fireCaptionUntil": "years with fire at this point up to {year}",
+      "lastFire": "Last fire",
+      "none": "none",
+      "fireYears": "Years with fire",
+      "cellBurned": "{year}: burned",
+      "cellNoFire": "{year}: no fire",
+      "lineCaption": "at this point in {year}",
+      "periodMean": "Period mean",
+      "lowestHighest": "Lowest and highest",
+      "range": "{min} to {max}",
+      "valueByYear": "Value by year",
+      "tooltipValue": "value"
+    }
+  }
+}

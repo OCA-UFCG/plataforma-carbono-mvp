@@ -1,0 +1,15 @@
+{
+  "MapaUiStatsChart": {
+    "areaByClass": "Área por classe",
+    "rasterStatistics": "Estatísticas do raster",
+    "mean": "média",
+    "median": "Mediana",
+    "minimum": "Mínimo",
+    "maximum": "Máximo",
+    "lowestFlux": "Menor fluxo",
+    "highestFlux": "Maior fluxo",
+    "deviation": "Desvio",
+    "validPixels": "{count} pixels válidos",
+    "valueOverTime": "Valor ao longo do tempo"
+  }
+}

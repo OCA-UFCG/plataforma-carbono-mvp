@@ -1,0 +1,41 @@
+{
+  "MapaGroups": {
+    "themes": {
+      "territorio": {
+        "label": "Território",
+        "subthemes": {
+          "limites": "Limites de referência",
+          "territorios": "Territórios e assentamentos"
+        }
+      },
+      "carbono": {
+        "label": "Carbono",
+        "subthemes": {
+          "estoques": "Estoque total",
+          "reservatorios": "Reservatórios de carbono",
+          "solo": "Carbono do solo",
+          "biomassa": "Biomassa",
+          "estrutura": "Estrutura da vegetação",
+          "gpp": "Produtividade primária bruta (GPP)",
+          "npp": "Produtividade primária líquida (NPP)",
+          "fluxos": "Fluxos de carbono"
+        }
+      },
+      "uso_solo": {
+        "label": "Uso do solo e pressões",
+        "subthemes": {
+          "cobertura": "Uso e cobertura da terra",
+          "fogo": "Fogo",
+          "degradacao": "Degradação da terra"
+        }
+      },
+      "ambiente": {
+        "label": "Ambiente",
+        "subthemes": {
+          "vegetacao": "Vegetação e fenologia",
+          "clima": "Clima"
+        }
+      }
+    }
+  }
+}

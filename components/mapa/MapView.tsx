@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol as PMTilesProtocol } from 'pmtiles'
@@ -42,9 +43,12 @@ import {
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
-import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
+import { COORDINATE_ORIGIN, coordinateLabel } from '@/lib/mapa/parseCoordinates'
+import { ANALYSIS_KINDS } from '@/lib/mapa/analysisSubject'
+import { WFS_ERROR_PREFIX } from './layerErrors'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { basemaps } from '@/config/mapa/basemaps'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type {
   LayerConfig,
   VectorLayerConfig,
@@ -349,6 +353,27 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
   }
 }
 
+// Native control tooltips / aria-labels
+
+type MapUiTranslator = (key: string) => string
+
+/** The strings MapLibre's own controls show, in the user's language. */
+function mapUiStrings(t: MapUiTranslator): Record<string, string> {
+  return {
+    'NavigationControl.ZoomIn':          t('zoomIn'),
+    'NavigationControl.ZoomOut':         t('zoomOut'),
+    'NavigationControl.ResetBearing':    t('resetBearing'),
+    'GeolocateControl.FindMyLocation':   t('findMyLocation'),
+    'GeolocateControl.LocationNotAvailable': t('locationNotAvailable'),
+    'FullscreenControl.Enter':           t('fullscreenEnter'),
+    'FullscreenControl.Exit':            t('fullscreenExit'),
+    'ScaleControl.Meters':               'm',
+    'ScaleControl.Kilometers':           'km',
+    'AttributionControl.ToggleAttribution': t('toggleAttribution'),
+    'AttributionControl.MapFeedback':    t('mapFeedback'),
+  }
+}
+
 // MapView component
 
 interface MapViewProps {
@@ -360,6 +385,15 @@ interface MapViewProps {
 }
 
 export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) {
+  const tMap = useTranslations('MapaUiMapView')
+  const tx = useMapaText()
+  // The map is created once, inside an effect that never re-runs, so it reads the
+  // translator of the moment through a ref that is refreshed after every render.
+  const tMapRef = useRef(tMap)
+  useEffect(() => { tMapRef.current = tMap }, [tMap])
+  // The two native bottom-left controls, kept to be rebuilt on a language switch.
+  const nativeControlsRef = useRef<{ attribution: maplibregl.AttributionControl; scale: maplibregl.ScaleControl } | null>(null)
+  const appliedLocaleRef = useRef(tx.locale)
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -435,20 +469,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
       // Disable the default attribution so we can place it at bottom-left,
       // keeping the bottom-right corner clear for the FloatingLegend overlay.
       attributionControl: false,
-      // Translate the native control tooltips/aria-labels to pt-BR.
-      locale: {
-        'NavigationControl.ZoomIn':          'Aproximar',
-        'NavigationControl.ZoomOut':         'Afastar',
-        'NavigationControl.ResetBearing':    'Orientar para o norte',
-        'GeolocateControl.FindMyLocation':   'Minha localização',
-        'GeolocateControl.LocationNotAvailable': 'Localização indisponível',
-        'FullscreenControl.Enter':           'Tela cheia',
-        'FullscreenControl.Exit':            'Sair da tela cheia',
-        'ScaleControl.Meters':               'm',
-        'ScaleControl.Kilometers':           'km',
-        'AttributionControl.ToggleAttribution': 'Alternar atribuição',
-        'AttributionControl.MapFeedback':    'Comentários sobre o mapa',
-      },
+      // Translate the native control tooltips/aria-labels to the user's language.
+      locale: mapUiStrings(tMapRef.current),
       // Performance optimizations
       validateStyle: false,                        // skip runtime style validation
       fadeDuration:  0,                            // tiles appear instantly (no 300ms fade)
@@ -473,8 +495,11 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     // NOTE: bottom-left containers use `flex-direction: column-reverse`,
     // so the FIRST addControl call ends up at the BOTTOM of the visual stack.
     // We want: scale on top, attribution on the bottom -> attribution first.
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
-    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left')
+    const attribution = new maplibregl.AttributionControl({ compact: true })
+    const scale = new maplibregl.ScaleControl({ unit: 'metric' })
+    map.addControl(attribution, 'bottom-left')
+    map.addControl(scale, 'bottom-left')
+    nativeControlsRef.current = { attribution, scale }
 
     map.on('load', () => {
       // Add the initial basemap as a raster layer below everything else
@@ -555,12 +580,17 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         // itself as the label. Both come off the feature's properties rather
         // than from an argument, so a drawing restored from localStorage --
         // which comes back as a bare GeoJSON feature -- keeps its chip.
+        //
+        // The store holds the Portuguese kind and label (`ANALYSIS_KINDS`,
+        // `coordinateLabel` without a `MapaText`): they outlive a language
+        // switch, so ResultsSidebar turns them into the current language when it
+        // renders (lib/mapa/analysisSubject.ts).
         const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
-        setAnalysisLabel(typed ? (feature.properties?.ccLabel ?? null) : null)
-        const drawnKind = feature.geometry.type === 'Point' ? 'Ponto desenhado'
-          : feature.geometry.type === 'LineString' ? 'Linha desenhada'
-            : 'Área desenhada'
-        setAnalysisKind(typed ? 'Coordenadas' : drawnKind)
+        setAnalysisLabel(typed ? coordinateLabel(feature) : null)
+        const drawnKind = feature.geometry.type === 'Point' ? ANALYSIS_KINDS.point
+          : feature.geometry.type === 'LineString' ? ANALYSIS_KINDS.line
+            : ANALYSIS_KINDS.area
+        setAnalysisKind(typed ? ANALYSIS_KINDS.coordinates : drawnKind)
         clearSelectedFeature()
         setSelectedGeometry(null)
 
@@ -624,7 +654,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           draw.add(desenhoSalvo)
           void handleDrawCommit({ features: [desenhoSalvo] })
         } catch (err) {
-          console.error('[draw.restore] falha ao restaurar o desenho', err)
+          console.error('[draw.restore] failed to restore the drawing', err)
           useStore.getState().setDrawing(null)
         }
       }
@@ -794,6 +824,8 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
           featureName != null && featureName !== '' ? String(featureName) : vector.name,
         )
         // Singular, as the header's eyebrow over the feature name ("Município").
+        // Like the label above, it is the layer's Portuguese text from layers.json;
+        // ResultsSidebar looks the layer up to show it in the current language.
         setAnalysisKind(vector.unitName ?? vector.name)
 
         // Use the COMPLETE geometry from the source GeoJSON, not the
@@ -1159,7 +1191,7 @@ useEffect(() => {
                 loadingLayers: nextLoading,
                 layerErrors: {
                   ...s.layerErrors,
-                  [layer.id]: `Falha ao carregar WFS: ${err.message}`,
+                  [layer.id]: `${WFS_ERROR_PREFIX}${err.message}`,
                 },
               }
             })
@@ -1196,6 +1228,26 @@ useEffect(() => {
       wfsAbortControllersRef.current = {}
     }
   }, [layers, mapReady])
+
+  // A language switch: MapLibre reads its UI strings when a control is built, so
+  // the table is patched and the two native controls are rebuilt in place.
+  useEffect(() => {
+    const map = mapRef.current
+    const native = nativeControlsRef.current
+    if (!map || !mapReady || !native || appliedLocaleRef.current === tx.locale) return
+    appliedLocaleRef.current = tx.locale
+
+    Object.assign(map._locale, mapUiStrings(tMap))
+    map.removeControl(native.attribution)
+    map.removeControl(native.scale)
+    // Same order as at creation: bottom-left stacks in reverse, so the
+    // attribution goes first and ends up at the bottom.
+    const attribution = new maplibregl.AttributionControl({ compact: true })
+    const scale = new maplibregl.ScaleControl({ unit: 'metric' })
+    map.addControl(attribution, 'bottom-left')
+    map.addControl(scale, 'bottom-left')
+    nativeControlsRef.current = { attribution, scale }
+  }, [tx.locale, tMap, mapReady])
 
   // Back to the biome view when the sidebar resets the layers.
   useEffect(() => {

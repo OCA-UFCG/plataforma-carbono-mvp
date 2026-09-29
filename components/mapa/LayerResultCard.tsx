@@ -1,16 +1,21 @@
 'use client'
 
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import { ErrorCard, SkeletonChart } from './StatsCards'
 import { IcChevronDown } from './icons'
 import LayerResultView from './results/LayerResultView'
 import PointValue from './results/PointValue'
 import { Empty } from './results/blocks'
+import { localizeLayerError } from './layerErrors'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { currentAnalysisSeq, runLayerAnalysis } from '@/lib/mapa/analysisRunner'
 import { resultSummary } from '@/lib/mapa/resultSummary'
 import { layerTitle } from '@/lib/mapa/results/format'
 import { layerPeriod } from '@/lib/mapa/results/period'
+import { localizeLayer } from '@/lib/mapa/text'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type {
   LayerResult, PlatformTheme, RasterLayerConfig, SelectedGeometry,
 } from '@/types/mapa'
@@ -48,16 +53,21 @@ interface Props {
 export default function LayerResultCard({
   layer, result, date, expanded, onToggle, theme, geometry, polygonHa,
 }: Props) {
+  const t = useTranslations('MapaUiLayerResultCard')
+  const tx = useMapaText()
   const c = theme.colors
-  const profile = getResultProfile(layer.id)
-  const summary = resultSummary(layer, result)
+  // The store keeps the layer in Portuguese: name, unit and class labels are
+  // localized here, once, and everything below reads the localized copy.
+  const localLayer = useMemo(() => localizeLayer(layer, tx), [layer, tx])
+  const profile = getResultProfile(layer.id, tx)
+  const summary = resultSummary(localLayer, result, tx)
   const loading = !result || result.status === 'loading'
   const stats = result?.status === 'ready' ? result.stats : null
 
   // A point series covers every year, so the header names its range.
   const series = stats?.kind === 'timeseries' ? stats.series : null
   const period = series?.length
-    ? `${series[0].date.slice(0, 4)} a ${series[series.length - 1].date.slice(0, 4)}`
+    ? t('periodRange', { from: series[0].date.slice(0, 4), to: series[series.length - 1].date.slice(0, 4) })
     : profile ? layerPeriod(layer, profile, date) : date?.slice(0, 4)
 
   return (
@@ -88,7 +98,7 @@ export default function LayerResultCard({
       >
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: c.text, lineHeight: 1.3, overflowWrap: 'anywhere' }}>
-            {layerTitle(layer.name)}
+            {layerTitle(localLayer.name)}
           </span>
           {!expanded && (
             <span style={{
@@ -96,7 +106,7 @@ export default function LayerResultCard({
               fontSize: 17, fontWeight: 800, color: c.text,
               fontVariantNumeric: 'lining-nums tabular-nums', overflowWrap: 'anywhere',
             }}>
-              {summary ?? (loading ? 'Calculando' : 'Sem resultado')}
+              {summary ?? (loading ? t('calculating') : t('noResult'))}
             </span>
           )}
         </span>
@@ -120,7 +130,7 @@ export default function LayerResultCard({
 
           {result?.status === 'error' && (
             <>
-              <ErrorCard theme={theme} message={result.error ?? 'Falha ao calcular o resultado.'} />
+              <ErrorCard theme={theme} message={result.error ? localizeLayerError(result.error, tx) : t('failed')} />
               {geometry && (
                 <button
                   className="ui-press"
@@ -132,24 +142,24 @@ export default function LayerResultCard({
                     fontFamily: 'var(--font-app), sans-serif', fontSize: 14, fontWeight: 600,
                   }}
                 >
-                  Tentar novamente
+                  {t('retry')}
                 </button>
               )}
             </>
           )}
 
           {result?.status === 'ready' && result.pixelValue && (
-            <PointValue theme={theme} layer={layer} pixel={result.pixelValue} />
+            <PointValue theme={theme} layer={localLayer} pixel={result.pixelValue} />
           )}
 
           {stats && profile && stats.kind === 'timeseries' && (
-            <PointSeries theme={theme} layer={layer} profile={profile} series={stats.series} temporalDate={date} />
+            <PointSeries theme={theme} layer={localLayer} profile={profile} series={stats.series} temporalDate={date} />
           )}
 
           {stats && profile && stats.kind !== 'timeseries' && stats.kind !== 'continuous' && (
             <LayerResultView
               theme={theme}
-              layer={layer}
+              layer={localLayer}
               profile={profile}
               result={stats}
               temporalDate={date}
@@ -163,15 +173,15 @@ export default function LayerResultCard({
             <StatsChartView
               theme={theme}
               stats={stats}
-              classes={layer.classes}
-              unit={layer.unit}
-              signedFlux={layer.signedFlux}
+              classes={localLayer.classes}
+              unit={localLayer.unit}
+              signedFlux={localLayer.signedFlux}
             />
           )}
 
           {/* A point over nodata: status is 'ready' with nothing to show, a real answer. */}
           {result?.status === 'ready' && !result.pixelValue && !result.stats && (
-            <Empty theme={theme} text="Sem dado neste ponto." />
+            <Empty theme={theme} text={t('noDataAtPoint')} />
           )}
         </div>
       )}

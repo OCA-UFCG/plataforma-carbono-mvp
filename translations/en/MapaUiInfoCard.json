@@ -1,0 +1,10 @@
+{
+  "MapaUiInfoCard": {
+    "active": "Active",
+    "closeAria": "Close layer sheet",
+    "legend": "Legend",
+    "classes": "Classes",
+    "deactivate": "Turn layer off",
+    "activate": "Turn layer on"
+  }
+}

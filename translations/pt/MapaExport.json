@@ -1,0 +1,54 @@
+{
+  "MapaExport": {
+    "recorte": "# Recorte: {value}",
+    "generatedAt": "# Gerado em: {date}",
+    "layer": "# Camada: {name}",
+    "fluxConvention": "# Convenção: valor negativo = sequestro, positivo = emissão",
+    "year": "# Ano: {year}",
+    "columns": {
+      "measure": "medida",
+      "value": "valor",
+      "unit": "unidade",
+      "statistic": "estatistica",
+      "class": "classe",
+      "areaHa": "area_ha",
+      "percent": "percentual",
+      "yearColumn": "ano",
+      "pool": "reservatorio",
+      "stock": "estoque",
+      "phytophysiognomy": "fitofisionomia",
+      "bandFrom": "faixa_de",
+      "bandTo": "faixa_ate",
+      "yearsWithFire": "anos_com_fogo",
+      "burnedInYear": "queimou_em_{year}_ha"
+    },
+    "rows": {
+      "analyzedArea": "Área analisada",
+      "length": "Comprimento",
+      "pointValue": "Valor no ponto",
+      "pointClass": "Classe no ponto",
+      "min": "Mínimo",
+      "max": "Máximo",
+      "mean": "Média",
+      "median": "Mediana",
+      "std": "Desvio padrão",
+      "pixelCount": "Contagem de pixels",
+      "total": "Total",
+      "carbon": "Carbono",
+      "meanPerHectare": "Média por hectare",
+      "areaWithData": "Área com dado",
+      "areaZero": "Área com valor zero",
+      "p10": "Percentil 10",
+      "p90": "Percentil 90",
+      "sumPositive": "Soma dos valores positivos",
+      "sumNegative": "Soma dos valores negativos",
+      "areaPositive": "Área com valor positivo",
+      "areaNegative": "Área com valor negativo",
+      "areaMean": "Média da área"
+    },
+    "fileNames": {
+      "analysis": "analise",
+      "layers": "{count}-camadas"
+    }
+  }
+}

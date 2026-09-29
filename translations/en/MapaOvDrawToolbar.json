@@ -1,0 +1,19 @@
+{
+  "MapaOvDrawToolbar": {
+    "tools": {
+      "polygon": "Polygon",
+      "rectangle": "Rectangle",
+      "linestring": "Line",
+      "point": "Point"
+    },
+    "coordinates": "Coordinates",
+    "clear": "Clear",
+    "hints": {
+      "polygon": "Click the map to draw the polygon",
+      "rectangle": "Drag on the map to draw the rectangle",
+      "linestring": "Click the map to draw the line",
+      "point": "Click the map to place the point"
+    },
+    "cancel": "to cancel"
+  }
+}

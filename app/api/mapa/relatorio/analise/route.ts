@@ -11,11 +11,19 @@
  * malformed request or an unknown recorte is a 4xx.
  *
  * GET and no asset allowlist, for the reasons written in ../base/route.ts.
+ *
+ * The prose of the analysis (narrative, methodology, layer names) follows the
+ * language cookie, which is why the response says `Vary: Cookie`: the URL is the
+ * same in both languages, and without it the browser would keep serving the
+ * Portuguese body for thirty minutes after the reader switched to English. The
+ * error messages below are deliberately generic developer messages and stay in
+ * English in both languages.
  */
 
 import { NextResponse } from 'next/server'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { clientIp, rateLimit } from '@/lib/mapa/rateLimit'
+import { getMapaText } from '@/lib/mapa/textServer'
 import {
   buildReportAnalysis,
   ReportBadRequestError,
@@ -61,7 +69,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    const analysis = await buildReportAnalysis({ recorteId, feicaoId, year, layerId })
+    const tx = await getMapaText()
+    const analysis = await buildReportAnalysis({ recorteId, feicaoId, year, layerId, tx })
     // reportCache.ts deliberately refuses to cache an 'unavailable' analysis —
     // caching it would hold a broken section for ninety minutes. Sending the
     // browser the same 30-minute freshness header for that body defeats the
@@ -71,7 +80,7 @@ export async function GET(req: Request) {
       ? 'private, max-age=1800'
       : 'no-store'
     return NextResponse.json(analysis, {
-      headers: { 'Cache-Control': cacheControl },
+      headers: { 'Cache-Control': cacheControl, Vary: 'Cookie' },
     })
   } catch (err) {
     if (err instanceof ReportNotFoundError) {

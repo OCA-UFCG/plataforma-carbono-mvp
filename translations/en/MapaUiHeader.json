@@ -1,0 +1,24 @@
+{
+  "MapaUiHeader": {
+    "homeAria": "Caativar home page",
+    "auto": "auto",
+    "picker": {
+      "title": "Interface month",
+      "automatic": "Automatic",
+      "follows": "Follows the date, today: {month}",
+      "monthOption": "{month}, {phase}",
+      "note": "Colors measured on the biome's native vegetation, from 1985 to 2024. The dot marks the current month."
+    },
+    "search": "Search municipality, state or territory...",
+    "nav": {
+      "map": "Map",
+      "data": "Data",
+      "methodology": "Methodology",
+      "about": "About"
+    },
+    "languageSwitch": "Language",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "signOut": "Sign out"
+  }
+}

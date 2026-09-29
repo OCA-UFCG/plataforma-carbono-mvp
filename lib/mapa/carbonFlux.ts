@@ -14,6 +14,8 @@
 // Only layers declaring `signedFlux` in config/mapa/layers.json go through
 // here; a stock or a gross flux has no sign to hide.
 
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
+
 export type FluxDirection = 'emission' | 'removal' | 'neutral' | 'unknown'
 
 export interface FluxDescription {
@@ -45,17 +47,26 @@ export type FluxInkColors = {
  * why it gets its own direction: calling it 'neutral' would print "em
  * equilíbrio" over a measurement that was never made.
  */
-export function describeFlux(value: number): FluxDescription {
+export function describeFlux(value: number, tx: MapaText = PT_TEXT): FluxDescription {
   if (!Number.isFinite(value)) {
     return { magnitude: NaN, direction: 'unknown', label: '', noun: '', arrow: '' }
   }
   if (value > 0) {
-    return { magnitude: value, direction: 'emission', label: 'emitiu', noun: 'emissão', arrow: '↑' }
+    return {
+      magnitude: value, direction: 'emission', arrow: '↑',
+      label: tx.t('MapaResults.flux.emission.label'), noun: tx.t('MapaResults.flux.emission.noun'),
+    }
   }
   if (value < 0) {
-    return { magnitude: -value, direction: 'removal', label: 'sequestrou', noun: 'sequestro', arrow: '↓' }
+    return {
+      magnitude: -value, direction: 'removal', arrow: '↓',
+      label: tx.t('MapaResults.flux.removal.label'), noun: tx.t('MapaResults.flux.removal.noun'),
+    }
   }
-  return { magnitude: 0, direction: 'neutral', label: 'em equilíbrio', noun: 'equilíbrio', arrow: '' }
+  return {
+    magnitude: 0, direction: 'neutral', arrow: '',
+    label: tx.t('MapaResults.flux.neutral.label'), noun: tx.t('MapaResults.flux.neutral.noun'),
+  }
 }
 
 /** Text color for a flux direction. A value with no direction stays neutral. */

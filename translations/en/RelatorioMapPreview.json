@@ -1,0 +1,7 @@
+{
+  "RelatorioMapPreview": {
+    "unavailable": "Map image unavailable.",
+    "generating": "Generating the map image…",
+    "waiting": "Waiting in the queue…"
+  }
+}

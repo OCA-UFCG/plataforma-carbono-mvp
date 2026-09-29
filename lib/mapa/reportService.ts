@@ -24,6 +24,7 @@ import {
 import { ano, paradas } from '@/lib/mapa/temporal'
 import { computeSeries } from '@/lib/mapa/zonalSeries'
 import { computeZonalStats } from '@/lib/mapa/zonalStats'
+import { layerClasses, layerName, layerSource, PT_TEXT, unitLabel, type MapaText } from '@/lib/mapa/text'
 import type { RasterLayerConfig } from '@/types/mapa'
 import type {
   ReportAnalysis,
@@ -45,7 +46,13 @@ function rasterLayer(layerId: string): RasterLayerConfig {
   return layer
 }
 
-function resolveRecorte(recorteId: string, feicaoId: string): ReportRecorte {
+// Every function below takes the `MapaText` of the request (the NEXT_LOCALE
+// cookie, from `getMapaText()` in the route) and writes the text the document
+// prints in that language: layer and recorte names, units, the source line, the
+// methodology and the narrative. The error messages thrown here are developer
+// facing, deliberately generic and stay in English.
+
+function resolveRecorte(recorteId: string, feicaoId: string, tx: MapaText): ReportRecorte {
   const layer = appConfig.layers.find((l) => l.id === recorteId && l.type === 'vector')
   if (!layer) throw new ReportNotFoundError('Recorte not found.')
 
@@ -54,7 +61,7 @@ function resolveRecorte(recorteId: string, feicaoId: string): ReportRecorte {
 
   return {
     layerId:     recorteId,
-    layerName:   layer.name,
+    layerName:   layerName(layer, tx),
     featureId:   feicao.id,
     featureName: feicao.name,
     ...(feicao.context ? { featureContext: feicao.context } : {}),
@@ -69,8 +76,8 @@ function availableYearsOf(layer: RasterLayerConfig): string[] {
   return layer.gee?.temporal ? paradas(layer.gee.temporal).map(ano) : []
 }
 
-function describe(layerId: string, requestedYear: string): ReportAnalysisDescriptor {
-  const config = getReportLayer(layerId)
+function describe(layerId: string, requestedYear: string, tx: MapaText): ReportAnalysisDescriptor {
+  const config = getReportLayer(layerId, tx)
   if (!config) {
     throw new ReportBadRequestError('Layer is not eligible for the report.')
   }
@@ -80,10 +87,10 @@ function describe(layerId: string, requestedYear: string): ReportAnalysisDescrip
 
   return {
     layerId,
-    name:           layer.name,
-    unit:           layer.unit,
+    name:           layerName(layer, tx),
+    unit:           layer.unit === undefined ? undefined : unitLabel(layer.unit, tx),
     signedFlux:     layer.signedFlux,
-    source:         LAYER_META[layerId]?.source ?? '',
+    source:         layerSource(layerId, LAYER_META[layerId]?.source ?? '', tx),
     methodology:    config.methodology,
     sectionColor:   config.sectionColor,
     availableYears,
@@ -106,8 +113,11 @@ export function buildReportShell(input: {
   year:      string
   layerIds:  string[]
   now?:      () => Date
+  /** Language of the text; Portuguese when omitted. */
+  tx?:       MapaText
 }): ReportShell {
   const { recorteId, feicaoId, year, layerIds } = input
+  const tx = input.tx ?? PT_TEXT
 
   if (layerIds.length === 0) {
     throw new ReportBadRequestError('No layer was selected.')
@@ -120,7 +130,7 @@ export function buildReportShell(input: {
     )
   }
 
-  const recorte = resolveRecorte(recorteId, feicaoId)
+  const recorte = resolveRecorte(recorteId, feicaoId, tx)
   const order = new Map(REPORT_LAYERS.map((entry) => [entry.layerId, entry.order]))
   const selected = deduped.sort(
     (a, b) => (order.get(a) ?? Infinity) - (order.get(b) ?? Infinity),
@@ -131,7 +141,7 @@ export function buildReportShell(input: {
     generatedAt:   (input.now ?? (() => new Date()))().toISOString(),
     recorte,
     requestedYear: year,
-    analyses:      selected.map((layerId) => describe(layerId, year)),
+    analyses:      selected.map((layerId) => describe(layerId, year, tx)),
   }
 }
 
@@ -141,19 +151,22 @@ export async function buildReportAnalysis(input: {
   feicaoId:  string
   year:      string
   layerId:   string
+  /** Language of the narrative and of the descriptor text; Portuguese when omitted. */
+  tx?:       MapaText
 }): Promise<ReportAnalysis> {
   const { recorteId, feicaoId, year, layerId } = input
+  const tx = input.tx ?? PT_TEXT
 
-  const cacheKey = analysisCacheKey(recorteId, feicaoId, year, layerId)
+  const cacheKey = analysisCacheKey(recorteId, feicaoId, year, layerId, tx.locale)
   const cached = getCachedAnalysis(cacheKey)
   if (cached) return cached
 
-  const config = getReportLayer(layerId)
+  const config = getReportLayer(layerId, tx)
   if (!config) throw new ReportBadRequestError('Layer is not eligible for the report.')
 
-  const recorte = resolveRecorte(recorteId, feicaoId)
+  const recorte = resolveRecorte(recorteId, feicaoId, tx)
   const feicao = getFeicao(recorteId, feicaoId)!
-  const descriptor = describe(layerId, year)
+  const descriptor = describe(layerId, year, tx)
   const layer = rasterLayer(layerId)
   const asset = layer.gee?.asset
   if (!asset) throw new ReportNotFoundError('Layer has no GEE asset.')
@@ -249,13 +262,13 @@ export async function buildReportAnalysis(input: {
       layerName:     descriptor.name,
       unit:          descriptor.unit,
       signedFlux:    descriptor.signedFlux,
-      classes:       layer.classes,
+      classes:       layerClasses(layer, tx),
       config,
       status:        'available',
       effectiveYear: descriptor.effectiveYear,
       snapshot:      outcome.result,
       series,
-    }),
+    }, tx),
   }
 
   setCachedAnalysis(cacheKey, analysis)

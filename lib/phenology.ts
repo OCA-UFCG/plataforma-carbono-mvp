@@ -12,6 +12,8 @@
 // The app always opens on today's month; the user can pin another month to see
 // how the interface looks in it, and the preference holds until it is changed.
 
+import type { MapaText } from '@/lib/mapa/text'
+
 export type MonthId =
   | 'jan' | 'fev' | 'mar' | 'abr' | 'mai' | 'jun'
   | 'jul' | 'ago' | 'set' | 'out' | 'nov' | 'dez'
@@ -65,6 +67,34 @@ export const MONTHS: MonthInfo[] = [
 export const MONTH_BY_ID: Record<MonthId, MonthInfo> = Object.fromEntries(
   MONTHS.map((m) => [m.id, m]),
 ) as Record<MonthId, MonthInfo>
+
+// Labels in the user's language. The `label`, `short` and `photoDate` fields
+// above stay Portuguese (the data); these read MapaPhenology by id and fall
+// back to them, so a caller without a `MapaText` gets the same text as before.
+
+function phenologyText(tx: MapaText | undefined, key: string, fallback: string): string {
+  return tx && tx.t.has(key) ? tx.t(key) : fallback
+}
+
+/** "Janeiro" / "January". */
+export function monthLabel(m: MonthInfo, tx?: MapaText): string {
+  return phenologyText(tx, `MapaPhenology.months.${m.id}.label`, m.label)
+}
+
+/** "Jan" / "Jan". */
+export function monthShort(m: MonthInfo, tx?: MapaText): string {
+  return phenologyText(tx, `MapaPhenology.months.${m.id}.short`, m.short)
+}
+
+/** "Caatinga em folha" / "Caatinga in leaf". */
+export function phaseLabel(phase: Phase, tx?: MapaText): string {
+  return phenologyText(tx, `MapaPhenology.phases.${phase}.label`, PHASES[phase].label)
+}
+
+/** Month and year of the phase photo: "jan 2025" / "Jan 2025". */
+export function phasePhotoDate(phase: Phase, tx?: MapaText): string {
+  return phenologyText(tx, `MapaPhenology.phases.${phase}.photoDate`, PHASES[phase].photoDate)
+}
 
 /** Effective month from the preference: 'auto' derives it from today's date. */
 export function resolveMonth(pref: MonthPref): MonthInfo {

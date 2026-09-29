@@ -1,13 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft, IcSearch, IcGrip,
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
-import { LAYER_META } from '@/config/mapa/layerMeta'
-import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
+import { layerKindLabel, layerMetaText } from '@/config/mapa/layerMeta'
+import { localizedThemes, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
+import { layerName, layerUnit } from '@/lib/mapa/text'
+import { localizeLayerError } from './layerErrors'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -20,23 +24,29 @@ interface Props {
 }
 
 export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
+  const t = useTranslations('MapaUiSidebar')
+  const tx = useMapaText()
+  // The panel navigation with every label in the user's language.
+  const themes = useMemo(() => localizedThemes(tx), [tx])
   const layers = useStore((s) => s.layers)
   const showOnlyMunicipios = useStore((s) => s.showOnlyMunicipios)
   const clearThematicLayers = useStore((s) => s.clearThematicLayers)
   const [query, setQuery] = useState('')
 
-  const normalizedQuery = normalizeSearch(query.trim())
+  const normalizedQuery = normalizeSearch(query.trim(), tx.locale)
   const matchesQuery = (layer: LayerConfig, q = normalizedQuery) => {
     if (!q) return true
     // Description and source left the list, but stay searchable: whoever looks
     // for "MODIS" expects to find it, even without the word showing in the row.
-    const meta = LAYER_META[layer.id]
-    return [layer.name, layer.type, meta?.description, meta?.source, meta?.kind]
+    // Everything is matched in the language on screen.
+    const meta = layerMetaText(layer.id, tx)
+    return [layerName(layer, tx), layer.type, meta?.description, meta?.source, meta && layerKindLabel(meta.kind, tx)]
       .filter((value): value is string => Boolean(value))
-      .some((value) => normalizeSearch(value).includes(q))
+      .some((value) => normalizeSearch(value, tx.locale).includes(q))
   }
+  const activeText = (count: number) => t(count === 1 ? 'activeOne' : 'activeMany', { count })
   const visiveis = layers.filter((l) => matchesQuery(l))
-  const porTema = THEMES
+  const porTema = themes
     .map((tema) => ({
       tema,
       subtemas: tema.subthemes
@@ -48,7 +58,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const thematicCount = layers.filter((l) => l.visible && l.theme !== TERRITORY_THEME_ID).length
 
   // One theme and one subtheme open at a time keep the list from getting too long.
-  const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
+  const [abertoTemaId, setAbertoTemaId] = useState<string | null>(themes[0]?.id ?? null)
   const [abertoSubtemaKey, setAbertoSubtemaKey] = useState<string | null>(null)
 
   // Searching leads to the first group with a result, otherwise the search would
@@ -57,9 +67,9 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   // because the click changed the state and the render discarded it.
   const aoBuscar = (valor: string) => {
     setQuery(valor)
-    const q = normalizeSearch(valor.trim())
+    const q = normalizeSearch(valor.trim(), tx.locale)
     if (!q) return
-    const primeiro = THEMES.flatMap((tema) => tema.subthemes.map((subtema) => ({ tema, subtema })))
+    const primeiro = themes.flatMap((tema) => tema.subthemes.map((subtema) => ({ tema, subtema })))
       .find(({ tema, subtema }) => layers.some((l) => l.theme === tema.id && l.subtheme === subtema.id && matchesQuery(l, q)))
     setAbertoTemaId(primeiro?.tema.id ?? null)
     setAbertoSubtemaKey(primeiro ? `${primeiro.tema.id}:${primeiro.subtema.id}` : null)
@@ -100,22 +110,22 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: `1px solid ${c.border}`, flex: 'none' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.14em', color: c.dim, textTransform: 'uppercase' }}>Temas</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.14em', color: c.dim, textTransform: 'uppercase' }}>{t('title')}</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 999, padding: '2px 8px' }}>
-            {activeCount} ativa{activeCount === 1 ? '' : 's'}
+            {activeText(activeCount)}
           </span>
           <button
             className="ui-press"
             onClick={showOnlyMunicipios}
-            title="Desativar todas as camadas e voltar à vista do bioma"
+            title={t('homeTitle')}
             style={{
               marginLeft: 'auto', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 999,
               cursor: 'pointer', color: c.textDim, fontSize: 12, fontWeight: 700, padding: '2px 9px',
             }}
           >
-            Início
+            {t('home')}
           </button>
-          <button onClick={onCollapse} aria-label="Recolher painel" title="Recolher"
+          <button onClick={onCollapse} aria-label={t('collapseAria')} title={t('collapse')}
             style={{ marginLeft: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 4, display: 'flex' }}>
             <IcChevronLeft size={16} />
           </button>
@@ -126,14 +136,14 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
         {thematicCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: c.accentBg, borderBottom: `1px solid ${c.accentBd}`, flex: 'none' }}>
             <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: c.text }}>
-              {thematicCount === 1 ? '1 camada temática ligada' : `${thematicCount} camadas temáticas ligadas`}
+              {t(thematicCount === 1 ? 'thematicOne' : 'thematicMany', { count: thematicCount })}
             </span>
             <button onClick={clearThematicLayers}
-              aria-label="Desligar as camadas temáticas"
-              title="Desligar todas as camadas, exceto as de Território"
+              aria-label={t('clearAria')}
+              title={t('clearTitle', { territory: themes.find((item) => item.id === TERRITORY_THEME_ID)?.label ?? '' })}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, background: c.accent, color: c.onAccent, border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '6px 12px' }}>
               <IcX size={12} />
-              Desligar
+              {t('clear')}
             </button>
           </div>
         )}
@@ -148,15 +158,15 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
               onKeyDown={(event) => {
                 if (event.key === 'Escape') setQuery('')
               }}
-              aria-label="Buscar camadas"
-              placeholder="Buscar camadas"
+              aria-label={t('search')}
+              placeholder={t('search')}
               style={{ width: '100%', border: `1px solid ${c.border}`, borderRadius: 9, background: c.bgCard, color: c.text, font: 'inherit', fontSize: 14, padding: '8px 32px 8px 32px', outlineColor: c.accent }}
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                aria-label="Limpar busca de camadas"
-                title="Limpar busca"
+                aria-label={t('clearSearchAria')}
+                title={t('clearSearch')}
                 style={{ position: 'absolute', right: 5, border: 'none', background: 'transparent', color: c.textDim, cursor: 'pointer', padding: 5, display: 'flex' }}
               >
                 <IcX size={14} />
@@ -165,7 +175,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
           </div>
           {normalizedQuery && porTema.length === 0 ? (
             <div role="status" style={{ padding: '14px 4px', color: c.dim, fontSize: 14, textAlign: 'center' }}>
-              Nenhuma camada encontrada.
+              {t('noResults')}
             </div>
           ) : (
             porTema.map(({ tema, subtemas }) => (
@@ -200,6 +210,7 @@ function ThemeSection({
   infoId: string | null; onInfo: (id: string) => void
   open: boolean; openSubthemeKey: string | null; onToggle: () => void; onToggleSubtheme: (id: string) => void
 }) {
+  const t = useTranslations('MapaUiSidebar')
   const layers = subtemas.flatMap(({ itens }) => itens)
   const c = theme.colors
   const ativas = layers.filter((layer) => layer.visible).length
@@ -220,7 +231,7 @@ function ThemeSection({
       >
         <span style={{ fontSize: 16, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{t(ativas === 1 ? 'activeOne' : 'activeMany', { count: ativas })}</span>}
         <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
       </button>
       {open && (
@@ -242,6 +253,7 @@ function SubthemeSection({
   infoId: string | null; onInfo: (id: string) => void
   open: boolean; onToggle: () => void
 }) {
+  const t = useTranslations('MapaUiSidebar')
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const allLayers = useStore((s) => s.layers)
@@ -290,7 +302,7 @@ function SubthemeSection({
       >
         <span style={{ fontSize: 13, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: c.accentInk }}>{t(ativas === 1 ? 'activeOne' : 'activeMany', { count: ativas })}</span>}
         <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={13} /> : <IcChevronDown size={13} />}</span>
       </button>
       {open && (
@@ -368,6 +380,8 @@ function LayerRow({
   onDragStart: (event: React.DragEvent<HTMLDivElement>) => void
   onDragEnd: () => void
 }) {
+  const t = useTranslations('MapaUiSidebar')
+  const tx = useMapaText()
   const toggleLayer     = useStore((s) => s.toggleLayer)
   const setOpacity      = useStore((s) => s.setOpacity)
   const clearLayerError = useStore((s) => s.clearLayerError)
@@ -375,7 +389,8 @@ function LayerRow({
   const errorMsg        = useStore((s) => s.layerErrors[layer.id])
 
   const c = theme.colors
-  const unit = layer.type === 'raster' ? (layer as RasterLayerConfig).unit : undefined
+  const unit = layer.type === 'raster' ? layerUnit(layer as RasterLayerConfig, tx) : undefined
+  const name = layerName(layer, tx)
 
   return (
     <div
@@ -389,12 +404,12 @@ function LayerRow({
       border: `1px solid ${layer.visible ? c.accentBd : 'transparent'}`,
       borderRadius: 7, padding: '5px 7px', transition: 'background .15s, border-color .15s',
     }}>
-      {/* Nome, unidade, ficha e chave, tudo numa linha. Descrição e fonte
-          saíram: já estão na ficha, atrás do botão de informação. */}
+      {/* Name, unit, sheet and switch, all on one line. Description and source
+          are gone: they are already on the sheet, behind the info button. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
           aria-hidden="true"
-          title="Arraste para reordenar"
+          title={t('dragToReorder')}
           style={{ color: c.caption, display: 'flex', flexShrink: 0, cursor: 'grab' }}
         >
           <IcGrip size={13} />
@@ -404,9 +419,9 @@ function LayerRow({
           // info button and the switch keep their place: they are flexShrink: 0
           // and the row centers them against however tall the name gets.
           style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: c.text, overflowWrap: 'anywhere', lineHeight: 1.3 }}
-          title={layer.name}
+          title={name}
         >
-          {layer.name}
+          {name}
         </span>
         {unit && (
           <span style={{ fontSize: 11, fontWeight: 600, color: c.textDim, background: c.chip, borderRadius: 4, padding: '1px 5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -415,7 +430,7 @@ function LayerRow({
         )}
         <button
           onClick={() => onInfo(layer.id)}
-          aria-label={`Ficha da camada ${layer.name}`}
+          aria-label={t('infoAria', { name })}
           aria-expanded={infoOpen}
           style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 999, border: 'none', background: 'transparent', color: c.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         >
@@ -426,7 +441,7 @@ function LayerRow({
         ) : (
           <button
             role="switch" aria-checked={layer.visible}
-            aria-label={`${layer.visible ? 'Ocultar' : 'Exibir'} camada ${layer.name}`}
+            aria-label={t(layer.visible ? 'hideLayerAria' : 'showLayerAria', { name })}
             onClick={() => toggleLayer(layer.id)}
             style={{ flexShrink: 0, width: 32, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, position: 'relative', background: layer.visible ? c.accent : '#d8d5c9', transition: 'background .2s' }}
           >
@@ -438,17 +453,17 @@ function LayerRow({
       {/* error */}
       {errorMsg && (
         <div style={{ marginTop: 7, background: '#fee2e2', color: '#b91c1c', borderRadius: 6, padding: '6px 8px', fontSize: 11.5, display: 'flex', gap: 6 }}>
-          <span style={{ flex: 1, wordBreak: 'break-word' }}>{errorMsg}</span>
-          <button onClick={() => clearLayerError(layer.id)} title="Dispensar" aria-label="Dispensar erro" style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', padding: 0, lineHeight: 1, display: 'flex' }}><IcX size={12} /></button>
+          <span style={{ flex: 1, wordBreak: 'break-word' }}>{localizeLayerError(errorMsg, tx)}</span>
+          <button onClick={() => clearLayerError(layer.id)} title={t('dismiss')} aria-label={t('dismissError')} style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', padding: 0, lineHeight: 1, display: 'flex' }}><IcX size={12} /></button>
         </div>
       )}
 
       {/* opacity */}
       {layer.visible && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <span style={{ fontSize: 11.5, color: c.dim, flexShrink: 0 }}>Opacidade</span>
+          <span style={{ fontSize: 11.5, color: c.dim, flexShrink: 0 }}>{t('opacity')}</span>
           <input type="range" min={0} max={100} value={layer.opacity}
-            aria-label={`Opacidade de ${layer.name}`}
+            aria-label={t('opacityAria', { name })}
             onChange={(e) => setOpacity(layer.id, Number(e.target.value))}
             style={{ flex: 1, height: 3, accentColor: c.accent, cursor: 'pointer' }} />
           <span style={{ fontSize: 11.5, fontWeight: 700, color: c.accentInk, width: 34, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{layer.opacity}%</span>

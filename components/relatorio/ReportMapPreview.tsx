@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
+import { useTranslations } from 'next-intl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import appConfig from '@/config/mapa/layers.json'
 import { basemaps, defaultBasemapId } from '@/config/mapa/basemaps'
@@ -78,6 +79,7 @@ async function resolveTileUrl(
 export default function ReportMapPreview({
   layerId, bbox, year, active, imageSrc, onCapture,
 }: ReportMapPreviewProps) {
+  const t = useTranslations('RelatorioMapPreview')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const capturedRef = useRef(false)
   const onCaptureRef = useRef(onCapture)
@@ -234,10 +236,10 @@ export default function ReportMapPreview({
   // for its turn rather than drawing. Saying which of the two is happening is
   // the difference between "this is slow" and "this is broken".
   const status = unavailable
-    ? 'Imagem do mapa indisponível.'
+    ? t('unavailable')
     : active
-      ? 'Gerando a imagem do mapa…'
-      : 'Aguardando a vez na fila…'
+      ? t('generating')
+      : t('waiting')
 
   return (
     <div

@@ -1,0 +1,24 @@
+{
+  "MapaUiHeader": {
+    "homeAria": "Página inicial da Caativar",
+    "auto": "auto",
+    "picker": {
+      "title": "Mês da interface",
+      "automatic": "Automático",
+      "follows": "Segue a data, hoje: {month}",
+      "monthOption": "{month}, {phase}",
+      "note": "Cores medidas na vegetação nativa do bioma, de 1985 a 2024. O ponto marca o mês de hoje."
+    },
+    "search": "Buscar município, estado ou território...",
+    "nav": {
+      "map": "Mapa",
+      "data": "Dados",
+      "methodology": "Metodologia",
+      "about": "Sobre"
+    },
+    "languageSwitch": "Idioma",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo escuro",
+    "signOut": "Sair"
+  }
+}

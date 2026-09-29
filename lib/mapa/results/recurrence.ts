@@ -7,6 +7,7 @@
 
 import type { RecurrenceProfile } from '@/config/mapa/resultProfiles'
 import type { ProfiledResult } from '@/types/mapa'
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
 type Recurrence = Extract<ProfiledResult, { kind: 'recurrence' }>
 
@@ -27,14 +28,22 @@ export interface RecurrenceSummary {
   bands:          RecurrenceBand[]
 }
 
-/** "1 ano", "2 a 3 anos", "11 anos ou mais". */
-export function bandLabel(from: number, to: number | null): string {
-  if (to === null) return `${from} anos ou mais`
-  if (from === to) return from === 1 ? '1 ano' : `${from} anos`
-  return `${from} a ${to} anos`
+/** "1 ano", "2 a 3 anos", "11 anos ou mais" ("1 year", "2 to 3 years", "11 or more years"). */
+export function bandLabel(from: number, to: number | null, tx: MapaText = PT_TEXT): string {
+  if (to === null) return tx.t('MapaResults.recurrence.orMore', { from })
+  if (from === to) {
+    return from === 1
+      ? tx.t('MapaResults.recurrence.oneYear')
+      : tx.t('MapaResults.recurrence.years', { count: from })
+  }
+  return tx.t('MapaResults.recurrence.range', { from, to })
 }
 
-export function recurrenceSummary(r: Recurrence, profile: RecurrenceProfile): RecurrenceSummary {
+export function recurrenceSummary(
+  r: Recurrence,
+  profile: RecurrenceProfile,
+  tx: MapaText = PT_TEXT,
+): RecurrenceSummary {
   const pct = (ha: number) => (r.regionHa > 0 ? (ha / r.regionHa) * 100 : 0)
   const sumWhere = (keep: (count: number) => boolean) =>
     r.byCount.filter((c) => keep(c.count)).reduce((s, c) => s + c.areaHa, 0)
@@ -45,7 +54,7 @@ export function recurrenceSummary(r: Recurrence, profile: RecurrenceProfile): Re
 
   const bands = profile.bins.map(([from, to]) => {
     const ha = sumWhere((n) => n >= from && (to === null || n <= to))
-    return { label: bandLabel(from, to), areaHa: ha, share: pct(ha) }
+    return { label: bandLabel(from, to, tx), areaHa: ha, share: pct(ha) }
   })
 
   return {

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import { useStore } from '@/lib/mapa/store'
-import { basemaps } from '@/config/mapa/basemaps'
+import { basemaps, basemapName } from '@/config/mapa/basemaps'
 import {
   IcPlus, IcMinus, IcLocate, IcMaximize, IcNorth, IcMap, IcPen,
 } from '../icons'
@@ -26,6 +28,8 @@ interface Props {
  */
 export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onToggleDraw }: Props) {
   const c = theme.colors
+  const t = useTranslations('MapaOvMapControls')
+  const tx = useMapaText()
   const basemapId  = useStore((s) => s.basemapId)
   const setBasemap = useStore((s) => s.setBasemap)
 
@@ -101,25 +105,25 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
     >
       {/* zoom */}
       <div style={pill}>
-        <button style={cell} onClick={zoomIn} aria-label="Aproximar" title="Aproximar"><IcPlus size={15} /></button>
+        <button style={cell} onClick={zoomIn} aria-label={t('zoomIn')} title={t('zoomIn')}><IcPlus size={15} /></button>
         {divider}
-        <button style={cell} onClick={zoomOut} aria-label="Afastar" title="Afastar"><IcMinus size={15} /></button>
+        <button style={cell} onClick={zoomOut} aria-label={t('zoomOut')} title={t('zoomOut')}><IcMinus size={15} /></button>
       </div>
 
       {/* view: geolocate / fullscreen / north */}
       <div style={pill}>
-        <button style={cell} onClick={locate} aria-label="Minha localização" title="Minha localização"><IcLocate size={15} /></button>
+        <button style={cell} onClick={locate} aria-label={t('myLocation')} title={t('myLocation')}><IcLocate size={15} /></button>
         {divider}
-        <button style={cell} onClick={toggleFullscreen} aria-label={isFull ? 'Sair da tela cheia' : 'Tela cheia'} title={isFull ? 'Sair da tela cheia' : 'Tela cheia'}><IcMaximize size={15} /></button>
+        <button style={cell} onClick={toggleFullscreen} aria-label={isFull ? t('exitFullscreen') : t('fullscreen')} title={isFull ? t('exitFullscreen') : t('fullscreen')}><IcMaximize size={15} /></button>
         {divider}
-        <button style={{ ...cell, transform: `rotate(${-bearing}deg)`, transition: 'transform .1s linear' }} onClick={resetNorth} aria-label="Orientar para o norte" title="Orientar para o norte"><IcNorth size={15} color="currentColor" /></button>
+        <button style={{ ...cell, transform: `rotate(${-bearing}deg)`, transition: 'transform .1s linear' }} onClick={resetNorth} aria-label={t('resetNorth')} title={t('resetNorth')}><IcNorth size={15} color="currentColor" /></button>
       </div>
 
       {/* basemap */}
       <div ref={bmRef} style={{ position: 'relative' }}>
         <button
           onClick={() => setBmOpen((v) => !v)}
-          aria-label="Mapa base" title="Mapa base"
+          aria-label={t('basemap')} title={t('basemap')}
           aria-haspopup="menu" aria-expanded={bmOpen}
           style={{
             width: 38, height: 38, borderRadius: 999,
@@ -154,7 +158,7 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
                     textAlign: 'left', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
-                  {b.name}
+                  {basemapName(b, tx)}
                 </button>
               )
             })}
@@ -167,8 +171,8 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
           label follows the state: it shows the toolbar, or hides it once open. */}
       <button
         onClick={onToggleDraw}
-        aria-label={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
-        title={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
+        aria-label={drawOpen ? t('hideDrawTools') : t('drawTools')}
+        title={drawOpen ? t('hideDrawTools') : t('drawTools')}
         aria-pressed={drawOpen}
         style={{
           width: 38, height: 38, borderRadius: 999,

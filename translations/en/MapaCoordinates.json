@@ -1,0 +1,18 @@
+{
+  "MapaCoordinates": {
+    "errors": {
+      "invalidLine": "Line {line}: invalid coordinate",
+      "minVertices": "Enter at least three vertices"
+    },
+    "labels": {
+      "rectangle": "Rectangle",
+      "polygon": "Polygon of {count} vertices"
+    },
+    "hemispheres": {
+      "north": "N",
+      "south": "S",
+      "east": "E",
+      "west": "W"
+    }
+  }
+}

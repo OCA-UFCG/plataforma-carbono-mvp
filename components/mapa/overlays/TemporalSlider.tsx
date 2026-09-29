@@ -1,6 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import { layerName } from '@/lib/mapa/text'
 import { useStore } from '@/lib/mapa/store'
 import { paradas, ano } from '@/lib/mapa/temporal'
 import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
@@ -28,6 +31,8 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
   const setTemporalDate = useStore((s) => s.setTemporalDate)
   const loadingLayers  = useStore((s) => s.loadingLayers)
   const c = theme.colors
+  const t = useTranslations('MapaOvTemporalSlider')
+  const tx = useMapaText()
 
   // First visible temporal layer, in the order the panel lists them.
   const camada = layers.find(
@@ -62,6 +67,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
   if (!camada || anos.length < 2) return null
 
   const indice = arrastando ?? indiceReal
+  const name = layerName(camada, tx)
   const carregando = !!loadingLayers[camada.id]
 
   const arrastar = (i: number) => {
@@ -93,7 +99,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
         type="button"
         onClick={() => passo(esquerda ? -1 : 1)}
         disabled={limite}
-        aria-label={esquerda ? 'Ano anterior' : 'Próximo ano'}
+        aria-label={esquerda ? t('previousYear') : t('nextYear')}
         style={{
           display: 'grid', placeItems: 'center', width: 26, height: 26,
           borderRadius: 8, border: `1px solid ${c.glassBd}`,
@@ -130,7 +136,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}
           >
-            {camada.name}
+            {name}
           </span>
           <span
             style={{
@@ -149,7 +155,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
           step={1}
           value={indice}
           onChange={(e) => arrastar(Number(e.target.value))}
-          aria-label={`Ano de ${camada.name}`}
+          aria-label={t('yearOf', { name })}
           aria-valuetext={ano(anos[indice])}
           style={{ width: '100%', accentColor: c.accent, cursor: 'pointer', margin: 0 }}
         />
@@ -162,7 +168,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
           }}
         >
           <span>{ano(anos[0])}</span>
-          <span style={{ color: carregando ? c.accent : 'transparent' }}>carregando</span>
+          <span style={{ color: carregando ? c.accent : 'transparent' }}>{t('loading')}</span>
           <span>{ano(anos[anos.length - 1])}</span>
         </div>
       </div>

@@ -1,0 +1,13 @@
+{
+  "MapaUiMapView": {
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "resetBearing": "Orientar para o norte",
+    "findMyLocation": "Minha localização",
+    "locationNotAvailable": "Localização indisponível",
+    "fullscreenEnter": "Tela cheia",
+    "fullscreenExit": "Sair da tela cheia",
+    "toggleAttribution": "Alternar atribuição",
+    "mapFeedback": "Comentários sobre o mapa"
+  }
+}

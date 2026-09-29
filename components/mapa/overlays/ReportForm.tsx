@@ -1,9 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import { layerName } from '@/lib/mapa/text'
 import appConfig from '@/config/mapa/layers.json'
 import { MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
-import { LAYER_META } from '@/config/mapa/layerMeta'
+import { layerMetaText } from '@/config/mapa/layerMeta'
 import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { PlatformTheme, RasterLayerConfig, VectorLayerConfig } from '@/types/mapa'
@@ -48,6 +51,8 @@ function yearOptions(): string[] {
 
 export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
   const c = theme.colors
+  const t = useTranslations('MapaOvReportForm')
+  const tx = useMapaText()
   const recortes = useMemo(() => recorteOptions(), [])
   const years = useMemo(() => yearOptions(), [])
   const [recorteId, setRecorteId] = useState('municipios')
@@ -122,9 +127,9 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     // Same rule as the map's search bar, so "bom jesus pi" narrows to one here
     // too instead of listing three identical-looking options.
     return feicoes
-      .filter((f) => matchTerritory(query, f.name, f.context, { contextIdentifies }))
+      .filter((f) => matchTerritory(query, f.name, f.context, { contextIdentifies, locale: tx.locale }))
       .slice(0, MAX_SUGGESTIONS)
-  }, [feicoes, query, contextIdentifies])
+  }, [feicoes, query, contextIdentifies, tx.locale])
 
   const chosen = feicoes.find((f) => f.id === feicaoId)
   const canGenerate = Boolean(feicaoId) && Boolean(year) && selected.size > 0
@@ -154,7 +159,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
   return (
     <div
       role="dialog"
-      aria-label="Gerar relatório territorial"
+      aria-label={t('title')}
       style={{
         position: 'absolute', inset: 0, zIndex: 30, display: 'grid', placeItems: 'center',
         background: 'rgba(20,19,14,.45)', padding: 16,
@@ -169,10 +174,10 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
           background: c.bgCard, color: c.text, border: `1px solid ${c.border}`,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 19 }}>Gerar relatório territorial</h2>
+        <h2 style={{ margin: 0, fontSize: 19 }}>{t('title')}</h2>
 
         <label style={{ display: 'block', marginTop: 16, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
-          Recorte
+          {t('unit')}
           <select
             value={recorteId}
             onChange={(e) => {
@@ -184,7 +189,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             }}
             style={{ display: 'block', width: '100%', marginTop: 6, padding: 8, font: 'inherit' }}
           >
-            {recortes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {recortes.map((r) => <option key={r.id} value={r.id}>{layerName(r, tx)}</option>)}
           </select>
         </label>
 
@@ -194,18 +199,18 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             Generic on purpose — the value is a município, a state, a terra
             indígena, a settlement or the biome, depending on the recorte above. */}
         <label style={{ display: 'block', marginTop: 14, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
-          Área
+          {t('area')}
           <input
             value={chosen ? feicaoLabel(chosen) : query}
             onChange={(e) => { setQuery(e.target.value); setFeicaoId('') }}
-            placeholder={loadingFeicoes ? 'Carregando…' : 'Buscar por nome'}
+            placeholder={loadingFeicoes ? t('loading') : t('searchByName')}
             style={{ display: 'block', width: '100%', marginTop: 6, padding: 8, font: 'inherit' }}
           />
         </label>
 
         {feicoesError && (
           <p style={{ margin: '6px 0 0', fontSize: 13.5, color: c.dim }}>
-            Não foi possível carregar a lista de feições. Tente novamente.
+            {t('loadError')}
           </p>
         )}
 
@@ -234,7 +239,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
         )}
 
         <label style={{ display: 'block', marginTop: 14, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
-          Ano de referência
+          {t('referenceYear')}
           <select
             value={year}
             onChange={(e) => setYear(e.target.value)}
@@ -246,7 +251,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
 
         <fieldset style={{ marginTop: 16, padding: 0, border: 'none' }}>
           <legend style={{ padding: 0, fontSize: 14.5, fontWeight: 600, color: c.textDim }}>
-            Variáveis ({selected.size} de até {MAX_REPORT_LAYERS})
+            {t('variables', { selected: selected.size, max: MAX_REPORT_LAYERS })}
           </legend>
           <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
             {REPORT_LAYERS.map((entry) => {
@@ -276,11 +281,11 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
                     onChange={() => toggle(entry.layerId)}
                   />
                   <span>
-                    <strong style={{ fontWeight: 600 }}>{layer?.name ?? entry.layerId}</strong>
-                    <span style={{ color: c.dim }}> — {LAYER_META[entry.layerId]?.description ?? ''}</span>
+                    <strong style={{ fontWeight: 600 }}>{layer ? layerName(layer, tx) : entry.layerId}</strong>
+                    <span style={{ color: c.dim }}> — {layerMetaText(entry.layerId, tx)?.description ?? ''}</span>
                     {missesYear && (
                       <span style={{ display: 'block', marginTop: 2, color: c.dim, fontSize: 13 }}>
-                        Sem dado para {year} — anos disponíveis: {stops.join(', ')}.
+                        {t('missingYear', { year, years: stops.join(', ') })}
                       </span>
                     )}
                   </span>
@@ -291,8 +296,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
         </fieldset>
 
         <p style={{ marginTop: 14, fontSize: 13.5, color: c.dim }}>
-          Cada variável é calculada ao vivo no Earth Engine, então um relatório com
-          muitas variáveis leva mais tempo para ficar pronto.
+          {t('liveNote')}
         </p>
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
@@ -301,7 +305,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
             onClick={onClose}
             style={{ padding: '8px 14px', font: 'inherit', background: 'none', border: `1px solid ${c.border}`, borderRadius: 5, cursor: 'pointer', color: c.text }}
           >
-            Cancelar
+            {t('cancel')}
           </button>
           <button
             type="button"
@@ -313,7 +317,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
               color: c.onAccent, background: c.accent, opacity: canGenerate ? 1 : 0.5,
             }}
           >
-            Gerar relatório
+            {t('generate')}
           </button>
         </div>
       </div>

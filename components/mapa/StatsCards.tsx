@@ -6,6 +6,7 @@
 // static import of that module, which would drag recharts -- ~370 KB -- into
 // the map bundle alongside the charts it only loads on demand.
 
+import { useTranslations } from 'next-intl'
 import type { PlatformTheme } from '@/types/mapa'
 
 // Error (stats request failed): a sentence in the result's own body style.
@@ -22,12 +23,13 @@ export function ErrorCard({ theme, message }: { theme: PlatformTheme; message: s
 // box of secondary figures and the bars.
 
 export function SkeletonChart({ theme }: { theme: PlatformTheme }) {
+  const t = useTranslations('MapaUiStatsCards')
   const c = theme.colors
   const bar = (width: string, height: number) => (
     <div className="skeleton-shimmer" style={{ width, height, borderRadius: 6, background: c.chip }} />
   )
   return (
-    <div role="status" aria-label="Carregando resultado" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div role="status" aria-label={t('loadingResult')} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {bar('70%', 56)}
       <div style={{ height: 76, border: `1px solid ${c.border}`, borderRadius: 12, background: c.bgCard }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

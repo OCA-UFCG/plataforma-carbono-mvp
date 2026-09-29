@@ -12,6 +12,25 @@ import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { useStore } from '@/lib/mapa/store'
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
+
+/**
+ * The error texts a failed card stores. They are written in Portuguese, the
+ * store's default, because a card outlives a language switch and the runner has
+ * no component to ask for the locale: render them through
+ * `localizeAnalysisError` so they follow the language at display time.
+ */
+export const ANALYSIS_ERRORS = {
+  pointValue: PT_TEXT.t('MapaAnalysis.errors.pointValue'),
+  stats:      PT_TEXT.t('MapaAnalysis.errors.stats'),
+} as const
+
+/** A stored card error in the current language; anything unrecognised comes back as it is. */
+export function localizeAnalysisError(error: string | null, tx: MapaText): string | null {
+  if (error === ANALYSIS_ERRORS.pointValue) return tx.t('MapaAnalysis.errors.pointValue')
+  if (error === ANALYSIS_ERRORS.stats) return tx.t('MapaAnalysis.errors.stats')
+  return error
+}
 
 export interface PendingAnalysis {
   layer: RasterLayerConfig
@@ -176,9 +195,7 @@ export async function runLayerAnalysis(
       land({
         ...base,
         status: 'error',
-        error: !layer.gee?.temporal
-          ? 'Falha ao obter o valor no ponto. Tente novamente.'
-          : 'Falha ao calcular estatísticas. Tente novamente.',
+        error: !layer.gee?.temporal ? ANALYSIS_ERRORS.pointValue : ANALYSIS_ERRORS.stats,
       })
       return
     }
@@ -203,9 +220,7 @@ export async function runLayerAnalysis(
     land({
       ...base,
       status: 'error',
-      error: pointValue
-        ? 'Falha ao obter o valor no ponto. Tente novamente.'
-        : 'Falha ao calcular estatísticas. Tente novamente.',
+      error: pointValue ? ANALYSIS_ERRORS.pointValue : ANALYSIS_ERRORS.stats,
     })
   }
 }

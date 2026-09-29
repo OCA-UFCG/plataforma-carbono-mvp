@@ -20,13 +20,18 @@ interface Entry {
 
 const cache = new Map<string, Entry>()
 
+/**
+ * The prose of an analysis is written in the reader's language, so the locale is
+ * part of the key: a Portuguese hit must not answer an English request.
+ */
 export function analysisCacheKey(
   recorteId: string,
   feicaoId: string,
   year: string,
   layerId: string,
+  locale = 'pt',
 ): string {
-  return `${recorteId}|${feicaoId}|${year}|${layerId}`
+  return `${recorteId}|${feicaoId}|${year}|${layerId}|${locale}`
 }
 
 export function getCachedAnalysis(key: string): ReportAnalysis | undefined {

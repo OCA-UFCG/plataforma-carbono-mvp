@@ -1,9 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import { layerUnitName } from '@/lib/mapa/text'
 import { IcSearch, IcX } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import { intlLocale } from '@/lib/mapa/locale'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { contextIsUnique, matchTerritory, type LabelMatch } from '@/lib/mapa/searchMatch'
 import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
@@ -13,8 +17,6 @@ import type { PlatformTheme, VectorLayerConfig } from '@/types/mapa'
 
 interface SearchResult {
   layerId: string
-  /** What one feature of the layer is called: "Município", not "Municípios". */
-  unitName: string
   /**
    * Property the match came from. Not shown -- it is a GeoJSON key -- but it
    * keeps two properties of one feature from collapsing into a single row, and
@@ -50,6 +52,8 @@ const MAX_RESULTS = 20
 
 export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSelectFeature }: Props) {
   const layers = useStore((s) => s.layers)
+  const t = useTranslations('MapaOvSearchBar')
+  const tx = useMapaText()
 
   // Local state
   const [open, setOpen] = useState(false)
@@ -66,7 +70,6 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
     Map<
       string,
       {
-        unitName: string
         features: GeoJSON.Feature[]
         /** Whether a bare context is a legitimate query for this layer. */
         contextIdentifies: boolean
@@ -79,6 +82,9 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
     (l): l is VectorLayerConfig => l.type === 'vector',
   )
   const searchableKey = searchableVectors.map((l) => l.id).join(',')
+  // What one feature of each layer is called ("Município", not "Municípios"),
+  // resolved at render so a language switch reaches rows already listed.
+  const unitNames = new Map(searchableVectors.map((l) => [l.id, layerUnitName(l, tx)]))
 
   // Whether any searchable layer's GeoJSON is still downloading/indexing. This
   // recomputes on each cacheVersion bump (setCacheVersion re-renders the
@@ -136,7 +142,6 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
         .then((geojson: GeoJSON.FeatureCollection) => {
           const field = layer.contextField
           cacheRef.current.set(layer.id, {
-            unitName: layer.unitName ?? layer.name,
             features: geojson.features,
             // Derived from the file rather than declared: on the states layer
             // the abbreviation is one per feature and typing "RN" should find
@@ -196,6 +201,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           if (typeof raw !== 'string' || raw === '') continue
           const match = matchTerritory(q, raw, context, {
             contextIdentifies: cached.contextIdentifies,
+            locale: tx.locale,
           })
           if (!match) continue
 
@@ -212,7 +218,6 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
 
           found.push({
             layerId: layer.id,
-            unitName: cached.unitName,
             fieldName: key,
             value: raw,
             context,
@@ -232,13 +237,13 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
       const aPrefix = a.match.start === 0
       const bPrefix = b.match.start === 0
       if (aPrefix !== bPrefix) return aPrefix ? -1 : 1
-      return a.value.localeCompare(b.value, 'pt-BR')
+      return a.value.localeCompare(b.value, intlLocale(tx.locale))
     })
 
     setResults(found.slice(0, MAX_RESULTS))
     setHighlightedIdx(-1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, searchableKey, cacheVersion])
+  }, [debouncedQuery, searchableKey, cacheVersion, tx.locale])
 
   // Handlers
 
@@ -335,7 +340,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Buscar território..."
+          placeholder={t('placeholder')}
           style={{
             flex: 1,
             border: 'none',
@@ -362,7 +367,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             flexShrink: 0,
             color: theme.colors.textDim,
           }}
-          title="Fechar"
+          title={t('close')}
         >
           <IcX size={13} />
         </button>
@@ -390,7 +395,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
                 textAlign: 'center',
               }}
             >
-              {loadingData ? 'Carregando dados...' : 'Nenhum resultado encontrado'}
+              {loadingData ? t('loading') : t('noResults')}
             </div>
           ) : (
             results.map((r, i) => (
@@ -423,7 +428,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {r.unitName}
+                  {unitNames.get(r.layerId)}
                 </div>
                 {/* Matched value */}
                 <div
@@ -456,7 +461,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
               fontStyle: 'italic',
             }}
           >
-            Busca em todos os recortes territoriais.
+            {t('scope')}
           </div>
         </div>
       )}

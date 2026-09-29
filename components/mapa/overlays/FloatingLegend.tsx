@@ -1,6 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import { formatNumber } from '@/lib/mapa/locale'
+import { localizeLayers } from '@/lib/mapa/text'
 import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
@@ -15,9 +19,12 @@ interface Props {
 
 export default function FloatingLegend({ theme, rightOffset }: Props) {
   const layers = useStore((s) => s.layers)
+  const t = useTranslations('MapaOvFloatingLegend')
+  const tx = useMapaText()
   const [collapsed, setCollapsed] = useState(false)
 
-  const visible = layers.filter((l) => l.visible)
+  // Names, units and class labels in the user's language.
+  const visible = useMemo(() => localizeLayers(layers.filter((l) => l.visible), tx), [layers, tx])
 
   // Handoff: the legend shows ONLY active layers, when nothing is on it
   // vanishes entirely (like the Results panel), not an empty "no layers" box.
@@ -30,7 +37,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
         <button
           className="ui-press"
           onClick={() => setCollapsed(false)}
-          title="Legenda"
+          title={t('title')}
           style={{
             width: 38,
             height: 38,
@@ -90,7 +97,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
         }}
       >
         <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: theme.colors.text }}>
-          Legenda
+          {t('title')}
         </span>
         <button
           onClick={() => setCollapsed(true)}
@@ -103,7 +110,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
             alignItems: 'center',
             color: theme.colors.textDim,
           }}
-          title="Minimizar"
+          title={t('minimize')}
         >
           <IcChevronDown size={13} />
         </button>
@@ -121,7 +128,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
       >
         {visible.length === 0 ? (
           <span style={{ fontSize: 12.5, color: theme.colors.textDim, textAlign: 'center', padding: '8px 0' }}>
-            Nenhuma camada ativa
+            {t('noActiveLayers')}
           </span>
         ) : (
           visible.map((layer) => {
@@ -225,6 +232,8 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
 // Continuous raster: gradient from the actual palette + min/max/unit
 
 function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: PlatformTheme }) {
+  const t = useTranslations('MapaOvFloatingLegend')
+  const tx = useMapaText()
   const palette = layer.gee?.visParams?.palette
   const min = layer.gee?.visParams?.min ?? layer.rescale?.[0]
   const max = layer.gee?.visParams?.max ?? layer.rescale?.[1]
@@ -242,8 +251,7 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
       ? `linear-gradient(to right, ${palette.join(', ')})`
       : `linear-gradient(to right, ${theme.colors.accent}, ${theme.colors.text})`
 
-  const fmt = (n: number) =>
-    n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+  const fmt = (n: number) => formatNumber(n, tx.locale, { maximumFractionDigits: 2 })
 
   const endStyle: React.CSSProperties = {
     fontSize: 11.5,
@@ -267,7 +275,7 @@ function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: P
         {zero !== null && (
           <span
             aria-hidden
-            title="Equilíbrio: nem emissão nem sequestro"
+            title={t('balanceTick')}
             style={{
               position: 'absolute',
               left: `${zero * 100}%`,
@@ -335,7 +343,8 @@ function FluxEnd({
   format: (n: number) => string
   align: 'left' | 'right'
 }) {
-  const flux = describeFlux(value)
+  const tx = useMapaText()
+  const flux = describeFlux(value, tx)
   const ink = fluxInk(flux.direction, theme.colors)
 
   return (
