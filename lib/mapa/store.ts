@@ -14,6 +14,9 @@ import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
 import { isExclusiveSubtheme, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import {
+  DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER, applyGroupOrder, moveInList,
+} from '@/lib/mapa/layerOrder'
+import {
   readPersisted,
   writePersisted,
   type PersistedView,
@@ -58,6 +61,10 @@ export function hideThematicLayers(layers: LayerConfig[]) {
 
 interface MapaStore {
   layers: LayerConfig[]
+  /** Thematic theme ids, top of the map first. Território is always above them. */
+  themeOrder: string[]
+  /** Subtheme ids per thematic theme, top of the map first. */
+  subthemeOrder: Record<string, string[]>
   drawMode: DrawMode
   drawnArea: number | null
   drawnLength: number | null
@@ -113,6 +120,10 @@ interface MapaStore {
   clearThematicLayers: () => void
   setOpacity:    (id: string, opacity: number) => void
   reorderLayer:  (id: string, toIndex: number) => void
+  /** Moves a thematic theme in front of `beforeId` (null = the end) and redraws. */
+  moveTheme:     (id: string, beforeId: string | null) => void
+  /** Moves a subtheme within its theme in front of `beforeId` (null = the end) and redraws. */
+  moveSubtheme:  (themeId: string, id: string, beforeId: string | null) => void
 
   setDrawMode:    (mode: DrawMode) => void
   setDrawnArea:   (area: number | null) => void
@@ -138,8 +149,10 @@ interface MapaStore {
 // Store
 
 export const useStore = create<MapaStore>((set, get) => ({
-  // Initial layers come entirely from config/layers.json
-  layers: restaurado?.layers ?? (appConfig.layers as LayerConfig[]),
+  // Initial layers come entirely from config/layers.json, in the draw order.
+  layers: applyGroupOrder(restaurado?.layers ?? (appConfig.layers as LayerConfig[]), DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER),
+  themeOrder: DEFAULT_THEME_ORDER,
+  subthemeOrder: DEFAULT_SUBTHEME_ORDER,
   drawMode: null,
   drawnArea: null,
   drawnLength: null,
@@ -263,6 +276,23 @@ export const useStore = create<MapaStore>((set, get) => ({
       const adjusted = fromIndex < toIndex ? toIndex - 1 : toIndex
       layers.splice(adjusted, 0, moved)
       return { layers }
+    }),
+
+  moveTheme: (id, beforeId) =>
+    set((s) => {
+      const themeOrder = moveInList(s.themeOrder, id, beforeId)
+      if (themeOrder === s.themeOrder) return s
+      return { themeOrder, layers: applyGroupOrder(s.layers, themeOrder, s.subthemeOrder) }
+    }),
+
+  moveSubtheme: (themeId, id, beforeId) =>
+    set((s) => {
+      const current = s.subthemeOrder[themeId]
+      if (!current) return s
+      const next = moveInList(current, id, beforeId)
+      if (next === current) return s
+      const subthemeOrder = { ...s.subthemeOrder, [themeId]: next }
+      return { subthemeOrder, layers: applyGroupOrder(s.layers, s.themeOrder, subthemeOrder) }
     }),
 
   setDrawMode:    (mode)   => set({ drawMode: mode }),
