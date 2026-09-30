@@ -834,8 +834,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // click. With no raster on there is simply nothing to measure YET: the
         // selection stands and the reactive recompute fills the cards the
         // moment a raster is switched on. With rasters on but this recorte
-        // dragged below them by `reorderLayer`, the click never passed through
-        // a raster at all -- rasters are not queryable, so the feature answers
+        // below them (a guard: `layerOrder.ts` keeps vectors on top), the click
+        // never passed through a raster at all -- rasters are not queryable, so the feature answers
         // a click it is not underneath. That is the rule the deleted
         // `pickStatsTarget` enforced with `vectorIdx >= rasterIdx`.
         const belowRaster = !measurable && topVisibleRasterIndex(layersNow) !== -1

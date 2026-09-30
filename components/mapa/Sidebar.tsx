@@ -5,6 +5,8 @@ import {
   IcChevronDown, IcChevronUp, IcInfo, IcX, IcChevronLeft, IcSearch, IcGrip,
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
+import { orderThemes } from '@/lib/mapa/layerOrder'
+import { slotBefore } from '@/lib/mapa/dropSlot'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
@@ -21,6 +23,11 @@ interface Props {
 
 export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const layers = useStore((s) => s.layers)
+  const themeOrder = useStore((s) => s.themeOrder)
+  const subthemeOrder = useStore((s) => s.subthemeOrder)
+  const moveTheme = useStore((s) => s.moveTheme)
+  // The panel shows the user's order, which is also the map's draw order.
+  const orderedThemes = orderThemes(THEMES, themeOrder, subthemeOrder)
   const showOnlyMunicipios = useStore((s) => s.showOnlyMunicipios)
   const clearThematicLayers = useStore((s) => s.clearThematicLayers)
   const [query, setQuery] = useState('')
@@ -36,7 +43,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
       .some((value) => normalizeSearch(value).includes(q))
   }
   const visiveis = layers.filter((l) => matchesQuery(l))
-  const porTema = THEMES
+  const porTema = orderedThemes
     .map((tema) => ({
       tema,
       subtemas: tema.subthemes
@@ -51,6 +58,40 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
   const [abertoSubtemaKey, setAbertoSubtemaKey] = useState<string | null>(null)
 
+  // Grips only when the order changes something on the map, and not over a
+  // filtered list, where reordering would be guesswork.
+  const reorderable = thematicCount >= 2 && !normalizedQuery
+
+  // The theme being dragged, and the slot its drop would use.
+  const [themeDrag, setThemeDrag] = useState<string | null>(null)
+  const [themeDrop, setThemeDrop] = useState<DropSlot>(null)
+  const clearThemeDrag = () => {
+    setThemeDrag(null)
+    setThemeDrop(null)
+  }
+
+  const onThemeDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    // A subtheme drag, a file or a text selection: not a theme drop.
+    if (!themeDrag) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    setThemeDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]')) })
+  }
+
+  // Past the zone's edge a release drops nothing, so the line goes too. A move
+  // between two of its children also fires dragleave; the next dragover puts
+  // the line back.
+  const onThemeDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (themeDrag && !event.currentTarget.contains(event.relatedTarget as Node | null)) setThemeDrop(null)
+  }
+
+  const onThemeDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!themeDrag) return
+    event.preventDefault()
+    if (themeDrop) moveTheme(themeDrag, themeDrop.before)
+    clearThemeDrag()
+  }
+
   // Searching leads to the first group with a result, otherwise the search would
   // find layers that remain hidden in closed cards. This happens while typing,
   // not on render: deriving the open card from the search froze the button,
@@ -59,7 +100,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
     setQuery(valor)
     const q = normalizeSearch(valor.trim())
     if (!q) return
-    const primeiro = THEMES.flatMap((tema) => tema.subthemes.map((subtema) => ({ tema, subtema })))
+    const primeiro = orderedThemes.flatMap((tema) => tema.subthemes.map((subtema) => ({ tema, subtema })))
       .find(({ tema, subtema }) => layers.some((l) => l.theme === tema.id && l.subtheme === subtema.id && matchesQuery(l, q)))
     setAbertoTemaId(primeiro?.tema.id ?? null)
     setAbertoSubtemaKey(primeiro ? `${primeiro.tema.id}:${primeiro.subtema.id}` : null)
@@ -125,8 +166,16 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
             far down the list the user went to switch layers on. */}
         {thematicCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: c.accentBg, borderBottom: `1px solid ${c.accentBd}`, flex: 'none' }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: c.text }}>
-              {thematicCount === 1 ? '1 camada temática ligada' : `${thematicCount} camadas temáticas ligadas`}
+            <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: c.text }}>
+                {thematicCount === 1 ? '1 camada temática ligada' : `${thematicCount} camadas temáticas ligadas`}
+              </span>
+              {/* The grips only show from the second raster on; this says what they do. */}
+              {reorderable && (
+                <span style={{ fontSize: 12, fontWeight: 500, color: c.textDim, lineHeight: 1.35 }}>
+                  Arraste temas e subcategorias pela alça ⠿ para mudar a ordem no mapa
+                </span>
+              )}
             </span>
             <button onClick={clearThematicLayers}
               aria-label="Desligar as camadas temáticas"
@@ -138,8 +187,15 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
           </div>
         )}
 
-        {/* Body */}
-        <div style={{ overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Body. Also the themes' drop zone, all of it: overshooting up past the
+            first thematic card (into the search box or Território) reads as the
+            first slot, and below the last as the end. */}
+        <div
+          onDragOver={onThemeDragOver}
+          onDragLeave={onThemeDragLeave}
+          onDrop={onThemeDrop}
+          style={{ overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}
+        >
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <IcSearch size={15} color={c.textDim} style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
             <input
@@ -168,20 +224,44 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
               Nenhuma camada encontrada.
             </div>
           ) : (
-            porTema.map(({ tema, subtemas }) => (
-              <ThemeSection
-                key={tema.id}
-                theme={theme}
-                tema={tema}
-                subtemas={subtemas}
-                infoId={infoId}
-                onInfo={onInfo}
-                open={abertoTemaId === tema.id}
-                openSubthemeKey={abertoSubtemaKey}
-                onToggle={() => setAbertoTemaId((atual) => (atual === tema.id ? null : tema.id))}
-                onToggleSubtheme={(id) => setAbertoSubtemaKey((atual) => (atual === id ? null : id))}
-              />
-            ))
+            porTema.map(({ tema, subtemas }, i) => {
+              // Território is fixed on top: no grip and no slot of its own.
+              const thematic = tema.id !== TERRITORY_THEME_ID
+              return (
+                <div
+                  key={tema.id}
+                  data-theme-id={thematic ? tema.id : undefined}
+                  style={{ position: 'relative' }}
+                  onDragStart={(event) => {
+                    // Only this theme's grip: a subtheme grip's dragstart bubbles
+                    // through here too, and so does a drag of selected text.
+                    if (!(event.target as Element).closest?.('[data-grip="theme"]')) return
+                    const card = event.currentTarget.querySelector<HTMLElement>('[data-theme-card]') ?? event.currentTarget
+                    const box = card.getBoundingClientRect()
+                    event.dataTransfer.effectAllowed = 'move'
+                    event.dataTransfer.setData(THEME_DRAG_TYPE, tema.id)
+                    event.dataTransfer.setDragImage(card, event.clientX - box.left, event.clientY - box.top)
+                    setThemeDrag(tema.id)
+                  }}
+                  onDragEnd={clearThemeDrag}
+                >
+                  {thematic && themeDrop?.before === tema.id && <DropIndicator color={c.accent} gap={10} />}
+                  <ThemeSection
+                    theme={theme}
+                    tema={tema}
+                    subtemas={subtemas}
+                    infoId={infoId}
+                    onInfo={onInfo}
+                    open={abertoTemaId === tema.id}
+                    openSubthemeKey={abertoSubtemaKey}
+                    onToggle={() => setAbertoTemaId((atual) => (atual === tema.id ? null : tema.id))}
+                    onToggleSubtheme={(id) => setAbertoSubtemaKey((atual) => (atual === id ? null : id))}
+                    reorderable={reorderable && thematic}
+                  />
+                  {i === porTema.length - 1 && themeDrop?.before === null && <DropIndicator color={c.accent} gap={10} bottom />}
+                </div>
+              )
+            })
           )}
         </div>
 
@@ -192,144 +272,121 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 
 // Section (accordion)
 
+// Drag payload types. Custom, so a release over a text field pastes nothing.
+const THEME_DRAG_TYPE = 'application/x-caativar-theme'
+const SUBTHEME_DRAG_TYPE = 'application/x-caativar-subtheme'
+
+/** The slot a drop would use: in front of the section with this id, or the end (null). */
+type DropSlot = { before: string | null } | null
+
+// Midpoint of each section a drop can land between, read from its header, so an
+// open section's long list does not push its midpoint down.
+function dropAnchors(container: HTMLElement, attr: 'data-theme-id' | 'data-subtheme-id', headerSelector: string) {
+  return [...container.querySelectorAll<HTMLElement>(`[${attr}]`)].map((item) => {
+    const box = (item.querySelector(headerSelector) ?? item).getBoundingClientRect()
+    return { id: item.getAttribute(attr) ?? '', mid: box.top + box.height / 2 }
+  })
+}
+
 function ThemeSection({
-  theme, tema, subtemas, infoId, onInfo, open, openSubthemeKey, onToggle, onToggleSubtheme,
+  theme, tema, subtemas, infoId, onInfo, open, openSubthemeKey, onToggle, onToggleSubtheme, reorderable,
 }: {
   theme: PlatformTheme; tema: ThemeInfo
   subtemas: { subtema: SubthemeInfo; itens: LayerConfig[] }[]
   infoId: string | null; onInfo: (id: string) => void
   open: boolean; openSubthemeKey: string | null; onToggle: () => void; onToggleSubtheme: (id: string) => void
+  /** Grips on this card and on its subthemes; always false for Território. */
+  reorderable: boolean
 }) {
   const layers = subtemas.flatMap(({ itens }) => itens)
   const c = theme.colors
   const ativas = layers.filter((layer) => layer.visible).length
-
-  return (
-    <div>
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        style={{
-          width: '100%', minHeight: 92, display: 'flex', alignItems: 'center', gap: 9,
-          padding: '10px 11px', cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
-          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${tema.color}22 100%), url(${tema.image})`,
-          backgroundPosition: 'center, center 62%', backgroundSize: 'cover, cover',
-          border: `1px solid ${open ? `${tema.color}66` : c.border}`, borderRadius: 11,
-          transition: 'border-color .16s, filter .16s',
-        }}
-      >
-        <span style={{ fontSize: 16, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
-        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
-      </button>
-      {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '4px 0 10px 9px', paddingLeft: 11, borderLeft: `2px solid ${tema.color}44` }}>
-          {subtemas.map(({ subtema, itens }) => {
-            const key = `${tema.id}:${subtema.id}`
-            return <SubthemeSection key={key} theme={theme} subtheme={subtema} layers={itens} infoId={infoId} onInfo={onInfo} open={openSubthemeKey === key} onToggle={() => onToggleSubtheme(key)} />
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function SubthemeSection({
-  theme, subtheme, layers, infoId, onInfo, open, onToggle,
-}: {
-  theme: PlatformTheme; subtheme: SubthemeInfo; layers: LayerConfig[]
-  infoId: string | null; onInfo: (id: string) => void
-  open: boolean; onToggle: () => void
-}) {
-  const [draggingId, setDraggingId] = useState<string | null>(null)
-  const [dropIndex, setDropIndex] = useState<number | null>(null)
-  const allLayers = useStore((s) => s.layers)
-  const reorderLayer = useStore((s) => s.reorderLayer)
-  const c = theme.colors
-
-  const clearDrag = () => {
-    setDraggingId(null)
-    setDropIndex(null)
+  const moveSubtheme = useStore((s) => s.moveSubtheme)
+  // The subtheme being dragged, and the slot its drop would use.
+  const [subDrag, setSubDrag] = useState<string | null>(null)
+  const [subDrop, setSubDrop] = useState<DropSlot>(null)
+  const clearSubDrag = () => {
+    setSubDrag(null)
+    setSubDrop(null)
   }
 
+  // The whole block, card and list, is the subthemes' drop zone: overshooting
+  // up into the card reads as the first slot. A theme drag passes through to
+  // the panel body, which handles it.
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!draggingId) return
+    if (!subDrag) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
+    setSubDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]')) })
+  }
 
-    const cards = [...event.currentTarget.querySelectorAll<HTMLElement>('[data-layer-index]')]
-    const nextCard = cards.find((card) =>
-      event.clientY < card.getBoundingClientRect().top + card.offsetHeight / 2,
-    )
-    const nextIndex = nextCard
-      ? Number(nextCard.dataset.layerIndex)
-      : Number(cards.at(-1)?.dataset.layerIndex) + 1
-
-    setDropIndex(nextIndex)
+  const onDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (subDrag && !event.currentTarget.contains(event.relatedTarget as Node | null)) setSubDrop(null)
   }
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!subDrag) return
     event.preventDefault()
-    if (draggingId && dropIndex !== null) reorderLayer(draggingId, dropIndex)
-    clearDrag()
+    if (subDrop) moveSubtheme(tema.id, subDrag, subDrop.before)
+    clearSubDrag()
   }
 
-  const ativas = layers.filter((l) => l.visible).length
-
   return (
-    <div>
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        style={{
-          width: '100%', minHeight: 34, display: 'flex', alignItems: 'center', gap: 7,
-          padding: '6px 8px', cursor: 'pointer', textAlign: 'left', background: open ? c.mist : 'transparent',
-          border: 'none', borderRadius: 7,
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim }}>{layers.length}</span>
-        {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
-        <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={13} /> : <IcChevronDown size={13} />}</span>
-      </button>
-      {open && (
-        <div
-          onDragOver={onDragOver}
-          onDrop={onDrop}
+    <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+      <div data-theme-card style={{ position: 'relative' }}>
+        {reorderable && <Grip kind="theme" color={c.textDim} />}
+        <button
+          onClick={onToggle}
+          aria-expanded={open}
           style={{
-            display: 'flex', flexDirection: 'column', gap: 4,
-            margin: '2px 0 10px 9px', paddingLeft: 11,
-            borderLeft: `2px solid ${c.border}`,
+            width: '100%', minHeight: 92, display: 'flex', alignItems: 'center', gap: 9,
+            // Room for the grip over the left edge while it shows.
+            padding: reorderable ? '10px 11px 10px 26px' : '10px 11px',
+            cursor: 'pointer', textAlign: 'left', overflow: 'hidden',
+            backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${c.bgCard} ${open ? '74%' : '66%'}, transparent) 0%, color-mix(in srgb, ${c.bgCard} ${open ? '52%' : '44%'}, transparent) 58%, ${tema.color}22 100%), url(${tema.image})`,
+            backgroundPosition: 'center, center 62%', backgroundSize: 'cover, cover',
+            border: `1px solid ${open ? `${tema.color}66` : c.border}`, borderRadius: 11,
+            transition: 'border-color .16s, filter .16s',
           }}
         >
-          {layers.map((layer) => {
-            const index = allLayers.findIndex((item) => item.id === layer.id)
+          <span style={{ fontSize: 16, fontWeight: 800, color: c.text, letterSpacing: '.01em', flex: 1, minWidth: 0 }}>{tema.label}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 999, padding: '1px 7px', flexShrink: 0 }}>{layers.length}</span>
+          {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#fff', flexShrink: 0, background: tema.color, borderRadius: 999, padding: '1px 7px' }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+          <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={14} /> : <IcChevronDown size={14} />}</span>
+        </button>
+      </div>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '4px 0 10px 9px', paddingLeft: 11, borderLeft: `2px solid ${tema.color}44` }}>
+          {subtemas.map(({ subtema, itens }, i) => {
+            const key = `${tema.id}:${subtema.id}`
             return (
               <div
-                key={layer.id}
-                data-layer-index={index}
+                key={key}
+                data-subtheme-id={subtema.id}
                 style={{ position: 'relative' }}
+                onDragStart={(event) => {
+                  if (!(event.target as Element).closest?.('[data-grip="subtheme"]')) return
+                  const header = event.currentTarget.querySelector<HTMLElement>('[data-subtheme-header]') ?? event.currentTarget
+                  const box = header.getBoundingClientRect()
+                  event.dataTransfer.effectAllowed = 'move'
+                  event.dataTransfer.setData(SUBTHEME_DRAG_TYPE, subtema.id)
+                  event.dataTransfer.setDragImage(header, event.clientX - box.left, event.clientY - box.top)
+                  setSubDrag(subtema.id)
+                }}
+                onDragEnd={clearSubDrag}
               >
-                {dropIndex === index && <DropIndicator color={c.accent} />}
-                <LayerRow
+                {subDrop?.before === subtema.id && <DropIndicator color={c.accent} gap={4} />}
+                <SubthemeSection
                   theme={theme}
-                  layer={layer}
-                  infoOpen={infoId === layer.id}
+                  subtheme={subtema}
+                  layers={itens}
+                  infoId={infoId}
                   onInfo={onInfo}
-                  onDragStart={(event) => {
-                    // The drag starts on the grip; show the whole card under the
-                    // cursor, at the spot it was grabbed, as a card drag would.
-                    const card = event.currentTarget
-                    const box = card.getBoundingClientRect()
-                    event.dataTransfer.effectAllowed = 'move'
-                    event.dataTransfer.setData('text/plain', layer.id)
-                    event.dataTransfer.setDragImage(card, event.clientX - box.left, event.clientY - box.top)
-                    setDraggingId(layer.id)
-                  }}
-                  onDragEnd={clearDrag}
+                  open={openSubthemeKey === key}
+                  onToggle={() => onToggleSubtheme(key)}
+                  grip={reorderable}
                 />
-                {dropIndex === index + 1 && <DropIndicator color={c.accent} bottom />}
+                {i === subtemas.length - 1 && subDrop?.before === null && <DropIndicator color={c.accent} gap={4} bottom />}
               </div>
             )
           })}
@@ -339,18 +396,91 @@ function SubthemeSection({
   )
 }
 
-function DropIndicator({ color, bottom = false }: { color: string; bottom?: boolean }) {
+function SubthemeSection({
+  theme, subtheme, layers, infoId, onInfo, open, onToggle, grip,
+}: {
+  theme: PlatformTheme; subtheme: SubthemeInfo; layers: LayerConfig[]
+  infoId: string | null; onInfo: (id: string) => void
+  open: boolean; onToggle: () => void
+  /** Shows the grip that drags this subtheme within its theme. */
+  grip: boolean
+}) {
+  const c = theme.colors
+  const ativas = layers.filter((l) => l.visible).length
+
+  return (
+    <div>
+      <div data-subtheme-header style={{ position: 'relative' }}>
+        {grip && <Grip kind="subtheme" color={c.caption} />}
+        <button
+          onClick={onToggle}
+          aria-expanded={open}
+          style={{
+            width: '100%', minHeight: 34, display: 'flex', alignItems: 'center', gap: 7,
+            padding: grip ? '6px 8px 6px 24px' : '6px 8px',
+            cursor: 'pointer', textAlign: 'left', background: open ? c.mist : 'transparent',
+            border: 'none', borderRadius: 7,
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700, color: c.text, flex: 1, minWidth: 0 }}>{subtheme.label}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim }}>{layers.length}</span>
+          {ativas > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: c.accentInk }}>{ativas} ativa{ativas === 1 ? '' : 's'}</span>}
+          <span style={{ color: c.textDim, display: 'flex', flexShrink: 0 }}>{open ? <IcChevronUp size={13} /> : <IcChevronDown size={13} />}</span>
+        </button>
+      </div>
+      {open && (
+        <div
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 4,
+            margin: '2px 0 10px 9px', paddingLeft: 11,
+            borderLeft: `2px solid ${c.border}`,
+          }}
+        >
+          {layers.map((layer) => (
+            <LayerRow key={layer.id} theme={theme} layer={layer} infoOpen={infoId === layer.id} onInfo={onInfo} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Drag handle for a theme card or a subtheme header. It sits beside the button,
+ * over its left edge, not inside it: a press on it must not toggle the section,
+ * and Firefox does not start a drag from inside a button. It is the only
+ * draggable element, so a drag never starts from anywhere else.
+ */
+function Grip({ kind, color }: { kind: 'theme' | 'subtheme'; color: string }) {
+  return (
+    <span
+      draggable
+      data-grip={kind}
+      aria-hidden="true"
+      title="Arraste para reordenar"
+      style={{
+        position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)', zIndex: 1,
+        color, display: 'flex', cursor: 'grab', padding: '6px 3px',
+      }}
+    >
+      <IcGrip size={13} />
+    </span>
+  )
+}
+
+/** Where a dragged theme or subtheme would land: a line centred in the list's gap. */
+function DropIndicator({ color, gap, bottom = false }: { color: string; gap: number; bottom?: boolean }) {
   return (
     <div
       style={{
         position: 'absolute',
-        [bottom ? 'bottom' : 'top']: -4,
+        [bottom ? 'bottom' : 'top']: -(gap / 2 + 1.5),
         left: 4,
         right: 4,
         height: 3,
         borderRadius: 99,
         background: color,
-        zIndex: 1,
+        zIndex: 2,
         pointerEvents: 'none',
       }}
     />
@@ -360,14 +490,12 @@ function DropIndicator({ color, bottom = false }: { color: string; bottom?: bool
 // Layer row (card)
 
 function LayerRow({
-  theme, layer, infoOpen, onInfo, onDragStart, onDragEnd,
+  theme, layer, infoOpen, onInfo,
 }: {
   theme: PlatformTheme
   layer: LayerConfig
   infoOpen: boolean
   onInfo: (id: string) => void
-  onDragStart: (event: React.DragEvent<HTMLDivElement>) => void
-  onDragEnd: () => void
 }) {
   const toggleLayer     = useStore((s) => s.toggleLayer)
   const setOpacity      = useStore((s) => s.setOpacity)
@@ -380,12 +508,6 @@ function LayerRow({
 
   return (
     <div
-      // Not draggable itself: dragstart fires on the draggable element, never on
-      // the child that was pressed, so a draggable card cannot tell a press on the
-      // opacity slider or a button from one on the grip. The grip's dragstart
-      // bubbles up to these handlers.
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
       // Lighter visual weight than the card header: no border and a small radius,
       // so the list reads as content and not as another card.
       style={{
@@ -396,16 +518,6 @@ function LayerRow({
       {/* Nome, unidade, ficha e chave, tudo numa linha. Descrição e fonte
           saíram: já estão na ficha, atrás do botão de informação. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span
-          draggable
-          aria-hidden="true"
-          title="Arraste para reordenar"
-          // Now the only place a drag can start, so the padding widens the hit
-          // area and the negative margin keeps the icon where it was.
-          style={{ color: c.caption, display: 'flex', flexShrink: 0, cursor: 'grab', padding: '4px 3px', margin: '-4px -3px' }}
-        >
-          <IcGrip size={13} />
-        </span>
         <span
           // Wraps onto a second line rather than truncating. The unit chip, the
           // info button and the switch keep their place: they are flexShrink: 0

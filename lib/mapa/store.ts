@@ -123,7 +123,6 @@ interface MapaStore {
   showLayer:     (id: string) => void
   clearThematicLayers: () => void
   setOpacity:    (id: string, opacity: number) => void
-  reorderLayer:  (id: string, toIndex: number) => void
   /** Moves a thematic theme in front of `beforeId` (null = the end) and redraws. */
   moveTheme:     (id: string, beforeId: string | null) => void
   /** Moves a subtheme within its theme in front of `beforeId` (null = the end) and redraws. */
@@ -267,20 +266,6 @@ export const useStore = create<MapaStore>((set, get) => ({
         l.id === id ? { ...l, opacity } : l
       ),
     })),
-
-  reorderLayer: (id, toIndex) =>
-    set((s) => {
-      const fromIndex = s.layers.findIndex((l) => l.id === id)
-      if (fromIndex < 0 || fromIndex === toIndex) return s
-      const layers = [...s.layers]
-      const [moved] = layers.splice(fromIndex, 1)
-      // Removing the source before inserting shifts every index above it down
-      // by one, so when dragging downward the target index must be adjusted or
-      // the item lands one slot past the drop indicator.
-      const adjusted = fromIndex < toIndex ? toIndex - 1 : toIndex
-      layers.splice(adjusted, 0, moved)
-      return { layers }
-    }),
 
   moveTheme: (id, beforeId) =>
     set((s) => {
@@ -529,7 +514,7 @@ function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
 export const mapConfig = appConfig.map
 
 // Persistence: a single subscriber, instead of a setItem scattered across
-// toggleLayer, setOpacity, reorderLayer, setBasemap and setTemporalDate. Five
+// toggleLayer, setOpacity, moveTheme, setBasemap and setTemporalDate. Five
 // write points drift out of sync; one subscriber does not. The debounce avoids
 // writing on every frame while the user drags the map or the opacity.
 if (typeof window !== 'undefined') {
