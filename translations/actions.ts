@@ -1,17 +1,15 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { LOCALE_COOKIE, isLocale } from './config'
+import { LOCALE_COOKIE, LOCALE_MAX_AGE, isLocale } from './config'
 
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
-
-// Persists the language chosen in the header switch. The caller refreshes the
-// router afterwards so server components re-render with the new cookie.
+// Persists the language chosen in the header switch. Next re-renders the route
+// after the action, so the caller needs no refresh of its own.
 export async function setLocale(locale: string): Promise<void> {
   if (!isLocale(locale)) return
   ;(await cookies()).set(LOCALE_COOKIE, locale, {
     path: '/',
-    maxAge: ONE_YEAR_SECONDS,
+    maxAge: LOCALE_MAX_AGE,
     sameSite: 'lax',
   })
 }

@@ -13,6 +13,10 @@ export const DEFAULT_LOCALE: Locale = 'pt'
 // group, so a single path=/ cookie is shared by all the root layouts.
 export const LOCALE_COOKIE = 'NEXT_LOCALE'
 
+// A year, shared by the server action that writes the cookie and by the client
+// fallback of the language switch, so the two never disagree on its lifetime.
+export const LOCALE_MAX_AGE = 60 * 60 * 24 * 365
+
 // The BCP 47 tag for <html lang>. The locale codes above name the message
 // directories (translations/pt/), which is not always what the attribute wants.
 export const HTML_LANG: Record<Locale, string> = { pt: 'pt-BR', en: 'en' }
