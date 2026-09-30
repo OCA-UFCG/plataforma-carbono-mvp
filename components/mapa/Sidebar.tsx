@@ -318,12 +318,13 @@ function SubthemeSection({
                   infoOpen={infoId === layer.id}
                   onInfo={onInfo}
                   onDragStart={(event) => {
-                    if ((event.target as HTMLElement).closest('button, input, select, textarea, a')) {
-                      event.preventDefault()
-                      return
-                    }
+                    // The drag starts on the grip; show the whole card under the
+                    // cursor, at the spot it was grabbed, as a card drag would.
+                    const card = event.currentTarget
+                    const box = card.getBoundingClientRect()
                     event.dataTransfer.effectAllowed = 'move'
                     event.dataTransfer.setData('text/plain', layer.id)
+                    event.dataTransfer.setDragImage(card, event.clientX - box.left, event.clientY - box.top)
                     setDraggingId(layer.id)
                   }}
                   onDragEnd={clearDrag}
@@ -379,7 +380,10 @@ function LayerRow({
 
   return (
     <div
-      draggable
+      // Not draggable itself: dragstart fires on the draggable element, never on
+      // the child that was pressed, so a draggable card cannot tell a press on the
+      // opacity slider or a button from one on the grip. The grip's dragstart
+      // bubbles up to these handlers.
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       // Lighter visual weight than the card header: no border and a small radius,
@@ -393,9 +397,12 @@ function LayerRow({
           saíram: já estão na ficha, atrás do botão de informação. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
+          draggable
           aria-hidden="true"
           title="Arraste para reordenar"
-          style={{ color: c.caption, display: 'flex', flexShrink: 0, cursor: 'grab' }}
+          // Now the only place a drag can start, so the padding widens the hit
+          // area and the negative margin keeps the icon where it was.
+          style={{ color: c.caption, display: 'flex', flexShrink: 0, cursor: 'grab', padding: '4px 3px', margin: '-4px -3px' }}
         >
           <IcGrip size={13} />
         </span>
