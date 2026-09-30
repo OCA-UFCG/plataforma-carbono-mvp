@@ -45,6 +45,12 @@ import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import {
+  RETRY_TILE_PROTOCOL,
+  fetchTileWithRetry,
+  withRetryProtocol,
+  withoutRetryProtocol,
+} from '@/lib/mapa/tileRetry'
+import {
   addSpotlightLayers,
   clearSpotlight,
   isSameFeature,
@@ -300,7 +306,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
     if (!map.getSource(l.id)) {
       map.addSource(l.id, {
         type: 'raster',
-        tiles: [tileUrl],
+        tiles: [withRetryProtocol(tileUrl)],
         tileSize: 256,
       })
     }
@@ -444,6 +450,19 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
     // Register PMTiles protocol for vector tile layers served from .pmtiles files
     const pmProtocol = new PMTilesProtocol()
     maplibregl.addProtocol('pmtiles', pmProtocol.tile)
+
+    // GEE raster tiles, asked again after a transient 503/429 (see lib/mapa/tileRetry.ts).
+    // Mirrors MapLibre's own fetch: a failure surfaces as the same AJAXError.
+    maplibregl.addProtocol(RETRY_TILE_PROTOCOL, async (params, abortController) => {
+      const url = withoutRetryProtocol(params.url)
+      const res = await fetchTileWithRetry(url, { headers: params.headers, signal: abortController.signal })
+      if (!res.ok) throw new maplibregl.AJAXError(res.status, res.statusText, url, await res.blob())
+      return {
+        data:         await res.arrayBuffer(),
+        cacheControl: res.headers.get('Cache-Control'),
+        expires:      res.headers.get('Expires'),
+      }
+    })
 
     // Viewport from the previous session, when there is one; otherwise the biome center.
     const vistaSalva = useStore.getState().view
@@ -1295,7 +1314,7 @@ useEffect(() => {
       if (!tileUrl) continue
       const source = map.getSource(layerId)
       if (source && 'setTiles' in source) {
-        (source as maplibregl.RasterTileSource).setTiles([tileUrl])
+        (source as maplibregl.RasterTileSource).setTiles([withRetryProtocol(tileUrl)])
       }
     }
   }, [temporalDate, temporalTileUrls, mapReady])
