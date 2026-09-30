@@ -2,8 +2,6 @@
 
 import { useEffect, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
-import { useLocale } from 'next-intl'
-import { formatNumber } from '@/lib/mapa/locale'
 import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -16,7 +14,6 @@ interface Props {
  * outside the map.
  */
 export default function CursorCoordinates({ mapRef, theme }: Props) {
-  const locale = useLocale()
   const [coords, setCoords] = useState<[number, number] | null>(null)
 
   useEffect(() => {
@@ -53,9 +50,10 @@ export default function CursorCoordinates({ mapRef, theme }: Props) {
   if (!coords) return null
 
   const [lon, lat] = coords
-  // Five fixed decimals, with the decimal separator of the language.
-  const fmt = (n: number) =>
-    formatNumber(n, locale, { minimumFractionDigits: 5, maximumFractionDigits: 5 })
+  // Five fixed decimals with a decimal point in both languages. A decimal comma
+  // inside a comma-separated pair reads as four numbers, and the readout is
+  // meant to be copied into the "Coordenadas" form, which only parses the dot.
+  const fmt = (n: number) => n.toFixed(5)
 
   return (
     <div
