@@ -332,7 +332,15 @@ function ThemeSection({
   }
 
   return (
-    <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+    <div
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      // flow-root keeps the open list's bottom margin inside this box. Without
+      // it the margin collapses through, and the "end" drop line, drawn in that
+      // margin, would sit outside the zone: reaching it would clear it.
+      style={{ display: 'flow-root' }}
+    >
       <div data-theme-card style={{ position: 'relative' }}>
         {reorderable && <Grip kind="theme" color={c.textDim} />}
         <button
