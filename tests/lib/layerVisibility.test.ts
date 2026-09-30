@@ -98,3 +98,84 @@ describe('showOnlyMunicipios', () => {
     expect(state.fetchedTileUrls.biomassa_gedi).toBe('https://tiles.example/gedi')
   })
 })
+
+describe('draw order by theme and subtheme', () => {
+  const initial = useStore.getState()
+  afterEach(() => {
+    useStore.setState(initial, true)
+    vi.unstubAllGlobals()
+  })
+  const order = () => useStore.getState().layers.map((layer) => layer.id)
+  const topOf = (theme: string) => {
+    const o = order()
+    return Math.min(...useStore.getState().layers.filter((l) => l.theme === theme).map((l) => o.indexOf(l.id)))
+  }
+
+  it('starts in the panel order: Carbono, then Uso do solo, then Ambiente', () => {
+    expect(useStore.getState().themeOrder).toEqual(['carbono', 'uso_solo', 'ambiente'])
+    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('ndvi_modis'))
+    expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('lulc_mapbiomas'))
+  })
+
+  it('draws a theme moved up above the themes it passed', () => {
+    useStore.getState().moveTheme('uso_solo', 'carbono')
+
+    expect(useStore.getState().themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente'])
+    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(topOf('carbono'))
+  })
+
+  it('draws a subtheme moved up above its sibling', () => {
+    expect(order().indexOf('solo_carbono')).toBeLessThan(order().indexOf('biomassa_gedi'))
+
+    useStore.getState().moveSubtheme('carbono', 'biomassa', 'solo')
+
+    expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('solo_carbono'))
+  })
+
+  it('keeps the recortes above every raster whatever the order', () => {
+    useStore.getState().moveTheme('ambiente', 'carbono')
+    const { layers } = useStore.getState()
+    const lastVector = layers.map((layer) => layer.type).lastIndexOf('vector')
+    expect(layers.findIndex((layer) => layer.type === 'raster')).toBe(lastVector + 1)
+  })
+
+  it('leaves the state untouched for a move that changes nothing', () => {
+    const before = useStore.getState()
+    useStore.getState().moveTheme('carbono', 'uso_solo')
+    useStore.getState().moveSubtheme('carbono', 'estoques', 'reservatorios')
+    useStore.getState().moveSubtheme('nope', 'x', null)
+
+    expect(useStore.getState().layers).toBe(before.layers)
+    expect(useStore.getState().themeOrder).toBe(before.themeOrder)
+    expect(useStore.getState().subthemeOrder).toBe(before.subthemeOrder)
+  })
+
+  it('does not move a raster the user switches on', () => {
+    useStore.setState({ fetchedTileUrls: { biomassa_gedi: 'https://tiles.example/gedi' } })
+    const before = order()
+
+    useStore.getState().toggleLayer('biomassa_gedi')
+
+    expect(order()).toEqual(before)
+  })
+
+  it.each([
+    ['in catalog order', [0, 1]],
+    ['in reverse order', [1, 0]],
+  ])('keeps the order of GEE rasters restored on reload when their tiles arrive %s', async (_, arrival) => {
+    // Mapa.tsx switches restored GEE rasters back on through activateDynamicLayer.
+    const pending: Array<(res: Response) => void> = []
+    vi.stubGlobal('fetch', () => new Promise<Response>((resolve) => { pending.push(resolve) }))
+    const { layers, activateDynamicLayer } = useStore.getState()
+    const find = (id: string) => layers.find((layer) => layer.id === id) as RasterLayerConfig
+    const before = order()
+
+    const activations = [activateDynamicLayer(find('biomassa_gedi')), activateDynamicLayer(find('lulc_mapbiomas'))]
+    for (const i of arrival) {
+      pending[i](new Response(JSON.stringify({ tileUrl: `https://tiles.example/${i}` })))
+      await activations[i]
+    }
+
+    expect(order()).toEqual(before)
+  })
+})

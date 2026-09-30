@@ -1,6 +1,7 @@
 import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 import { defaultBasemapId, basemaps } from '@/config/mapa/basemaps'
 import { paradas } from '@/lib/mapa/temporal'
+import { sanitizeSubthemeOrder, sanitizeThemeOrder } from '@/lib/mapa/layerOrder'
 
 /** Key and version of the stored state. A payload from another version is discarded. */
 export const PERSIST_KEY = 'cc_mapa_v1'
@@ -24,6 +25,9 @@ export interface PersistedState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
+  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
+  themeOrder: string[]
+  subthemeOrder: Record<string, string[]>
 }
 
 export interface LiveState {
@@ -32,6 +36,9 @@ export interface LiveState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
+  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
+  themeOrder: string[]
+  subthemeOrder: Record<string, string[]>
 }
 
 export interface RestoredState {
@@ -42,6 +49,9 @@ export interface RestoredState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
+  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
+  themeOrder: string[]
+  subthemeOrder: Record<string, string[]>
 }
 
 export function buildPersisted(live: LiveState): PersistedState {
@@ -52,6 +62,8 @@ export function buildPersisted(live: LiveState): PersistedState {
     temporalDate: live.temporalDate,
     view: live.view,
     drawing: live.drawing,
+    themeOrder: live.themeOrder,
+    subthemeOrder: live.subthemeOrder,
   }
 }
 
@@ -170,6 +182,9 @@ export function sanitizePersisted(raw: unknown, config: LayerConfig[]): Restored
     temporalDate: restoreTemporalDate(raw.temporalDate, config),
     view: restoreView(raw.view),
     drawing: restoreDrawing(raw.drawing),
+    // Optional in the payload: one saved before they existed gets the default.
+    themeOrder: sanitizeThemeOrder(raw.themeOrder),
+    subthemeOrder: sanitizeSubthemeOrder(raw.subthemeOrder),
   }
 }
 

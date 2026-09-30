@@ -7,8 +7,9 @@ import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
  * to a vector feature and measures every visible raster underneath it. So
  * numbers need BOTH a visible raster and a visible vector sitting ABOVE it.
  * With every recorte off the click lands on nothing at all; with no raster on,
- * or with the recorte dragged below the rasters by `reorderLayer`, it still
- * highlights and names the feature, but there is nothing under it to measure.
+ * it still highlights and names the feature, but there is nothing under it to
+ * measure. A recorte below a raster would be the same, but `layerOrder.ts`
+ * keeps every vector above the rasters, so that check is only a guard.
  *
  * The rule used to live only inside MapView, where the results panel could not
  * see it -- which is why its hint kept telling people to click a municipality
