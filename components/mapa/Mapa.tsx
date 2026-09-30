@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IcList, IcBarChart } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
@@ -49,6 +49,17 @@ export default function Mapa() {
   const [resultsCollapsed, setResultsCollapsed] = useState(false)
   // When the panel goes away entirely, reset collapse so it reopens expanded.
   useEffect(() => { if (!resultsVisible) setResultsCollapsed(false) }, [resultsVisible])
+
+  // The results panel's X. Over a recorte selection it does what a click on
+  // empty map does: the highlight, the spotlight and the results go, and the
+  // panel is left with what that click leaves (the hint, or nothing). A
+  // drawing, which only "Limpar" clears, and the hint have nothing to drop, so
+  // there the X collapses the panel. MapView fills the ref: it holds the draw
+  // instance, the only reliable answer to whether a drawing is on the map.
+  const dismissSelectionRef = useRef<(() => boolean) | null>(null)
+  const closeResults = () => {
+    if (!dismissSelectionRef.current?.()) setResultsCollapsed(true)
+  }
 
   // Turns back on the GEE rasters that were on in the previous session. They come
   // back from localStorage off on purpose: the tile is only fetched by
@@ -124,7 +135,7 @@ export default function Mapa() {
 
       {/* Full-bleed map with floating panels over it (GFW style). */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
+        <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} dismissSelectionRef={dismissSelectionRef} />
 
         {panelOpen ? (
           <Sidebar
@@ -206,7 +217,12 @@ export default function Mapa() {
           Relatório
         </button>
 
-        <ResultsSidebar theme={theme} collapsed={resultsCollapsed} onSetCollapsed={setResultsCollapsed} />
+        <ResultsSidebar
+          theme={theme}
+          collapsed={resultsCollapsed}
+          onSetCollapsed={setResultsCollapsed}
+          onClose={closeResults}
+        />
 
         <ReportForm theme={theme} open={reportOpen} onClose={() => setReportOpen(false)} />
       </div>

@@ -20,6 +20,8 @@ interface Props {
   /** Collapse state is lifted so plataforma can shift the map controls/legend. */
   collapsed: boolean
   onSetCollapsed: (v: boolean) => void
+  /** The header's X; the owner decides whether it drops the selection or collapses the panel. */
+  onClose: () => void
 }
 
 /**
@@ -32,7 +34,7 @@ interface Props {
  * one collapsible result card per visible raster; the CSV download. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
-export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Props) {
+export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose }: Props) {
   const drawnArea        = useStore((s) => s.drawnArea)
   const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
@@ -250,7 +252,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           )}
         </div>
         <button
-          onClick={() => onSetCollapsed(true)}
+          onClick={onClose}
           aria-label="Ocultar resultados"
           title="Ocultar resultados"
           style={{

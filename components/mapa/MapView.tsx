@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol as PMTilesProtocol } from 'pmtiles'
@@ -363,9 +363,14 @@ interface MapViewProps {
   leftEdge: number
   /** right offset (px) for the control cluster + legend (Results-aware). */
   rightOffset: number
+  /**
+   * Filled with the teardown a click on empty map runs, for the results
+   * panel's X. Returns false when there was no recorte selection to drop.
+   */
+  dismissSelectionRef: RefObject<(() => boolean) | null>
 }
 
-export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) {
+export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef }: MapViewProps) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -392,9 +397,11 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
   // Selection teardown, assigned inside the map init effect where the draw
   // instance lives, for the "Limpar" and "Início" effects below. The first
   // clears the highlight and the spotlight only; the second also empties the
-  // results panel, like a click on empty map.
+  // results panel, like a click on empty map, and is what the results panel's
+  // X reaches through `dismissSelectionRef`.
   const clearSelectedFeatureRef = useRef<(() => void) | null>(null)
-  const dismissFeatureSelectionRef = useRef<(() => void) | null>(null)
+  const dismissFeatureSelectionRef = useRef<(() => boolean) | null>(null)
+  useImperativeHandle(dismissSelectionRef, () => () => dismissFeatureSelectionRef.current?.() ?? false, [])
   // Camera fit to a selected recorte. Requested from the init effect and run
   // by an effect, so the padding comes from the render in which the results
   // panel opened for that selection, not from the offsets before it.
@@ -558,10 +565,10 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
 
       // Drops a recorte selection and the results it filled, as a click on
       // empty map does. A drawing is left alone: it is committed user work,
-      // cleared through "Limpar".
+      // cleared through "Limpar". Returns whether there was a selection to drop.
       const dismissFeatureSelection = () => {
         const hasDrawing = draw.getAll().features.length > 0
-        if (hasDrawing || !selectedFeatureRef.current) return
+        if (hasDrawing || !selectedFeatureRef.current) return false
         bumpAnalysisSeq()
         clearSelectedFeature()
         setSelectedGeometry(null)
@@ -570,6 +577,7 @@ export default function MapView({ theme, leftEdge, rightOffset }: MapViewProps) 
         clearResults()
         setAnalysisLabel(null)
         setAnalysisKind(null)
+        return true
       }
       dismissFeatureSelectionRef.current = dismissFeatureSelection
 
