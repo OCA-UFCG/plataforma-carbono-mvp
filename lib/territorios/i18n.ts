@@ -5,6 +5,8 @@
 // (components/territorios/useStoryFmt.ts); the tests build it from
 // translations/pt/*.json.
 
+import { intlLocale } from '@/lib/mapa/locale'
+
 /** Same shape as next-intl's `t`, narrowed to the values the story passes (already formatted strings). */
 export type Translate = (key: string, values?: Record<string, string | number>) => string
 
@@ -15,18 +17,11 @@ export interface Fmt {
   t: Translate
 }
 
-/** The BCP 47 tag `Intl` gets for an app locale. */
-export function intlLocale(locale: string): string {
-  return locale === 'en' ? 'en-US' : 'pt-BR'
-}
-
-/** A number with a fixed count of decimals, grouped and punctuated as the locale writes it. */
-export function fixed(value: number, digits: number, locale: string): string {
-  return value.toLocaleString(intlLocale(locale), {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  })
-}
+// The map module's helpers, not copies of them: a third locale is then added in
+// one place, and a number reads the same in the story and in the map. `fixed` is
+// `numero` under the name the story's call sites use.
+export { intlLocale }
+export { numero as fixed } from '@/lib/mapa/format'
 
 /** "a", "a and b", "a, b and c": the locale's own conjunction. */
 export function listText(items: readonly string[], locale: string): string {
