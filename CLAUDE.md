@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Write code, comments, and documentation in English. Every source comment is already in English; keep it that way. The Portuguese prose docs (`DOCUMENTACAO.md`, `README.md`, `REVISAO_TECNICA.md`) stay as-is unless asked.
 
-User-facing UI strings stay in Portuguese — the product is for a Brazilian audience. An English comment still quotes those strings verbatim when it cites a UI label or a data value (`"Área desenhada"`, `'chuva'`), and keeps the domain terms the codebase uses untranslated (`recorte`, `mata branca`).
+No user-facing string is written in a component. The platform is bilingual (pt-BR and English, chosen by the header's switch and stored in the `NEXT_LOCALE` cookie), so every string lives in `translations/<locale>/<Namespace>.json` — one file per component or module, named after its single top-level key, registered in `translations/messages.ts`, with `pt` as the reference and `en` mirroring its keys exactly (`tests/i18n/messages.test.ts` fails otherwise). Text that belongs to the map's data — layer names, units, class labels, result profiles — is keyed by the layer id in the `Mapa*` namespaces and read through a `MapaText` (`lib/mapa/text.ts`, `useMapaText`), with the Portuguese value in `config/mapa/layers.json` as the fallback; `layers.json` itself keeps the ids, bands and Portuguese values. Pure functions of `lib/` take the locale, a `MapaText` or a translate function as an optional last parameter instead of reading a global, and state holds ids or keys rather than a translated sentence, since the language can change while a component is mounted.
+
+An English comment still quotes a Portuguese UI string verbatim when it cites a label or a data value (`"Área desenhada"`, `'chuva'`), and keeps the domain terms the codebase uses untranslated (`recorte`, `mata branca`).
 
 ## Commands
 

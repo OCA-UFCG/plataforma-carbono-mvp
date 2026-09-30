@@ -42,8 +42,8 @@ export default async function MarketingLayout({
 
   // The language comes from the cookie the header's switch writes (see
   // translations/request.ts), so this layout, like the session check above,
-  // renders per request. The other route groups are not translated yet and keep
-  // lang="pt-BR".
+  // renders per request. Every route group does the same, each in its own root
+  // layout, since there is no shared one.
   const locale = (await getLocale()) as Locale;
   const messages = await getMessages();
 
