@@ -5,14 +5,11 @@
 // a class series is a strip of colored years, fire is the years with fire, and
 // any other value is a yearly line with its mean and the selected year marked.
 
-import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import type { ResultProfile } from '@/config/mapa/resultProfiles'
 import { adaptive } from '@/lib/mapa/results/format'
 import { useMapaText } from '@/lib/mapa/useMapaText'
-import { localizeLayer } from '@/lib/mapa/text'
-import { localizeProfile } from '@/config/mapa/resultProfiles'
 import type { PlatformTheme, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
 import { Empty, Footnote, Hero, Pair, Stack } from './blocks'
 import { sourceOf } from './LayerResultView'
@@ -30,12 +27,10 @@ interface YearValue {
   value: number | null
 }
 
-export default function PointSeries({ theme, layer: rawLayer, profile: rawProfile, series, temporalDate }: Props) {
+// `layer` and `profile` arrive localized from `LayerResultCard`.
+export default function PointSeries({ theme, layer, profile, series, temporalDate }: Props) {
   const t = useTranslations('MapaOvResults')
   const tx = useMapaText()
-  // Both are idempotent, so a parent that already localized them is harmless.
-  const layer = useMemo(() => localizeLayer(rawLayer, tx), [rawLayer, tx])
-  const profile = useMemo(() => localizeProfile(rawLayer.id, rawProfile, tx), [rawLayer.id, rawProfile, tx])
   const points: YearValue[] = series.map((p) => ({ year: Number(p.date.slice(0, 4)), value: p.value }))
   const selected = temporalDate ? Number(temporalDate.slice(0, 4)) : points[points.length - 1]?.year
 

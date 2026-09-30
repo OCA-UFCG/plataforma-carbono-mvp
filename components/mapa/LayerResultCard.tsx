@@ -57,9 +57,11 @@ export default function LayerResultCard({
   const tx = useMapaText()
   const c = theme.colors
   // The store keeps the layer in Portuguese: name, unit and class labels are
-  // localized here, once, and everything below reads the localized copy.
+  // localized here, once, and everything below reads the localized copies. Both
+  // are memoized because every view under this card takes them as props, and a
+  // new object on each render would defeat any memoization down there.
   const localLayer = useMemo(() => localizeLayer(layer, tx), [layer, tx])
-  const profile = getResultProfile(layer.id, tx)
+  const profile = useMemo(() => getResultProfile(layer.id, tx), [layer.id, tx])
   const summary = resultSummary(localLayer, result, tx)
   const loading = !result || result.status === 'loading'
   const stats = result?.status === 'ready' ? result.stats : null

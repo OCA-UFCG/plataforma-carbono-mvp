@@ -4,7 +4,6 @@
 // archetype in config/mapa/resultProfiles.ts. The territorial report does not
 // render this; it keeps StatsChartView.
 
-import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { layerMetaText } from '@/config/mapa/layerMeta'
 import type {
@@ -15,9 +14,8 @@ import type {
   RecurrenceProfile,
   ResultProfile,
 } from '@/config/mapa/resultProfiles'
-import { localizeProfile } from '@/config/mapa/resultProfiles'
 import { useMapaText } from '@/lib/mapa/useMapaText'
-import { localizeLayer, type MapaText } from '@/lib/mapa/text'
+import type { MapaText } from '@/lib/mapa/text'
 import { adaptive, coverageNote, edge, hectaresShort, percentShort, quantity, sourceNote } from '@/lib/mapa/results/format'
 import { recurrenceSummary } from '@/lib/mapa/results/recurrence'
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
@@ -41,36 +39,33 @@ export function sourceOf(layer: RasterLayerConfig, tx?: MapaText): string | null
   return sourceNote(layerMetaText(layer.id, tx)?.source, tx)
 }
 
+// The layer and the profile arrive localized from `LayerResultCard`, which is
+// the one place they are translated; nothing here translates them again.
 export default function LayerResultView(props: LayerResultViewProps) {
-  const tx = useMapaText()
-  const { result } = props
-  // Both are idempotent, so a parent that already localized them is harmless.
-  const layer = useMemo(() => localizeLayer(props.layer, tx), [props.layer, tx])
-  const profile = useMemo(() => localizeProfile(props.layer.id, props.profile, tx), [props.layer.id, props.profile, tx])
-  const localized = { ...props, layer, profile }
+  const { result, profile } = props
 
   let body: React.ReactNode = null
   switch (profile.archetype) {
     case 'stocks':
-      if (result.kind === 'stocks') body = <StocksResult {...localized} report={result.report} />
+      if (result.kind === 'stocks') body = <StocksResult {...props} report={result.report} />
       break
     case 'composition':
-      if (result.kind === 'categorical') body = <CompositionResult {...localized} profile={profile} areas={result.areas} />
+      if (result.kind === 'categorical') body = <CompositionResult {...props} profile={profile} areas={result.areas} />
       break
     case 'amount':
-      if (result.kind === 'amount') body = <AmountResult {...localized} profile={profile} r={result} />
+      if (result.kind === 'amount') body = <AmountResult {...props} profile={profile} r={result} />
       break
     case 'distribution':
-      if (result.kind === 'distribution') body = <DistributionResult {...localized} profile={profile} r={result} />
+      if (result.kind === 'distribution') body = <DistributionResult {...props} profile={profile} r={result} />
       break
     case 'flux':
-      if (result.kind === 'flux') body = <FluxResult {...localized} profile={profile} r={result} />
+      if (result.kind === 'flux') body = <FluxResult {...props} profile={profile} r={result} />
       break
     case 'annual':
-      if (result.kind === 'annual') body = <AnnualResult {...localized} profile={profile} r={result} />
+      if (result.kind === 'annual') body = <AnnualResult {...props} profile={profile} r={result} />
       break
     case 'recurrence':
-      if (result.kind === 'recurrence') body = <RecurrenceResult {...localized} profile={profile} r={result} />
+      if (result.kind === 'recurrence') body = <RecurrenceResult {...props} profile={profile} r={result} />
       break
   }
 
