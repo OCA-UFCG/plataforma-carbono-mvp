@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { useTranslations } from 'next-intl'
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
 import { formatNumber } from '@/lib/mapa/locale'
+import { stockTc } from '@/lib/mapa/results/format'
 import { poolLabel } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { PlatformTheme, StockReport } from '@/types/mapa'
@@ -23,29 +24,7 @@ const COR_POOL = ['#597636', '#6b7d34', '#8a9b4a', '#c9a227', '#a66a2e']
 
 const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
 
-const nf = (value: number, locale: string) => formatNumber(value, locale, { maximumFractionDigits: 0 })
 const nf1 = (value: number, locale: string) => formatNumber(value, locale, { maximumFractionDigits: 1 })
-
-/**
- * Large numbers are tiring to read in tC; above a thousand it moves to kt and
- * Mt.
- *
- * Exported so ReportSection's hero card agrees with this exact formatting:
- * before this fix, the hero printed the raw `t C` total (`12.345.678 t C`)
- * while this view showed the same number scaled (`12,3 Mt C`), side by side
- * in section 1 of every default report. This scaled form reads better at
- * inventory scale — a state's or a biome's stock in bare tC is a long string
- * of digits nobody parses at a glance — so the hero now calls this too rather
- * than the other way around.
- *
- * `locale` is the message locale ('pt' | 'en', `tx.locale`) and picks the
- * decimal and grouping marks; the units are universal.
- */
-export function formatarTc(tc: number, locale = 'pt'): { valor: string; unidade: string } {
-  if (Math.abs(tc) >= 1e6) return { valor: nf1(tc / 1e6, locale), unidade: 'Mt C' }
-  if (Math.abs(tc) >= 1e3) return { valor: nf1(tc / 1e3, locale), unidade: 'kt C' }
-  return { valor: nf(tc, locale), unidade: 't C' }
-}
 
 interface Fatia {
   nome: string
@@ -115,8 +94,8 @@ export default function StockReportView({ report, theme, caption }: Props) {
         <Cartao
           theme={theme}
           rotulo={t('totalStock')}
-          valor={formatarTc(total, tx.locale).valor}
-          unidade={formatarTc(total, tx.locale).unidade}
+          valor={stockTc(total, tx.locale).value}
+          unidade={stockTc(total, tx.locale).unit}
           destaque
         />
         <Cartao

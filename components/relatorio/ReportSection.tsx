@@ -3,10 +3,10 @@
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { StatsChartView } from '@/components/mapa/StatsChart'
-import { formatarTc } from '@/components/mapa/StockReportView'
 import ReportMapPreview from './ReportMapPreview'
 import { classShares } from '@/lib/mapa/classShares'
 import { numero as formatNumber } from '@/lib/mapa/format'
+import { stockTc } from '@/lib/mapa/results/format'
 import { describeFlux } from '@/lib/mapa/carbonFlux'
 import { localizeLayer, type MapaText } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
@@ -73,8 +73,8 @@ function heroValue(
     // Same scaling StockReportView's own card uses for this exact number, so
     // the hero and the doughnut section below it agree (`12,3 Mt C`, not
     // `12,3 Mt C` beside a raw `12.345.678 t C`).
-    const { valor, unidade } = formatarTc(snapshot.report.totalTc, tx.locale)
-    return { label: t('hero.totalStock'), value: `${valor} ${unidade}` }
+    const { value, unit } = stockTc(snapshot.report.totalTc, tx.locale)
+    return { label: t('hero.totalStock'), value: `${value} ${unit}` }
   }
   if (snapshot.kind === 'categorical') {
     const dominant = classShares(snapshot.areas, layer?.classes ?? [], tx)[0]

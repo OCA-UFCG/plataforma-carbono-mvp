@@ -1,8 +1,7 @@
 // Number formatting of the results panel, in the user's language.
 //
 // Totals reach billions of tonnes over a state, which nobody reads as a bare
-// run of digits, so any mass unit written in tonnes steps up to kt and Mt, the
-// same way the stock report's `formatarTc` does.
+// run of digits, so any mass unit written in tonnes steps up to kt and Mt.
 //
 // Every helper takes the `MapaText` as its last parameter (`useMapaText()` in a
 // component), and reads Portuguese when omitted.
@@ -59,6 +58,19 @@ export function quantity(value: number, unit: string, tx: MapaText = PT_TEXT): F
     return { value: nf0(locale).format(value), unit }
   }
   return { value: adaptive(value, tx), unit }
+}
+
+/**
+ * A carbon stock in tC scaled to kt and Mt, with no trailing zero ("12 Mt C",
+ * not "12,0 Mt C"). `quantity` keeps the fixed decimal the other panel figures
+ * use; the stock is written this way in the panel, in the stock report card and
+ * in the document's hero, and the three would otherwise disagree on one number.
+ */
+export function stockTc(tc: number, locale = 'pt'): Formatted {
+  const a = Math.abs(tc)
+  if (a >= 1e6) return { value: nf(locale, 0, 1).format(tc / 1e6), unit: 'Mt C' }
+  if (a >= 1e3) return { value: nf(locale, 0, 1).format(tc / 1e3), unit: 'kt C' }
+  return { value: nf0(locale).format(tc), unit: 't C' }
 }
 
 /** Hectares; anything below one hectare reads as such rather than as "0 ha". */

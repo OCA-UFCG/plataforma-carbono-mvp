@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import { poolLabel } from '@/lib/mapa/text'
-import { adaptive, coverageNote, percentShort, quantity } from '@/lib/mapa/results/format'
+import { adaptive, coverageNote, percentShort, stockTc } from '@/lib/mapa/results/format'
 import { STOCK_TOTAL_BAND } from '@/lib/mapa/results/headline'
 import type { StockReport } from '@/types/mapa'
 import { BarList, Empty, Footnote, Hero, Pair, type Figure } from './blocks'
@@ -35,7 +35,7 @@ export default function StocksResult({
   const focusPool = band === STOCK_TOTAL_BAND ? null : report.pools.find((p) => p.band === band) ?? null
   const headline = focusPool ? focusPool.tc : report.totalTc
   // Scaled to kt / Mt like the stock report, in the user's number format.
-  const hero = quantity(headline, 't C', tx)
+  const hero = stockTc(headline, tx.locale)
   const coverage = coverageNote(report.areaHa, polygonHa, undefined, tx)
 
   const pair: Figure[] = [
@@ -72,7 +72,7 @@ export default function StocksResult({
         title={t('stocks.title')}
         labelWidth={64}
         rows={rows.map((r) => {
-          const q = quantity(r.value, 't C', tx)
+          const q = stockTc(r.value, tx.locale)
           return { ...r, amount: `${q.value} ${q.unit}`, share: percentShort((r.value / headline) * 100, tx) }
         })}
       />
