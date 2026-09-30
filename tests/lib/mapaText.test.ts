@@ -237,8 +237,13 @@ describe('English pure functions', () => {
   })
 
   it('coordinates: errors, hemisphere letters and the rebuilt label', () => {
-    expect(parseVertexList('nope', EN)).toEqual({ ok: false, error: 'Line 1: invalid coordinate' })
-    expect(parseVertexList('-7,-35\n-7,-36', EN)).toEqual({ ok: false, error: 'Enter at least three vertices' })
+    // The parser returns the key; the form translates it where it renders it.
+    const invalidLine = parseVertexList('nope')
+    expect(invalidLine.ok).toBe(false)
+    expect(!invalidLine.ok && EN.t(invalidLine.error.key, invalidLine.error.values)).toBe('Line 1: invalid coordinate')
+    const tooFew = parseVertexList('-7,-35\n-7,-36')
+    expect(tooFew.ok).toBe(false)
+    expect(!tooFew.ok && EN.t(tooFew.error.key)).toBe('Enter at least three vertices')
     expect(formatDms(-35.88, 'lon', EN)).toBe('35°52\'48"W')
     expect(formatDms(-35.88, 'lon')).toBe('35°52\'48"O')
 

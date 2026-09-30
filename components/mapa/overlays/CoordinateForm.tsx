@@ -10,6 +10,8 @@ import {
   caatingaCoverage,
   parseDegrees,
   parseVertexList,
+  type Coverage,
+  type TextRef,
 } from '@/lib/mapa/parseCoordinates'
 import type { PlatformTheme } from '@/types/mapa'
 
@@ -79,39 +81,52 @@ export default function CoordinateForm({ theme, onApply }: Props) {
 
   const [tab, setTab] = useState<Tab>('ponto')
   const [fields, setFields] = useState(EMPTY_FIELDS)
-  const [error, setError] = useState<string | null>(null)
+  // What went wrong, not the sentence: the map header's language switch leaves
+  // this form mounted, and a stored sentence would stay in the language it was
+  // written in, under labels in the other one. `badFields` alone means the
+  // generic "check these fields"; `errorRef` names a message of its own.
   const [badFields, setBadFields] = useState<FieldKey[]>([])
-  const [warning, setWarning] = useState<string | null>(null)
+  const [errorRef, setErrorRef] = useState<TextRef | null>(null)
+  const [coverage, setCoverage] = useState<Coverage | null>(null)
+
+  const clearMessages = () => {
+    setBadFields([])
+    setErrorRef(null)
+    setCoverage(null)
+  }
 
   const setField = (key: FieldKey, value: string) => {
     setFields((f) => ({ ...f, [key]: value }))
     // Both messages describe the values as they were when "Aplicar" ran, so
     // editing any of them makes both stale.
-    setError(null)
-    setBadFields([])
-    setWarning(null)
+    clearMessages()
   }
 
   const selectTab = (next: Tab) => {
     setTab(next)
-    setError(null)
-    setBadFields([])
-    setWarning(null)
+    clearMessages()
   }
 
-  const fail = (keys: FieldKey[], message?: string) => {
+  const fail = (keys: FieldKey[], message?: TextRef) => {
     setBadFields(keys)
-    setError(message ?? invalidFieldsMessage(keys))
-    setWarning(null)
+    setErrorRef(message ?? null)
+    setCoverage(null)
   }
 
   const commit = (feature: GeoJSON.Feature) => {
-    setError(null)
     setBadFields([])
-    const coverage = caatingaCoverage(feature.geometry)
-    setWarning(coverage === 'inside' ? null : t(`coverage.${coverage}`))
+    setErrorRef(null)
+    const covered = caatingaCoverage(feature.geometry)
+    setCoverage(covered === 'inside' ? null : covered)
     onApply(feature)
   }
+
+  // Translated on every render, so both follow the current language.
+  const error =
+    badFields.length === 0 ? null
+    : errorRef ? tx.t(errorRef.key, errorRef.values)
+    : invalidFieldsMessage(badFields)
+  const warning = coverage ? t(`coverage.${coverage}`) : null
 
   const applyPoint = () => {
     const lat = parseDegrees(fields.lat, 'lat')
@@ -133,18 +148,18 @@ export default function CoordinateForm({ theme, onApply }: Props) {
 
     const feature = buildCoordinateRectangle([lon1!, lat1!], [lon2!, lat2!], tx)
     if (!feature) {
-      return fail(['lat1', 'lon1', 'lat2', 'lon2'], t('errors.oppositeCorners'))
+      return fail(['lat1', 'lon1', 'lat2', 'lon2'], { key: 'MapaOvCoordinateForm.errors.oppositeCorners' })
     }
     commit(feature)
   }
 
   const applyPolygon = () => {
-    const parsed = parseVertexList(fields.vertices, tx)
+    const parsed = parseVertexList(fields.vertices)
     if (!parsed.ok) return fail(['vertices'], parsed.error)
 
     const feature = buildCoordinatePolygon(parsed.vertices, tx)
     if (!feature) {
-      return fail(['vertices'], t('errors.collinear'))
+      return fail(['vertices'], { key: 'MapaOvCoordinateForm.errors.collinear' })
     }
     commit(feature)
   }

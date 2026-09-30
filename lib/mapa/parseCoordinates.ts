@@ -1,5 +1,5 @@
 import { computeBbox } from '@/lib/mapa/computeBbox'
-import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
+import { PT_TEXT, type MapaText, type TranslationValues } from '@/lib/mapa/text'
 
 /**
  * Reading and writing geographic coordinates typed by hand, plus the GeoJSON
@@ -150,9 +150,19 @@ function splitPair(line: string): [string, string] | null {
   return [tokens[0], tokens[1]]
 }
 
+/**
+ * A message that is not a sentence yet: the key it is written under and its
+ * parameters. The caller translates it where it renders it, so a form holding
+ * the failure in state survives a change of language.
+ */
+export interface TextRef {
+  key: string
+  values?: TranslationValues
+}
+
 export type VertexListResult =
   | { ok: true; vertices: LonLat[] }
-  | { ok: false; error: string }
+  | { ok: false; error: TextRef }
 
 /**
  * Read the polygon textarea: one latitude/longitude pair per line. Blank lines
@@ -160,7 +170,7 @@ export type VertexListResult =
  * one the user sees in the textarea. A closing vertex repeating the first is
  * dropped, since the ring is closed when the geometry is built.
  */
-export function parseVertexList(text: string, tx: MapaText = PT_TEXT): VertexListResult {
+export function parseVertexList(text: string): VertexListResult {
   const vertices: LonLat[] = []
 
   const lines = text.split('\n')
@@ -168,7 +178,9 @@ export function parseVertexList(text: string, tx: MapaText = PT_TEXT): VertexLis
     const line = lines[i].trim()
     if (!line) continue
     const vertex = parseLatLonPair(line)
-    if (!vertex) return { ok: false, error: tx.t('MapaCoordinates.errors.invalidLine', { line: i + 1 }) }
+    if (!vertex) {
+      return { ok: false, error: { key: 'MapaCoordinates.errors.invalidLine', values: { line: i + 1 } } }
+    }
     vertices.push(vertex)
   }
 
@@ -178,7 +190,7 @@ export function parseVertexList(text: string, tx: MapaText = PT_TEXT): VertexLis
     vertices.pop()
   }
 
-  if (vertices.length < 3) return { ok: false, error: tx.t('MapaCoordinates.errors.minVertices') }
+  if (vertices.length < 3) return { ok: false, error: { key: 'MapaCoordinates.errors.minVertices' } }
   return { ok: true, vertices }
 }
 
