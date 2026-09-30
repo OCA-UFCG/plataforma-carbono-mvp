@@ -36,6 +36,10 @@ const restaurado = readPersisted(appConfig.layers as LayerConfig[])
  */
 export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 
+// The user's draw order, and `layers` sorted by it from the first render on.
+const ordemTemas = restaurado?.themeOrder ?? DEFAULT_THEME_ORDER
+const ordemSubtemas = restaurado?.subthemeOrder ?? DEFAULT_SUBTHEME_ORDER
+
 export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
   const selected = layers.find((layer) => layer.id === id)
   if (!selected) return layers
@@ -150,9 +154,9 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json, in the draw order.
-  layers: applyGroupOrder(restaurado?.layers ?? (appConfig.layers as LayerConfig[]), DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER),
-  themeOrder: DEFAULT_THEME_ORDER,
-  subthemeOrder: DEFAULT_SUBTHEME_ORDER,
+  layers: applyGroupOrder(restaurado?.layers ?? (appConfig.layers as LayerConfig[]), ordemTemas, ordemSubtemas),
+  themeOrder: ordemTemas,
+  subthemeOrder: ordemSubtemas,
   drawMode: null,
   drawnArea: null,
   drawnLength: null,
@@ -540,6 +544,8 @@ if (typeof window !== 'undefined') {
         temporalDate: s.temporalDate,
         view: s.view,
         drawing: s.drawing,
+        themeOrder: s.themeOrder,
+        subthemeOrder: s.subthemeOrder,
       })
     }, 400)
   })
