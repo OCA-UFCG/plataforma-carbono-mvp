@@ -11,7 +11,7 @@ import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { layerMetaText } from '@/config/mapa/layerMeta'
 import { localizeAnalysisKind, localizeAnalysisLabel } from '@/lib/mapa/analysisSubject'
 import { formatNumber } from '@/lib/mapa/locale'
-import { layerName, localizeLayer } from '@/lib/mapa/text'
+import { layerName, localizeClassLabel, localizeLayer } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
 import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
@@ -141,13 +141,17 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
       generatedAt: new Date(),
       layers: measured.map((raster) => {
         const local = localizeLayer(raster, tx)
+        // `pixelCache` keeps the class label in Portuguese, like the panel's
+        // own PointValue; without this the file would name the class in
+        // Portuguese under English headers.
+        const pixel = results[raster.id]?.pixelValue ?? null
         return {
           layerName:    local.name,
           layerUnit:    local.unit,
           layerClasses: local.classes,
           signedFlux:   local.signedFlux,
           year:         temporalDate[raster.id]?.slice(0, 4),
-          pixelValue:   results[raster.id]?.pixelValue ?? null,
+          pixelValue:   pixel && { ...pixel, label: localizeClassLabel(raster.id, pixel.label, tx) },
           stats:        results[raster.id]?.stats ?? null,
           profile:      getResultProfile(raster.id, tx),
           source:       layerMetaText(raster.id, tx)?.source,

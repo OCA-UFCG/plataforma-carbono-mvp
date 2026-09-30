@@ -72,23 +72,29 @@ function rowWriter(tx: MapaText): Row {
 const word = (tx: MapaText, key: string, values?: Record<string, string | number>) =>
   tx.t(`MapaExport.${key}`, values)
 
+// A "# ..." line is one cell and goes through `cell` like any other. It carries
+// free text -- a typed point reads `Coordinates - 9°00'00"S, 40°00'00"W` -- and
+// the English file is comma-delimited, so without the escaping the line would
+// split across columns and its bare quotes would break an RFC 4180 reader.
+const note = (tx: MapaText, text: string): string => cell(text, tx)
+
 function metadataRows(snap: AnalysisSnapshot, tx: MapaText): string[] {
   const recorte = [snap.analysisKind, snap.analysisLabel].filter(Boolean).join(' - ')
   const out = ['# Caativar']
-  if (recorte) out.push(word(tx, 'recorte', { value: recorte }))
-  out.push(word(tx, 'generatedAt', { date: isoDate(snap.generatedAt) }))
+  if (recorte) out.push(note(tx, word(tx, 'recorte', { value: recorte })))
+  out.push(note(tx, word(tx, 'generatedAt', { date: isoDate(snap.generatedAt) })))
   return out
 }
 
 function layerHeaderRows(layer: LayerSnapshot, tx: MapaText): string[] {
-  const out = [word(tx, 'layer', { name: layer.layerName })]
+  const out = [note(tx, word(tx, 'layer', { name: layer.layerName }))]
   // The panel drops the minus sign and says "sequestrou" in green instead, but
   // the file keeps the sign so a spreadsheet can sum sinks against sources.
   // Spelling the convention out is what stops the two readings from clashing.
-  if (layer.signedFlux) out.push(word(tx, 'fluxConvention'))
-  if (layer.year) out.push(word(tx, 'year', { year: layer.year }))
+  if (layer.signedFlux) out.push(note(tx, word(tx, 'fluxConvention')))
+  if (layer.year) out.push(note(tx, word(tx, 'year', { year: layer.year })))
   const fonte = sourceNote(layer.source, tx)
-  if (fonte) out.push(`# ${fonte.replace(/\.$/, '')}`)
+  if (fonte) out.push(note(tx, `# ${fonte.replace(/\.$/, '')}`))
   return out
 }
 
