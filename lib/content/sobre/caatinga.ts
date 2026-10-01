@@ -89,8 +89,9 @@ export const CAATINGA = {
       'A Caatinga abriga cidades de diferentes portes e uma ampla rede de comunidades rurais. Agricultores e agricultoras familiares, povos indígenas, comunidades quilombolas, assentamentos da reforma agrária, comunidades de fundo e fecho de pasto e outros povos e comunidades tradicionais desenvolveram conhecimentos e práticas de convivência com o Semiárido.',
       'São essas populações que manejam os roçados, os quintais produtivos e as áreas de vegetação nativa. Qualquer discussão sobre carbono no bioma é também uma discussão sobre esses territórios e sobre quem os sustenta',
     ],
-    // The same photo as the landing's "Carbono e comunidades" tab (IMAGENS.md).
-    imagem: '/images/plataforma/carbono-e-comunidades.webp',
+    // The landing's "Carbono e comunidades" photo, cropped tighter to the
+    // window the design's fill shows here (18988:8735; IMAGENS.md).
+    imagem: '/images/sobre/natureza-pessoas.webp',
     imagemAlt: 'Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor',
   },
 

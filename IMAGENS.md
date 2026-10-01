@@ -103,9 +103,10 @@ GPS no EXIF. A conversão (recorte central para 340/250 e Pillow, WebP qualidade
 todos os metadados; **ao substituir essas fotos, não publicar os originais**, porque a de
 "Carbono e comunidades" mostra uma casa em comunidade. Autoria também não registrada.
 
-`carbono-e-comunidades.webp` também aparece em "Conheça a Caatinga", ao lado de "Um bioma de
-natureza e pessoas" (nó 18988:8735, 298×219): é o mesmo preenchimento no Figma (asset 46b29) e o
-quadro tem a mesma proporção 1,36, então o arquivo é reaproveitado em vez de duplicado.
+A mesma foto aparece em "Conheça a Caatinga", ao lado de "Um bioma de natureza e pessoas" (nó
+18988:8735, 298×219), mas com outro enquadramento: lá o preenchimento (asset 46b29) amplia a foto
+e mostra só a casa, então a página usa um arquivo próprio, `sobre/natureza-pessoas.webp` (ver
+"Páginas Sobre").
 
 ## Faixas das páginas internas (public/images/faixas/)
 
@@ -131,6 +132,13 @@ proporção 464/341 do quadro, a partir da linha 900, enquadrando céu, morro e 
 design mostra; as porcentagens de posição que o Figma exporta para esse preenchimento não
 correspondem a um recorte sem distorção, então não foram seguidas ao pé da letra. Autoria não
 registrada.
+
+`natureza-pessoas.webp` (596×438, cerca de 52 KB), ao lado de "Um bioma de natureza e pessoas" em
+"Conheça a Caatinga" (nó 18988:8735): a foto da casa de `plataforma/carbono-e-comunidades.webp`
+(original do Figma 4000×3000, asset 46b29, com GPS no EXIF), recortada exatamente na janela que o
+preenchimento mostra, colunas 794 a 3575 e linhas 675 a 2719 (proporção 1,36, sem distorção), e
+reduzida para 596×438. A conversão (Pillow, WebP qualidade 80, `exif=b''`) descarta todos os
+metadados, inclusive o GPS; não publicar o original.
 
 Os ícones das perguntas numeradas (`public/icons/sobre/`) são os SVGs exportados do Figma sem
 alteração. Dois deles ("paid" e "calendar month") vêm em duas camadas, um quadro vazio de 85 px e
