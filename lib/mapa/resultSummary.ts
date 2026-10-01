@@ -6,7 +6,7 @@
 // here and this is the part of the card that can be checked directly.
 
 import { classShares } from '@/lib/mapa/classShares'
-import { getResultProfile } from '@/config/mapa/resultProfiles'
+import { getResultProfile, type ResultProfile } from '@/config/mapa/resultProfiles'
 import { profiledSummary } from '@/lib/mapa/results/headline'
 import { numero } from '@/lib/mapa/format'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
@@ -14,12 +14,15 @@ import { PT_TEXT, localizeClassLabel, unitLabel, type MapaText } from '@/lib/map
 
 /**
  * `layer` is expected already localized (`localizeLayer`): unit and class
- * labels are read from it as they are.
+ * labels are read from it as they are. `profile` is the layer's localized
+ * result profile; the card passes the one it already memoized rather than have
+ * it built again on every render.
  */
 export function resultSummary(
   layer: RasterLayerConfig,
   result: LayerResult | undefined,
   tx: MapaText = PT_TEXT,
+  profile: ResultProfile | undefined = getResultProfile(layer.id, tx),
 ): string | null {
   // Loading and error have their own treatment inside the card; a summary would
   // compete with the skeleton and with the retry button.
@@ -37,7 +40,6 @@ export function resultSummary(
   if (!stats) return null
 
   // A layer with a result profile answers with its own headline number.
-  const profile = getResultProfile(layer.id, tx)
   const profiled = profile ? profiledSummary(layer, profile, stats, tx) : null
   if (profiled) return profiled
 

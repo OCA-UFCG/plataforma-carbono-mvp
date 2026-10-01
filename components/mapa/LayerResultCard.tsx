@@ -62,7 +62,7 @@ export default function LayerResultCard({
   // new object on each render would defeat any memoization down there.
   const localLayer = useMemo(() => localizeLayer(layer, tx), [layer, tx])
   const profile = useMemo(() => getResultProfile(layer.id, tx), [layer.id, tx])
-  const summary = resultSummary(localLayer, result, tx)
+  const summary = resultSummary(localLayer, result, tx, profile)
   const loading = !result || result.status === 'loading'
   const stats = result?.status === 'ready' ? result.stats : null
 

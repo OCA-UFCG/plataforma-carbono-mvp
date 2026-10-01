@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { resultSummary } from '@/lib/mapa/resultSummary'
-import { createMapaText } from '@/lib/mapa/text'
+import { createMapaText, PT_TEXT } from '@/lib/mapa/text'
+import { getResultProfile } from '@/config/mapa/resultProfiles'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
 import { appMessages } from '../helpers/intl'
 
@@ -143,5 +144,18 @@ describe('resultSummary', () => {
 
     expect(resultSummary(layer(), stocks)).toBe('12 Mt C')
     expect(resultSummary(layer(), stocks, createMapaText('en', appMessages('en')))).toBe('12 Mt C')
+  })
+
+  it('answers with the profile the card already holds instead of looking it up again', () => {
+    // 'sem_perfil' has no profile of its own: the headline can only come from the one passed in.
+    const profile = getResultProfile('estoque_carbono', PT_TEXT)
+    const summary = resultSummary(layer({ id: 'sem_perfil' }), result({
+      stats: {
+        kind: 'stocks',
+        report: { totalTc: 12_000_000, areaHa: 47_115, unit: 't C', pools: [], classes: [] },
+      },
+    }), PT_TEXT, profile)
+
+    expect(summary).toBe('12 Mt C')
   })
 })
