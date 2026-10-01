@@ -110,7 +110,8 @@
   padding: 6px 12px;
   border: 0;
   background: transparent;
-  font: inherit;
+  /* No font shorthand: it would override the text-subtle-semibold the button
+     also carries, since this module loads after globals.css. */
   color: var(--bg-texto-primario);
   cursor: pointer;
 }
