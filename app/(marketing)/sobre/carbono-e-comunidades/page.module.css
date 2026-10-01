@@ -11,11 +11,15 @@
   gap: 24px;
 }
 
-/* The two law figures side by side, 24px apart (18988:8824). */
+/* The two law figures side by side, 24px apart (18988:8824). Figma sets them
+ * 16px from the text above and below (18988:8818), while Section's body puts
+ * 24px between its children; the -8px block margins take the difference back
+ * without changing Section for every other page. Flex items' margins do not
+ * collapse, so the net gap is 16px at every width, stacked or not. */
 .garantias {
   display: flex;
   gap: 24px;
-  margin: 0;
+  margin: -8px 0;
 }
 
 /* The eight questions, two 626px columns 24px apart (18988:8886). */

@@ -56,6 +56,13 @@ describe('Entenda essa relação (/sobre/carbono-e-comunidades)', () => {
     }
   })
 
+  // Figma 18988:8918 breaks question 5 as "Quem assumirá os custos e / os
+  // riscos?". A no-break space keeps "os riscos?" together, which gives that
+  // break in the 389px question column and still wraps freely when narrower.
+  it('keeps "os riscos?" together in question 5', () => {
+    expect(c.perguntas.itens[4].pergunta).toBe('Quem assumirá os custos e os riscos?')
+  })
+
   it('states the two minimum shares the law guarantees', () => {
     expect(c.lei.garantias).toEqual([
       { rotulo: 'créditos de remoção', valor: 'mín. 50%' },

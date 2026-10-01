@@ -136,7 +136,9 @@ export const CARBONO_E_COMUNIDADES = {
         icone: { src: `${ICONES}/calculate.svg` },
       },
       {
-        pergunta: 'Quem assumirá os custos e os riscos?',
+        // A no-break space glues "os riscos?" so the line breaks after "e",
+        // as Figma 18988:8918 sets it.
+        pergunta: 'Quem assumirá os custos e os riscos?',
         icone: { src: `${ICONES}/insert-chart.svg` },
       },
       {
