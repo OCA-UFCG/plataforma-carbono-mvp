@@ -5,7 +5,7 @@ import "../globals.css";
 import { getAuthenticatedSession, loginRedirect } from "@/lib/auth";
 import { REQUEST_PATH_HEADER } from "@/lib/marketing/requestPath";
 import { Analytics } from "@/components/Analytics";
-import { archivoNarrow, rubik } from "../fonts/marketing";
+import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 
 // Root layout of the marketing pages. The maps module has its own root layout
 // in app/(mapa)/, with a different font and a different global CSS, so neither
@@ -34,7 +34,7 @@ export default async function MarketingLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={`${rubik.variable} ${archivoNarrow.variable}`}>
+      <body className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${archivo.variable}`}>
         {children}
         <Analytics />
       </body>

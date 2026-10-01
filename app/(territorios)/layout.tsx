@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import '../globals.css'
 import '../territorios.css'
-import { archivoNarrow, rubik } from '../fonts/marketing'
+import { archivoNarrow, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
@@ -34,7 +34,7 @@ export default function TerritoriosLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable}`}>
+    <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable}`}>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>
