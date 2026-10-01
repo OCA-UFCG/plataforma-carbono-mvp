@@ -50,6 +50,18 @@ describe('ConteudoHeader', () => {
   })
 })
 
+describe('ConteudoHeader type', () => {
+  // Figma 19015:13063 ("Voltar") and I19015:13089;1:95 ("Baixar PDF") set
+  // Inter Medium 14/24, which .text-ui-medium carries.
+  it('sets Voltar and the mobile Baixar PDF in the UI face', () => {
+    const markup = html(ConteudoHeader, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })
+
+    expect(markup).toMatch(/<a class="[^"]*\btext-ui-medium\b[^"]*" href="\/comunicacao">/)
+    expect(markup).not.toMatch(/<a class="[^"]*\btext-body\b[^"]*" href="\/comunicacao">/)
+    expect(markup).toMatch(/<a href="https:\/\/x\/v1\.pdf"[^>]*class="[^"]*\btext-ui-medium\b[^"]*">/)
+  })
+})
+
 describe('ConteudoSemPdf', () => {
   it('shows the title and the cover, with nothing to download', () => {
     const markup = html(ConteudoSemPdf, { publicacao: PUBLICACAO })
