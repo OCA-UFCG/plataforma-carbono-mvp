@@ -103,6 +103,14 @@ describe('the messages each route group sends to the browser', () => {
     expect(CLIENT_NAMESPACES.auth).toEqual(['Login'])
   })
 
+  // The provider already brings the text to the browser. A message file a
+  // client module imports is bundled a second time into its JavaScript (the
+  // Portuguese default of lib/mapa/text.ts did that with ~22 KB of Mapa* text).
+  it.each(GROUPS)('%s bundles no message file into its client modules', (group) => {
+    const bundled = [...clientModules(group)].filter((file) => /['"]@\/translations\/[a-z]+\/[A-Za-z]+\.json['"]/.test(read(file)))
+
+    expect(bundled.map((file) => path.relative(ROOT, file))).toEqual([])
+  })
 })
 
 describe('pickMessages', () => {

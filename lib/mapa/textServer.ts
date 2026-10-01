@@ -5,6 +5,9 @@
 
 import 'server-only'
 
+// The Portuguese default (PT_TEXT) this module falls back on.
+import '@/lib/mapa/textPt'
+
 import { getLocale, getTranslations } from 'next-intl/server'
 import { DEFAULT_LOCALE, isLocale } from '@/translations/config'
 import { PT_TEXT, toTranslator, type MapaText } from '@/lib/mapa/text'

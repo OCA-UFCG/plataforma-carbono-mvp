@@ -21,7 +21,7 @@ import {
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
 } from '@/config/territorios/story'
-import { describeFlux } from '@/lib/mapa/carbonFlux'
+import { fluxDirection } from '@/lib/mapa/carbonFlux'
 import { fixed, intlLocale, type Fmt } from '@/lib/territorios/i18n'
 import type { StockReport, TimeSeriesPoint } from '@/types/mapa'
 import type {
@@ -151,7 +151,7 @@ export interface FluxMetrics {
 export function fluxMetrics(data: FluxThemeData): FluxMetrics | null {
   if (!(data.forestAreaHa > 0) || !Number.isFinite(data.totalMgCo2e)) return null
 
-  const flux = describeFlux(data.totalMgCo2e)
+  const flux = fluxDirection(data.totalMgCo2e)
   // A total that rounds to 0 t would state a direction the printed number cannot show.
   const neutral = flux.direction === 'neutral' || Math.round(flux.magnitude) === 0
   const direction = neutral ? 'neutral' : (flux.direction as 'emission' | 'removal')

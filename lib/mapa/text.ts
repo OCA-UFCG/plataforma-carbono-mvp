@@ -17,20 +17,15 @@
 // - Server route/service:          `await getMapaText()` (lib/mapa/textServer.ts).
 // - Tests / anything else:         `createMapaText(locale, messages)`.
 // - Omitted:                       `PT_TEXT`, the current Portuguese behaviour.
+//
+// `PT_TEXT` holds no messages: lib/mapa/textPt.ts brings the Portuguese ones,
+// and only the server and the tests load it. The browser always passes the
+// MapaText of useMapaText(), whose text the provider already delivered, so no
+// client bundle carries the Mapa* messages a second time.
 
 import { createTranslator } from 'next-intl'
 import type { Locale } from '@/translations/config'
 import type { LayerConfig, PixelValueResult, RasterClass, StoredText } from '@/types/mapa'
-
-import MapaAnalysisPt from '@/translations/pt/MapaAnalysis.json'
-import MapaBasemapsPt from '@/translations/pt/MapaBasemaps.json'
-import MapaCoordinatesPt from '@/translations/pt/MapaCoordinates.json'
-import MapaExportPt from '@/translations/pt/MapaExport.json'
-import MapaGroupsPt from '@/translations/pt/MapaGroups.json'
-import MapaLayersPt from '@/translations/pt/MapaLayers.json'
-import MapaPhenologyPt from '@/translations/pt/MapaPhenology.json'
-import MapaReportPt from '@/translations/pt/MapaReport.json'
-import MapaResultsPt from '@/translations/pt/MapaResults.json'
 
 export type TranslationValues = Record<string, string | number>
 
@@ -71,21 +66,35 @@ export function createMapaText(locale: Locale, messages: Record<string, unknown>
   return { locale, t: toTranslator(base) }
 }
 
-const PT_MESSAGES: Record<string, unknown> = Object.assign(
-  {},
-  MapaAnalysisPt,
-  MapaBasemapsPt,
-  MapaCoordinatesPt,
-  MapaExportPt,
-  MapaGroupsPt,
-  MapaLayersPt,
-  MapaPhenologyPt,
-  MapaReportPt,
-  MapaResultsPt,
-)
+let portuguese: MapaText | undefined
 
-/** What every function does when it is given no `MapaText`: the Portuguese text. */
-export const PT_TEXT: MapaText = createMapaText('pt', PT_MESSAGES)
+/** Called by lib/mapa/textPt.ts, with the Portuguese messages. */
+export function registerPortugueseText(tx: MapaText): void {
+  portuguese = tx
+}
+
+function portugueseText(): MapaText {
+  if (!portuguese) {
+    throw new Error(
+      'No MapaText was given and the Portuguese default is not loaded: pass the ' +
+      'MapaText of useMapaText() (or getMapaText() on the server), or import lib/mapa/textPt.ts.',
+    )
+  }
+  return portuguese
+}
+
+/**
+ * What every function does when it is given no `MapaText`: the Portuguese text.
+ * It is resolved when a key is read, not on import, so a module can name it as
+ * a default without bundling the messages.
+ */
+export const PT_TEXT: MapaText = {
+  locale: 'pt',
+  t: Object.assign(
+    (key: string, values?: TranslationValues) => portugueseText().t(key, values),
+    { has: (key: string) => portugueseText().t.has(key) },
+  ),
+}
 
 /** `t(key)` when the key exists, else `fallback`. */
 export function lookup(

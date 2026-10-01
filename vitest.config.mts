@@ -13,5 +13,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
+    // The Portuguese default of lib/mapa/text.ts (PT_TEXT), as the server loads it.
+    setupFiles: ['tests/setup/portugueseText.ts'],
   },
 })

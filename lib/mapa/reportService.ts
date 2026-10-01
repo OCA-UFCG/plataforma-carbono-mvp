@@ -10,6 +10,9 @@
 
 import 'server-only'
 
+// The Portuguese default (PT_TEXT) this module falls back on.
+import '@/lib/mapa/textPt'
+
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS, type ReportLayerConfig } from '@/config/mapa/reportLayers'
