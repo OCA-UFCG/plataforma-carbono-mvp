@@ -39,8 +39,9 @@ export const archivo = localFont({
 
 // Named for its role (a display face for oversized headings) rather than the
 // family, so a future face swap only touches this call, not Hero.module.css.
-// Currently the only consumer is the hero h1 (Figma node 18862:8525), which has
-// no bound Figma variable and reads weight 700 off that node.
+// Its consumers are the hero h1 (Figma node 18862:8525), the landing's
+// Comunicação card titles (18846:7821) and the footer wordmark (18862:8253),
+// all Bold 700 read off those nodes, which have no bound Figma variable.
 export const archivoNarrow = localFont({
   src: './ArchivoNarrow-Bold-latin.woff2',
   weight: '700',
