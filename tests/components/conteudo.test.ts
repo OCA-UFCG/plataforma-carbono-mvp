@@ -90,6 +90,15 @@ describe('the landing Comunicação cards', () => {
     expect(markup).toContain('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')
     expect(markup).toContain('Ver material')
   })
+
+  // Figma 18862:8580: the cartilha on the left, the caderno on the right.
+  it('sets the cartilha before the caderno, as the design orders them', async () => {
+    const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) })
+
+    expect(markup.indexOf('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')).toBeLessThan(
+      markup.indexOf('href="/comunicacao/caderno-mercado-de-carbono-florestal-na-caatinga"'),
+    )
+  })
 })
 
 describe('RelatedContent', () => {
