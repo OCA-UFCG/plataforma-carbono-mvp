@@ -18,8 +18,13 @@
   border-bottom: var(--borda-largura) solid var(--bg-borda);
 }
 
+/* Figma pads the 76px frame 18px top and bottom and draws the 2px border
+ * inside it, over the bottom padding, so the row sits 1px below the centre of
+ * the 74px above the border: the 2px here puts the 40px items at y=18 and the
+ * logo at y=19, as in node 18862:8515. */
 .bar {
   height: 100%;
+  padding-top: 2px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -52,36 +57,47 @@
   flex: none;
 }
 
+/* 40px tall like every Figma nav item: 8 + 24 + 6 + the 2px bottom border,
+ * which Figma draws inside the item (I18862:8515;2810:3916). Inactive items
+ * carry the button's 6px radius; the active one is square under its
+ * underline. */
 .navLink {
-  padding: 8px 16px;
+  padding: 8px 16px 6px;
+  border-radius: var(--radius-interno);
   color: var(--bg-texto-primario);
   border-bottom: var(--borda-largura) solid transparent;
   white-space: nowrap;
 }
 
-/* Hover fills the link with --am-100, Figma frame 18916:9717. The design
- * keeps the -padrao text on that fill, which is 4.01:1 and fails AA for this
- * 14px label; stepping to the role's -hover tone gives 5.51:1 with no visible
- * change of hue (tests/lib/marketingPalette.test.ts holds the pair). */
+/* Hover fills the link with --am-100, Figma frame 18916:9717. */
 .navLink:hover,
 .navLink:focus-visible {
   background: var(--am-100);
-  color: var(--role-marca-ancora-hover);
 }
 
 .navLinkActive {
+  border-radius: 0;
   color: var(--role-marca-ancora-padrao);
   border-bottom-color: var(--role-marca-ancora-padrao);
 }
 
-/* Figma renders the "Mapas" button at rest with the hover-role green
- * (I18862:8515;16825:136055); the darker pressed-role green is used here as
- * the interactive hover/focus step. */
+/* The design keeps the active item's -padrao text on the --am-100 hover fill
+ * (18916:9717), which is 4.01:1 and fails AA for this 14px label; stepping to
+ * the role's -hover tone gives 5.51:1 with no visible change of hue
+ * (tests/lib/marketingPalette.test.ts holds the pair). */
+.navLinkActive:hover,
+.navLinkActive:focus-visible {
+  color: var(--role-marca-ancora-hover);
+}
+
+/* Figma renders the "Mapas" button at rest with the hover-role green and a
+ * --primary-foreground label (I18862:8515;16825:136055); the darker
+ * pressed-role green is used here as the interactive hover/focus step. */
 .mapaButton {
   padding: 8px 16px;
   border-radius: var(--radius-interno);
   background: var(--role-marca-ancora-hover);
-  color: var(--role-marca-ancora-texto-sobre);
+  color: var(--primary-foreground);
   white-space: nowrap;
 }
 
@@ -98,20 +114,28 @@
   flex: none;
 }
 
+/* Figma I18862:8515;16825:136014: as tall as the "Entrar" button beside it
+ * (40px), with a 4px radius on the track and on the active pill — the design
+ * system has no token for 4px, so it is written out. */
 .language {
   display: flex;
   align-items: center;
+  height: 40px;
   background: var(--am-200);
-  border-radius: var(--radius-interno);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .languageOption {
-  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px;
   color: var(--bg-texto-primario);
 }
 
 .languageOptionActive {
+  border-radius: 4px;
   background: var(--role-categorica1-padrao);
   color: var(--role-primario-texto-sobre);
 }
@@ -121,16 +145,19 @@
   cursor: not-allowed;
 }
 
+/* Figma's "Entrar" button (I18862:8515;2810:3921, 97x40 around its label and
+ * icon): a 1px border drawn inside the box, so 7 + 1 = 8px above and 15 + 1 =
+ * 16px beside the 24px label line, 40px tall, hugging the label. */
 .sessionButton {
-  width: 114px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
-  border: var(--borda-largura) solid var(--role-categorica1-padrao);
+  padding: 7px 15px;
+  border-radius: var(--radius-interno);
+  border: 1px solid var(--role-categorica1-padrao);
   background: var(--bg-fundo);
   color: var(--role-categorica1-padrao);
+  white-space: nowrap;
   cursor: pointer;
 }
 
