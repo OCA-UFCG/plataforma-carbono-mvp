@@ -168,7 +168,11 @@ export function sanitizeSubthemeOrder(stored: unknown): Record<string, string[]>
 
 - **Default draw order.** Today Ambiente draws above Uso do solo, because of `layers.json` order.
   With the groups.ts default it becomes Carbono > Uso do solo > Ambiente, the order the panel
-  shows. Inside Carbono nothing visible changes, since its subthemes are exclusive.
+  shows. Exclusivity holds per subtheme, not per theme, so two subthemes of one theme can be on
+  at once and a few pairs flip too: in Carbono, Altura do dossel now draws below the ESA CCI and
+  Spawn biomass layers, and NPP MODIS below GPP PML.
+- **Year slider.** `TemporalSlider` drives the topmost visible temporal raster, so it follows the
+  new default and any drag: with MapBiomas and NDVI both on, it now drives MapBiomas.
 - **Comments.**
   - `ResultsSidebar.tsx:48` ("in panel order (topmost first)") and `TemporalSlider.tsx:34`
     ("in the order the panel lists them") are accurate again: the panel order is the draw order.

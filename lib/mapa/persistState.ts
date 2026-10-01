@@ -73,9 +73,11 @@ function clampOpacity(v: unknown, fallback: number): number {
 }
 
 /**
- * Applies the stored visibility, opacity and order on top of the current
- * configuration. The stored order wins, and layers added to `layers.json`
- * after the last visit go to the end instead of disappearing from the panel.
+ * Applies the stored visibility and opacity on top of the current
+ * configuration. Layers added to `layers.json` after the last visit are kept
+ * instead of disappearing from the panel. The list comes back in the stored
+ * order, but that decides nothing: the store sorts it into the draw order with
+ * `applyGroupOrder`, from the restored theme and subtheme order.
  */
 function restoreLayers(stored: unknown[], config: LayerConfig[]): LayerConfig[] {
   const porId = new Map(config.map((l) => [l.id, l]))
