@@ -95,6 +95,11 @@ const PAIRS: [string, string][] = [
   // hover fill; that pair is already listed above.)
   ['--primary-foreground', '--role-marca-ancora-hover'],
   ['--primary-foreground', '--role-marca-ancora-pressionado'],
+  // The landing's indicator cards are white (ROLE-Primario-TextoSobre as a
+  // fill, Figma 18862:8542..8545): their value, unit and description.
+  ['--bg-texto-secundario', '--role-primario-texto-sobre'],
+  ['--am-400', '--role-primario-texto-sobre'],
+  ['--bg-texto-primario', '--role-primario-texto-sobre'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

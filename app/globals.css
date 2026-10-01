@@ -192,9 +192,8 @@ section {
  * one: "Conheça a plataforma" is 500/14 (Figma node 18862:8546) while
  * "Destaques" is 700/16 (node 18862:8538). This step exists for the former;
  * there is no bound token for either, so both were measured off their nodes.
- * Destaques does not actually use 700/16: it deliberately renders its label
- * with `.text-p-ui-semibold` (600/16) instead — a documented substitution,
- * see the comment in Destaques.module.css. */
+ * Destaques sets its 700/16 in Destaques.module.css, with the 1.5px tracking
+ * no utility carries. */
 .text-subtle-medium {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 500;

@@ -2,12 +2,11 @@
  * indicator cards (component "Cards de indicadores em destaque", 8689:52527,
  * used at instances 18862:8542..18862:8545). The cards themselves are
  * IndicatorCard and styled in IndicatorCard.module.css; this file lays out the
- * band, its label and the grid. Font sizes/weights/line-heights come only from
- * the .text-* utility classes applied in Destaques.tsx (see app/globals.css).
+ * band, its label and the grid.
  *
- * The section's own label ("Destaques") is set at 16px/Bold/uppercase in the
- * Figma node. It uses the .text-p-ui-semibold utility (app/globals.css) plus
- * an uppercase transform, which is layout, not a metric. */
+ * The section's own label ("Destaques", node 18862:8540) is Rubik Bold 16px on
+ * a normal line height with 1.5px tracking, uppercase. No type utility carries
+ * that style, so .label below sets it in full. */
 
 /* The Figma node's top border is an untokenized warm gray (#e2e0db); no
  * token in app/globals.css matches it, so this reuses --am-200, the closest
@@ -18,6 +17,9 @@
   border-top: 1px solid var(--am-200);
 }
 
+/* 310px tall against the design's 312: Figma's band is a fixed-height frame
+ * that centres its 229px of content in 232; this one hugs its content
+ * (1px border + 40 + 19 + 24 + 186 + 40). */
 .container {
   padding-block: 40px;
   display: flex;
@@ -26,6 +28,11 @@
 }
 
 .label {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 700;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 1.5px;
   color: var(--bg-texto-secundario);
   text-transform: uppercase;
   margin: 0;
