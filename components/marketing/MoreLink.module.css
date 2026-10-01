@@ -1,16 +1,16 @@
-/* 114x40 in the design, with the label and a right chevron, Figma nodes
- * 18862:8546 ("Conheça a plataforma") and 18862:8578 ("Comunicação"). Font
- * metrics come from the .text-body utility applied in MoreLink.tsx; this
- * file handles color, spacing and layout only. */
+/* The label and a right chevron, Figma nodes 18862:8546 ("Conheça a
+ * plataforma") and 18862:8578 ("Comunicação"). Like the design's auto-layout
+ * button it hugs its content: 16 + "Ver mais" + 8 + 16px icon + 16 = 114x40.
+ * Font metrics come from the .text-ui-medium utility applied in MoreLink.tsx;
+ * this file handles color, spacing and layout only. */
 .moreLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 114px;
-  height: 40px;
+  padding: 8px 16px;
   flex: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-interno);
   background: var(--role-marca-ancora-padrao);
   color: var(--role-marca-ancora-texto-sobre);
 }

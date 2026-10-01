@@ -1,6 +1,7 @@
 /* Plataforma, Figma node 18862:8546 ("Sobre"). Font sizes/weights/line-heights
- * come only from the .text-* utility classes applied in Plataforma.tsx (see
- * app/globals.css); this file handles color, spacing and layout only.
+ * come from the .text-* utility classes applied in Plataforma.tsx (see
+ * app/globals.css), except the tab labels, whose Archivo face no utility
+ * carries (.tab below).
  *
  * Two colours in the design node have no bound token:
  *   - the tablist's bottom border (#d8d6d1) and the image frame's border
@@ -12,13 +13,6 @@
  * An earlier brief had it at --bg-texto-secundario; that was reverted once
  * the design added a tab hover (18916:9468), which darkens the label to
  * --bg-texto-primario and is invisible from a resting colour that dark.
- *
- * Open question: `.tab` uses the bound `.text-p-ui-semibold` utility
- * (600/16px, Rubik). The Figma node's own tab label instances (18862:8546,
- * e.g. the "O que é a CaatiVAR?" text node I18862:8546;18846:7562 and its
- * inactive siblings 18846:7565/7568/7571) are all set in `Archivo SemiBold
- * 16px`, not Rubik — whether this tab label should actually render in
- * Archivo rather than Rubik is still open.
  */
 
 .plataforma {
@@ -73,9 +67,16 @@
   border: none;
   border-bottom: 3px solid transparent;
   cursor: pointer;
-  /* 10 + 24 (the .text-p-ui-semibold line box) + 10 + 3 = 47, plus the strip's
-   * own 1px bottom border = 48, the height of the design's tab strip. */
-  padding: 10px 2px;
+  /* Archivo SemiBold 16px, the face Figma sets every tab label in
+   * (I18862:8546;18846:7562 and its siblings), on its 17px "normal" line box,
+   * written out so the strip does not depend on the font's metrics:
+   * 14 + 17 + 13 + 3 = 47, plus the strip's own 1px border = 48. Figma's
+   * 16px bottom padding has the 3px underline drawn inside it. */
+  font-family: var(--font-archivo, var(--font-sans, var(--font-fallback)));
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 17px;
+  padding: 14px 2px 13px;
   color: var(--am-400);
   white-space: nowrap;
 }
@@ -121,21 +122,37 @@
  * Default (centre) object-position is correct here. Comunicacao's cards needed
  * `object-position: top` only while they rendered cover art with a title
  * typeset near the top; this frame holds a landscape photograph of the biome,
- * pre-cropped to 1.36, so there is nothing to protect at any edge. */
+ * pre-cropped to 1.36, so there is nothing to protect at any edge.
+ *
+ * The frame's corners are 12px (I18862:8546;18846:7574); the design system has
+ * no radius token that size, so it is written out. */
 .imagem {
   flex: none;
   width: 340px;
   height: 250px;
-  border-radius: var(--radius);
+  border-radius: 12px;
   border: 1px solid var(--am-200);
   object-fit: cover;
 }
 
+/* Figma I18862:8546;18846:7575: the column takes the rest of the row, fills
+ * its height (the 250px image) and centres its content there — 24px between
+ * the title and the body, 16px between the paragraph and the quote (.corpo,
+ * I18862:8546;18846:7578). */
 .texto {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.corpo {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-width: 0;
 }
 
 .titulo {

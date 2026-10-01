@@ -87,7 +87,7 @@ export default function Plataforma() {
                 aria-selected={selected}
                 aria-controls={panelId(aba.id)}
                 tabIndex={selected ? 0 : -1}
-                className={`${styles.tab} text-p-ui-semibold ${selected ? styles.tabActive : ""}`}
+                className={`${styles.tab}${selected ? ` ${styles.tabActive}` : ""}`}
                 onClick={() => setActiveId(aba.id)}
                 onKeyDown={handleKeyDown}
               >
@@ -139,12 +139,14 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
       />
       <div className={styles.texto}>
         <h2 className={`${styles.titulo} text-h2`}>{conteudo.titulo}</h2>
-        {conteudo.paragrafos.map((paragrafo) => (
-          <p key={paragrafo} className={`${styles.paragrafo} text-body`}>
-            {paragrafo}
-          </p>
-        ))}
-        <Quote>{conteudo.destaque}</Quote>
+        <div className={styles.corpo}>
+          {conteudo.paragrafos.map((paragrafo) => (
+            <p key={paragrafo} className={`${styles.paragrafo} text-body`}>
+              {paragrafo}
+            </p>
+          ))}
+          <Quote>{conteudo.destaque}</Quote>
+        </div>
       </div>
     </div>
   );
