@@ -10,6 +10,11 @@ import type { Locale } from './config'
 // that is not listed here, or the locales drift apart.
 export const NAMESPACES = [
   'Comunicacao',
+  'ComunicacaoConteudoBackButton',
+  'ComunicacaoConteudoHeader',
+  'ComunicacaoConteudoLeitorCarregando',
+  'ComunicacaoConteudoPdfViewer',
+  'ComunicacaoConteudoRelated',
   'ComunicacaoPage',
   'ComunicacaoPageMetadata',
   'ComunicacaoPagePublicacoes',

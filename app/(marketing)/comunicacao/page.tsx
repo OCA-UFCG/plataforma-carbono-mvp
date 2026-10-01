@@ -21,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // around them are translated.
 export default async function ComunicacaoPage() {
   const t = await getTranslations("ComunicacaoPage");
+  const tCards = await getTranslations("Comunicacao");
   const conteudo = await getComunicacaoContent(getContentfulClient());
 
   return (
@@ -28,7 +29,7 @@ export default async function ComunicacaoPage() {
       <SiteHeader />
       <main>
         <PageIntro eyebrow={t("intro.eyebrow")} title={t("intro.title")} intro={t("intro.intro")} />
-        <Publicacoes publicacoes={listPublicacoes(conteudo)} />
+        <Publicacoes publicacoes={listPublicacoes(conteudo, tCards("booklet.description"))} />
         <PhotoBand
           image={COMUNICACAO_FAIXA.image}
           eyebrow={t("band.eyebrow")}

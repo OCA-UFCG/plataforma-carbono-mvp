@@ -1,0 +1,16 @@
+{
+  "ComunicacaoConteudoPdfViewer": {
+    "page": "Página",
+    "pageOf": "de",
+    "zoomIn": "Aumentar zoom",
+    "zoom": "Zoom",
+    "zoomOut": "Diminuir zoom",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "download": "Baixar PDF",
+    "document": "Documento PDF",
+    "loading": "Carregando documento…",
+    "error": "Não foi possível exibir o PDF.",
+    "openInNewTab": "Abrir o arquivo em outra aba"
+  }
+}

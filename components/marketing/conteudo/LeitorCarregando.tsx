@@ -1,14 +1,17 @@
+import { useTranslations } from "next-intl";
 import leitor from "./Leitor.module.css";
 
 // The reader while pdf.js's chunk downloads (PdfViewerLoader): the same frame,
 // toolbar height and area, so the page does not jump when the reader mounts.
 export default function LeitorCarregando() {
+  const t = useTranslations("ComunicacaoConteudoLeitorCarregando");
+
   return (
     <div className={leitor.frame}>
       <div className={leitor.toolbar} />
       <div className={leitor.area}>
         <p className={leitor.status} role="status">
-          Carregando documento…
+          {t("loading")}
         </p>
       </div>
     </div>

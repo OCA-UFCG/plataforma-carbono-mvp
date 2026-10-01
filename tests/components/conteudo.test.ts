@@ -7,6 +7,7 @@ import type { Publicacao } from '@/lib/content/comunicacao'
 import PublicationCard from '@/components/marketing/PublicationCard'
 import Comunicacao from '@/components/marketing/Comunicacao'
 import RelatedContent from '@/components/marketing/conteudo/RelatedContent'
+import LeitorCarregando from '@/components/marketing/conteudo/LeitorCarregando'
 import { getComunicacaoContent } from '@/lib/content/comunicacao'
 import type { Locale } from '@/translations/config'
 import { withIntl } from '../helpers/intl'
@@ -51,6 +52,31 @@ describe('ConteudoHeader', () => {
     expect(html(ConteudoHeader, { publicacao: { ...PUBLICACAO, pdf: 'https://assets.ctfassets.net/v1.pdf' } })).toMatch(
       /<a[^>]*href="https:\/\/assets\.ctfassets\.net\/v1\.pdf"[^>]*>.*Baixar PDF<\/a>/,
     )
+  })
+})
+
+describe('the publication page in English', () => {
+  const pdf = 'https://assets.ctfassets.net/v1.pdf'
+
+  it('labels the header in English and keeps the content as delivered', () => {
+    const markup = html(ConteudoHeader, { publicacao: { ...PUBLICACAO, pdf } }, 'en')
+
+    expect(markup).toMatch(/<h1[^>]*>O que é crédito de carbono\?<\/h1>/)
+    expect(markup).toMatch(/<a[^>]*href="\/comunicacao"[^>]*>.*Back<\/a>/)
+    expect(markup).toMatch(/Published on: <time datetime="2025-05-14">May 14, 2025<\/time>/i)
+    expect(markup).toMatch(/<a[^>]*href="https:\/\/assets\.ctfassets\.net\/v1\.pdf"[^>]*>.*Download PDF<\/a>/)
+    expect(markup).not.toMatch(/Voltar|Publicado em|Baixar PDF/)
+  })
+
+  it('announces the loading reader in English', () => {
+    expect(html(LeitorCarregando, {}, 'en')).toContain('Loading document…')
+    expect(html(LeitorCarregando, {})).toContain('Carregando documento…')
+  })
+
+  it('heads the related publications in English', () => {
+    const markup = html(RelatedContent, { publicacoes: [PUBLICACAO] }, 'en')
+
+    expect(markup).toMatch(/<h2[^>]*>Related content<\/h2>/)
   })
 })
 

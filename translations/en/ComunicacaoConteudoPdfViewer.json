@@ -1,0 +1,16 @@
+{
+  "ComunicacaoConteudoPdfViewer": {
+    "page": "Page",
+    "pageOf": "of",
+    "zoomIn": "Zoom in",
+    "zoom": "Zoom",
+    "zoomOut": "Zoom out",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "download": "Download PDF",
+    "document": "PDF document",
+    "loading": "Loading document…",
+    "error": "The PDF could not be displayed.",
+    "openInNewTab": "Open the file in a new tab"
+  }
+}

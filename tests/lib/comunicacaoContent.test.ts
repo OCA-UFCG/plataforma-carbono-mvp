@@ -283,6 +283,20 @@ describe('listPublicacoes publication fields', () => {
     expect(lista.map((p) => p.description)).toEqual(['Resumo', DESCRICAO_CARTILHA])
   })
 
+  it('takes the series copy in the reader\'s language when given one', () => {
+    const conteudo = {
+      caderno: { title: 'Caderno', description: 'Resumo', cover: '/c.jpg', slug: 'caderno' },
+      cartilhas: [{ volume: 'Volume 1', title: 'Um', cover: '/1.jpg', slug: 'um' }],
+      fotosFormacao: [],
+    }
+
+    expect(listPublicacoes(conteudo, 'An introductory booklet.').map((p) => p.description))
+      .toEqual(['Resumo', 'An introductory booklet.'])
+    expect(findPublicacao(conteudo, 'um', 'An introductory booklet.')?.description).toBe('An introductory booklet.')
+    expect(relatedPublicacoes(conteudo, 'caderno', 'An introductory booklet.')[0].description)
+      .toBe('An introductory booklet.')
+  })
+
   it('ships a unique address for every default publication', async () => {
     const lista = listPublicacoes(await getComunicacaoContent(null))
     const slugs = lista.map((p) => p.slug)
@@ -365,7 +379,14 @@ describe('formatPublicationDate', () => {
     expect(formatPublicationDate('2025-05-14T23:00:00-03:00')).toBe('14/05/25')
   })
 
+  it('writes the month out in English, still without a time zone shift', () => {
+    expect(formatPublicationDate('2025-05-14', 'en')).toBe('May 14, 2025')
+    expect(formatPublicationDate('2025-05-14T00:00:00.000Z', 'en')).toBe('May 14, 2025')
+    expect(formatPublicationDate('2025-01-01T23:00:00-03:00', 'en')).toBe('Jan 1, 2025')
+  })
+
   it('omits a missing or malformed value', () => {
+    expect(formatPublicationDate('2025-13-40', 'en')).toBeNull()
     expect(formatPublicationDate(undefined)).toBeNull()
     expect(formatPublicationDate('')).toBeNull()
     expect(formatPublicationDate('banana')).toBeNull()

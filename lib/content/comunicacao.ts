@@ -1,5 +1,8 @@
 import 'server-only'
 
+import { intlLocale } from '@/lib/mapa/locale'
+import type { Locale } from '@/translations/config'
+
 // Content of the "Comunicação" and "Formação cidadã" sections of the landing
 // page. Editors publish it in Contentful; the values below are what the page
 // shipped with and stay the fallback, so the page renders complete without any
@@ -301,7 +304,14 @@ export type Publicacao = {
 // in Contentful (COMUNICACAO_QUERY sorts by `order`). The design's own grid is
 // five placeholder cards; the order is still an open question to the content
 // owner (issue #44, question 4).
-export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
+//
+// `cartilhaDescription` is the series copy a cartilha without a description of
+// its own shows: the Portuguese DESCRICAO_CARTILHA unless the page passes the
+// reader's language (Comunicacao.json, booklet.description).
+export function listPublicacoes(
+  conteudo: ComunicacaoContent,
+  cartilhaDescription: string = DESCRICAO_CARTILHA,
+): Publicacao[] {
   const { caderno, cartilhas } = conteudo
 
   return [
@@ -322,7 +332,7 @@ export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
         slug: c.slug,
         tipo: 'Cartilha',
         title: c.title,
-        description: c.description ?? DESCRICAO_CARTILHA,
+        description: c.description ?? cartilhaDescription,
         publicationDate: c.publicationDate,
         cover: c.cover,
         pdf: c.pdf,
@@ -336,8 +346,12 @@ export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
 // address unique within one content type only, so a cartilha and the caderno
 // could share one: the first in list order wins, and the clash is logged for
 // the editor to fix (tests/lib/contentfulSpace.test.ts fails on it too).
-export function findPublicacao(conteudo: ComunicacaoContent, slug: string): Publicacao | null {
-  const matches = listPublicacoes(conteudo).filter((p) => p.slug === slug)
+export function findPublicacao(
+  conteudo: ComunicacaoContent,
+  slug: string,
+  cartilhaDescription?: string,
+): Publicacao | null {
+  const matches = listPublicacoes(conteudo, cartilhaDescription).filter((p) => p.slug === slug)
 
   if (matches.length > 1) {
     console.warn(
@@ -352,8 +366,12 @@ export function findPublicacao(conteudo: ComunicacaoContent, slug: string): Publ
 export const MAX_RELACIONADOS = 5
 
 // Every other publication, in list order, up to the row's five.
-export function relatedPublicacoes(conteudo: ComunicacaoContent, slug: string): Publicacao[] {
-  const lista = listPublicacoes(conteudo)
+export function relatedPublicacoes(
+  conteudo: ComunicacaoContent,
+  slug: string,
+  cartilhaDescription?: string,
+): Publicacao[] {
+  const lista = listPublicacoes(conteudo, cartilhaDescription)
   const atual = lista.find((p) => p.slug === slug)
 
   return lista.filter((p) => p !== atual).slice(0, MAX_RELACIONADOS)
@@ -365,12 +383,19 @@ export function relatedPublicacoes(conteudo: ComunicacaoContent, slug: string): 
 // the Northeast's UTC-3, midnight UTC would print the day before (the spec's
 // "formatted in UTC" guards the same thing), and a value written with its own
 // offset keeps the day the editor chose.
-export function formatPublicationDate(value?: string | null): string | null {
+//
+// English writes the month out ("May 14, 2025"): 14/05/25 and 05/14/25 read as
+// different days on either side of the Atlantic. The day read off the string is
+// formatted as a UTC date, so no time zone moves it.
+export function formatPublicationDate(value?: string | null, locale: Locale = 'pt'): string | null {
   const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (!match) return null
 
   const [, year, month, day] = match
   if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return null
 
-  return `${day}/${month}/${year.slice(2)}`
+  if (locale === 'pt') return `${day}/${month}/${year.slice(2)}`
+
+  return new Intl.DateTimeFormat(intlLocale(locale), { dateStyle: 'medium', timeZone: 'UTC' })
+    .format(Date.UTC(Number(year), Number(month) - 1, Number(day)))
 }

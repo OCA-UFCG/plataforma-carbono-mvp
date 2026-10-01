@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
+import { useTranslations } from "next-intl";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import "pdfjs-dist/web/pdf_viewer.css";
@@ -34,6 +35,7 @@ function fitPreset(): "page-fit" | "page-width" {
 // built as the spike validated it (spec §2.1, §5). Loaded only through
 // PdfViewerLoader, never on the server.
 export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProps) {
+  const t = useTranslations("ComunicacaoConteudoPdfViewer");
   const frameRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerElementRef = useRef<HTMLDivElement>(null);
@@ -257,7 +259,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
             <input
               className={`${styles.field} ${styles.pageField}`}
               style={{ "--page-digits": pageFieldDigits(pageCount) } as CSSProperties}
-              aria-label="Página"
+              aria-label={t("page")}
               inputMode="numeric"
               autoComplete="off"
               value={pageField}
@@ -270,7 +272,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
             />
             <span className={styles.total}>
               <span aria-hidden="true">/</span>
-              <span className="sr-only">de</span> {ready ? pageCount : "--"}
+              <span className="sr-only">{t("pageOf")}</span> {ready ? pageCount : "--"}
             </span>
           </form>
 
@@ -281,12 +283,12 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               className={styles.iconButton}
               onClick={() => zoom(1)}
               disabled={!ready || zoomInStep === null}
-              aria-label="Aumentar zoom"
+              aria-label={t("zoomIn")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
               <img src="/icons/conteudo/zoom-in.svg" alt="" width={24} height={24} />
             </button>
-            <output className={`${styles.field} ${styles.zoomField}`} aria-label="Zoom">
+            <output className={`${styles.field} ${styles.zoomField}`} aria-label={t("zoom")}>
               {scale === null ? "--" : formatZoom(scale)}
             </output>
             <button
@@ -294,7 +296,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               className={styles.iconButton}
               onClick={() => zoom(-1)}
               disabled={!ready || zoomOutStep === null}
-              aria-label="Diminuir zoom"
+              aria-label={t("zoomOut")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
               <img src="/icons/conteudo/zoom-out.svg" alt="" width={24} height={24} />
@@ -308,7 +310,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               type="button"
               className={styles.iconButton}
               onClick={toggleFullscreen}
-              aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}
+              aria-label={fullscreen ? t("exitFullscreen") : t("fullscreen")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
               <img src="/icons/conteudo/fullscreen.svg" alt="" width={24} height={24} />
@@ -317,14 +319,14 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
           <a href={url} target="_blank" rel="noreferrer" className={`${styles.download} text-body`} onClick={download}>
             {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
             <img src="/icons/conteudo/download.svg" alt="" width={16} height={16} />
-            Baixar PDF
+            {t("download")}
           </a>
         </div>
       </div>
 
       <div className={leitor.area}>
         {/* A labelled, focusable region, so keyboard users can scroll it. */}
-        <div ref={containerRef} className={styles.container} role="region" tabIndex={0} aria-label="Documento PDF">
+        <div ref={containerRef} className={styles.container} role="region" tabIndex={0} aria-label={t("document")}>
           <div ref={viewerElementRef} className="pdfViewer" />
         </div>
 
@@ -332,7 +334,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
             step, so assistive tech hears "Carregando documento…" once. */}
         {status === "loading" && (
           <p className={leitor.status} role="status">
-            Carregando documento…
+            {t("loading")}
             {progress !== null && <span aria-hidden="true"> {progress}%</span>}
           </p>
         )}
@@ -341,9 +343,9 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
           <div className={`${leitor.status} ${styles.error}`} role="alert">
             {/* eslint-disable-next-line @next/next/no-img-element -- static asset or Contentful URL, as in PublicationCard */}
             <img src={cover} alt="" className={styles.errorCover} />
-            <p className={styles.errorText}>Não foi possível exibir o PDF.</p>
+            <p className={styles.errorText}>{t("error")}</p>
             <a href={url} target="_blank" rel="noreferrer" className={styles.errorLink}>
-              Abrir o arquivo em outra aba
+              {t("openInNewTab")}
             </a>
           </div>
         )}
