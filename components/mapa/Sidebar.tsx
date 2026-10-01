@@ -6,7 +6,7 @@ import {
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
 import { orderThemes } from '@/lib/mapa/layerOrder'
-import { slotBefore } from '@/lib/mapa/dropSlot'
+import { keepSlot, slotBefore, type DropSlot } from '@/lib/mapa/dropSlot'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
@@ -75,7 +75,8 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
     if (!themeDrag) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    setThemeDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]')) })
+    const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]'))
+    setThemeDrop((prev) => keepSlot(prev, before))
   }
 
   // Past the zone's edge a release drops nothing, so the line goes too. A move
@@ -276,9 +277,6 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 const THEME_DRAG_TYPE = 'application/x-caativar-theme'
 const SUBTHEME_DRAG_TYPE = 'application/x-caativar-subtheme'
 
-/** The slot a drop would use: in front of the section with this id, or the end (null). */
-type DropSlot = { before: string | null } | null
-
 // Midpoint of each section a drop can land between, read from its header, so an
 // open section's long list does not push its midpoint down.
 function dropAnchors(container: HTMLElement, attr: 'data-theme-id' | 'data-subtheme-id', headerSelector: string) {
@@ -317,7 +315,8 @@ function ThemeSection({
     if (!subDrag) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    setSubDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]')) })
+    const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]'))
+    setSubDrop((prev) => keepSlot(prev, before))
   }
 
   const onDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
