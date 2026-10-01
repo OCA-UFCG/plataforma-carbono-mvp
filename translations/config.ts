@@ -21,6 +21,14 @@ export const LOCALE_MAX_AGE = 60 * 60 * 24 * 365
 // directories (translations/pt/), which is not always what the attribute wants.
 export const HTML_LANG: Record<Locale, string> = { pt: 'pt-BR', en: 'en' }
 
+// The options of both language switches (the site header's and the map's), in
+// LOCALES order. Endonyms: each language names itself, so the labels are not
+// translated; `lang` tells assistive tech which language each label is in.
+export const LANGUAGE_OPTIONS: readonly { value: Locale; label: string; lang: string }[] = [
+  { value: 'pt', label: 'PT-BR', lang: HTML_LANG.pt },
+  { value: 'en', label: 'En', lang: HTML_LANG.en },
+]
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (LOCALES as readonly string[]).includes(value)
 }

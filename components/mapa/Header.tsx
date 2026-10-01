@@ -10,7 +10,7 @@ import {
 } from '@/lib/phenology'
 import { readableOn } from '@/lib/color'
 import { useMapaText } from '@/lib/mapa/useMapaText'
-import { type Locale } from '@/translations/config'
+import { LANGUAGE_OPTIONS } from '@/translations/config'
 import { useLocaleSwitch } from '@/translations/useLocaleSwitch'
 import { phaseInSentence } from './phaseText'
 import type { PlatformTheme } from '@/types/mapa'
@@ -20,12 +20,6 @@ interface Props {
   theme: PlatformTheme
   month: MonthInfo
 }
-
-// Endonyms: each language names itself, so the labels are not translated.
-const LANGUAGE_OPTIONS: { value: Locale; label: string; lang: string }[] = [
-  { value: 'pt', label: 'PT-BR', lang: 'pt-BR' },
-  { value: 'en', label: 'En', lang: 'en' },
-]
 
 // The PT-BR / En switch, the same control as the marketing header's. It sits
 // in the header's dark strip, so it borrows the dark-mode toggle's glass look;

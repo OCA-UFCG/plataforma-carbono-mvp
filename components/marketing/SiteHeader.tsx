@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import type { Locale } from "@/translations/config";
+import { LANGUAGE_OPTIONS } from "@/translations/config";
 import { useLocaleSwitch } from "@/translations/useLocaleSwitch";
 import { HEADER_LINKS, MAPA_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
@@ -67,12 +67,6 @@ function SessionAction({ className }: { className?: string }) {
     </button>
   );
 }
-
-// Endonyms: each language names itself, so the labels are not translated.
-const LANGUAGE_OPTIONS: { value: Locale; label: string; lang: string }[] = [
-  { value: "pt", label: "PT-BR", lang: "pt-BR" },
-  { value: "en", label: "En", lang: "en" },
-];
 
 // The PT-BR / En control from the Figma design (I18862:8515;16825:136014).
 // Choosing a language stores it in the NEXT_LOCALE cookie (server action), then
