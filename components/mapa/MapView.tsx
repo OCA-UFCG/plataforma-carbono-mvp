@@ -44,6 +44,7 @@ import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTar
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
+import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import {
   RETRY_TILE_PROTOCOL,
   fetchTileWithRetry,
@@ -840,11 +841,11 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // `pickStatsTarget` enforced with `vectorIdx >= rasterIdx`.
         const belowRaster = !measurable && topVisibleRasterIndex(layersNow) !== -1
 
-        // Replace any existing drawing / measurement. Only `deleteAll` sits
+        // Replace any existing drawing / measurement. Only the erase sits
         // behind the guard: the geometry is committed user work, while the
         // numbers describe the subject the click is replacing, and leaving
         // them would caption the clicked feature with the drawing's length.
-        if (measurable) draw.deleteAll()
+        if (measurable) eraseDrawing(draw)
         setDrawnArea(null)
         setDrawnLength(null)
         clearResults()
@@ -935,7 +936,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         if (!map.getSource(layerId)) return
 
         clearSelectedFeature()
-        draw.deleteAll()
+        eraseDrawing(draw)
         // Invalidate in-flight stats and drop the previously selected geometry
         // so the reactive recompute can't resurrect it. runFeatureAnalysis
         // below installs the searched feature in its place.
@@ -1356,7 +1357,7 @@ useEffect(() => {
       drawMode === 'point'
 
     if (isDrawingMode) {
-      draw.deleteAll()
+      eraseDrawing(draw)
       setDrawnArea(null)
       setDrawnLength(null)
       // Bumped with the clear: a response still in flight would otherwise land
