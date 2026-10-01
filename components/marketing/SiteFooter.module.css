@@ -127,7 +127,11 @@
   display: block;
 }
 
-@media (max-width: 900px) {
+/* Stacked below 1024px. In the row, the outer columns share what the 496px of
+ * partner logos and the two 40px gaps leave, and the brand row (mark +
+ * wordmark, about 133px) needs (content - 576) / 2 >= 133: under ~1002px it
+ * would spill into the logos. */
+@media (max-width: 1023px) {
   .inner {
     flex-direction: column;
     gap: 40px;
