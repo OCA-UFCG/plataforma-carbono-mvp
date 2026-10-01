@@ -45,6 +45,7 @@ import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
+import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
 import {
   RETRY_TILE_PROTOCOL,
   fetchTileWithRetry,
@@ -152,19 +153,6 @@ function lineStringLengthKm(coords: number[][]): number {
     total += 2 * R * Math.asin(Math.sqrt(a))
   }
   return total
-}
-
-// A vector fill brightens under the cursor only. The selected feature used to
-// take the same bump, which covered the raster inside it with the recorte's
-// color; the selection spotlight (lib/mapa/selectionSpotlight.ts) marks it now.
-
-function vectorFillOpacity(opacity: number): maplibregl.ExpressionSpecification {
-  return [
-    'case',
-    ['boolean', ['feature-state', 'hover'], false],
-    (opacity / 100) * 0.7,
-    (opacity / 100) * 0.35,
-  ]
 }
 
 // Generic: add any layer to the MapLibre map
