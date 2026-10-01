@@ -82,6 +82,17 @@ describe('PublicationCard', () => {
   })
 })
 
+describe('PublicationCard type', () => {
+  // Figma 18953:6454 ("PDF") and 18953:6457 (the type chip) set Inter Semi Bold
+  // 12/16, which .text-ui-badge carries.
+  it('sets the PDF badge and the type chip in the badge face', () => {
+    const markup = html(PublicationCard, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })
+
+    expect(markup).toMatch(/<span id="publicacao-cartilha-0-pdf" class="[^"]*\btext-ui-badge\b[^"]*">PDF<\/span>/)
+    expect(markup).toMatch(/<span id="publicacao-cartilha-0-tipo" class="[^"]*\btext-ui-badge\b[^"]*">Cartilha<\/span>/)
+  })
+})
+
 describe('the landing Comunicação cards', () => {
   it('lead to the publication pages', async () => {
     const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) })
