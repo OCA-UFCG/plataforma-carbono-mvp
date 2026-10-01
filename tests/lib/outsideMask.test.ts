@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Position } from 'geojson'
-import { outsideMask } from '@/lib/territorios/outsideMask'
+import { outsideMask } from '@/lib/outsideMask'
 
 const WORLD = [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
 

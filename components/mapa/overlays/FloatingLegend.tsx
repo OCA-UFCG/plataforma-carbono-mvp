@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type Ref } from 'react'
 import { useTranslations } from 'next-intl'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import { formatNumber } from '@/lib/mapa/locale'
@@ -15,9 +15,11 @@ interface Props {
   theme: PlatformTheme
   /** right offset (px), matches the control cluster (396 open / 14 closed). */
   rightOffset: number
+  /** Root box, open or collapsed; MapView measures it to keep a fit clear of it. */
+  ref?: Ref<HTMLDivElement>
 }
 
-export default function FloatingLegend({ theme, rightOffset }: Props) {
+export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)
   const t = useTranslations('MapaOvFloatingLegend')
   const tx = useMapaText()
@@ -33,7 +35,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
   // Collapsed: small button
   if (collapsed) {
     return (
-      <div style={{ position: 'absolute', bottom: 14, right: rightOffset, zIndex: 10, transition: 'right .3s' }}>
+      <div ref={ref} style={{ position: 'absolute', bottom: 14, right: rightOffset, zIndex: 10, transition: 'right .3s' }}>
         <button
           className="ui-press"
           onClick={() => setCollapsed(false)}
@@ -63,6 +65,7 @@ export default function FloatingLegend({ theme, rightOffset }: Props) {
 
   return (
     <div
+      ref={ref}
       style={{
         position: 'absolute',
         bottom: 14,

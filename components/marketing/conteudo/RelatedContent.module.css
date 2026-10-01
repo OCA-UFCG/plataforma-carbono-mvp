@@ -1,0 +1,25 @@
+/* Figma node 19015:13091: 32px of block padding, the heading 24px above the
+ * row. */
+.related {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Rubik SemiBold 24/32, -0.6px (the design's h3), which no .text-* utility
+ * has. The design colours it --foreground (#292829), which has no token;
+ * --bg-texto-primario is the nearest. */
+.heading {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.6px;
+  color: var(--bg-texto-primario);
+  margin: 0;
+}

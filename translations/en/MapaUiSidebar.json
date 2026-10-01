@@ -9,6 +9,7 @@
     "collapseAria": "Collapse panel",
     "thematicOne": "{count} thematic layer on",
     "thematicMany": "{count} thematic layers on",
+    "reorderHint": "Drag themes and subcategories by the ⠿ handle to change their order on the map",
     "clear": "Turn off",
     "clearAria": "Turn off the thematic layers",
     "clearTitle": "Turn off all layers except those under {territory}",

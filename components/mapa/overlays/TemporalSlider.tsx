@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from 'react'
 import { useTranslations } from 'next-intl'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import { layerName } from '@/lib/mapa/text'
@@ -14,6 +14,8 @@ interface Props {
   /** Free-strip anchors; see lib/mapa/gutters. */
   leftEdge: number
   rightOffset: number
+  /** Root box; MapView measures it to keep a fit clear of it. */
+  ref?: Ref<HTMLDivElement>
 }
 
 /** Wait before fetching the tile while the handle is being dragged. */
@@ -25,7 +27,7 @@ const ESPERA_MS = 400
  * the drawing toolbar and the coordinates, which also occupy the bottom center
  * of the map.
  */
-export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) {
+export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Props) {
   const layers         = useStore((s) => s.layers)
   const temporalDate   = useStore((s) => s.temporalDate)
   const setTemporalDate = useStore((s) => s.setTemporalDate)
@@ -115,6 +117,7 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset }: Props) 
 
   return (
     <div
+      ref={ref}
       style={{
         position: 'absolute', bottom: 88, ...centeredInGutters(leftEdge, rightOffset),
         zIndex: 14, display: 'flex', alignItems: 'center', gap: 12,

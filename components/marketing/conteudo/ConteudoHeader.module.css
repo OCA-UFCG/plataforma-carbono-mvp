@@ -1,0 +1,87 @@
+/* The head of a publication page, Figma node 19015:13059: the Voltar/date row
+ * (19015:13060), the title and the description, 16px apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* "Voltar" (19015:13061): 96x40, a 1px --role-categorica1-padrao outline with
+ * the label and the arrow in the same colour (5.70:1 on --bg-fundo), 6px
+ * corners. Its hover fills --am-100, like the header's session button. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--role-categorica1-padrao);
+  border-radius: var(--radius-interno);
+  color: var(--role-categorica1-padrao);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.back:hover,
+.back:focus-visible {
+  background: var(--am-100);
+}
+
+/* The design colours the date --foreground (#292829), which has no token;
+ * --bg-texto-primario is the nearest (PublicationCard.module.css makes the
+ * same substitution for its titles). */
+.date {
+  margin: 0;
+  color: var(--bg-texto-primario);
+  white-space: nowrap;
+}
+
+/* 4.81:1 on --bg-fundo. */
+.title {
+  margin: 0;
+  color: var(--role-marca-ancora-padrao);
+}
+
+.description {
+  margin: 0;
+  color: var(--bg-texto-primario);
+}
+
+/* Shown only below 768px, where the reader's toolbar drops its own button. */
+.downloadMobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .downloadMobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    padding: 8px 16px;
+    border-radius: var(--radius-interno);
+    background: var(--role-marca-ancora-padrao);
+    color: var(--role-marca-ancora-texto-sobre);
+    font-weight: 500;
+  }
+
+  .downloadMobile:hover,
+  .downloadMobile:focus-visible {
+    background: var(--role-marca-ancora-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back {
+    transition: none;
+  }
+}

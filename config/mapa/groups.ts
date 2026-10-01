@@ -19,8 +19,10 @@ export interface ThemeInfo {
 // layer panel spares them: they frame the analysis rather than being its subject.
 export const TERRITORY_THEME_ID = 'territorio'
 
-// The order of this structure defines the panel navigation. Layers declare only
-// their theme and subtheme ids in layers.json.
+// The order of this structure is the default order of the panel and of the
+// map's rasters (themes, then subthemes); the user can drag both in the panel
+// (lib/mapa/layerOrder.ts). Layers declare only their theme and subtheme ids in
+// layers.json.
 export const THEMES: ThemeInfo[] = [
   {
     id: TERRITORY_THEME_ID, label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',

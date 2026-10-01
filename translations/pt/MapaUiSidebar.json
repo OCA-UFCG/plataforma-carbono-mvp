@@ -9,6 +9,7 @@
     "collapseAria": "Recolher painel",
     "thematicOne": "{count} camada temática ligada",
     "thematicMany": "{count} camadas temáticas ligadas",
+    "reorderHint": "Arraste temas e subcategorias pela alça ⠿ para mudar a ordem no mapa",
     "clear": "Desligar",
     "clearAria": "Desligar as camadas temáticas",
     "clearTitle": "Desligar todas as camadas, exceto as de {territory}",

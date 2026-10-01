@@ -17,5 +17,5 @@ export function proxy(request: NextRequest) {
 // page have their own layouts with a fixed redirect, and the API routes check
 // the session per request (lib/auth.ts, getAuthenticatedRequest).
 export const config = {
-  matcher: ['/', '/sobre/:path*', '/comunicacao'],
+  matcher: ['/', '/sobre/:path*', '/comunicacao/:path*'],
 }

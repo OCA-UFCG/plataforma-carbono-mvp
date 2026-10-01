@@ -1,4 +1,6 @@
-// The world with the territory cut out, painted dark around it on the story map.
+// The world with a territory cut out, painted dark around it: on the story map
+// (/territorios) and around the recorte selected on the map module (/mapa),
+// hence `lib/` rather than either module's folder.
 //
 // Only the outer ring of each part becomes a hole: an enclave inside the
 // territory is outside it, and stays under the mask.
@@ -10,7 +12,9 @@
 // convention, so the input winding cannot be trusted.
 
 import type { Feature, Polygon, Position } from 'geojson'
-import type { TerritoryPayload } from '@/types/territorios'
+
+/** Any polygonal geometry: a GeoJSON Polygon or MultiPolygon, or a territory's. */
+type PolygonalGeometry = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
 
 /** Counter-clockwise, as RFC 7946 wants an exterior ring. */
 const WORLD_RING: Position[] = [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
@@ -26,7 +30,7 @@ function signedArea(ring: Position[]): number {
   return twice / 2
 }
 
-export function outsideMask(geometry: TerritoryPayload['geometry']): Feature<Polygon> {
+export function outsideMask(geometry: PolygonalGeometry): Feature<Polygon> {
   const parts = geometry.type === 'Polygon'
     ? [geometry.coordinates as Position[][]]
     : (geometry.coordinates as Position[][][])

@@ -14,7 +14,7 @@ function forwardedPath(response: Response): string | null {
 
 describe('proxy', () => {
   it('runs on every marketing page', () => {
-    for (const url of ['/', '/comunicacao', ...SOBRE_PAGES.map((p) => p.href)]) {
+    for (const url of ['/', '/comunicacao', '/comunicacao/cartilha-1-o-que-e-credito-de-carbono', ...SOBRE_PAGES.map((p) => p.href)]) {
       expect(unstable_doesMiddlewareMatch({ config, url }), url).toBe(true)
     }
   })

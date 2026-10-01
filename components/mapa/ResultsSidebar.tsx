@@ -21,6 +21,8 @@ interface Props {
   /** Collapse state is lifted so plataforma can shift the map controls/legend. */
   collapsed: boolean
   onSetCollapsed: (v: boolean) => void
+  /** The header's X; the owner decides whether it drops the selection or collapses the panel. */
+  onClose: () => void
 }
 
 /**
@@ -33,7 +35,7 @@ interface Props {
  * one collapsible result card per visible raster; the CSV download. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
-export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Props) {
+export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose }: Props) {
   const t  = useTranslations('MapaUiResultsSidebar')
   const tx = useMapaText()
   // Number formatting of the user's language (comma decimal in Portuguese).
@@ -269,7 +271,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed }: Pro
           )}
         </div>
         <button
-          onClick={() => onSetCollapsed(true)}
+          onClick={onClose}
           aria-label={t('hide')}
           title={t('hide')}
           style={{

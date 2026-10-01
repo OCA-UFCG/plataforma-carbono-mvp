@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { sanitizePersisted, buildPersisted, PERSIST_VERSION } from '@/lib/mapa/persistState'
 import type { LayerConfig } from '@/types/mapa'
+import { DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER } from '@/lib/mapa/layerOrder'
 
 const bioma: LayerConfig = {
   id: 'bioma', name: 'Bioma Caatinga', type: 'vector',
@@ -33,19 +34,50 @@ describe('sanitizePersisted', () => {
     expect(sanitizePersisted({ layers: [] }, config)).toBeNull()
   })
 
-  it('round-trips a payload built from live state', () => {
+  it('round-trips a payload built from live state, theme and subtheme order included', () => {
+    const subthemeOrder = { ...DEFAULT_SUBTHEME_ORDER, ambiente: ['clima', 'vegetacao'] }
     const payload = buildPersisted({
       layers: config,
       basemapId: 'esri-imagery',
       temporalDate: {},
       view: null,
       drawing: null,
+      themeOrder: ['ambiente', 'carbono', 'uso_solo'],
+      subthemeOrder,
     })
 
     const restored = sanitizePersisted(payload, config)
 
     expect(restored?.basemapId).toBe('esri-imagery')
     expect(restored?.layers.map((l) => l.id)).toEqual(['bioma', 'solo_carbono', 'fogo_frequencia'])
+    expect(restored?.themeOrder).toEqual(['ambiente', 'carbono', 'uso_solo'])
+    expect(restored?.subthemeOrder).toEqual(subthemeOrder)
+  })
+
+  it('gives a payload saved before the order existed the default order', () => {
+    const restored = sanitizePersisted(
+      { version: PERSIST_VERSION, layers: [], basemapId: 'carto-positron' },
+      config,
+    )
+
+    expect(restored?.themeOrder).toEqual(DEFAULT_THEME_ORDER)
+    expect(restored?.subthemeOrder).toEqual(DEFAULT_SUBTHEME_ORDER)
+  })
+
+  it('checks a stored order against groups.ts', () => {
+    const restored = sanitizePersisted(
+      {
+        version: PERSIST_VERSION,
+        layers: [],
+        basemapId: 'carto-positron',
+        themeOrder: ['territorio', 'uso_solo', 'gone'],
+        subthemeOrder: { carbono: 'not a list' },
+      },
+      config,
+    )
+
+    expect(restored?.themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente'])
+    expect(restored?.subthemeOrder.carbono).toEqual(DEFAULT_SUBTHEME_ORDER.carbono)
   })
 
   it('applies the stored visibility and opacity to the current config', () => {
