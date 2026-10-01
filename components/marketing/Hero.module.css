@@ -8,27 +8,11 @@
  * exposed there as --font-display, alongside Rubik's --font-sans, so both
  * faces load the same way instead of one going through a CSS @import. */
 
-/* This section renders 503px tall against the design's 495. The 8px is four
- * differences that nearly cancel, and it is left alone deliberately:
- *
- *   eyebrow line box    20 vs 14   +6
- *   gap h1 -> lead      21 vs 16   +5
- *   button row          52 vs 48   +4
- *   dot row block       35 vs 42   -7
- *                                 ----
- *                                  +8
- *
- * Two of the four would cost more than they are worth. The eyebrow needs a
- * line-height equal to its font size, which is a tenth type utility for a
- * design system that binds six styles; the h1/lead gap needs those two wrapped
- * in their own element so the column can carry two different gaps. Both exist
- * only because the design uses values it never tokenised — the same problem the
- * PR already raises with whoever maintains the Figma file.
- *
- * Do NOT close the 8px by tuning the dot row alone. That would make the total
- * land at this one viewport while all four causes stay wrong, and they only
- * cancel here by arithmetic accident — a different width or a different string
- * pulls them apart again. Fix the causes or leave it. */
+/* 495px tall, as the design, with nothing left to cancel out: the eyebrow's
+ * line box is 14px (.eyebrow overrides the utility's 20), the h1 -> lead gap is
+ * 16px (.copy), the button row is 8 + 40px (the secondary button's border is
+ * 1px, so both buttons are 40 tall) and the dot row is 13px (.dots):
+ *   82 + 14 + 21 + 226.6 + 21 + 48 + 40 + 13 + 29 = 494.6, under the 495 floor. */
 .hero {
   position: relative;
   min-height: 495px;
@@ -109,9 +93,18 @@
   max-width: 568px;
 }
 
+/* Rubik Medium 14px on a 14px line box (node 18862:8523); .text-subtle-medium
+ * sets the face, size and weight, the line height is overridden here. */
 .eyebrow {
+  line-height: 14px;
   color: color-mix(in srgb, var(--role-terciario-texto-sobre) 72%, transparent);
   text-transform: uppercase;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* The h1's own scale (see file header comment): Archivo Narrow, Bold, 48px,
@@ -162,10 +155,13 @@
   background: var(--role-marca-ancora-pressionado);
 }
 
+/* 1px white border drawn inside the box, as Figma does (18862:8530): 7 + 1px
+ * keeps the 40px height and 16px inset of the primary button beside it. */
 .secondaryButton {
+  padding: 7px 15px;
   background: transparent;
   color: var(--role-terciario-texto-sobre);
-  border: var(--borda-largura) solid var(--role-terciario-texto-sobre);
+  border: 1px solid var(--role-terciario-texto-sobre);
 }
 
 /* Hover darkens the button behind its white label, Figma frame 18916:9730. */
@@ -188,6 +184,8 @@
  * content (the dot row) instead of filling the row before `max-width` caps
  * it — a shrink-wrapped, auto-margined box then centers on its own narrow
  * width instead of landing on the column's left edge. */
+/* 42 = the 13px row Figma centres the dots in (18862:8531, dots at y+3.5)
+ * plus the 29px below it, with the global border-box sizing. */
 .dots {
   position: relative;
   z-index: 1;
@@ -195,6 +193,7 @@
   align-items: center;
   gap: 9px;
   width: 100%;
+  height: 42px;
   padding-bottom: 29px;
 }
 
@@ -213,42 +212,24 @@
   background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
 }
 
-/* Photo credit overlay, bottom-right (node 18862:8536). `.creditRow` is the
- * `container` utility stretched over the full hero (it is itself the
- * positioned ancestor, via `position: absolute`), out-of-flow so it isn't
- * subject to the `.dots`-style flex shrink-wrap bug above — its box already
- * sizes and centers to the 1276px column correctly.
- *
- * `.credit`'s offset is `right: var(--gutter)`, not `right: 0`. An
- * absolutely positioned descendant's containing block is its ancestor's
- * *padding box*, whose outer edge is the ancestor's border edge — with no
- * border on `.creditRow`, that is the same as its outer, un-padded visual
- * edge. `right: 0` therefore lands flush with `.creditRow`'s outer edge
- * (the container's max-width boundary), ignoring the `padding-inline:
- * var(--gutter)` `container` gives it entirely; `right: var(--gutter)`
- * insets by that padding explicitly, landing on the actual content column's
- * right edge — the same edge the h1 lands on from the left, and the mirror
- * of that fix. The old raw `right: 21.62px` was a sub-pixel Figma value
- * that only lined up at the 1436px Figma frame width. */
-.creditRow {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Only rendered when the active photo has a known credit (see Hero.tsx); its
- * pill background is the exact token the Figma node itself references. */
+/* Photo credit overlay, node 18862:8536: a pill 21px above the hero's bottom
+ * edge and 21.62px in from its right edge — pinned to the photo's corner, not
+ * to the content column. Inter Regular 11px on the 13px line box of the
+ * Figma text node (18862:8537); with the 6px padding, the design's 25px pill. */
 .credit {
   position: absolute;
-  right: var(--gutter);
+  right: 21.62px;
   bottom: 21px;
+  z-index: 1;
+  margin: 0;
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--bg-overlay);
   color: var(--bg-texto-sobre-inverso);
-  margin: 0;
-  pointer-events: auto;
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 13px;
 }
 
 @media (max-width: 768px) {
@@ -261,6 +242,7 @@
   }
 
   .dots {
+    height: 33px;
     padding-bottom: 20px;
   }
 }
