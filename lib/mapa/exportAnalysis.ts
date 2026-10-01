@@ -117,7 +117,9 @@ function pixelRows(layer: LayerSnapshot, tx: MapaText, row: Row): string[] {
   if (layer.pixelValue === null) return []
   const out = [row([word(tx, 'columns.measure'), word(tx, 'columns.value'), word(tx, 'columns.unit')])]
   out.push(row([word(tx, 'rows.pointValue'), layer.pixelValue.value, layer.layerUnit ?? '']))
-  if (layer.pixelValue.label) out.push(row([word(tx, 'rows.pointClass'), layer.pixelValue.label, '']))
+  // Named from the snapshot's classes, which the panel localized.
+  const cls = layer.layerClasses?.find((c) => c.value === layer.pixelValue?.classValue)
+  if (cls) out.push(row([word(tx, 'rows.pointClass'), cls.label, '']))
   return out
 }
 

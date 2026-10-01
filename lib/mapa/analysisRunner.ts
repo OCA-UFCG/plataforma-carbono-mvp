@@ -7,30 +7,21 @@
 // visible raster. Multiplying four copies by N layers was not viable, so it
 // lives here and every caller is one line.
 
-import type { LayerResult, RasterLayerConfig, RasterStatsResult, SelectedGeometry } from '@/types/mapa'
+import type { LayerResult, RasterLayerConfig, RasterStatsResult, SelectedGeometry, StoredText } from '@/types/mapa'
 import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { useStore } from '@/lib/mapa/store'
-import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
 /**
- * The error texts a failed card stores. They are written in Portuguese, the
- * store's default, because a card outlives a language switch and the runner has
- * no component to ask for the locale: render them through
- * `localizeAnalysisError` so they follow the language at display time.
+ * What a failed card stores: the message's key, not its text. A card outlives a
+ * language switch and the runner has no component to ask for the locale, so the
+ * card writes the sentence when it renders (`storedText`).
  */
-export const ANALYSIS_ERRORS = {
-  pointValue: PT_TEXT.t('MapaAnalysis.errors.pointValue'),
-  stats:      PT_TEXT.t('MapaAnalysis.errors.stats'),
-} as const
-
-/** A stored card error in the current language; anything unrecognised comes back as it is. */
-export function localizeAnalysisError(error: string | null, tx: MapaText): string | null {
-  if (error === ANALYSIS_ERRORS.pointValue) return tx.t('MapaAnalysis.errors.pointValue')
-  if (error === ANALYSIS_ERRORS.stats) return tx.t('MapaAnalysis.errors.stats')
-  return error
-}
+const ANALYSIS_ERRORS = {
+  pointValue: { key: 'MapaAnalysis.errors.pointValue' },
+  stats:      { key: 'MapaAnalysis.errors.stats' },
+} as const satisfies Record<string, StoredText>
 
 export interface PendingAnalysis {
   layer: RasterLayerConfig

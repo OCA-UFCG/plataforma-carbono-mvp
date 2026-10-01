@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { geomHash, pendingAnalyses, statsCacheKey, timeSeriesCacheKey } from '@/lib/mapa/analysisRunner'
+import {
+  bumpAnalysisSeq, geomHash, pendingAnalyses, runLayerAnalysis, statsCacheKey, timeSeriesCacheKey,
+} from '@/lib/mapa/analysisRunner'
+import { useStore } from '@/lib/mapa/store'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
 
 const gee = (id: string, temporal = false): RasterLayerConfig => ({
@@ -77,7 +80,7 @@ describe('pendingAnalyses', () => {
     const a = gee('estoque_carbono')
     const failed: LayerResult = {
       layerId: 'estoque_carbono', status: 'error', stats: null, pixelValue: null,
-      error: 'Falha ao calcular estatísticas. Tente novamente.',
+      error: { key: 'MapaAnalysis.errors.stats' },
     }
     const out = pendingAnalyses(input({
       rasters: [a],
@@ -113,6 +116,22 @@ describe('pendingAnalyses', () => {
     }))
 
     expect(out).toEqual([])
+  })
+})
+
+describe('runLayerAnalysis', () => {
+  // The card outlives a language switch: it keeps the message's key, and the
+  // panel writes the sentence in the language of the moment.
+  it('keeps the failure of a card as a message key, not as a sentence', async () => {
+    const layer = gee('estoque_carbono')
+    const point = { type: 'Point', coordinates: [-40, -9] } as GeoJSON.Point
+
+    await runLayerAnalysis(layer, { geometry: point, geometryType: 'point' }, undefined, bumpAnalysisSeq())
+
+    expect(useStore.getState().results.estoque_carbono).toMatchObject({
+      status: 'error',
+      error: { key: 'MapaAnalysis.errors.pointValue' },
+    })
   })
 })
 

@@ -43,9 +43,7 @@ import {
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
-import { COORDINATE_ORIGIN, coordinateLabel } from '@/lib/mapa/parseCoordinates'
-import { ANALYSIS_KINDS } from '@/lib/mapa/analysisSubject'
-import { WFS_ERROR_PREFIX } from './layerErrors'
+import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
@@ -461,8 +459,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const setDrawnLength  = useStore((s) => s.setDrawnLength)
   const clearResults        = useStore((s) => s.clearResults)
   const setSelectedGeometry = useStore((s) => s.setSelectedGeometry)
-  const setAnalysisLabel = useStore((s) => s.setAnalysisLabel)
-  const setAnalysisKind  = useStore((s) => s.setAnalysisKind)
+  const setAnalysisSubject = useStore((s) => s.setAnalysisSubject)
 
   // Last applied layer-id order, so the expensive z-order resync (moveLayer +
   // getStyle) only runs when the order actually changes, not on every opacity
@@ -608,8 +605,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         setDrawnArea(null)
         setDrawnLength(null)
         clearResults()
-        setAnalysisLabel(null)
-        setAnalysisKind(null)
+        setAnalysisSubject(null)
         return true
       }
       dismissFeatureSelectionRef.current = dismissFeatureSelection
@@ -638,20 +634,21 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         setDrawnLength(null)
         clearResults()
         // A typed geometry is announced as "Coordenadas", with the coordinate
-        // itself as the label. Both come off the feature's properties rather
-        // than from an argument, so a drawing restored from localStorage --
-        // which comes back as a bare GeoJSON feature -- keeps its chip.
+        // itself as the label. Its origin comes off the feature's properties
+        // rather than from an argument, so a drawing restored from localStorage
+        // -- which comes back as a bare GeoJSON feature -- keeps its chip.
         //
-        // The store holds the Portuguese kind and label (`ANALYSIS_KINDS`,
-        // `coordinateLabel` without a `MapaText`): they outlive a language
-        // switch, so ResultsSidebar turns them into the current language when it
-        // renders (lib/mapa/analysisSubject.ts).
+        // The store holds the shape, not its words: ResultsSidebar names it,
+        // and rebuilds a typed coordinate's label from the drawing, in the
+        // language of the moment (lib/mapa/analysisSubject.ts).
         const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
-        setAnalysisLabel(typed ? coordinateLabel(feature) : null)
-        const drawnKind = feature.geometry.type === 'Point' ? ANALYSIS_KINDS.point
-          : feature.geometry.type === 'LineString' ? ANALYSIS_KINDS.line
-            : ANALYSIS_KINDS.area
-        setAnalysisKind(typed ? ANALYSIS_KINDS.coordinates : drawnKind)
+        setAnalysisSubject({
+          kind: 'drawn',
+          shape: typed ? 'coordinates'
+            : feature.geometry.type === 'Point' ? 'point'
+              : feature.geometry.type === 'LineString' ? 'line'
+                : 'area',
+        })
         clearSelectedFeature()
         setSelectedGeometry(null)
 
@@ -886,16 +883,16 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         }
 
         // Name the analysis after the selected feature (from its hover label
-        // field) so the results card is never ambiguous about its source.
+        // field) so the results card is never ambiguous about its source. The
+        // feature's name is data; the layer is kept by id, and ResultsSidebar
+        // names it ("Município") in the language of the moment.
         const labelField = vector.hoverLabelField
         const featureName = labelField ? properties?.[labelField] : undefined
-        setAnalysisLabel(
-          featureName != null && featureName !== '' ? String(featureName) : vector.name,
-        )
-        // Singular, as the header's eyebrow over the feature name ("Município").
-        // Like the label above, it is the layer's Portuguese text from layers.json;
-        // ResultsSidebar looks the layer up to show it in the current language.
-        setAnalysisKind(vector.unitName ?? vector.name)
+        setAnalysisSubject({
+          kind: 'recorte',
+          layerId: vector.id,
+          featureName: featureName != null && featureName !== '' ? String(featureName) : null,
+        })
 
         // Use the COMPLETE geometry from the source GeoJSON, not the
         // tile-clipped one from queryRenderedFeatures, so area and zonal
@@ -965,8 +962,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         setDrawnArea(null)
         setDrawnLength(null)
         clearResults()
-        setAnalysisLabel(null)
-        setAnalysisKind(null)
+        setAnalysisSubject(null)
         selectedFeatureRef.current = { source: layerId, id: featureId }
         map.setFeatureState({ source: layerId, id: featureId }, { selected: true })
 
@@ -1253,7 +1249,7 @@ useEffect(() => {
                 loadingLayers: nextLoading,
                 layerErrors: {
                   ...s.layerErrors,
-                  [layer.id]: `${WFS_ERROR_PREFIX}${err.message}`,
+                  [layer.id]: { key: 'MapaUiLayerErrors.wfs', values: { message: err.message } },
                 },
               }
             })

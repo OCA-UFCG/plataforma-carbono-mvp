@@ -8,20 +8,20 @@ import { useTranslations } from 'next-intl'
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
 import { adaptive } from '@/lib/mapa/results/format'
 import { useMapaText } from '@/lib/mapa/useMapaText'
-import { localizeClassLabel } from '@/lib/mapa/text'
+import { pixelClassLabel } from '@/lib/mapa/text'
 import type { PixelValueResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 import { Footnote, Hero, Stack } from './blocks'
 import { sourceOf } from './LayerResultView'
 
-// `layer` arrives localized from `LayerResultCard`; only the class label of the
-// pixel is still Portuguese, since `pixelCache` stores it as the server read it.
+// `layer` arrives localized from `LayerResultCard`, so the pixel's class is named
+// from the layer's own classes.
 export default function PointValue({ theme, layer, pixel }: {
   theme: PlatformTheme; layer: RasterLayerConfig; pixel: PixelValueResult
 }) {
   const c = theme.colors
   const t = useTranslations('MapaOvResults')
   const tx = useMapaText()
-  const label = localizeClassLabel(layer.id, pixel.label, tx)
+  const label = pixelClassLabel(layer, pixel, tx)
   let hero: React.ReactNode
   if (layer.signedFlux) {
     const flux = describeFlux(pixel.value, tx)

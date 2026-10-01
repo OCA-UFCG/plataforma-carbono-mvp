@@ -7,6 +7,8 @@ import type {
   RasterLayerConfig,
   PanelResult,
   SelectedGeometry,
+  StoredText,
+  AnalysisSubject,
 } from '@/types/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
@@ -81,12 +83,10 @@ interface MapaStore {
   // What the results refer to. MapView kept this in a ref while nothing outside
   // the map needed it; a failed card's "Tentar novamente" does, so it is state.
   selectedGeometry: SelectedGeometry | null
-  // Human label for what's being analysed (e.g. "Campina Grande"), shown in
-  // the results card so the numbers are never ambiguous about their source.
-  analysisLabel: string | null
-  // Kind of cut the analysis came from (e.g. "Municípios", "Área desenhada"),
-  // rendered as the chip above the label in the results panel.
-  analysisKind: string | null
+  // What is being analysed (a drawn area, the municipality of Campina Grande),
+  // shown in the results card so the numbers are never ambiguous about their
+  // source. Ids, not words: the panel names it in the language of the moment.
+  analysisSubject: AnalysisSubject | null
   clearSignal: number
   /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
   homeSignal: number
@@ -103,7 +103,7 @@ interface MapaStore {
   // Dynamic layer (GEE) state
   fetchedTileUrls:  Record<string, string>
   loadingLayers:    Record<string, boolean>
-  layerErrors:      Record<string, string>
+  layerErrors:      Record<string, StoredText>
   // Jenks break values per layer, computed once biome-wide by /api/gee/tile.
   // Reused so per-feature stats and point classes match the map colors.
   jenksBreaks:      Record<string, number[]>
@@ -134,8 +134,7 @@ interface MapaStore {
   setLayerResult:      (result: LayerResult) => void
   clearResults:        () => void
   setSelectedGeometry: (geom: SelectedGeometry | null) => void
-  setAnalysisLabel: (v: string | null) => void
-  setAnalysisKind:  (v: string | null) => void
+  setAnalysisSubject: (v: AnalysisSubject | null) => void
   setBasemap:     (id: string) => void
   setView:        (v: PersistedView) => void
   setDrawing:     (f: GeoJSON.Feature | null) => void
@@ -161,8 +160,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   drawnLength: null,
   results: {},
   selectedGeometry: null,
-  analysisLabel: null,
-  analysisKind: null,
+  analysisSubject: null,
   clearSignal: 0,
   homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
@@ -294,8 +292,7 @@ export const useStore = create<MapaStore>((set, get) => ({
     set((s) => ({ results: { ...s.results, [result.layerId]: result } })),
   clearResults: () => set({ results: {} }),
   setSelectedGeometry: (geom) => set({ selectedGeometry: geom }),
-  setAnalysisLabel: (v)    => set({ analysisLabel: v }),
-  setAnalysisKind:  (v)    => set({ analysisKind: v }),
+  setAnalysisSubject: (v) => set({ analysisSubject: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
   toggleDarkMode: () =>
     set((s) => {
@@ -323,8 +320,7 @@ export const useStore = create<MapaStore>((set, get) => ({
       drawMode: null,
       results: {},
       selectedGeometry: null,
-      analysisLabel: null,
-      analysisKind: null,
+      analysisSubject: null,
       clearSignal: s.clearSignal + 1,
     })),
 
@@ -412,7 +408,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       console.error('[activateDynamicLayer]', msg)
       set((s) => ({
         loadingLayers: omitKey(s.loadingLayers, id),
-        layerErrors:   { ...s.layerErrors, [id]: msg },
+        // The API's own message, shown as it came back.
+        layerErrors:   { ...s.layerErrors, [id]: { text: msg } },
       }))
     }
   },
@@ -474,7 +471,7 @@ export const useStore = create<MapaStore>((set, get) => ({
       console.error('[setTemporalDate]', msg)
       set((s) => ({
         loadingLayers: omitKey(s.loadingLayers, layerId),
-        layerErrors:   { ...s.layerErrors, [layerId]: msg },
+        layerErrors:   { ...s.layerErrors, [layerId]: { text: msg } },
       }))
     }
   },

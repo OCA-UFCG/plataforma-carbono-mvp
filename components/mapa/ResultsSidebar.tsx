@@ -9,9 +9,9 @@ import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { layerMetaText } from '@/config/mapa/layerMeta'
-import { localizeAnalysisKind, localizeAnalysisLabel } from '@/lib/mapa/analysisSubject'
+import { describeAnalysisSubject } from '@/lib/mapa/analysisSubject'
 import { formatNumber } from '@/lib/mapa/locale'
-import { layerName, localizeClassLabel, localizeLayer } from '@/lib/mapa/text'
+import { layerName, localizeLayer } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
 import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
@@ -45,8 +45,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
   const selectedGeometry = useStore((s) => s.selectedGeometry)
-  const storedLabel      = useStore((s) => s.analysisLabel)
-  const storedKind       = useStore((s) => s.analysisKind)
+  const subject          = useStore((s) => s.analysisSubject)
   const drawing          = useStore((s) => s.drawing)
   const layers           = useStore((s) => s.layers)
   const temporalDate     = useStore((s) => s.temporalDate)
@@ -54,10 +53,10 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
   const c = theme.colors
 
-  // The store keeps the subject of the analysis in Portuguese, written when the
-  // user clicked or drew; it is turned into the current language here.
-  const analysisKind  = localizeAnalysisKind(storedKind, layers, tx, (key) => t(`kinds.${key}`))
-  const analysisLabel = localizeAnalysisLabel(storedLabel, storedKind, drawing, layers, tx)
+  // The store keeps the subject of the analysis as ids, written when the user
+  // clicked or drew; it is named here, in the current language.
+  const { kind: analysisKind, label: analysisLabel } =
+    describeAnalysisSubject(subject, drawing, layers, tx, (shape) => t(`kinds.${shape}`))
 
   // One card per visible raster, in panel order (topmost first), whether or
   // not it has an answer yet: a layer still computing shows its skeleton.
@@ -143,17 +142,13 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
       generatedAt: new Date(),
       layers: measured.map((raster) => {
         const local = localizeLayer(raster, tx)
-        // `pixelCache` keeps the class label in Portuguese, like the panel's
-        // own PointValue; without this the file would name the class in
-        // Portuguese under English headers.
-        const pixel = results[raster.id]?.pixelValue ?? null
         return {
           layerName:    local.name,
           layerUnit:    local.unit,
           layerClasses: local.classes,
           signedFlux:   local.signedFlux,
           year:         temporalDate[raster.id]?.slice(0, 4),
-          pixelValue:   pixel && { ...pixel, label: localizeClassLabel(raster.id, pixel.label, tx) },
+          pixelValue:   results[raster.id]?.pixelValue ?? null,
           stats:        results[raster.id]?.stats ?? null,
           profile:      getResultProfile(raster.id, tx),
           source:       layerMetaText(raster.id, tx)?.source,

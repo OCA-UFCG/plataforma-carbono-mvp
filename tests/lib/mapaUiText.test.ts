@@ -1,21 +1,15 @@
-// The render-time translation of text the map stores in Portuguese (the subject
-// of an analysis, a layer error) and the phase name used inside a sentence.
+// The render-time text of what the map stores as ids (the subject of an
+// analysis) and the phase name used inside a sentence.
 
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import layersConfig from '@/config/mapa/layers.json'
-import {
-  ANALYSIS_KINDS,
-  localizeAnalysisKind,
-  localizeAnalysisLabel,
-} from '@/lib/mapa/analysisSubject'
-import { ANALYSIS_ERRORS } from '@/lib/mapa/analysisRunner'
+import { describeAnalysisSubject } from '@/lib/mapa/analysisSubject'
 import { buildCoordinatePoint } from '@/lib/mapa/parseCoordinates'
 import { createMapaText, type MapaText } from '@/lib/mapa/text'
-import { WFS_ERROR_PREFIX, localizeLayerError } from '@/components/mapa/layerErrors'
 import { phaseInSentence } from '@/components/mapa/phaseText'
-import type { LayerConfig } from '@/types/mapa'
+import type { AnalysisSubject, DrawnShape, LayerConfig } from '@/types/mapa'
 
 const TRANSLATIONS = path.resolve(import.meta.dirname, '../../translations')
 
@@ -30,59 +24,44 @@ const EN: MapaText = createMapaText('en', messagesOf('en'))
 const layers = layersConfig.layers as LayerConfig[]
 
 // What ResultsSidebar passes: the kind of a drawn shape read from MapaUiResultsSidebar.
-const drawnKind = (tx: MapaText) => (key: keyof typeof ANALYSIS_KINDS) =>
-  tx.t(`MapaUiResultsSidebar.kinds.${key}`)
+const drawnKind = (tx: MapaText) => (shape: DrawnShape) => tx.t(`MapaUiResultsSidebar.kinds.${shape}`)
 
-describe('localizeAnalysisKind', () => {
-  it('keeps the Portuguese messages equal to the canonical kinds the store holds', () => {
-    for (const key of Object.keys(ANALYSIS_KINDS) as (keyof typeof ANALYSIS_KINDS)[]) {
-      expect(drawnKind(PT)(key), key).toBe(ANALYSIS_KINDS[key])
-    }
+// The store keeps the subject as ids; the panel writes it in the language of
+// the moment, so a card that outlives a language switch follows it.
+describe('describeAnalysisSubject', () => {
+  const describeIn = (tx: MapaText, subject: AnalysisSubject | null, drawing: GeoJSON.Feature | null = null) =>
+    describeAnalysisSubject(subject, drawing, layers, tx, drawnKind(tx))
+
+  it('names a drawn shape in the current language, with no label of its own', () => {
+    expect(describeIn(EN, { kind: 'drawn', shape: 'area' })).toEqual({ kind: 'Drawn area', label: null })
+    expect(describeIn(PT, { kind: 'drawn', shape: 'area' })).toEqual({ kind: 'Área desenhada', label: null })
   })
 
-  it('turns the stored Portuguese kind of a drawn shape into the current language', () => {
-    expect(localizeAnalysisKind(ANALYSIS_KINDS.area, layers, EN, drawnKind(EN))).toBe('Drawn area')
-    expect(localizeAnalysisKind(ANALYSIS_KINDS.coordinates, layers, EN, drawnKind(EN))).toBe('Coordinates')
-    expect(localizeAnalysisKind(ANALYSIS_KINDS.area, layers, PT, drawnKind(PT))).toBe('Área desenhada')
-  })
-
-  it('looks a recorte up by its unit name', () => {
-    expect(localizeAnalysisKind('Município', layers, EN, drawnKind(EN))).toBe('Municipality')
-    expect(localizeAnalysisKind('Município', layers, PT, drawnKind(PT))).toBe('Município')
-  })
-
-  it('leaves an unknown kind and null alone', () => {
-    expect(localizeAnalysisKind('algo novo', layers, EN, drawnKind(EN))).toBe('algo novo')
-    expect(localizeAnalysisKind(null, layers, EN, drawnKind(EN))).toBeNull()
-  })
-})
-
-describe('localizeAnalysisLabel', () => {
-  it('rebuilds the label of a typed coordinate from the drawing', () => {
+  it('writes the label of a typed coordinate from the drawing itself', () => {
     const point = buildCoordinatePoint([-38.5, -8.25])
-    const pt = localizeAnalysisLabel('stale', ANALYSIS_KINDS.coordinates, point, layers, PT)
-    const en = localizeAnalysisLabel('stale', ANALYSIS_KINDS.coordinates, point, layers, EN)
-    expect(pt).toContain('O')
-    expect(en).toContain('W')
-    expect(en).not.toContain('stale')
+    const pt = describeIn(PT, { kind: 'drawn', shape: 'coordinates' }, point)
+    const en = describeIn(EN, { kind: 'drawn', shape: 'coordinates' }, point)
+
+    expect(en.kind).toBe('Coordinates')
+    expect(pt.label).toContain('O')
+    expect(en.label).toContain('W')
   })
 
-  it('translates a label that is a layer name and keeps a feature name', () => {
-    expect(localizeAnalysisLabel('Municípios', 'Município', null, layers, EN)).toBe('Municipalities')
-    expect(localizeAnalysisLabel('Petrolina', 'Município', null, layers, EN)).toBe('Petrolina')
-    expect(localizeAnalysisLabel(null, null, null, layers, EN)).toBeNull()
-  })
-})
+  it('names a recorte by its unit name and keeps the feature name, which is data', () => {
+    const subject: AnalysisSubject = { kind: 'recorte', layerId: 'municipios', featureName: 'Petrolina' }
 
-describe('localizeLayerError', () => {
-  it('rebuilds the WFS error and the analysis errors', () => {
-    expect(localizeLayerError(`${WFS_ERROR_PREFIX}timeout`, EN)).toBe('Failed to load WFS: timeout')
-    expect(localizeLayerError(`${WFS_ERROR_PREFIX}timeout`, PT)).toBe(`${WFS_ERROR_PREFIX}timeout`)
-    expect(localizeLayerError(ANALYSIS_ERRORS.stats, EN)).toBe(EN.t('MapaAnalysis.errors.stats'))
+    expect(describeIn(EN, subject)).toEqual({ kind: 'Municipality', label: 'Petrolina' })
+    expect(describeIn(PT, subject)).toEqual({ kind: 'Município', label: 'Petrolina' })
   })
 
-  it('shows an unrecognised message as it is', () => {
-    expect(localizeLayerError('API error 500', EN)).toBe('API error 500')
+  it('falls back to the layer name for a feature with no name of its own', () => {
+    const subject: AnalysisSubject = { kind: 'recorte', layerId: 'municipios', featureName: null }
+
+    expect(describeIn(EN, subject).label).toBe('Municipalities')
+  })
+
+  it('names nothing when there is no subject', () => {
+    expect(describeIn(EN, null)).toEqual({ kind: null, label: null })
   })
 })
 

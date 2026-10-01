@@ -11,8 +11,7 @@ import { slotBefore } from '@/lib/mapa/dropSlot'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { layerKindLabel, layerMetaText } from '@/config/mapa/layerMeta'
 import { localizedThemes, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
-import { layerName, layerUnit } from '@/lib/mapa/text'
-import { localizeLayerError } from './layerErrors'
+import { layerName, layerUnit, storedText } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
@@ -581,7 +580,7 @@ function LayerRow({
       {/* error */}
       {errorMsg && (
         <div style={{ marginTop: 7, background: '#fee2e2', color: '#b91c1c', borderRadius: 6, padding: '6px 8px', fontSize: 11.5, display: 'flex', gap: 6 }}>
-          <span style={{ flex: 1, wordBreak: 'break-word' }}>{localizeLayerError(errorMsg, tx)}</span>
+          <span style={{ flex: 1, wordBreak: 'break-word' }}>{storedText(errorMsg, tx)}</span>
           <button onClick={() => clearLayerError(layer.id)} title={t('dismiss')} aria-label={t('dismissError')} style={{ background: 'transparent', border: 'none', color: '#b91c1c', cursor: 'pointer', padding: 0, lineHeight: 1, display: 'flex' }}><IcX size={12} /></button>
         </div>
       )}

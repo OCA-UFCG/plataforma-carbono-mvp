@@ -152,7 +152,9 @@ describe('buildAnalysisCsv', () => {
       drawnLength: 3.2,
       layers: [layer({
         layerUnit: 't C/ha',
-        pixelValue: { value: 38.25, label: 'Formação Florestal' },
+        // The class is named from the layer's own (localized) classes.
+        layerClasses: [{ value: 3, label: 'Formação Florestal', color: '#1f8d49' }],
+        pixelValue: { value: 38.25, classValue: 3 },
       })],
     })
 

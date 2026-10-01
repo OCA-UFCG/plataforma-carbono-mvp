@@ -20,7 +20,7 @@
 
 import { createTranslator } from 'next-intl'
 import type { Locale } from '@/translations/config'
-import type { LayerConfig, RasterClass } from '@/types/mapa'
+import type { LayerConfig, PixelValueResult, RasterClass, StoredText } from '@/types/mapa'
 
 import MapaAnalysisPt from '@/translations/pt/MapaAnalysis.json'
 import MapaBasemapsPt from '@/translations/pt/MapaBasemaps.json'
@@ -97,6 +97,11 @@ export function lookup(
   return tx && tx.t.has(key) ? tx.t(key, values) : fallback
 }
 
+/** A message the store kept, written in the language of `tx`. */
+export function storedText(message: StoredText, tx: MapaText): string {
+  return 'key' in message ? tx.t(message.key, message.values) : message.text
+}
+
 // Layers
 
 /** Units that carry Portuguese words, by the pt string. Any other unit (`t C/ha`, `Mg/ha`) is universal. */
@@ -135,16 +140,14 @@ export function classLabel(layerId: string, cls: Pick<RasterClass, 'value' | 'la
   return lookup(tx, `MapaLayers.layers.${layerId}.classes.${cls.value}`, cls.label)
 }
 
-/**
- * Translates a class label that was resolved (and possibly cached) in
- * Portuguese, such as `PixelValueResult.label`, back to the class it names.
- * Unknown labels, and labels already translated, come back unchanged.
- */
-export function localizeClassLabel(layerId: string, label: string | undefined, tx?: MapaText): string | undefined {
-  if (label === undefined) return undefined
-  const classes = (MapaLayersPt.MapaLayers.layers as Record<string, { classes?: Record<string, string> }>)[layerId]?.classes
-  const code = classes && Object.keys(classes).find((key) => classes[key] === label)
-  return code === undefined ? label : lookup(tx, `MapaLayers.layers.${layerId}.classes.${code}`, label)
+/** Name of the class a sampled pixel falls in; undefined when the pixel has none. */
+export function pixelClassLabel(
+  layer: { id: string; classes?: RasterClass[] },
+  pixel: Pick<PixelValueResult, 'classValue'>,
+  tx?: MapaText,
+): string | undefined {
+  const cls = pixel.classValue === undefined ? undefined : layer.classes?.find((c) => c.value === pixel.classValue)
+  return cls && classLabel(layer.id, cls, tx)
 }
 
 export function layerClasses(layer: { id: string; classes?: RasterClass[] }, tx?: MapaText): RasterClass[] | undefined {
@@ -173,12 +176,13 @@ export function layerKind(kind: string, tx?: MapaText): string {
   return key ? lookup(tx, `MapaLayers.kinds.${key}`, kind) : kind
 }
 
-/** Label of a carbon pool of the stock report, by band ("b2"), from the server-side Portuguese label. */
+/**
+ * Label of a carbon pool of the stock report, by its band ("b2"): the band is
+ * the pool's id (gee.stocks.pools, one stocks layer), and the Portuguese label
+ * the server sends along is only the fallback.
+ */
 export function poolLabel(band: string, fallback: string, tx?: MapaText): string {
-  // Only a label the config really gives that band is translated: the band id
-  // alone is not enough, since a caller may hold a pool of its own under it.
-  const known = (MapaLayersPt.MapaLayers.stockPools as Record<string, string>)[band]
-  return known === fallback ? lookup(tx, `MapaLayers.stockPools.${band}`, fallback) : fallback
+  return lookup(tx, `MapaLayers.stockPools.${band}`, fallback)
 }
 
 /**

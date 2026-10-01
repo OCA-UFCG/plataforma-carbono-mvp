@@ -22,14 +22,14 @@ import {
   layerSource,
   layerUnit,
   layerUnitName,
-  localizeClassLabel,
+  pixelClassLabel,
   localizeLayer,
   poolLabel,
+  storedText,
   type MapaText,
 } from '@/lib/mapa/text'
 import { describeFlux } from '@/lib/mapa/carbonFlux'
 import { analysisHint } from '@/lib/mapa/analysisTargets'
-import { localizeAnalysisError, ANALYSIS_ERRORS } from '@/lib/mapa/analysisRunner'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { numero, numeroCsv } from '@/lib/mapa/format'
 import { buildNarrative } from '@/lib/mapa/reportNarrative'
@@ -151,15 +151,21 @@ describe('English text covers the whole config', () => {
     expect(en.id).toBe(lulc.id)
   })
 
-  it('translates a class label cached in Portuguese', () => {
-    expect(localizeClassLabel('degradacao_terra', 'Conservado', EN)).toBe('Conserved')
-    expect(localizeClassLabel('degradacao_terra', 'Conserved', EN)).toBe('Conserved')
-    expect(localizeClassLabel('degradacao_terra', undefined, EN)).toBeUndefined()
+  it('names the class of a sampled pixel by its value', () => {
+    const degradacao = (layersConfig.layers as RasterLayerConfig[]).find((l) => l.id === 'degradacao_terra')!
+
+    expect(pixelClassLabel(degradacao, { classValue: 6 }, EN)).toBe('Conserved')
+    expect(pixelClassLabel(degradacao, { classValue: 6 }, PT)).toBe('Conservado')
+    // Idempotent over a layer already localized, as the panel passes it.
+    expect(pixelClassLabel(localizeLayer(degradacao, EN), { classValue: 6 }, EN)).toBe('Conserved')
+    expect(pixelClassLabel(degradacao, {}, EN)).toBeUndefined()
   })
 
-  it('translates the stock pools only for the label the config gives the band', () => {
+  it('names a stock pool by its band, whatever text came with it', () => {
     expect(poolLabel('b2', 'Biomassa acima do solo', EN)).toBe('Aboveground biomass')
-    expect(poolLabel('b2', 'Carbono do solo', EN)).toBe('Carbono do solo')
+    // The band is the id: the server's Portuguese text is only the fallback.
+    expect(poolLabel('b2', 'biomassa acima do solo (Mg)', EN)).toBe('Aboveground biomass')
+    expect(poolLabel('b9', 'Outro reservatório', EN)).toBe('Outro reservatório')
   })
 
   it('themes, months, phases, basemaps', () => {
@@ -229,11 +235,12 @@ describe('English pure functions', () => {
     expect(analysisHint([bioma], PT)).toBe(analysisHint([bioma]))
   })
 
-  it('stored analysis errors follow the language at display time', () => {
-    expect(localizeAnalysisError(ANALYSIS_ERRORS.stats, EN)).toBe('Failed to compute statistics. Please try again.')
-    expect(localizeAnalysisError(ANALYSIS_ERRORS.pointValue, PT)).toBe(ANALYSIS_ERRORS.pointValue)
-    expect(localizeAnalysisError('boom', EN)).toBe('boom')
-    expect(localizeAnalysisError(null, EN)).toBeNull()
+  it('stored messages follow the language at display time', () => {
+    expect(storedText({ key: 'MapaAnalysis.errors.stats' }, EN)).toBe('Failed to compute statistics. Please try again.')
+    expect(storedText({ key: 'MapaAnalysis.errors.stats' }, PT)).toBe('Falha ao calcular estatísticas. Tente novamente.')
+    expect(storedText({ key: 'MapaUiLayerErrors.wfs', values: { message: 'timeout' } }, EN)).toBe('Failed to load WFS: timeout')
+    // A text that came back from an API route is shown as it is.
+    expect(storedText({ text: 'API error 500' }, EN)).toBe('API error 500')
   })
 
   it('coordinates: errors, hemisphere letters and the rebuilt label', () => {

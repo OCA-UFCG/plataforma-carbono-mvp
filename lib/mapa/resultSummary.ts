@@ -10,7 +10,7 @@ import { getResultProfile, type ResultProfile } from '@/config/mapa/resultProfil
 import { profiledSummary } from '@/lib/mapa/results/headline'
 import { numero } from '@/lib/mapa/format'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
-import { PT_TEXT, localizeClassLabel, unitLabel, type MapaText } from '@/lib/mapa/text'
+import { PT_TEXT, pixelClassLabel, unitLabel, type MapaText } from '@/lib/mapa/text'
 
 /**
  * `layer` is expected already localized (`localizeLayer`): unit and class
@@ -31,9 +31,9 @@ export function resultSummary(
   const suffix = (unit?: string) => (unit ? ` ${unit}` : '')
 
   if (result.pixelValue) {
-    const { value, label } = result.pixelValue
     // A class code means nothing to the reader: the class name stands alone.
-    return localizeClassLabel(layer.id, label, tx) ?? `${numero(value, 2, tx.locale)}${suffix(layer.unit)}`
+    return pixelClassLabel(layer, result.pixelValue, tx)
+      ?? `${numero(result.pixelValue.value, 2, tx.locale)}${suffix(layer.unit)}`
   }
 
   const stats = result.stats

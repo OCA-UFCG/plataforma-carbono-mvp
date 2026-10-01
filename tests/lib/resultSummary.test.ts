@@ -25,7 +25,7 @@ describe('resultSummary', () => {
   })
 
   it('is null on error, so the card shows the message instead', () => {
-    expect(resultSummary(layer(), result({ status: 'error', error: 'x' }))).toBeNull()
+    expect(resultSummary(layer(), result({ status: 'error', error: { text: 'x' } }))).toBeNull()
   })
 
   it('gives the mean with the unit for a continuous layer', () => {
@@ -109,12 +109,19 @@ describe('resultSummary', () => {
   })
 
   it('gives the class name alone for a point on a class layer', () => {
+    const pasture = { value: 15, label: 'Pastagem', color: '#edde8e' }
     const summary = resultSummary(
-      layer({ unit: 'classe' }),
-      result({ pixelValue: { value: 3, label: 'Pastagem' } }),
+      layer({ id: 'lulc_mapbiomas', unit: 'classe', classes: [pasture] }),
+      result({ pixelValue: { value: 15, classValue: 15 } }),
     )
 
     expect(summary).toBe('Pastagem')
+    // Looked up by the class value, so it follows the language.
+    expect(resultSummary(
+      layer({ id: 'lulc_mapbiomas', unit: 'classe', classes: [pasture] }),
+      result({ pixelValue: { value: 15, classValue: 15 } }),
+      createMapaText('en', appMessages('en')),
+    )).toBe('Pasture')
   })
 
   it('gives the bare pixel value when the layer has no classes', () => {

@@ -8,13 +8,12 @@ import { IcChevronDown } from './icons'
 import LayerResultView from './results/LayerResultView'
 import PointValue from './results/PointValue'
 import { Empty } from './results/blocks'
-import { localizeLayerError } from './layerErrors'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { currentAnalysisSeq, runLayerAnalysis } from '@/lib/mapa/analysisRunner'
 import { resultSummary } from '@/lib/mapa/resultSummary'
 import { layerTitle } from '@/lib/mapa/results/format'
 import { layerPeriod } from '@/lib/mapa/results/period'
-import { localizeLayer } from '@/lib/mapa/text'
+import { localizeLayer, storedText } from '@/lib/mapa/text'
 import { useMapaText } from '@/lib/mapa/useMapaText'
 import type {
   LayerResult, PlatformTheme, RasterLayerConfig, SelectedGeometry,
@@ -132,7 +131,7 @@ export default function LayerResultCard({
 
           {result?.status === 'error' && (
             <>
-              <ErrorCard theme={theme} message={result.error ? localizeLayerError(result.error, tx) : t('failed')} />
+              <ErrorCard theme={theme} message={result.error ? storedText(result.error, tx) : t('failed')} />
               {geometry && (
                 <button
                   className="ui-press"
