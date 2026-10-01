@@ -7,7 +7,7 @@ import type { ResultProfile } from '@/config/mapa/resultProfiles'
 import { describeFlux } from '@/lib/mapa/carbonFlux'
 import type { PanelResult, RasterLayerConfig } from '@/types/mapa'
 import { nominalSummary, ordinalSummary } from './composition'
-import { adaptive, percentShort, quantity } from './format'
+import { adaptive, percentShort, quantity, stockTc } from './format'
 import { recurrenceSummary } from './recurrence'
 import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
@@ -33,7 +33,8 @@ export function profiledSummary(
       if (stats.kind !== 'stocks') return null
       const band = layer.gee?.asset.band ?? STOCK_TOTAL_BAND
       const pool = band === STOCK_TOTAL_BAND ? null : stats.report.pools.find((p) => p.band === band)
-      const q = quantity(pool ? pool.tc : stats.report.totalTc, 't C', tx)
+      // As the open card and the report write it: "12 Mt C", not "12,0 Mt C".
+      const q = stockTc(pool ? pool.tc : stats.report.totalTc, tx.locale)
       return `${q.value} ${q.unit}`
     }
     case 'amount': {

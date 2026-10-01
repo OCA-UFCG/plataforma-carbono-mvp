@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { resultSummary } from '@/lib/mapa/resultSummary'
+import { createMapaText } from '@/lib/mapa/text'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
+import { appMessages } from '../helpers/intl'
 
 const layer = (over: Partial<RasterLayerConfig> = {}): RasterLayerConfig => ({
   id: 'estoque_carbono', name: 'Estoque de carbono', type: 'raster',
@@ -129,5 +131,17 @@ describe('resultSummary', () => {
     }))
 
     expect(summary).toBe('1,9 Mt C')
+  })
+
+  it('writes a whole stock without a trailing zero, as the open card does', () => {
+    const stocks = result({
+      stats: {
+        kind: 'stocks',
+        report: { totalTc: 12_000_000, areaHa: 47_115, unit: 't C', pools: [], classes: [] },
+      },
+    })
+
+    expect(resultSummary(layer(), stocks)).toBe('12 Mt C')
+    expect(resultSummary(layer(), stocks, createMapaText('en', appMessages('en')))).toBe('12 Mt C')
   })
 })
