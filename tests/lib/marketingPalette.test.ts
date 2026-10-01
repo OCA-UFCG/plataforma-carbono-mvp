@@ -100,6 +100,14 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-secundario', '--role-primario-texto-sobre'],
   ['--am-400', '--role-primario-texto-sobre'],
   ['--bg-texto-primario', '--role-primario-texto-sobre'],
+  // Ferramenta's band (Figma 18862:8547) is -categorica2-hover: its eyebrow
+  // (--am-200), title (-ctx-positivo-texto-sobre), body and list; its button
+  // label is --primary-foreground at rest and on the hover fill (18916:9764).
+  ['--am-200', '--role-categorica2-hover'],
+  ['--ctx-positivo-texto-sobre', '--role-categorica2-hover'],
+  ['--bg-texto-sobre-inverso', '--role-categorica2-hover'],
+  ['--primary-foreground', '--role-categorica1-padrao'],
+  ['--primary-foreground', '--role-categorica1-hover'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
