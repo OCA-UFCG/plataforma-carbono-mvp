@@ -6,7 +6,7 @@ import {
 } from './icons'
 import { useStore } from '@/lib/mapa/store'
 import { orderThemes } from '@/lib/mapa/layerOrder'
-import { slotBefore } from '@/lib/mapa/dropSlot'
+import { keepSlot, slotBefore, type DropSlot } from '@/lib/mapa/dropSlot'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
@@ -72,10 +72,11 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 
   const onThemeDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     // A subtheme drag, a file or a text selection: not a theme drop.
-    if (!themeDrag) return
+    if (!themeDrag || !carries(event, THEME_DRAG_TYPE)) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    setThemeDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]')) })
+    const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]'))
+    setThemeDrop((prev) => keepSlot(prev, before))
   }
 
   // Past the zone's edge a release drops nothing, so the line goes too. A move
@@ -86,7 +87,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   }
 
   const onThemeDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!themeDrag) return
+    if (!themeDrag || !carries(event, THEME_DRAG_TYPE)) return
     event.preventDefault()
     if (themeDrop) moveTheme(themeDrag, themeDrop.before)
     clearThemeDrag()
@@ -276,8 +277,12 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 const THEME_DRAG_TYPE = 'application/x-caativar-theme'
 const SUBTHEME_DRAG_TYPE = 'application/x-caativar-subtheme'
 
-/** The slot a drop would use: in front of the section with this id, or the end (null). */
-type DropSlot = { before: string | null } | null
+// Whether a drag carries this payload type. A zone checks it besides its own
+// drag state: the state alone would claim the other kind's drag, or a file, if
+// a dragend were ever lost, and drop a stale move.
+function carries(event: React.DragEvent, type: string) {
+  return event.dataTransfer.types.includes(type)
+}
 
 // Midpoint of each section a drop can land between, read from its header, so an
 // open section's long list does not push its midpoint down.
@@ -314,10 +319,11 @@ function ThemeSection({
   // up into the card reads as the first slot. A theme drag passes through to
   // the panel body, which handles it.
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!subDrag) return
+    if (!subDrag || !carries(event, SUBTHEME_DRAG_TYPE)) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    setSubDrop({ before: slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]')) })
+    const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]'))
+    setSubDrop((prev) => keepSlot(prev, before))
   }
 
   const onDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
@@ -325,7 +331,7 @@ function ThemeSection({
   }
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!subDrag) return
+    if (!subDrag || !carries(event, SUBTHEME_DRAG_TYPE)) return
     event.preventDefault()
     if (subDrop) moveSubtheme(tema.id, subDrag, subDrop.before)
     clearSubDrag()
