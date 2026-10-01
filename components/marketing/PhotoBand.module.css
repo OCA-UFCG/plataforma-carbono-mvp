@@ -3,10 +3,15 @@
  * pre-cropped to a strip centred where the design centres them, but taller
  * than the desktop band (IMAGENS.md), so `cover` still has picture to show
  * when the band grows at narrow widths. */
+/* Both bands end on a 1px #e4e4e4 rule (18988:8651, 18978:2080), part of
+ * their 219px and 209px. The file has no variable for that grey; --am-100
+ * (#e6eaeb) is the nearest token. The photo (absolute, inset 0) fills the
+ * padding box and stops above it. */
 .photoBand {
   position: relative;
   overflow: hidden;
   background: var(--bg-fundo-inverso);
+  border-bottom: 1px solid var(--am-100);
 }
 
 .photo {
