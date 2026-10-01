@@ -50,6 +50,7 @@
 .card {
   position: relative;
   display: grid;
+  /* 16px corners (card component 18862:7950); no radius token that size. */
   border-radius: 16px;
   overflow: hidden;
   background: var(--am-100);

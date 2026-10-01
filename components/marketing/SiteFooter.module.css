@@ -1,7 +1,8 @@
 /* Site footer. Figma "Footer", node 18862:8583 (symbol 16864:138883),
- * 1440x196. Font sizes/weights/line-heights come only from the .text-*
- * utility classes applied in SiteFooter.tsx; this file handles color,
- * spacing and layout only. */
+ * 1440x196. Font sizes/weights/line-heights come from the .text-* utility
+ * classes applied in SiteFooter.tsx, except the wordmark's Archivo Narrow 19
+ * and the links' Inter 13, which no utility carries (.brandName and .navList
+ * below); otherwise this file handles color, spacing and layout. */
 
 .siteFooter {
   background: var(--bg-fundo-inverso);
@@ -27,7 +28,7 @@
 }
 
 /* Column 1 is 350x74 in the design: the mark row (36) over the links row (16),
- * 22px apart (a 14px gap plus the links' 8px top margin). */
+ * 22px apart (Figma: a 14px gap plus 8px of top padding on the links frame). */
 .columnBrand {
   flex: 1 1 0;
   gap: 22px;

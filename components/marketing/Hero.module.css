@@ -4,6 +4,8 @@
  * the h1: it has no bound Figma variable, so its metrics are read off node
  * 18862:8525 (Archivo Narrow, Bold, 48px, line-height 51.52px, no tracking)
  * and defined here instead of reusing .text-h2 (a different family/scale).
+ * Two more set their own metrics: the eyebrow's 14px line box (.eyebrow) and
+ * the photo credit's Inter 11/13 (.credit), read off 18862:8523 and 18862:8537.
  * Archivo Narrow is self-hosted via next/font in app/(marketing)/layout.tsx,
  * exposed there as --font-display, alongside Rubik's --font-sans, so both
  * faces load the same way instead of one going through a CSS @import. */

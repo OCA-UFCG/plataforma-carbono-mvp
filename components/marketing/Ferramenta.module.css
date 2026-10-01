@@ -1,9 +1,10 @@
 /* Ferramenta, Figma node 18862:8547, 1436x560. Full-bleed band: unlike the
  * sections above it, this one does NOT use the shared `container` utility
  * (see app/globals.css) — the design runs the image and the dark panel
- * edge-to-edge with the viewport. Font sizes/weights/line-heights come only
- * from the .text-* utility classes applied in Ferramenta.tsx; this file
- * handles color, spacing and layout only.
+ * edge-to-edge with the viewport. Font sizes/weights/line-heights come from
+ * the .text-* utility classes applied in Ferramenta.tsx, except the eyebrow's
+ * 14px line box (.eyebrow below); otherwise this file handles color, spacing
+ * and layout.
  *
  * Split ratio: the media column is 729/1436 of the frame (50.7661%), and the
  * panel takes the remainder via `flex: 1` rather than a second hard-coded
