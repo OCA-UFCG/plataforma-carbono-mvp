@@ -52,4 +52,11 @@ describe('marketing fonts', () => {
   it('loads Archivo SemiBold as --font-archivo', () => {
     expect(source).toMatch(/Archivo-SemiBold-latin\.woff2',\s*weight: '600',\s*variable: '--font-archivo'/)
   })
+
+  // Only the landing's Plataforma tabs use Archivo; preloaded from the layout,
+  // every /sobre and /comunicacao page would fetch 14 KB it never draws.
+  it('does not preload Archivo on every page', () => {
+    const call = source.slice(source.indexOf('export const archivo ='))
+    expect(call.slice(0, call.indexOf('})'))).toMatch(/preload: false/)
+  })
 })

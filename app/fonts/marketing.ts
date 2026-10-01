@@ -28,13 +28,15 @@ export const inter = localFont({
 
 // The landing's Plataforma tab labels, which the design sets in Archivo
 // SemiBold 16 (I18862:8546;18846:7562 and siblings): a static 600 cut, the
-// only weight in use. Loaded on the marketing <body> only; the territorios
-// story has no such tabs.
+// only weight in use. Declared on the marketing <body> only; the territorios
+// story has no such tabs. Not preloaded: the layout would otherwise preload it
+// on every marketing page, and only the landing draws it, below the fold.
 export const archivo = localFont({
   src: './Archivo-SemiBold-latin.woff2',
   weight: '600',
   variable: '--font-archivo',
   display: 'swap',
+  preload: false,
 })
 
 // Named for its role (a display face for oversized headings) rather than the
