@@ -72,7 +72,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 
   const onThemeDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     // A subtheme drag, a file or a text selection: not a theme drop.
-    if (!themeDrag) return
+    if (!themeDrag || !carries(event, THEME_DRAG_TYPE)) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
     const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-theme-id', '[data-theme-card]'))
@@ -87,7 +87,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
   }
 
   const onThemeDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!themeDrag) return
+    if (!themeDrag || !carries(event, THEME_DRAG_TYPE)) return
     event.preventDefault()
     if (themeDrop) moveTheme(themeDrag, themeDrop.before)
     clearThemeDrag()
@@ -277,6 +277,13 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 const THEME_DRAG_TYPE = 'application/x-caativar-theme'
 const SUBTHEME_DRAG_TYPE = 'application/x-caativar-subtheme'
 
+// Whether a drag carries this payload type. A zone checks it besides its own
+// drag state: the state alone would claim the other kind's drag, or a file, if
+// a dragend were ever lost, and drop a stale move.
+function carries(event: React.DragEvent, type: string) {
+  return event.dataTransfer.types.includes(type)
+}
+
 // Midpoint of each section a drop can land between, read from its header, so an
 // open section's long list does not push its midpoint down.
 function dropAnchors(container: HTMLElement, attr: 'data-theme-id' | 'data-subtheme-id', headerSelector: string) {
@@ -312,7 +319,7 @@ function ThemeSection({
   // up into the card reads as the first slot. A theme drag passes through to
   // the panel body, which handles it.
   const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!subDrag) return
+    if (!subDrag || !carries(event, SUBTHEME_DRAG_TYPE)) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
     const before = slotBefore(event.clientY, dropAnchors(event.currentTarget, 'data-subtheme-id', '[data-subtheme-header]'))
@@ -324,7 +331,7 @@ function ThemeSection({
   }
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!subDrag) return
+    if (!subDrag || !carries(event, SUBTHEME_DRAG_TYPE)) return
     event.preventDefault()
     if (subDrop) moveSubtheme(tema.id, subDrag, subDrop.before)
     clearSubDrag()
