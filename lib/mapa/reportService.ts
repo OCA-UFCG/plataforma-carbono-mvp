@@ -12,18 +12,19 @@ import 'server-only'
 
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
+import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS, type ReportLayerConfig } from '@/config/mapa/reportLayers'
 import { getEe, initGee } from '@/lib/mapa/geeAuth'
 import { getFeicao } from '@/lib/mapa/recorteRegistry'
 import { buildNarrative } from '@/lib/mapa/reportNarrative'
 import {
-  analysisCacheKey,
-  getCachedAnalysis,
-  setCachedAnalysis,
+  getCachedMeasurement,
+  measurementCacheKey,
+  setCachedMeasurement,
+  type ReportMeasurement,
 } from '@/lib/mapa/reportCache'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import { computeSeries } from '@/lib/mapa/zonalSeries'
-import { computeZonalStats } from '@/lib/mapa/zonalStats'
+import { computeZonalStats, type ZonalStatsInput } from '@/lib/mapa/zonalStats'
 import { layerClasses, layerName, layerSource, PT_TEXT, unitLabel, type MapaText } from '@/lib/mapa/text'
 import type { RasterLayerConfig } from '@/types/mapa'
 import type {
@@ -157,10 +158,6 @@ export async function buildReportAnalysis(input: {
   const { recorteId, feicaoId, year, layerId } = input
   const tx = input.tx ?? PT_TEXT
 
-  const cacheKey = analysisCacheKey(recorteId, feicaoId, year, layerId, tx.locale)
-  const cached = getCachedAnalysis(cacheKey)
-  if (cached) return cached
-
   const config = getReportLayer(layerId, tx)
   if (!config) throw new ReportBadRequestError('Layer is not eligible for the report.')
 
@@ -184,11 +181,50 @@ export async function buildReportAnalysis(input: {
   // exist instead of falling back to the nearest one and showing a number that
   // answers a different question.
   if (descriptor.availableYears.length > 0 && !descriptor.effectiveYear) {
-    const result = empty('year_not_found')
-    setCachedAnalysis(cacheKey, result)
-    return result
+    return empty('year_not_found')
   }
 
+  // The numbers are the same in every language, so they are what is cached;
+  // the text around them is written for this reader.
+  const cacheKey = measurementCacheKey(recorteId, feicaoId, descriptor.effectiveYear, layerId)
+  let measured = getCachedMeasurement(cacheKey)
+  if (!measured) {
+    const fresh = await measure({ layerId, layer, asset, config, geometry: feicao.geometry, descriptor })
+    // Not cached: the cause is usually transient, and the section offers a retry.
+    if (!fresh) return empty('unavailable')
+    setCachedMeasurement(cacheKey, fresh)
+    measured = fresh
+  }
+
+  return {
+    ...descriptor,
+    status:    'available',
+    snapshot:  measured.snapshot,
+    series:    measured.series,
+    narrative: buildNarrative({
+      recorte,
+      layerName:     descriptor.name,
+      unit:          descriptor.unit,
+      signedFlux:    descriptor.signedFlux,
+      classes:       layerClasses(layer, tx),
+      config,
+      status:        'available',
+      effectiveYear: descriptor.effectiveYear,
+      snapshot:      measured.snapshot,
+      series:        measured.series,
+    }, tx),
+  }
+}
+
+/** The year's snapshot and the series from Earth Engine; null when the snapshot could not be measured. */
+async function measure({ layerId, layer, asset, config, geometry, descriptor }: {
+  layerId:    string
+  layer:      RasterLayerConfig
+  asset:      ZonalStatsInput['asset']
+  config:     ReportLayerConfig
+  geometry:   ZonalStatsInput['geometry']
+  descriptor: ReportAnalysisDescriptor
+}): Promise<ReportMeasurement | null> {
   const temporalDate = descriptor.effectiveYear ? `${descriptor.effectiveYear}-01-01` : undefined
 
   // initGee() and computeZonalStats() can both reject rather than resolve
@@ -204,7 +240,7 @@ export async function buildReportAnalysis(input: {
     ee = getEe()
     outcome = await computeZonalStats(ee, {
       asset,
-      geometry:  feicao.geometry,
+      geometry,
       temporalDate,
       classify:  layer.gee?.classify,
       breaks:    layer.gee?.classify?.breaks,
@@ -213,21 +249,19 @@ export async function buildReportAnalysis(input: {
     })
   } catch (err) {
     console.error(`[reportService] ${layerId}: ${err instanceof Error ? err.message : err}`)
-    // Not cached: the cause is usually transient, and the section offers a retry.
-    return empty('unavailable')
+    return null
   }
 
   if (!outcome.ok) {
     console.error(`[reportService] ${layerId}: ${outcome.error} (${outcome.status})`)
-    // Not cached: the cause is usually transient, and the section offers a retry.
-    return empty('unavailable')
+    return null
   }
 
   // The series is optional in a way the snapshot is not. Forty stops reduced
   // over a whole state can exceed the Earth Engine deadline, and losing it must
   // not lose the section: the snapshot, the map and the situation sentence
   // stand on their own.
-  let series: ReportAnalysis['series'] = []
+  let series: ReportMeasurement['series'] = []
   const canHaveSeries =
     config.seriesKind !== 'none' &&
     descriptor.availableYears.length > 1 &&
@@ -240,7 +274,7 @@ export async function buildReportAnalysis(input: {
         anos: descriptor.availableYears.map(Number),
         region: {
           kind:     'zonal',
-          geometry: feicao.geometry,
+          geometry,
           // A floor, never a fixed value: it can only coarsen. CHIRPS is
           // natively 5566 m, and a literal 300 there would resample finer than
           // the data for no gain.
@@ -252,25 +286,5 @@ export async function buildReportAnalysis(input: {
     }
   }
 
-  const analysis: ReportAnalysis = {
-    ...descriptor,
-    status:    'available',
-    snapshot:  outcome.result,
-    series,
-    narrative: buildNarrative({
-      recorte,
-      layerName:     descriptor.name,
-      unit:          descriptor.unit,
-      signedFlux:    descriptor.signedFlux,
-      classes:       layerClasses(layer, tx),
-      config,
-      status:        'available',
-      effectiveYear: descriptor.effectiveYear,
-      snapshot:      outcome.result,
-      series,
-    }, tx),
-  }
-
-  setCachedAnalysis(cacheKey, analysis)
-  return analysis
+  return { snapshot: outcome.result, series }
 }

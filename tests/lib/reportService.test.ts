@@ -23,6 +23,10 @@ import {
   ReportBadRequestError,
   ReportNotFoundError,
 } from '@/lib/mapa/reportService'
+import { createMapaText } from '@/lib/mapa/text'
+import { appMessages } from '../helpers/intl'
+
+const EN = createMapaText('en', appMessages('en'))
 
 // Each `describe` block below uses its own feicaoId. The analysis cache is
 // module state shared across every case in this file: two calls with the
@@ -216,5 +220,31 @@ describe('buildReportAnalysis', () => {
     await buildReportAnalysis({ ...base, feicaoId: 'mossoro', layerId: 'solo_carbono' })
 
     expect(mocks.computeZonalStats).toHaveBeenCalledOnce()
+  })
+
+  it('measures once for both languages and writes each reader\'s own text', async () => {
+    const pt = await buildReportAnalysis({ ...base, feicaoId: 'crato', layerId: 'solo_carbono' })
+    const en = await buildReportAnalysis({ ...base, feicaoId: 'crato', layerId: 'solo_carbono', tx: EN })
+
+    expect(mocks.computeZonalStats).toHaveBeenCalledOnce()
+    expect(mocks.computeSeries).toHaveBeenCalledOnce()
+    expect(en.snapshot).toEqual(pt.snapshot)
+    expect(en.series).toEqual(pt.series)
+    expect(pt.narrative.situation).toContain('Em Crato')
+    expect(en.narrative.situation).toContain('In Crato')
+    expect(en.name).not.toBe(pt.name)
+  })
+
+  it('measures a static layer once, whatever year the report asks for', async () => {
+    mocks.computeZonalStats.mockResolvedValue({
+      ok: true,
+      result: { kind: 'stocks', report: { totalTc: 10, areaHa: 1, unit: 't C', pools: [], classes: [] } },
+    })
+
+    await buildReportAnalysis({ ...base, feicaoId: 'crato', year: '2023', layerId: 'estoque_carbono' })
+    const again = await buildReportAnalysis({ ...base, feicaoId: 'crato', year: '2020', layerId: 'estoque_carbono' })
+
+    expect(mocks.computeZonalStats).toHaveBeenCalledOnce()
+    expect(again.status).toBe('available')
   })
 })
