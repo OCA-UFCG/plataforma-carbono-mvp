@@ -1,6 +1,7 @@
 /* PageIntro, Figma nodes 18988:8613 / 18978:2050: 40px of block padding, the
  * eyebrow and title stacked 4px apart, the paragraph 24px below. Font metrics
- * come from the .text-* utilities applied in PageIntro.tsx. */
+ * come from the .text-* utilities applied in PageIntro.tsx, except the
+ * eyebrow's line height (`.heading .eyebrow` below). */
 .pageIntro {
   background: var(--am-100);
 }
@@ -22,6 +23,14 @@
   color: var(--bg-texto-secundario);
   text-transform: uppercase;
   margin: 0;
+}
+
+/* The design sets the eyebrow's line box to its 14px font size (18988:8615,
+ * 18978:2052), not the 20px of .text-subtle-medium. Two classes, so the
+ * override wins over the one-class utility whichever order the stylesheets
+ * load in. */
+.heading .eyebrow {
+  line-height: 14px;
 }
 
 /* 4.01:1 on --am-100, which clears AA only as large text: this is 30px

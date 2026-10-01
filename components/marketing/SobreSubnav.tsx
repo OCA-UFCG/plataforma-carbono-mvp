@@ -22,7 +22,7 @@ export default function SobreSubnav() {
             <Link
               key={page.href}
               href={page.href}
-              className={`${styles.item} text-subtle-medium${current ? ` ${styles.itemCurrent}` : ""}`}
+              className={`${styles.item} text-ui-tab${current ? ` ${styles.itemCurrent}` : ""}`}
               aria-current={current ? "page" : undefined}
             >
               {page.label}
