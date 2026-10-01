@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import ConteudoHeader from "@/components/marketing/conteudo/ConteudoHeader";
@@ -25,11 +26,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // "Ver conteúdo", Figma frame 19015:13056: one publication, its reader and the
 // others beside it. Content comes from the same Contentful read as the
-// Comunicação page, with the same fallback to the shipped content.
+// Comunicação page, with the same fallback to the shipped content: titles and
+// descriptions in Portuguese, the reader's labels in the reader's language.
 export default async function ConteudoPage({ params }: Props) {
   const { slug } = await params;
   const conteudo = await loadConteudo();
-  const publicacao = findPublicacao(conteudo, slug);
+  // A cartilha without a description of its own shows the series copy, in the
+  // reader's language.
+  const cartilhaDescription = (await getTranslations("Comunicacao"))("booklet.description");
+  const publicacao = findPublicacao(conteudo, slug, cartilhaDescription);
 
   if (!publicacao) notFound();
 
@@ -50,7 +55,7 @@ export default async function ConteudoPage({ params }: Props) {
             <ConteudoSemPdf publicacao={publicacao} />
           )}
         </div>
-        <RelatedContent publicacoes={relatedPublicacoes(conteudo, slug)} />
+        <RelatedContent publicacoes={relatedPublicacoes(conteudo, slug, cartilhaDescription)} />
       </main>
       <SiteFooter />
     </>

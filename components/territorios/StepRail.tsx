@@ -2,10 +2,9 @@
 
 import Image from 'next/image'
 import { useEffect, useId, useRef, useState } from 'react'
-import { RAIL } from '@/config/territorios/chooserScript'
+import { useTranslations } from 'next-intl'
 import { STEP_COLORS } from '@/config/territorios/palette'
-import { STEPS, STEP_LABELS } from '@/config/territorios/story'
-import { UI } from '@/config/territorios/storyScript'
+import { STEPS } from '@/config/territorios/story'
 import type { StepId } from '@/types/territorios'
 
 export interface StepRailProps {
@@ -32,6 +31,9 @@ export default function StepRail({ current, onSelect, inert = false }: StepRailP
   const toggleRef = useRef<HTMLButtonElement | null>(null)
   const [open, setOpen] = useState(false)
   const listId = useId()
+  const t = useTranslations('TerritoriosRail')
+  const ui = useTranslations('TerritoriosUi')
+  const steps = useTranslations('TerritoriosTypes')
 
   // Between the phone bar and a wide screen the row can overflow and scroll
   // sideways, with the later steps out of view. Not scrollIntoView, which
@@ -71,10 +73,10 @@ export default function StepRail({ current, onSelect, inert = false }: StepRailP
     <div ref={railRef} className="territorios-trilha territorios-no-print" data-aberta={open || undefined} inert={inert}>
       {/* Another root layout: a full page load, not next/link. */}
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="territorios-trilha-logo" aria-label={RAIL.homeLabel}>
+      <a href="/" className="territorios-trilha-logo" aria-label={t('homeLabel')}>
         <Image src="/logos/logo_oca.png" alt="" width={28} height={28} />
       </a>
-      <nav className="territorios-trilha-nav" aria-label={UI.stepsLabel}>
+      <nav className="territorios-trilha-nav" aria-label={ui('stepsLabel')}>
         <button
           ref={toggleRef}
           type="button"
@@ -84,9 +86,9 @@ export default function StepRail({ current, onSelect, inert = false }: StepRailP
           onClick={() => setOpen((value) => !value)}
         >
           {position >= 0 && (
-            <span className="territorios-trilha-posicao">{RAIL.position(position + 1, COUNTED_STEPS.length)}</span>
+            <span className="territorios-trilha-posicao">{t('position', { n: position + 1, total: COUNTED_STEPS.length })}</span>
           )}
-          <span className="territorios-trilha-atual">{STEP_LABELS[current]}</span>
+          <span className="territorios-trilha-atual">{steps(`steps.${current}`)}</span>
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -104,7 +106,7 @@ export default function StepRail({ current, onSelect, inert = false }: StepRailP
                   onSelect(step)
                 }}
               >
-                {STEP_LABELS[step]}
+                {steps(`steps.${step}`)}
               </button>
             </li>
           ))}

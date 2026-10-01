@@ -1,0 +1,9 @@
+{
+  "ComunicacaoPagePublicationCard": {
+    "pdfBadge": "PDF",
+    "types": {
+      "notebook": "Caderno temático",
+      "booklet": "Cartilha"
+    }
+  }
+}

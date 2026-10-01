@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import ReportSection from './ReportSection'
 import { useReportMapCaptureQueue } from './useReportMapCaptureQueue'
+import { layerMetaText } from '@/config/mapa/layerMeta'
+import { intlLocale } from '@/lib/mapa/locale'
 import { numero } from '@/lib/mapa/format'
-import { LAYER_META } from '@/config/mapa/layerMeta'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { PlatformTheme } from '@/types/mapa'
 import type { ReportAnalysis, ReportShell } from '@/types/relatorio'
 
@@ -28,6 +31,9 @@ export interface ReportDocumentProps {
 export default function ReportDocument({
   theme, shell, analyses, pending, errors, expired, query, onRetry,
 }: ReportDocumentProps) {
+  const t = useTranslations('RelatorioDocument')
+  const locale = useLocale()
+  const tx = useMapaText()
   const c = theme.colors
   const [captured, setCaptured] = useState<Map<string, string | null>>(new Map())
   // The captures are serialized: six MapLibre instances rendering at once
@@ -36,7 +42,7 @@ export default function ReportDocument({
     shell.analyses.map((a) => a.layerId),
     (layerId) => analyses.get(layerId)?.status === 'available',
   )
-  const generatedAt = new Date(shell.generatedAt).toLocaleDateString('pt-BR')
+  const generatedAt = new Date(shell.generatedAt).toLocaleDateString(intlLocale(locale))
   // A section is settled once it has an analysis or a terminal error — not
   // only on a 2xx. Counting only `analyses` would leave the print button
   // disabled forever whenever a section ends in `errors`: the rest of the
@@ -58,12 +64,12 @@ export default function ReportDocument({
   const ready = analysesReady && mapsDone === withMap.length
 
   const progress = !analysesReady
-    ? `${done} de ${shell.analyses.length} análises prontas`
+    ? t('progress.analyses', { done, total: shell.analyses.length })
     : withMap.length === 0
-      ? 'Nenhum mapa a gerar'
+      ? t('progress.noMaps')
       : ready
-        ? `${shell.analyses.length} análises e ${withMap.length} mapas prontos`
-        : `${mapsDone} de ${withMap.length} mapas gerados`
+        ? t('progress.ready', { analyses: shell.analyses.length, maps: withMap.length })
+        : t('progress.maps', { done: mapsDone, total: withMap.length })
 
   return (
     <>
@@ -72,7 +78,7 @@ export default function ReportDocument({
           {progress}
         </span>
         <span style={{ display: 'flex', gap: 12 }}>
-          <a href="/mapa" style={{ color: c.accentInk, fontSize: 14 }}>Voltar aos mapas</a>
+          <a href="/mapa" style={{ color: c.accentInk, fontSize: 14 }}>{t('backToMaps')}</a>
           <button
             type="button"
             onClick={() => window.print()}
@@ -80,7 +86,7 @@ export default function ReportDocument({
             // Printing before the captures finish would put blank frames on
             // paper, so the reason for the wait is spelled out rather than
             // leaving a greyed button with no explanation.
-            title={ready ? undefined : 'Disponível quando todas as análises e mapas terminarem'}
+            title={ready ? undefined : t('printDisabledHint')}
             style={{
               padding: '6px 14px', font: 'inherit', fontSize: 14, borderRadius: 4,
               border: 'none', cursor: ready ? 'pointer' : 'default',
@@ -88,7 +94,7 @@ export default function ReportDocument({
               opacity: ready ? 1 : 0.5,
             }}
           >
-            Imprimir ou salvar em PDF
+            {t('print')}
           </button>
         </span>
       </div>
@@ -98,11 +104,11 @@ export default function ReportDocument({
           className="report-no-print"
           style={{ margin: 0, padding: '10px 16px', background: c.accentBg, color: c.accentInk }}
         >
-          Sua sessão expirou.{' '}
+          {t('expired.prefix')}{' '}
           <a href={`/login?redirect=${encodeURIComponent(`/relatorio?${query}`)}`}>
-            Entrar novamente
+            {t('expired.link')}
           </a>{' '}
-          para completar o relatório.
+          {t('expired.suffix')}
         </p>
       )}
 
@@ -115,10 +121,10 @@ export default function ReportDocument({
             }}
           >
             <h1 style={{ margin: 0, fontSize: 21, textTransform: 'uppercase' }}>
-              Relatório territorial de carbono
+              {t('title')}
             </h1>
             <p style={{ margin: '6px 0 0', fontSize: 13, opacity: 0.85 }}>
-              Caativar — Observatório da Caatinga, OCA / UFCG-INSA
+              {t('byline')}
             </p>
           </div>
 
@@ -130,7 +136,7 @@ export default function ReportDocument({
             }}
           >
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
-              Área de análise
+              {t('fields.analysisArea')}
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {/* The state comes along when the recorte declares one: on its own
@@ -142,31 +148,31 @@ export default function ReportDocument({
             </dd>
 
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
-              Área
+              {t('fields.area')}
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
-              {numero(shell.recorte.areaHa, 0)} ha
+              {numero(shell.recorte.areaHa, 0, locale)} ha
               {shell.recorte.boundary === 'simplified' && (
-                <span style={{ color: c.textDim }}> (limite simplificado)</span>
+                <span style={{ color: c.textDim }}> {t('simplifiedBoundary')}</span>
               )}
             </dd>
 
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
-              Ano de referência
+              {t('fields.referenceYear')}
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {shell.requestedYear}
             </dd>
 
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
-              Gerado em
+              {t('fields.generatedOn')}
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {generatedAt}
             </dd>
 
             <dt style={{ padding: '10px 12px', fontWeight: 700, color: c.body, background: c.mist }}>
-              Variáveis
+              {t('fields.variables')}
             </dt>
             <dd style={{ margin: 0, padding: '10px 12px', borderLeft: `1px solid ${c.border}` }}>
               {shell.analyses.map((a) => a.name).join(' · ')}
@@ -196,25 +202,23 @@ export default function ReportDocument({
 
         <section className="report-section" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${c.border}` }}>
           <h2 className="report-heading" style={{ margin: 0, fontSize: 18, color: c.textDim }}>
-            Notas metodológicas e fontes
+            {t('methodology.title')}
           </h2>
           <div style={{ marginTop: 14, fontSize: 13, lineHeight: 1.6, color: c.body }}>
             {shell.analyses.map((descriptor) => (
               <p key={descriptor.layerId} style={{ margin: '0 0 8px' }}>
                 <strong>{descriptor.name}:</strong> {descriptor.methodology}{' '}
-                Fonte: {LAYER_META[descriptor.layerId]?.source ?? descriptor.source}.
+                {t('methodology.source')}: {layerMetaText(descriptor.layerId, tx)?.source ?? descriptor.source}.
               </p>
             ))}
             <p style={{ margin: '16px 0 0', color: c.textDim }}>
-              Documento gerado automaticamente a partir de estatística zonal calculada no
-              Google Earth Engine sobre o recorte indicado. Os números refletem os dados
-              disponíveis na data de geração.
+              {t('methodology.disclaimer')}
             </p>
           </div>
         </section>
 
         <footer style={{ marginTop: 40, paddingTop: 12, borderTop: `1px solid ${c.border}`, fontSize: 11, color: c.textDim }}>
-          Caativar · OCA / UFCG-INSA · gerado em {generatedAt}
+          {t('footer', { date: generatedAt })}
         </footer>
       </main>
     </>

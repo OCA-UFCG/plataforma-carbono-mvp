@@ -5,9 +5,11 @@
 // a class series is a strip of colored years, fire is the years with fire, and
 // any other value is a yearly line with its mean and the selected year marked.
 
+import { useTranslations } from 'next-intl'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import type { ResultProfile } from '@/config/mapa/resultProfiles'
 import { adaptive } from '@/lib/mapa/results/format'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { PlatformTheme, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
 import { Empty, Footnote, Hero, Pair, Stack } from './blocks'
 import { sourceOf } from './LayerResultView'
@@ -25,13 +27,16 @@ interface YearValue {
   value: number | null
 }
 
+// `layer` and `profile` arrive localized from `LayerResultCard`.
 export default function PointSeries({ theme, layer, profile, series, temporalDate }: Props) {
+  const t = useTranslations('MapaOvResults')
+  const tx = useMapaText()
   const points: YearValue[] = series.map((p) => ({ year: Number(p.date.slice(0, 4)), value: p.value }))
   const selected = temporalDate ? Number(temporalDate.slice(0, 4)) : points[points.length - 1]?.year
 
   let body: React.ReactNode
   if (points.length === 0) {
-    body = <Empty theme={theme} text="Sem dado desta camada neste ponto." />
+    body = <Empty theme={theme} text={t('series.noData')} />
   } else if (profile.archetype === 'composition') {
     body = <ClassStrip theme={theme} layer={layer} points={points} selected={selected} />
   } else if (profile.archetype === 'recurrence') {
@@ -44,7 +49,7 @@ export default function PointSeries({ theme, layer, profile, series, temporalDat
   return (
     <Stack>
       {body}
-      <Footnote theme={theme} notes={[sourceOf(layer)]} />
+      <Footnote theme={theme} notes={[sourceOf(layer, tx)]} />
     </Stack>
   )
 }
@@ -85,11 +90,12 @@ function Strip({ theme, title, cells, selected }: {
 function ClassStrip({ theme, layer, points, selected }: {
   theme: PlatformTheme; layer: RasterLayerConfig; points: YearValue[]; selected?: number
 }) {
+  const t = useTranslations('MapaOvResults')
   const byCode = new Map((layer.classes ?? []).map((k) => [k.value, k]))
   const classOf = (v: number | null) => (v === null ? undefined : byCode.get(Math.round(v)))
   // A point outside the classified area comes back as one null per year.
   const known = points.filter((p) => p.value !== null)
-  if (known.length === 0) return <Empty theme={theme} text="Sem dado desta camada neste ponto." />
+  if (known.length === 0) return <Empty theme={theme} text={t('series.noData')} />
   const current = points.find((p) => p.year === selected)
   const currentClass = classOf(current?.value ?? null)
   // A year without data is not a change of class.
@@ -97,21 +103,22 @@ function ClassStrip({ theme, layer, points, selected }: {
 
   return (
     <>
-      <Hero theme={theme} caption={`classe neste ponto em ${selected}`}>
+      <Hero theme={theme} caption={t('series.classCaption', { year: selected ?? '' })}>
         <span style={{ fontSize: 32, fontWeight: 800, lineHeight: 1.1, color: theme.colors.text }}>
-          {currentClass?.label ?? 'Sem dado'}
+          {currentClass?.label ?? t('series.noDataShort')}
         </span>
       </Hero>
-      <Pair theme={theme} items={[{ label: 'Mudanças de classe', value: String(changes) }]} />
-      <Strip theme={theme} title="Classe por ano" selected={selected} cells={points.map((p) => {
+      <Pair theme={theme} items={[{ label: t('series.classChanges'), value: String(changes) }]} />
+      <Strip theme={theme} title={t('series.classByYear')} selected={selected} cells={points.map((p) => {
         const cls = classOf(p.value)
-        return { year: p.year, color: cls?.color ?? theme.colors.chip, title: `${p.year}: ${cls?.label ?? 'sem dado'}` }
+        return { year: p.year, color: cls?.color ?? theme.colors.chip, title: cls ? t('series.cellClass', { year: p.year, label: cls.label }) : t('series.cellNoData', { year: p.year }) }
       })} />
     </>
   )
 }
 
 function FireYears({ theme, points, selected }: { theme: PlatformTheme; points: YearValue[]; selected?: number }) {
+  const t = useTranslations('MapaOvResults')
   // The accumulated count is masked where the point never burned, so a gap
   // reads as zero; a year with fire is a year where the count went up.
   const counts = points.map((p) => ({ year: p.year, count: p.value ?? 0 }))
@@ -125,13 +132,13 @@ function FireYears({ theme, points, selected }: { theme: PlatformTheme; points: 
       <Hero
         theme={theme}
         value={String(Math.round(countAtSelected))}
-        caption={selected === undefined || selected === counts[counts.length - 1]?.year ? 'anos com fogo neste ponto' : `anos com fogo neste ponto até ${selected}`}
+        caption={selected === undefined || selected === counts[counts.length - 1]?.year ? t('series.fireCaption') : t('series.fireCaptionUntil', { year: selected })}
       />
-      <Pair theme={theme} items={[{ label: 'Último fogo', value: lastFire ? String(lastFire) : 'nenhum' }]} />
-      <Strip theme={theme} title="Anos com fogo" selected={selected} cells={counts.map((p) => ({
+      <Pair theme={theme} items={[{ label: t('series.lastFire'), value: lastFire ? String(lastFire) : t('series.none') }]} />
+      <Strip theme={theme} title={t('series.fireYears')} selected={selected} cells={counts.map((p) => ({
         year: p.year,
         color: fired.has(p.year) ? theme.colors.terracota : theme.colors.chip,
-        title: `${p.year}: ${fired.has(p.year) ? 'queimou' : 'sem fogo'}`,
+        title: fired.has(p.year) ? t('series.cellBurned', { year: p.year }) : t('series.cellNoFire', { year: p.year }),
       }))} />
     </>
   )
@@ -141,8 +148,10 @@ function YearLine({ theme, points, selected, unit }: {
   theme: PlatformTheme; points: YearValue[]; selected?: number; unit?: string
 }) {
   const c = theme.colors
+  const t = useTranslations('MapaOvResults')
+  const tx = useMapaText()
   const valid = points.filter((p): p is { year: number; value: number } => p.value !== null)
-  if (valid.length === 0) return <Empty theme={theme} text="Sem dado desta camada neste ponto." />
+  if (valid.length === 0) return <Empty theme={theme} text={t('series.noData')} />
 
   const mean = valid.reduce((s, p) => s + p.value, 0) / valid.length
   const min = valid.reduce((a, p) => (p.value < a.value ? p : a))
@@ -154,16 +163,16 @@ function YearLine({ theme, points, selected, unit }: {
     <>
       <Hero
         theme={theme}
-        value={current === null ? 'Sem dado' : adaptive(current)}
+        value={current === null ? t('series.noDataShort') : adaptive(current, tx)}
         unit={current === null ? undefined : unit || undefined}
-        caption={`neste ponto em ${selected}`}
+        caption={t('series.lineCaption', { year: selected ?? '' })}
       />
       <Pair theme={theme} items={[
-        { label: 'Média do período', value: adaptive(mean), aside: unit || undefined },
-        { label: 'Menor e maior', value: `${adaptive(min.value)} a ${adaptive(max.value)}`, aside: unit || undefined },
+        { label: t('series.periodMean'), value: adaptive(mean, tx), aside: unit || undefined },
+        { label: t('series.lowestHighest'), value: t('series.range', { min: adaptive(min.value, tx), max: adaptive(max.value, tx) }), aside: unit || undefined },
       ]} />
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>Valor por ano</h3>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>{t('series.valueByYear')}</h3>
         <div style={{ width: '100%', height: 170, minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 6, right: 10, left: -18, bottom: 0 }}>
@@ -172,13 +181,13 @@ function YearLine({ theme, points, selected, unit }: {
                 tick={{ fontSize: 11, fill: c.textDim }} stroke={c.border} tickLine={false}
               />
               <YAxis
-                domain={['auto', 'auto']} tickFormatter={(v: number) => adaptive(v)}
+                domain={['auto', 'auto']} tickFormatter={(v: number) => adaptive(v, tx)}
                 tick={{ fontSize: 11, fill: c.textDim }} stroke={c.border} tickLine={false} width={48}
               />
               <ReferenceLine y={mean} stroke={c.textDim} strokeDasharray="3 3" />
               {selected !== undefined && <ReferenceLine x={selected} stroke={c.accent} strokeWidth={1.5} />}
               <Tooltip
-                formatter={(v) => [`${adaptive(Number(v))}${u}`, 'valor']}
+                formatter={(v) => [`${adaptive(Number(v), tx)}${u}`, t('series.tooltipValue')]}
                 labelFormatter={(y) => String(y)}
                 contentStyle={{ fontSize: 12, borderRadius: 6, border: `1px solid ${c.border}`, backgroundColor: c.bgCard, color: c.text }}
                 itemStyle={{ color: c.text }}

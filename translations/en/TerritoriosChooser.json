@@ -1,0 +1,47 @@
+{
+  "TerritoriosChooser": {
+    "backToTypes": "Back",
+    "mapLabel": "Map of {plural}",
+    "loading": "Loading the map",
+    "loadError": "Could not load the map.",
+    "retry": "Try again",
+    "locate": "Use my location",
+    "locating": "Finding your location",
+    "locateNote": "Your location is neither sent nor stored.",
+    "locateUnsupported": "This browser does not offer location. Search by name or choose on the map.",
+    "locateDenied": "Permission to use your location was denied. Search by name or choose on the map.",
+    "locateTimeout": "Your location took too long to respond. Try again or choose on the map.",
+    "locateUnavailable": "Could not get your location. Search by name or choose on the map.",
+    "locateImprecise": "Your location was too imprecise. Search by name or choose on the map.",
+    "locateOutside": "Your location is outside the Caatinga. Search by name or choose on the map.",
+    "locateNotCovered": "There is no territory of this type at your location. Search by name or choose on the map.",
+    "nearestLead": {
+      "terra_indigena": "Your location is not in any indigenous land. These are the nearest:",
+      "territorio_quilombola": "Your location is not in any quilombola territory. These are the nearest:",
+      "assentamento": "Your location is not in any settlement. These are the nearest:"
+    },
+    "overlapLead": {
+      "estado": "Your location is on the border between these states:",
+      "municipio": "Your location is on the border between these municipalities:",
+      "terra_indigena": "Your location is in more than one indigenous land:",
+      "territorio_quilombola": "Your location is in more than one quilombola territory:",
+      "assentamento": "Your location is in more than one settlement:"
+    },
+    "distance": {
+      "lessThan": "less than {km} km away",
+      "about": "{km} km away"
+    },
+    "searchLabel": "Search by name",
+    "searchCount": "{count} {plural} with area in the Caatinga.",
+    "searchEmpty": "No results for \"{query}\".",
+    "searchResults": {
+      "one": "{count} result",
+      "many": "{count} results"
+    },
+    "searchToMap": "Can't find it? Choose on the map",
+    "confirmTitle": "Is this the territory?",
+    "confirmInBiome": "{area} in the Caatinga",
+    "confirm": "Yes, explore it",
+    "chooseAnother": "Choose another"
+  }
+}

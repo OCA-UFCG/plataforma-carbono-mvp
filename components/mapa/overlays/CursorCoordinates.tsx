@@ -50,6 +50,9 @@ export default function CursorCoordinates({ mapRef, theme }: Props) {
   if (!coords) return null
 
   const [lon, lat] = coords
+  // Five fixed decimals with a decimal point in both languages. A decimal comma
+  // inside a comma-separated pair reads as four numbers, and the readout is
+  // meant to be copied into the "Coordenadas" form, which only parses the dot.
   const fmt = (n: number) => n.toFixed(5)
 
   return (

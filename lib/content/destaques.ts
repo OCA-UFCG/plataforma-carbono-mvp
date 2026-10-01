@@ -1,6 +1,7 @@
 // The four highlight cards, copy taken from the Figma home frame (18862:8538).
-// Numbers are kept apart from their units because the card renders them at
-// different sizes.
+// Only the structure lives here: the copy (label, figure, unit, sentence) is in
+// translations/<locale>/Destaques.json under items.<id>, where the figure is
+// kept apart from its unit because the card renders them at different sizes.
 //
 // All four cards reuse the exact same "Map" icon glyph in the Figma file
 // (nodes I18862:8542;18808:5943, I18862:8543;18808:5943, I18862:8544;18808:5943
@@ -24,41 +25,14 @@
 // a platform whose argument is open scientific data arguably ought to show its
 // provenance, which would need a design change.
 export type Destaque = {
+  // Key of the card in Destaques.json (items.<id>).
+  id: 'population' | 'removal' | 'efficiency' | 'capacity'
   icone: string
-  rotulo: string
-  numero: string
-  unidade: string
-  texto: string
 }
 
 export const DESTAQUES: Destaque[] = [
-  {
-    icone: '/icons/destaques/populacao.svg',
-    rotulo: 'População do bioma',
-    numero: '26',
-    unidade: 'milhões',
-    texto: 'de pessoas vivem no bioma.',
-  },
-  {
-    icone: '/icons/destaques/remocao.svg',
-    rotulo: 'Remoção de carbono',
-    numero: '48',
-    unidade: '%',
-    texto:
-      'da remoção bruta de carbono do Brasil em 2022, ocupando cerca de 10% do território.',
-  },
-  {
-    icone: '/icons/destaques/eficiencia.svg',
-    rotulo: 'Eficiência de carbono',
-    numero: '60',
-    unidade: '%',
-    texto: 'de eficiência no uso do carbono, uma das maiores do Brasil e do mundo.',
-  },
-  {
-    icone: '/icons/destaques/capacidade.svg',
-    rotulo: 'Capacidade de remoção',
-    numero: '1,5–5',
-    unidade: 't CO₂/ha/ano',
-    texto: 'de capacidade de remoção de carbono.',
-  },
+  { id: 'population', icone: '/icons/destaques/populacao.svg' },
+  { id: 'removal', icone: '/icons/destaques/remocao.svg' },
+  { id: 'efficiency', icone: '/icons/destaques/eficiencia.svg' },
+  { id: 'capacity', icone: '/icons/destaques/capacidade.svg' },
 ]

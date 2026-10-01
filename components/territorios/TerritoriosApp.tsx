@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import SiteHeader from '@/components/marketing/SiteHeader'
 import IntroScreen from './IntroScreen'
@@ -14,13 +15,11 @@ import {
   BIOMA_RECORTE_ID,
   LAND_USE_YEARS,
   STEPS,
-  STEP_LABELS,
   STORY_THEMES,
   territoryTypeByRecorte,
   type TerritoryType,
 } from '@/config/territorios/story'
-import { CHOOSER } from '@/config/territorios/chooserScript'
-import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
 import { wantedThemes } from '@/lib/territorios/activeSection'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
@@ -30,10 +29,15 @@ const StoryMap = dynamic(() => import('./StoryMap'), {
   loading: () => <div className="territorios-mapa" />,
 })
 
+function ChooserLoading() {
+  const t = useTranslations('TerritoriosChooser')
+  return <p className="territorios-contagem" role="status">{t('loading')}</p>
+}
+
 // The chooser draws every territory of the type on a MapLibre map as well.
 const TerritoryChooser = dynamic(() => import('./TerritoryChooser'), {
   ssr: false,
-  loading: () => <p className="territorios-contagem" role="status">{CHOOSER.loading}</p>,
+  loading: () => <ChooserLoading />,
 })
 
 export interface TerritoriosAppProps {
@@ -119,6 +123,8 @@ function storyPath(type: TerritoryType | null, featureId: string, step: StepId):
 }
 
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
+  const ui = useTranslations('TerritoriosUi')
+  const names = useTranslations('TerritoriosTypes')
   const [type, setType] = useState<TerritoryType | null>(() => enabledType(initialRecorte))
   const [featureId, setFeatureId] = useState(() => {
     const restored = enabledType(initialRecorte)
@@ -431,8 +437,8 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
       {screen === 'intro' && <SiteHeader />}
       {expired && (
         <p className="territorios-aviso territorios-no-print" role="alert">
-          {UI.sessionExpired}{' '}
-          <a href={`/login?redirect=${encodeURIComponent(storyPath(type, featureId, settled))}`}>{UI.signIn}</a>
+          {ui('sessionExpired')}{' '}
+          <a href={`/login?redirect=${encodeURIComponent(storyPath(type, featureId, settled))}`}>{ui('signIn')}</a>
         </p>
       )}
 
@@ -455,30 +461,30 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
             <header className="territorios-cabecalho territorios-no-print" inert={sheetOpen}>
               <div>
-                <p className="territorios-rotulo">{type.unitLabel}</p>
+                <p className="territorios-rotulo">{names(`types.${type.id}.unitLabel`)}</p>
                 <h1 ref={storyHeadingRef} tabIndex={-1} className="territorios-nome">
-                  {payload ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context) : UI.pageTitle}
+                  {payload ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context) : ui('pageTitle')}
                 </h1>
               </div>
               <button type="button" className="territorios-btn territorios-btn--contorno" onClick={changeTerritory}>
-                {UI.changeTerritory}
+                {ui('changeTerritory')}
               </button>
             </header>
 
             {!territory && (
-              <p className="territorios-estado" role="status" style={{ marginTop: 28 }}>{UI.loading}</p>
+              <p className="territorios-estado" role="status" style={{ marginTop: 28 }}>{ui('loading')}</p>
             )}
 
             {territory?.kind === 'failed' && (
               <div className="territorios-estado" role="status" style={{ marginTop: 28 }}>
-                <p>{territory.rateLimited ? UI.rateLimited : UI.territoryUnavailable}</p>
+                <p>{territory.rateLimited ? ui('rateLimited') : ui('territoryUnavailable')}</p>
                 {!expired && (
                   <button
                     type="button"
                     className="territorios-btn territorios-btn--contorno"
                     onClick={() => { setTerritoryLoad(null); setTerritoryAttempt((n) => n + 1) }}
                   >
-                    {UI.retry}
+                    {ui('retry')}
                   </button>
                 )}
               </div>
@@ -502,19 +508,19 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                     {...(sheetOpen ? {
                       role: 'dialog',
                       'aria-modal': true,
-                      'aria-label': UI.mapDialog(STEP_LABELS[mapStep]),
+                      'aria-label': ui('mapDialog', { step: names(`steps.${mapStep}`) }),
                     } : {})}
                   >
                     {sheetOpen && (
                       <div className="territorios-folha-topo">
-                        <p className="territorios-folha-titulo">{STEP_LABELS[mapStep]}</p>
+                        <p className="territorios-folha-titulo">{names(`steps.${mapStep}`)}</p>
                         <button
                           ref={closeMapRef}
                           type="button"
                           className="territorios-btn territorios-btn--contorno"
                           onClick={closeMap}
                         >
-                          {UI.closeMap}
+                          {ui('closeMap')}
                         </button>
                       </div>
                     )}

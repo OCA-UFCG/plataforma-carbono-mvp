@@ -1,0 +1,54 @@
+{
+  "MapaExport": {
+    "recorte": "# Territorial unit: {value}",
+    "generatedAt": "# Generated on: {date}",
+    "layer": "# Layer: {name}",
+    "fluxConvention": "# Convention: negative value = removal, positive value = emission",
+    "year": "# Year: {year}",
+    "columns": {
+      "measure": "measure",
+      "value": "value",
+      "unit": "unit",
+      "statistic": "statistic",
+      "class": "class",
+      "areaHa": "area_ha",
+      "percent": "percent",
+      "yearColumn": "year",
+      "pool": "pool",
+      "stock": "stock",
+      "phytophysiognomy": "phytophysiognomy",
+      "bandFrom": "band_from",
+      "bandTo": "band_to",
+      "yearsWithFire": "years_with_fire",
+      "burnedInYear": "burned_in_{year}_ha"
+    },
+    "rows": {
+      "analyzedArea": "Analyzed area",
+      "length": "Length",
+      "pointValue": "Value at the point",
+      "pointClass": "Class at the point",
+      "min": "Minimum",
+      "max": "Maximum",
+      "mean": "Mean",
+      "median": "Median",
+      "std": "Standard deviation",
+      "pixelCount": "Pixel count",
+      "total": "Total",
+      "carbon": "Carbon",
+      "meanPerHectare": "Mean per hectare",
+      "areaWithData": "Area with data",
+      "areaZero": "Area with zero value",
+      "p10": "10th percentile",
+      "p90": "90th percentile",
+      "sumPositive": "Sum of positive values",
+      "sumNegative": "Sum of negative values",
+      "areaPositive": "Area with positive value",
+      "areaNegative": "Area with negative value",
+      "areaMean": "Area mean"
+    },
+    "fileNames": {
+      "analysis": "analysis",
+      "layers": "{count}-layers"
+    }
+  }
+}

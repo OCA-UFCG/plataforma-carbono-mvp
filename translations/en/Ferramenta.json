@@ -1,0 +1,16 @@
+{
+  "Ferramenta": {
+    "ariaLabel": "Tool",
+    "mapAlt": "Map of the Caatinga biome over Northeast Brazil, with vegetation cover in shades of green and the states labelled",
+    "eyebrow": "The platform's core tool",
+    "title": "Explore the Caatinga's territories in detail",
+    "body": "Look up information about different areas of the Caatinga. Find the territory of interest, combine data on the map, follow changes over time and generate a report with the selected information.",
+    "items": {
+      "data": "Data on carbon, vegetation, climate and land use",
+      "query": "Search by municipality and other Caatinga territories",
+      "compare": "Comparison across data and periods",
+      "report": "Report generation with the data of the chosen territory"
+    },
+    "button": "Explore the data"
+  }
+}

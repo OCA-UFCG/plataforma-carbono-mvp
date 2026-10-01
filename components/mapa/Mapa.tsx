@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { IcList, IcBarChart } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
@@ -15,6 +16,7 @@ import { resolveMonth } from '@/lib/phenology'
 import type { PlatformTheme } from '@/types/mapa'
 
 export default function Mapa() {
+  const t = useTranslations('MapaUiMapa')
   const darkMode    = useStore((s) => s.darkMode)
   const monthPref   = useStore((s) => s.month)
   const welcomeSeen = useStore((s) => s.welcomeSeen)
@@ -148,8 +150,8 @@ export default function Mapa() {
           <button
             className="ui-press"
             onClick={() => setPanelOpen(true)}
-            title="Mostrar painel de temas"
-            aria-label="Mostrar painel de temas"
+            title={t('showThemes')}
+            aria-label={t('showThemes')}
             style={{
               position: 'absolute',
               top: 16,
@@ -188,8 +190,8 @@ export default function Mapa() {
         <button
           className="ui-press"
           onClick={() => setReportOpen(true)}
-          title="Gerar relatório territorial"
-          aria-label="Gerar relatório territorial"
+          title={t('generateReport')}
+          aria-label={t('generateReport')}
           style={{
             position: 'absolute',
             top: 16,
@@ -214,7 +216,7 @@ export default function Mapa() {
           }}
         >
           <IcBarChart size={15} />
-          Relatório
+          {t('report')}
         </button>
 
         <ResultsSidebar

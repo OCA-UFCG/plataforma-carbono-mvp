@@ -1,0 +1,14 @@
+{
+  "MapaAnalysis": {
+    "hint": {
+      "noneActive": "Nenhum recorte territorial ativo, então o clique no mapa não tem o que selecionar. Ligue um em {path}, {fallback}",
+      "click": "Clique no mapa sobre {names} para ver estatísticas desta camada, {fallback}",
+      "path": "Temas › {theme} › {subtheme}",
+      "fallback": "ou delimite a área com Polígono, Ponto ou Coordenadas, nas ferramentas de desenho do botão do lápis."
+    },
+    "errors": {
+      "pointValue": "Falha ao obter o valor no ponto. Tente novamente.",
+      "stats": "Falha ao calcular estatísticas. Tente novamente."
+    }
+  }
+}

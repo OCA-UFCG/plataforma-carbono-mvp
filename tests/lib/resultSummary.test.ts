@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { resultSummary } from '@/lib/mapa/resultSummary'
+import { createMapaText, PT_TEXT } from '@/lib/mapa/text'
+import { getResultProfile } from '@/config/mapa/resultProfiles'
 import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
+import { appMessages } from '../helpers/intl'
 
 const layer = (over: Partial<RasterLayerConfig> = {}): RasterLayerConfig => ({
   id: 'estoque_carbono', name: 'Estoque de carbono', type: 'raster',
@@ -22,7 +25,7 @@ describe('resultSummary', () => {
   })
 
   it('is null on error, so the card shows the message instead', () => {
-    expect(resultSummary(layer(), result({ status: 'error', error: 'x' }))).toBeNull()
+    expect(resultSummary(layer(), result({ status: 'error', error: { text: 'x' } }))).toBeNull()
   })
 
   it('gives the mean with the unit for a continuous layer', () => {
@@ -106,12 +109,19 @@ describe('resultSummary', () => {
   })
 
   it('gives the class name alone for a point on a class layer', () => {
+    const pasture = { value: 15, label: 'Pastagem', color: '#edde8e' }
     const summary = resultSummary(
-      layer({ unit: 'classe' }),
-      result({ pixelValue: { value: 3, label: 'Pastagem' } }),
+      layer({ id: 'lulc_mapbiomas', unit: 'classe', classes: [pasture] }),
+      result({ pixelValue: { value: 15, classValue: 15 } }),
     )
 
     expect(summary).toBe('Pastagem')
+    // Looked up by the class value, so it follows the language.
+    expect(resultSummary(
+      layer({ id: 'lulc_mapbiomas', unit: 'classe', classes: [pasture] }),
+      result({ pixelValue: { value: 15, classValue: 15 } }),
+      createMapaText('en', appMessages('en')),
+    )).toBe('Pasture')
   })
 
   it('gives the bare pixel value when the layer has no classes', () => {
@@ -129,5 +139,30 @@ describe('resultSummary', () => {
     }))
 
     expect(summary).toBe('1,9 Mt C')
+  })
+
+  it('writes a whole stock without a trailing zero, as the open card does', () => {
+    const stocks = result({
+      stats: {
+        kind: 'stocks',
+        report: { totalTc: 12_000_000, areaHa: 47_115, unit: 't C', pools: [], classes: [] },
+      },
+    })
+
+    expect(resultSummary(layer(), stocks)).toBe('12 Mt C')
+    expect(resultSummary(layer(), stocks, createMapaText('en', appMessages('en')))).toBe('12 Mt C')
+  })
+
+  it('answers with the profile the card already holds instead of looking it up again', () => {
+    // 'sem_perfil' has no profile of its own: the headline can only come from the one passed in.
+    const profile = getResultProfile('estoque_carbono', PT_TEXT)
+    const summary = resultSummary(layer({ id: 'sem_perfil' }), result({
+      stats: {
+        kind: 'stocks',
+        report: { totalTc: 12_000_000, areaHa: 47_115, unit: 't C', pools: [], classes: [] },
+      },
+    }), PT_TEXT, profile)
+
+    expect(summary).toBe('12 Mt C')
   })
 })

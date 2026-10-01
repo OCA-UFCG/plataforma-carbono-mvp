@@ -1,0 +1,13 @@
+{
+  "MapaBasemaps": {
+    "names": {
+      "carto-positron": "Carto Positron",
+      "carto-dark": "Carto Dark Matter",
+      "osm": "OpenStreetMap",
+      "esri-imagery": "Esri World Imagery (Satellite)",
+      "esri-topo": "Esri World Topo",
+      "esri-relief": "Esri Shaded Relief",
+      "google-sat": "Google Satellite"
+    }
+  }
+}

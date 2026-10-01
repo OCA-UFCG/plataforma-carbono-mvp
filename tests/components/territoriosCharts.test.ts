@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createElement, type ComponentType } from 'react'
+import { createElement, type ComponentProps, type ComponentType } from 'react'
+import { NextIntlClientProvider } from 'next-intl'
 import { renderToStaticMarkup } from 'react-dom/server'
 import ComparisonBar, { type ComparisonBarProps } from '@/components/territorios/charts/ComparisonBar'
 import Dumbbell, { type DumbbellProps } from '@/components/territorios/charts/Dumbbell'
@@ -9,13 +10,22 @@ import YearStrip, { type YearStripProps } from '@/components/territorios/charts/
 import { inkOn } from '@/components/territorios/charts/ChartFigure'
 import { DEGRADATION_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
 import { contrast } from '@/lib/color'
+import { territoriosMessages, type TestLocale } from '../helpers/territoriosI18n'
 import type { DegradationShare, RainChartData, RainYearKind } from '@/types/territorios'
 
 // Values of Campina Grande (PB) and of the whole Caatinga as the API returned
 // them on 2026-09-27 (municipios|campina-grande and bioma|bioma-caatinga).
 
-const html = <P extends object>(component: ComponentType<P>, props: P) =>
-  renderToStaticMarkup(createElement(component, props))
+// The charts read their labels from the messages, so they render inside the
+// provider the root layout gives the app.
+const html = <P extends object>(component: ComponentType<P>, props: P, locale: TestLocale = 'pt') =>
+  renderToStaticMarkup(
+    createElement(
+      NextIntlClientProvider,
+      { locale, messages: territoriosMessages(locale) } as ComponentProps<typeof NextIntlClientProvider>,
+      createElement(component, props),
+    ),
+  )
 
 /** Every percentage the markup positions or sizes something with. */
 function placedPercents(markup: string): number[] {
@@ -247,6 +257,37 @@ describe('YearStrip', () => {
     const markup = html(YearStrip, { data: rainData(CG_RAIN_MM, 1993), description: '1993 foi seco.' })
     expect(markup).toContain('style="padding-left:20%"')
     expect(markup).toContain('1993: <b class="tg-num">259 mm</b>')
+    expectSound(markup)
+  })
+})
+
+describe('in English', () => {
+  it('labels the comparison bar "Here" and "Caatinga" by default', () => {
+    const markup = html(ComparisonBar, stock({ hereLabel: undefined, referenceLabel: undefined }), 'en')
+    expect(markup).toContain('Here <b class="tg-num">46 t</b>')
+    expect(markup).toContain('Caatinga <b class="tg-num">55 t</b>')
+    expect(markup).not.toContain('Aqui')
+    expectSound(markup)
+  })
+
+  it('names the degradation levels and writes shares with the English decimal point', () => {
+    const markup = html(LevelsBar, {
+      rows: [{ label: 'Here', shares: CG_DEGRADATION }, { label: 'Caatinga', shares: BIOME_DEGRADATION }],
+      description: 'Degraded land: here 46%, in the Caatinga 21%.',
+    }, 'en')
+    const names = ['Conserved', 'Level 1 (light)', 'Level 2', 'Level 3', 'Level 4', 'Level 5 (severe)', 'No data']
+    const at = names.map((name) => markup.indexOf(`</span>${name}</span>`))
+    expect(at.every((i) => i > 0)).toBe(true)
+    expect(markup).toContain('>9.0%<')
+    expectSound(markup)
+  })
+
+  it('names the rain classes and writes the callout in English', () => {
+    const markup = html(YearStrip, { data: rainData(CG_RAIN_MM), description: '2024 was wet: 751 mm.' }, 'en')
+    expect(markup).toContain('2024: <b class="tg-num">751 mm</b>')
+    expect(markup).toContain('<span>Dry</span>')
+    expect(markup).toContain('<span>Wet</span>')
+    expect(markup).not.toContain('Seco')
     expectSound(markup)
   })
 })

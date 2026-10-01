@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
+import { describeFlux, fluxDirection, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 
 // Sentinel values, so swapping the red and the green mapping cannot pass by
 // coincidence the way two real hexes of the same family might.
@@ -81,5 +81,16 @@ describe('zeroPosition', () => {
 
   it('returns null for a degenerate range instead of dividing by zero', () => {
     expect(zeroPosition(0, 0)).toBeNull()
+  })
+})
+
+describe('fluxDirection', () => {
+  // The direction alone needs no words: the Territórios story asks for it in
+  // the browser, where there is no Portuguese default to write them with.
+  it('splits a signed flux into a magnitude and a direction, with no text', () => {
+    expect(fluxDirection(-12.5)).toEqual({ magnitude: 12.5, direction: 'removal' })
+    expect(fluxDirection(3)).toEqual({ magnitude: 3, direction: 'emission' })
+    expect(fluxDirection(0)).toEqual({ magnitude: 0, direction: 'neutral' })
+    expect(fluxDirection(Number.NaN).direction).toBe('unknown')
   })
 })

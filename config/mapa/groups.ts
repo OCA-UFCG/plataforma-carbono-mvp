@@ -1,3 +1,5 @@
+import { lookup, type MapaText } from '@/lib/mapa/text'
+
 export interface SubthemeInfo {
   id: string
   label: string
@@ -62,6 +64,29 @@ export const THEMES: ThemeInfo[] = [
 export const SUBTHEME_BY_KEY = new Map(
   THEMES.flatMap((theme) => theme.subthemes.map((subtheme) => [`${theme.id}:${subtheme.id}`, subtheme])),
 )
+
+/** Panel label of a theme, in the user's language (the Portuguese `label` without a `MapaText`). */
+export function themeLabel(theme: Pick<ThemeInfo, 'id' | 'label'>, tx?: MapaText): string {
+  return lookup(tx, `MapaGroups.themes.${theme.id}.label`, theme.label)
+}
+
+/** Panel label of a subtheme, in the user's language (the Portuguese `label` without a `MapaText`). */
+export function subthemeLabel(
+  themeId: string,
+  subtheme: Pick<SubthemeInfo, 'id' | 'label'>,
+  tx?: MapaText,
+): string {
+  return lookup(tx, `MapaGroups.themes.${themeId}.subthemes.${subtheme.id}`, subtheme.label)
+}
+
+/** `THEMES` with every label translated: the panel navigation, ready to render. */
+export function localizedThemes(tx?: MapaText): ThemeInfo[] {
+  return THEMES.map((theme) => ({
+    ...theme,
+    label: themeLabel(theme, tx),
+    subthemes: theme.subthemes.map((sub) => ({ ...sub, label: subthemeLabel(theme.id, sub, tx) })),
+  }))
+}
 
 export function isExclusiveSubtheme(theme?: string, subtheme?: string) {
   return !!theme && !!subtheme && SUBTHEME_BY_KEY.get(`${theme}:${subtheme}`)?.exclusive

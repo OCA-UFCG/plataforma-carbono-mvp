@@ -1,0 +1,16 @@
+{
+  "MapaOvReportForm": {
+    "title": "Gerar relatório territorial",
+    "unit": "Recorte",
+    "area": "Área",
+    "loading": "Carregando…",
+    "searchByName": "Buscar por nome",
+    "loadError": "Não foi possível carregar a lista de feições. Tente novamente.",
+    "referenceYear": "Ano de referência",
+    "variables": "Variáveis ({selected} de até {max})",
+    "missingYear": "Sem dado para {year} — anos disponíveis: {years}.",
+    "liveNote": "Cada variável é calculada ao vivo no Earth Engine, então um relatório com muitas variáveis leva mais tempo para ficar pronto.",
+    "cancel": "Cancelar",
+    "generate": "Gerar relatório"
+  }
+}

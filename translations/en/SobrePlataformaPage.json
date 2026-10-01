@@ -1,0 +1,40 @@
+{
+  "SobrePlataformaPage": {
+    "why": {
+      "title": "Why create a platform for the Caatinga?",
+      "imageAlt": "A calm lake at the foot of a rocky hill covered in Caatinga vegetation, under a blue sky",
+      "blocks": {
+        "b1": {
+          "l1": "The Caatinga works differently from other biomes. Its vegetation loses its leaves during the dry season, responds quickly to rain and stores a large share of its carbon in the soil.",
+          "l2": "That is why data and methods created for humid forests do not always represent correctly what happens in the Caatinga."
+        },
+        "b2": {
+          "l1": "A monitoring system that does not recognize this dynamic may read the natural loss of leaves as degradation, and a fixed reference for \"how much carbon there would be without the project\" does not work where rainfall varies so much from one year to the next."
+        },
+        "b3": {
+          "l1": "This helps explain why there are almost no certified carbon projects in the biome, and why those that exist in Brazil are concentrated in the Amazon and the Cerrado.",
+          "l2": "CaatiVAR brings together information about the biome to support analyses better suited to its reality."
+        }
+      }
+    },
+    "cards": {
+      "mission": {
+        "title": "What is CaatiVAR's mission?",
+        "p1": "To broaden access to data and knowledge about carbon in the Caatinga, support participatory monitoring and help ensure that the carbon market, if and when it reaches the territories, respects the biome and the rights of the people who live in it."
+      },
+      "audience": {
+        "title": "Who is the platform for?",
+        "p1": "CaatiVAR was developed for communities, public managers, researchers, investors and anyone else interested in the carbon market in the Caatinga.",
+        "p2": "Each audience can use the information according to its needs, whether to learn about the topic, look up data or support decisions."
+      }
+    },
+    "band": {
+      "title": "What the platform does not do",
+      "items": {
+        "noSale": "It does not sell carbon credits",
+        "noCertification": "It does not certify or approve projects",
+        "noSubstitution": "It does not replace regulators and certifiers"
+      }
+    }
+  }
+}

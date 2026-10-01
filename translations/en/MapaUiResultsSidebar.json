@@ -1,0 +1,17 @@
+{
+  "MapaUiResultsSidebar": {
+    "title": "Results",
+    "show": "Show results",
+    "hide": "Hide results",
+    "analyzedHectares": "{value} ha analyzed",
+    "length": "Length",
+    "download": "Download CSV",
+    "downloadTitle": "Download this analysis as CSV",
+    "kinds": {
+      "point": "Drawn point",
+      "line": "Drawn line",
+      "area": "Drawn area",
+      "coordinates": "Coordinates"
+    }
+  }
+}

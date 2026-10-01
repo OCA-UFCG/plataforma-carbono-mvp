@@ -7,6 +7,7 @@
 // up to 100 with no sign that anything is missing.
 
 import type { RasterClass } from '@/types/mapa'
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
 
 export interface ClassShare {
   value:  number
@@ -23,6 +24,7 @@ const UNCLASSIFIED_VALUE = -1
 export function classShares(
   areas: Record<string, number>,
   classes: RasterClass[],
+  tx: MapaText = PT_TEXT,
 ): ClassShare[] {
   const totalM2 = Object.values(areas).reduce((a, b) => a + b, 0)
   if (totalM2 <= 0) return []
@@ -47,7 +49,7 @@ export function classShares(
     // the document name the leftover the same way.
     out.push({
       value:  UNCLASSIFIED_VALUE,
-      label:  'Não classificadas',
+      label:  tx.t('MapaResults.unclassified.classes'),
       color:  '#9e9e9e',
       areaHa: restoM2 / 10_000,
       share:  (restoM2 / totalM2) * 100,

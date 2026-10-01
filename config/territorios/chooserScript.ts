@@ -1,79 +1,49 @@
-// Every string of the screens around the Territórios story: the opening with
-// the type cards, the chooser where one territory of a type is picked on the
-// map, by location or by name, and the step rail. The story's own strings live
-// in storyScript.ts.
+// Logic behind the words of the screens around the Territórios story: the
+// opening with the type cards, the chooser where one territory of a type is
+// picked on the map, by location or by name, and the step rail. The strings
+// themselves live in translations/<locale>/: TerritoriosIntro.json,
+// TerritoriosChooser.json, TerritoriosRail.json and TerritoriosTypes.json.
+// The story's own sentences live in TerritoriosStory.json.
+//
+// Each function takes the translate function of its own namespace and the
+// locale, so it stays pure.
 
-import { numero } from '@/lib/mapa/format'
-import type { TerritoryTypeId } from '@/types/territorios'
+import { fixed, listText, type Translate } from '@/lib/territorios/i18n'
 
-/** "a", "a e b", "a, b e c". */
-function listPt(items: readonly string[]): string {
-  if (items.length < 2) return items.join('')
-  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`
+/** `t` of TerritoriosIntro: "Em breve: a, b e c", the labels lowercased. */
+export function soonText(labels: readonly string[], t: Translate, locale: string): string {
+  return t('soon', { labels: listText(labels.map((label) => label.toLowerCase()), locale) })
 }
 
-export const INTRO = {
-  eyebrow: 'Territórios',
-  title:   'Que território você quer conhecer?',
-  /** Receives the labels of the types not enabled yet, as the cards name them. */
-  soon:    (labels: readonly string[]) => `Em breve: ${listPt(labels.map((l) => l.toLowerCase()))}`,
-  homeLabel: 'Página inicial da Caativar',
+/** `t` of TerritoriosChooser. */
+export function distanceText(km: number, t: Translate, locale: string): string {
+  return km < 0.1
+    ? t('distance.lessThan', { km: fixed(0.1, 1, locale) })
+    : t('distance.about', { km: fixed(km, km < 10 ? 1 : 0, locale) })
 }
 
-export const CHOOSER = {
-  backToTypes: 'Voltar',
-  mapLabel:    (plural: string) => `Mapa de ${plural}`,
-  loading:     'Carregando o mapa',
-  loadError:   'Não foi possível carregar o mapa.',
-  retry:       'Tentar novamente',
-
-  locate:      'Usar minha localização',
-  locating:    'Buscando sua localização',
-  locateNote:  'Sua localização não é enviada nem guardada.',
-  locateUnsupported: 'Este navegador não oferece localização. Busque pelo nome ou escolha no mapa.',
-  locateDenied:      'Sem permissão para usar a localização. Busque pelo nome ou escolha no mapa.',
-  locateTimeout:     'A localização demorou a responder. Tente de novo ou escolha no mapa.',
-  locateUnavailable: 'Não foi possível obter sua localização. Busque pelo nome ou escolha no mapa.',
-  locateImprecise:   'A localização veio imprecisa demais. Busque pelo nome ou escolha no mapa.',
-  locateOutside:     'Sua localização fica fora da Caatinga. Busque pelo nome ou escolha no mapa.',
-  locateNotCovered:  'Não há território deste tipo na sua localização. Busque pelo nome ou escolha no mapa.',
-
-  /** Lead of the nearest options, per type, for the gender and number of each. */
-  nearestLead: {
-    terra_indigena:        'Sua localização não fica em nenhuma terra indígena. Estas são as mais próximas:',
-    territorio_quilombola: 'Sua localização não fica em nenhum território quilombola. Estes são os mais próximos:',
-    assentamento:          'Sua localização não fica em nenhum assentamento. Estes são os mais próximos:',
-  } as Partial<Record<TerritoryTypeId, string>>,
-  /** Lead of the list when more than one territory contains the location. */
-  overlapLead: {
-    estado:                'Sua localização fica na divisa entre estes estados:',
-    municipio:             'Sua localização fica na divisa entre estes municípios:',
-    terra_indigena:        'Sua localização fica em mais de uma terra indígena:',
-    territorio_quilombola: 'Sua localização fica em mais de um território quilombola:',
-    assentamento:          'Sua localização fica em mais de um assentamento:',
-  } as Partial<Record<TerritoryTypeId, string>>,
-  distance: (km: number) => km < 0.1
-    ? `a menos de ${numero(0.1)} km`
-    : `a ${numero(km, km < 10 ? 1 : 0)} km`,
-
-  searchLabel: 'Buscar pelo nome',
-  searchCount: (n: number, plural: string) => `${numero(n, 0)} ${plural} com área na Caatinga.`,
-  searchEmpty: (q: string) => `Nenhum resultado para "${q}".`,
-  searchResults: (n: number) => `${numero(n, 0)} ${n === 1 ? 'resultado' : 'resultados'}`,
-  searchToMap: 'Não achou? Escolha no mapa',
-
-  confirmTitle:  'É este território?',
-  // The recorte files are clipped to the biome, so the area is only the part
-  // inside it; without "na Caatinga" a state's figure would read as its whole
-  // area. The biome's own detail leaves it out.
-  confirmDetail: (unitLabel: string, context: string | undefined, area: string, biome = false) =>
-    [unitLabel, context, biome ? area : `${area} na Caatinga`].filter(Boolean).join(', '),
-  confirm:       'Sim, conhecer',
-  chooseAnother: 'Escolher outro',
+/** `t` of TerritoriosChooser: "{n} municípios com área na Caatinga." */
+export function searchCountText(n: number, plural: string, t: Translate, locale: string): string {
+  return t('searchCount', { count: fixed(n, 0, locale), plural })
 }
 
-export const RAIL = {
-  homeLabel: INTRO.homeLabel,
-  /** Position among the six theme steps; the summary shows its name alone. */
-  position:  (n: number, total: number) => `${n} de ${total}`,
+/** `t` of TerritoriosChooser: "1 resultado", "12 resultados". */
+export function searchResultsText(n: number, t: Translate, locale: string): string {
+  return t(n === 1 ? 'searchResults.one' : 'searchResults.many', { count: fixed(n, 0, locale) })
+}
+
+/**
+ * The line under the name on the confirm card and on the final sheet. The
+ * recorte files are clipped to the biome, so the area is only the part inside
+ * it; without "na Caatinga" a state's figure would read as its whole area. The
+ * biome's own detail leaves it out. `t` of TerritoriosChooser.
+ */
+export function confirmDetailText(
+  unitLabel: string,
+  context: string | undefined,
+  area: string,
+  t: Translate,
+  biome = false,
+): string {
+  return [unitLabel, context, biome ? area : t('confirmInBiome', { area })].filter(Boolean).join(', ')
 }

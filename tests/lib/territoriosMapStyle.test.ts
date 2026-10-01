@@ -14,7 +14,11 @@ import {
   themeRaster,
   tileRequestKey,
 } from '@/lib/territorios/mapStyle'
+import { fmtFor } from '../helpers/territoriosI18n'
 import type { RasterLayerConfig } from '@/types/mapa'
+
+const pt = fmtFor('pt')
+const en = fmtFor('en')
 
 const layer = (id: string) => (appConfig.layers as RasterLayerConfig[]).find((l) => l.id === id)!
 
@@ -39,17 +43,42 @@ describe('land use raster', () => {
   })
 
   it('lists in the legend the groups the raster paints, with their chart labels and colors', () => {
-    const legend = themeLegend('uso')
+    const legend = themeLegend('uso', pt)
     expect(legend.kind).toBe('classes')
     if (legend.kind !== 'classes') return
     const painted = new Set(classes.map((c) => landUseGroupOf(c.value).id))
     const expected = LAND_USE_GROUPS.filter((g) => painted.has(g.id))
-    expect(legend.items.map((i) => [i.label, i.color])).toEqual(expected.map((g) => [g.label, g.color]))
+    expect(legend.items.map((i) => [i.label, i.color])).toEqual(expected.map((g) => [pt.t(`landUseGroups.${g.id}`), g.color]))
+    expect(legend.items.map((i) => i.label)).toEqual(['Vegetação nativa', 'Agropecuária', 'Área urbana', 'Água e outras áreas'])
   })
 
   it('requests the band of the year asked for', () => {
     expect(themeRaster('uso').request.temporalDate).toBe('2024-01-01')
     expect(themeRaster('uso', '1985').request.temporalDate).toBe('1985-01-01')
+  })
+})
+
+describe('ramp legends', () => {
+  it('titles the stock and rain ramps in the language asked for', () => {
+    const titleOf = (id: 'estoque' | 'chuva', fmt: typeof pt) => {
+      const legend = themeLegend(id, fmt)
+      if (legend.kind !== 'ramp') throw new Error('expected a ramp')
+      return legend.title
+    }
+    expect(titleOf('estoque', pt)).toBe('t de carbono por hectare')
+    expect(titleOf('estoque', en)).toBe('t of carbon per hectare')
+    expect(titleOf('chuva', pt)).toBe('mm de chuva em 2024')
+    expect(titleOf('chuva', en)).toBe('mm of rain in 2024')
+  })
+
+  it('groups the ends of the ramp as the language writes numbers', () => {
+    const ends = (fmt: typeof pt) => {
+      const legend = themeLegend('chuva', fmt)
+      if (legend.kind !== 'ramp') throw new Error('expected a ramp')
+      return legend.max
+    }
+    const max = Number(ends(en).replace(/,/g, ''))
+    expect(ends(pt)).toBe(max.toLocaleString('pt-BR'))
   })
 })
 
@@ -67,7 +96,7 @@ describe('degradation raster', () => {
   })
 
   it('reads Conservado first and "Sem dado" last in the legend', () => {
-    const legend = themeLegend('degradacao')
+    const legend = themeLegend('degradacao', pt)
     if (legend.kind !== 'classes') throw new Error('expected classes')
     expect(legend.items.map((i) => i.label)).toEqual([
       'Conservado', 'Nível 1 (leve)', 'Nível 2', 'Nível 3', 'Nível 4', 'Nível 5 (grave)', 'Sem dado',
@@ -75,6 +104,15 @@ describe('degradation raster', () => {
     expect(legend.items.map((i) => i.color)).toEqual([6, 5, 4, 3, 2, 1, 0].map((c) => DEGRADATION_COLORS[c]))
     // Flat, as the raster paints code 0; only the chart hatches it.
     expect(legend.items.at(-1)).not.toHaveProperty('hatched')
+  })
+
+  it('words the legend in English', () => {
+    const legend = themeLegend('degradacao', en)
+    if (legend.kind !== 'classes') throw new Error('expected classes')
+    expect(legend.items.map((i) => i.label)).toEqual([
+      'Conserved', 'Level 1 (light)', 'Level 2', 'Level 3', 'Level 4', 'Level 5 (severe)', 'No data',
+    ])
+    expect(themeLegend('fluxo', en)).toMatchObject({ items: [{ label: 'Removed carbon from the air' }, { label: 'Released carbon into the air' }] })
   })
 })
 

@@ -4,6 +4,10 @@ import '../relatorio.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { libreFranklin } from '../fonts/app'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages, getTranslations } from 'next-intl/server'
+import { HTML_LANG, type Locale } from '@/translations/config'
+import { CLIENT_NAMESPACES, pickMessages } from '@/translations/clientNamespaces'
 
 // Fourth sibling root layout. The report is a document that scrolls and prints,
 // and (mapa)'s layout zeroes the body scroll and pins the height to the
@@ -12,10 +16,14 @@ import { libreFranklin } from '../fonts/app'
 //
 // Consequence: a link from /mapa to here crosses a route-group boundary, so it
 // is an <a href> and a full page load, never next/link.
-export const metadata: Metadata = {
-  title: 'Relatório territorial | Caativar',
-  description: 'Relatório automático de carbono por recorte territorial do bioma Caatinga. OCA, UFCG, INSA.',
-  icons: { icon: '/logos/logo_oca.png' },
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('RelatorioMetadata')
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    icons: { icon: '/logos/logo_oca.png' },
+  }
 }
 
 export default async function RelatorioLayout({
@@ -26,10 +34,17 @@ export default async function RelatorioLayout({
   const session = await getAuthenticatedSession()
   if (!session) redirect('/login?redirect=/relatorio')
 
+  // The language comes from the cookie the language switch writes (see
+  // translations/request.ts).
+  const locale = (await getLocale()) as Locale
+  const messages = await getMessages()
+
   return (
-    <html lang="pt-BR" className={libreFranklin.variable}>
+    <html lang={HTML_LANG[locale]} className={libreFranklin.variable}>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <NextIntlClientProvider messages={pickMessages(messages, CLIENT_NAMESPACES.relatorio)}>
+          <AuthProvider>{children}</AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

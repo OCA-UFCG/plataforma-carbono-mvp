@@ -8,6 +8,12 @@
 // Every `sectionColor` carries white heading text, so each one is checked at
 // 4.5:1 against white by tests/config/reportLayers.test.ts and by
 // `npm run contrast`.
+//
+// The prose (coverageContext, methodology, trend vocabulary) is Portuguese here
+// and translated by `getReportLayer(layerId, tx)` from the MapaReport namespace
+// (layers.<layerId>.*).
+
+import { lookup, type MapaText } from '@/lib/mapa/text'
 
 export interface ReportLayerConfig {
   layerId:      string
@@ -115,7 +121,33 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
   },
 ] as const
 
-/** The report config of a layer, or undefined when it is not eligible. */
-export function getReportLayer(layerId: string): ReportLayerConfig | undefined {
-  return REPORT_LAYERS.find((entry) => entry.layerId === layerId)
+/** The config with its prose in the user's language. */
+export function localizeReportLayer(config: ReportLayerConfig, tx: MapaText): ReportLayerConfig {
+  const text = (field: string, fallback: string) =>
+    lookup(tx, `MapaReport.layers.${config.layerId}.${field}`, fallback)
+
+  return {
+    ...config,
+    coverageContext: text('coverageContext', config.coverageContext),
+    methodology:     text('methodology', config.methodology),
+    ...(config.trend
+      ? {
+          trend: {
+            phenomenon:   text('trend.phenomenon', config.trend.phenomenon),
+            increaseTerm: text('trend.increaseTerm', config.trend.increaseTerm),
+            decreaseTerm: text('trend.decreaseTerm', config.trend.decreaseTerm),
+          },
+        }
+      : {}),
+  }
+}
+
+/**
+ * The report config of a layer, or undefined when it is not eligible. With a
+ * `MapaText` the prose comes back translated; without one it is the Portuguese
+ * the file carries.
+ */
+export function getReportLayer(layerId: string, tx?: MapaText): ReportLayerConfig | undefined {
+  const config = REPORT_LAYERS.find((entry) => entry.layerId === layerId)
+  return config && tx ? localizeReportLayer(config, tx) : config
 }

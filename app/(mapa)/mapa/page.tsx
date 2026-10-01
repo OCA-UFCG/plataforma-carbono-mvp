@@ -1,13 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import { IcLeaf } from '@/components/mapa/icons'
 
-// MapLibre requires browser APIs (WebGL, window).
-// dynamic + ssr:false prevents Next.js from trying to render it on the server.
-const Mapa = dynamic(() => import('@/components/mapa/Mapa'), {
-  ssr: false,
-  loading: () => (
+function MapaLoading() {
+  const t = useTranslations('MapaUiPage')
+
+  return (
     <div
       style={{
         height: '100dvh',
@@ -22,9 +22,16 @@ const Mapa = dynamic(() => import('@/components/mapa/Mapa'), {
       }}
     >
       <IcLeaf size={20} color="#5f7030" />
-      Carregando mapa...
+      {t('loading')}
     </div>
-  ),
+  )
+}
+
+// MapLibre requires browser APIs (WebGL, window).
+// dynamic + ssr:false prevents Next.js from trying to render it on the server.
+const Mapa = dynamic(() => import('@/components/mapa/Mapa'), {
+  ssr: false,
+  loading: () => <MapaLoading />,
 })
 
 export default function MapaPage() {

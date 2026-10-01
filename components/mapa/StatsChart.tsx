@@ -8,9 +8,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import { useTranslations } from 'next-intl'
 import { CardBox } from './StatsCards'
 import StockReportView from './StockReportView'
 import FluxValue from './FluxValue'
+import { formatNumber } from '@/lib/mapa/locale'
+import { useMapaText } from '@/lib/mapa/useMapaText'
+import type { MapaText } from '@/lib/mapa/text'
+import { MONTHS, monthLabel, monthShort } from '@/lib/phenology'
 import type {
   RasterClass,
   RasterStatsResult,
@@ -108,6 +113,8 @@ function CategoricalChart({
   theme: PlatformTheme
   caption?: string
 }) {
+  const t = useTranslations('MapaUiStatsChart')
+  const tx = useMapaText()
   if (!classes?.length) return null
 
   const totalM2 = Object.values(areas).reduce((a, b) => a + b, 0)
@@ -129,7 +136,7 @@ function CategoricalChart({
   if (unmappedM2 > 0) {
     rows.push({
       value: -1,
-      label: 'Não classificadas',
+      label: tx.t('MapaResults.unclassified.classes'),
       color: theme.colors.textDim,
       areaHa: unmappedM2 / 10_000,
       pct: (unmappedM2 / totalM2) * 100,
@@ -141,7 +148,7 @@ function CategoricalChart({
   // Horizontal proportional bars (handoff): class label on the left, bar in the
   // class colour, share and hectares on the right.
   return (
-    <CardBox title="Área por classe" caption={caption} theme={theme}>
+    <CardBox title={t('areaByClass')} caption={caption} theme={theme}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {rows.map((r) => (
           <div key={r.value} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -159,10 +166,10 @@ function CategoricalChart({
             </div>
             <span style={{ width: 62, flexShrink: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
               <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: theme.colors.text }}>
-                {r.pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
+                {formatNumber(r.pct, tx.locale, { maximumFractionDigits: 1 })}%
               </span>
               <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: theme.colors.caption }}>
-                {r.areaHa.toLocaleString('pt-BR', { maximumFractionDigits: r.areaHa >= 100 ? 0 : 1 })} ha
+                {formatNumber(r.areaHa, tx.locale, { maximumFractionDigits: r.areaHa >= 100 ? 0 : 1 })} ha
               </span>
             </span>
           </div>
@@ -187,26 +194,28 @@ function ContinuousStatsView({
   caption?: string
   signedFlux?: boolean
 }) {
+  const t = useTranslations('MapaUiStatsChart')
+  const tx = useMapaText()
   const fmt = (n: number | undefined): string => {
-    if (n === undefined || !Number.isFinite(n)) return 'n/d'
+    if (n === undefined || !Number.isFinite(n)) return tx.t('MapaResults.format.notAvailable')
     const digits = Math.abs(n) >= 1000 ? 0 : Math.abs(n) >= 10 ? 1 : 2
-    return n.toLocaleString('pt-BR', { maximumFractionDigits: digits })
+    return formatNumber(n, tx.locale, { maximumFractionDigits: digits })
   }
 
   // The mean gets a highlighted hero card; the rest fill a 2x2 grid (handoff).
   //
-  // A signed flux has no meaningful "Mínimo": with the sign gone, a minimum of
-  // 45,2 painted green reads as nonsense, and naming it "Maior sequestro"
-  // would be false over an area that only emits, where `min` is itself
-  // positive. "Menor fluxo" / "Maior fluxo" hold either way, and each value
-  // states its own direction.
-  const cells: { label: string; value: number | undefined; directional: boolean }[] = [
-    { label: 'Mediana', value: stats.median, directional: true },
-    { label: signedFlux ? 'Menor fluxo' : 'Mínimo', value: stats.min, directional: true },
-    { label: signedFlux ? 'Maior fluxo' : 'Máximo', value: stats.max, directional: true },
+  // A signed flux has no meaningful "Mínimo" (minimum): with the sign gone, a
+  // minimum of 45,2 painted green reads as nonsense, and naming it "Maior
+  // sequestro" would be false over an area that only emits, where `min` is
+  // itself positive. "Menor fluxo" / "Maior fluxo" (lowest / highest flux) hold
+  // either way, and each value states its own direction.
+  const cells: { id: string; label: string; value: number | undefined; directional: boolean }[] = [
+    { id: 'median', label: t('median'), value: stats.median, directional: true },
+    { id: 'min', label: signedFlux ? t('lowestFlux') : t('minimum'), value: stats.min, directional: true },
+    { id: 'max', label: signedFlux ? t('highestFlux') : t('maximum'), value: stats.max, directional: true },
     // A deviation is a spread, not a direction. Painting it green would claim
     // a sequestration the number never described.
-    { label: 'Desvio',  value: stats.std, directional: false },
+    { id: 'std', label: t('deviation'), value: stats.std, directional: false },
   ]
 
   const c = theme.colors
@@ -227,7 +236,7 @@ function ContinuousStatsView({
       gap: 10,
     }}>
       <div>
-        <div style={eyebrow}>Estatísticas do raster</div>
+        <div style={eyebrow}>{t('rasterStatistics')}</div>
         {caption && (
           <div style={{ fontSize: 14, fontWeight: 700, color: c.text, marginTop: 2 }}>{caption}</div>
         )}
@@ -257,7 +266,7 @@ function ContinuousStatsView({
           </>
         )}
         <span style={{ marginLeft: 'auto', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: c.dim }}>
-          média
+          {t('mean')}
         </span>
       </div>
 
@@ -267,7 +276,7 @@ function ContinuousStatsView({
           narrower than the results panel — such as the report's. */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 6 }}>
         {cells.map((cell) => (
-          <div key={cell.label} style={{
+          <div key={cell.id} style={{
             background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 8, padding: '7px 10px',
           }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: c.dim }}>
@@ -285,7 +294,7 @@ function ContinuousStatsView({
       </div>
 
       <div style={{ fontSize: 11.5, fontWeight: 600, color: c.caption, textAlign: 'right' }}>
-        {stats.count.toLocaleString('pt-BR')} pixels válidos
+        {t('validPixels', { count: formatNumber(stats.count, tx.locale) })}
       </div>
     </div>
   )
@@ -293,26 +302,16 @@ function ContinuousStatsView({
 
 // Time series (vertical bar chart over time)
 
-const MONTH_SHORT = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
-]
-
-const MONTH_LONG = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-]
-
 /** "2024-06-01" -> "Jun 24" for compact axis ticks. */
-function formatTickDate(dateStr: string): string {
+function formatTickDate(dateStr: string, tx: MapaText): string {
   const [y, m] = dateStr.split('-')
-  return `${MONTH_SHORT[Number(m) - 1]} ${y.slice(2)}`
+  return `${monthShort(MONTHS[Number(m) - 1], tx)} ${y.slice(2)}`
 }
 
-/** "2024-06-01" -> "Junho 2024" for tooltip headers. */
-function formatFullDate(dateStr: string): string {
+/** "2024-06-01" -> "Junho 2024" ("June 2024") for tooltip headers. */
+function formatFullDate(dateStr: string, tx: MapaText): string {
   const [y, m] = dateStr.split('-')
-  return `${MONTH_LONG[Number(m) - 1]} ${y}`
+  return `${monthLabel(MONTHS[Number(m) - 1], tx)} ${y}`
 }
 
 interface TimeSeriesRow extends TimeSeriesPoint {
@@ -335,6 +334,8 @@ function TimeSeriesChart({
   animate?: boolean
   width?: number
 }) {
+  const t = useTranslations('MapaUiStatsChart')
+  const tx = useMapaText()
   const hasClasses = Boolean(classes?.length)
 
   if (series.length === 0) return null
@@ -354,7 +355,7 @@ function TimeSeriesChart({
     return {
       ...pt,
       color: cls?.color ?? theme.colors.accent,
-      label: cls?.label ?? (pt.value !== null ? String(pt.value) : 'n/d'),
+      label: cls?.label ?? (pt.value !== null ? String(pt.value) : tx.t('MapaResults.format.notAvailable')),
     }
   })
 
@@ -375,7 +376,7 @@ function TimeSeriesChart({
       >
         <XAxis
           dataKey="date"
-          tickFormatter={formatTickDate}
+          tickFormatter={(date: string) => formatTickDate(date, tx)}
           tick={{ fontSize: 11, fill: theme.colors.textDim }}
           stroke={theme.colors.border}
           tickLine={false}
@@ -426,7 +427,7 @@ function TimeSeriesChart({
   )
 
   return (
-    <CardBox title="Valor ao longo do tempo" caption={caption} theme={theme}>
+    <CardBox title={t('valueOverTime')} caption={caption} theme={theme}>
       <div style={{ width: width ?? '100%', height: 220, minWidth: 0 }}>
         {width ? chart : (
           <ResponsiveContainer width="100%" height="100%">
@@ -447,6 +448,7 @@ interface DotProps {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TimeSeriesTooltip({ active, payload, theme }: any) {
+  const tx = useMapaText()
   if (!active || !payload || payload.length === 0) return null
   const row = payload[0].payload as TimeSeriesRow
   return (
@@ -461,7 +463,7 @@ function TimeSeriesTooltip({ active, payload, theme }: any) {
       }}
     >
       <div style={{ fontSize: 12.5, fontWeight: 600, color: theme.colors.text, marginBottom: 2 }}>
-        {formatFullDate(row.date)}
+        {formatFullDate(row.date, tx)}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span

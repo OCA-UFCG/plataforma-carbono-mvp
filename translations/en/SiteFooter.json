@@ -1,0 +1,14 @@
+{
+  "SiteFooter": {
+    "ariaLabel": "Footer",
+    "navLabel": "Footer navigation",
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "communication": "Communication",
+      "maps": "Maps"
+    },
+    "partners": "Partners and support",
+    "contact": "CONTACT"
+  }
+}

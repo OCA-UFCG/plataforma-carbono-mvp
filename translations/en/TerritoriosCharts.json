@@ -1,0 +1,46 @@
+{
+  "TerritoriosCharts": {
+    "here": "Here",
+    "biome": "Caatinga",
+    "noData": "No data",
+    "noDataInline": "no data",
+    "mm": "{value} mm",
+    "compare": {
+      "withBiome": "{label}: here {here}; in the Caatinga, {biome}.",
+      "alone": "{label}: {here}."
+    },
+    "estoque": "t of carbon per hectare",
+    "fluxoShare": "Share of the area with trees",
+    "fluxoPerHa": "t of CO₂e per hectare with trees",
+    "uso": {
+      "description": "Native vegetation in {first} and {last}. {rows}",
+      "row": "{name}: from {from} to {to}.",
+      "share": "Native vegetation in {year}"
+    },
+    "degradacao": {
+      "description": "Share of the area at each degradation level. {rows}",
+      "row": "{name}: {parts}.",
+      "share": "Area with degradation",
+      "levels": {
+        "conserved": "conserved",
+        "level1": "level 1",
+        "level2": "level 2",
+        "level3": "level 3",
+        "level4": "level 4",
+        "level5": "level 5",
+        "noData": "no data"
+      }
+    },
+    "chuva": {
+      "strip": "Rainfall from {first} to {last} against the local mean. Dry years: {dry}; normal: {normal}; wet: {wet}.",
+      "year": "{year}: {kind}, {mm} mm.",
+      "noYear": "{year}: no data.",
+      "mean": "Mean rainfall per year, in mm"
+    },
+    "rainKinds": {
+      "seco": "Dry",
+      "normal": "Normal",
+      "chuvoso": "Wet"
+    }
+  }
+}

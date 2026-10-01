@@ -1,19 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
-import { LAYER_META } from '@/config/mapa/layerMeta'
+import { layerMetaText } from '@/config/mapa/layerMeta'
+import { describeAnalysisSubject } from '@/lib/mapa/analysisSubject'
+import { formatNumber } from '@/lib/mapa/locale'
+import { layerName, localizeLayer } from '@/lib/mapa/text'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
 import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
-
-// pt-BR number formatting (comma decimal, dot thousands).
-const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
-const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 interface Props {
   theme: PlatformTheme
@@ -35,17 +36,27 @@ interface Props {
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
 export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose }: Props) {
+  const t  = useTranslations('MapaUiResultsSidebar')
+  const tx = useMapaText()
+  // Number formatting of the user's language (comma decimal in Portuguese).
+  const nf    = (value: number) => formatNumber(value, tx.locale, { maximumFractionDigits: 2 })
+  const nfInt = (value: number) => formatNumber(value, tx.locale, { maximumFractionDigits: 0 })
   const drawnArea        = useStore((s) => s.drawnArea)
   const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
   const selectedGeometry = useStore((s) => s.selectedGeometry)
-  const analysisLabel    = useStore((s) => s.analysisLabel)
-  const analysisKind     = useStore((s) => s.analysisKind)
+  const subject          = useStore((s) => s.analysisSubject)
+  const drawing          = useStore((s) => s.drawing)
   const layers           = useStore((s) => s.layers)
   const temporalDate     = useStore((s) => s.temporalDate)
   const layerErrors      = useStore((s) => s.layerErrors)
 
   const c = theme.colors
+
+  // The store keeps the subject of the analysis as ids, written when the user
+  // clicked or drew; it is named here, in the current language.
+  const { kind: analysisKind, label: analysisLabel } =
+    describeAnalysisSubject(subject, drawing, layers, tx, (shape) => t(`kinds.${shape}`))
 
   // One card per visible raster, in panel order (topmost first), whether or
   // not it has an answer yet: a layer still computing shows its skeleton.
@@ -129,18 +140,21 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
       drawnArea,
       drawnLength,
       generatedAt: new Date(),
-      layers: measured.map((raster) => ({
-        layerName:    raster.name,
-        layerUnit:    raster.unit,
-        layerClasses: raster.classes,
-        signedFlux:   raster.signedFlux,
-        year:         temporalDate[raster.id]?.slice(0, 4),
-        pixelValue:   results[raster.id]?.pixelValue ?? null,
-        stats:        results[raster.id]?.stats ?? null,
-        profile:      getResultProfile(raster.id),
-        source:       LAYER_META[raster.id]?.source,
-      })),
-    })
+      layers: measured.map((raster) => {
+        const local = localizeLayer(raster, tx)
+        return {
+          layerName:    local.name,
+          layerUnit:    local.unit,
+          layerClasses: local.classes,
+          signedFlux:   local.signedFlux,
+          year:         temporalDate[raster.id]?.slice(0, 4),
+          pixelValue:   results[raster.id]?.pixelValue ?? null,
+          stats:        results[raster.id]?.stats ?? null,
+          profile:      getResultProfile(raster.id, tx),
+          source:       layerMetaText(raster.id, tx)?.source,
+        }
+      }),
+    }, tx)
 
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
     const a = document.createElement('a')
@@ -170,8 +184,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
       <button
         className="ui-press"
         onClick={() => onSetCollapsed(false)}
-        aria-label="Mostrar resultados"
-        title="Mostrar resultados"
+        aria-label={t('show')}
+        title={t('show')}
         style={{
           position: 'absolute',
           zIndex: 10,
@@ -195,19 +209,19 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         }}
       >
         <IcBarChart size={14} />
-        {narrow && <span>Resultados</span>}
+        {narrow && <span>{t('title')}</span>}
       </button>
     )
   }
 
   // Leftovers of an earlier analysis (a deleted drawing, a hint with nothing
   // analysed) must not name the panel.
-  const title = hasContent ? (analysisLabel ?? analysisKind ?? 'Resultados') : 'Resultados'
+  const title = hasContent ? (analysisLabel ?? analysisKind ?? t('title')) : t('title')
 
   return (
     <div
       role="region"
-      aria-label="Resultados"
+      aria-label={t('title')}
       style={{
         position: 'absolute',
         // The phone drawer rises into the map controls' column (zIndex 12), which
@@ -247,14 +261,14 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
           </h2>
           {drawnArea !== null && (
             <span style={{ fontSize: 14, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
-              {nfInt.format(drawnArea * 100)} ha analisados
+              {t('analyzedHectares', { value: nfInt(drawnArea * 100) })}
             </span>
           )}
         </div>
         <button
           onClick={onClose}
-          aria-label="Ocultar resultados"
-          title="Ocultar resultados"
+          aria-label={t('hide')}
+          title={t('hide')}
           style={{
             width: 40, height: 40, borderRadius: 999, flexShrink: 0,
             background: c.bgCard,
@@ -275,7 +289,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
       {drawnLength !== null && (
         <div style={{ marginBottom: 24, flexShrink: 0 }}>
-          <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
+          <Pair theme={theme} items={[{ label: t('length'), value: nf(drawnLength), aside: 'km' }]} />
         </div>
       )}
 
@@ -302,19 +316,19 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
       {showEmptyHint && (
         <Stack>
-          <ContextLine theme={theme} title={activeRaster.name} />
-          <Empty theme={theme} text={analysisHint(recortes)} />
+          <ContextLine theme={theme} title={layerName(activeRaster, tx)} />
+          <Empty theme={theme} text={analysisHint(recortes, tx)} />
         </Stack>
       )}
       </div>
 
-      {/* Baixar a análise, pinned below the scrollable body like the header above
+      {/* Download the analysis, pinned below the scrollable body like the header above
           it, so the download stays in view however many cards are open. */}
       {canDownload && (
         <button
           className="ui-press"
           onClick={handleDownload}
-          title="Baixar esta análise em CSV"
+          title={t('downloadTitle')}
           style={{
             marginTop: 16,
             width: '100%',
@@ -335,7 +349,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
           }}
         >
           <IcDownload size={16} />
-          Baixar CSV
+          {t('download')}
         </button>
       )}
     </div>

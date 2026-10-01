@@ -12,6 +12,8 @@ import { DEGRADATION_COLORS, FLUX_COLORS, SURFACE_COLOR } from '@/config/territo
 import { storyTheme } from '@/config/territorios/story'
 import { contrast } from '@/lib/color'
 import type { GeeAssetConfig } from '@/lib/mapa/geeImage'
+import { DEGRADATION_KEYS } from '@/lib/territorios/storyValues'
+import { fixed, type Fmt } from '@/lib/territorios/i18n'
 import type { RasterLayerConfig } from '@/types/mapa'
 import type { StepId, ThemeId } from '@/types/territorios'
 
@@ -129,26 +131,21 @@ export function tileRequestKey(request: TileRequest): string {
 
 const outlined = (color: string) => contrast(color, SURFACE_COLOR) < 3
 
-const DEGRADATION_LEGEND: { code: number; label: string }[] = [
-  { code: 6, label: 'Conservado' },
-  { code: 5, label: 'Nível 1 (leve)' },
-  { code: 4, label: 'Nível 2' },
-  { code: 3, label: 'Nível 3' },
-  { code: 2, label: 'Nível 4' },
-  { code: 1, label: 'Nível 5 (grave)' },
-  { code: 0, label: 'Sem dado' },
-]
+/** Legend order: Conservado first, level 5 next to last and the masked area ("Sem dado") last. */
+const DEGRADATION_LEGEND_CODES = [6, 5, 4, 3, 2, 1, 0]
 
-const RAMP_TITLE: Partial<Record<ThemeId, (year: string | null) => string>> = {
-  estoque: () => 't de carbono por hectare',
-  chuva:   (year) => (year ? `mm de chuva em ${year}` : 'mm de chuva por ano'),
+/** Title of the color ramp of the two themes that draw one; the layer's own unit otherwise. */
+function rampTitle(themeId: ThemeId, year: string | null, fmt: Fmt): string | undefined {
+  if (themeId === 'estoque') return fmt.t('legend.ramp.stock')
+  if (themeId === 'chuva') return year ? fmt.t('legend.ramp.rainYear', { year }) : fmt.t('legend.ramp.rainPerYear')
+  return undefined
 }
 
-const legendNumber = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
-
-export function themeLegend(themeId: ThemeId): Legend {
+/** The legend of a theme's map, worded in the language `fmt` carries. */
+export function themeLegend(themeId: ThemeId, fmt: Fmt): Legend {
   const layer = storyLayer(themeId)
   const item = (label: string, color: string): LegendItem => ({ label, color, outlined: outlined(color) })
+  const legendNumber = (n: number) => fixed(n, 0, fmt.locale)
 
   switch (themeId) {
     case 'uso': {
@@ -156,25 +153,25 @@ export function themeLegend(themeId: ThemeId): Legend {
       const painted = new Set((layer.classes ?? []).map((c) => landUseGroupOf(c.value).id))
       return {
         kind:  'classes',
-        items: LAND_USE_GROUPS.filter((g) => painted.has(g.id)).map((g) => item(g.label, g.color)),
+        items: LAND_USE_GROUPS.filter((g) => painted.has(g.id)).map((g) => item(fmt.t(`landUseGroups.${g.id}`), g.color)),
       }
     }
     case 'degradacao':
       return {
         kind:  'classes',
         // Code 0 flat, as the raster paints it; only the chart hatches it.
-        items: DEGRADATION_LEGEND.map(({ code, label }) => item(label, DEGRADATION_COLORS[code])),
+        items: DEGRADATION_LEGEND_CODES.map((code) => item(fmt.t(`legend.degradation.${DEGRADATION_KEYS[code]}`), DEGRADATION_COLORS[code])),
       }
     case 'fluxo':
       return {
         kind:  'classes',
-        items: [item('Tirou carbono do ar', FLUX_COLORS.removal), item('Lançou carbono no ar', FLUX_COLORS.emission)],
+        items: [item(fmt.t('legend.fluxRemoval'), FLUX_COLORS.removal), item(fmt.t('legend.fluxEmission'), FLUX_COLORS.emission)],
       }
     default: {
       const vis = themeVisParams(themeId, layer)
       return {
         kind:    'ramp',
-        title:   RAMP_TITLE[themeId]?.(storyTheme(themeId).mapYear) ?? layer.unit ?? '',
+        title:   rampTitle(themeId, storyTheme(themeId).mapYear, fmt) ?? layer.unit ?? '',
         palette: vis.palette,
         min:     legendNumber(vis.min),
         max:     legendNumber(vis.max),

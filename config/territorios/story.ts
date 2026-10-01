@@ -1,23 +1,20 @@
 // Structure of the Territórios story: the territory types on the opening
 // cards, the theme steps and the fixed facts every layer of the story shares.
-// The sentences themselves live in storyScript.ts.
+// The words the visitor reads live in translations/<locale>/: the type names
+// and the step names in TerritoriosTypes.json (by the ids below), the
+// sentences in TerritoriosStory.json.
 
 import { STEP_COLORS } from '@/config/territorios/palette'
 import type { StepId, TerritoryTypeId, ThemeId } from '@/types/territorios'
 
 export interface TerritoryType {
   id:        TerritoryTypeId
-  /** Plural, for the "Em breve" line of the types not enabled yet. */
-  label:     string
-  /** Singular, for the type cards and the screen subtitle. */
-  unitLabel: string
   /** Vector layer id in config/mapa/layers.json; null for the types with no data yet. */
   recorteId: string | null
   enabled:   boolean
   image:     string
-  /** Lowercase plural for "{n} municípios com área na Caatinga"; null when there is no search. */
-  plural:         string | null
-  searchQuestion: string | null
+  /** Whether the chooser offers a search by name (and its count line). */
+  searchable: boolean
 }
 
 export const BIOMA_RECORTE_ID = 'bioma'
@@ -26,36 +23,36 @@ export const BIOMA_FEATURE_ID = 'bioma-caatinga'
 
 export const TERRITORY_TYPES: TerritoryType[] = [
   {
-    id: 'bioma', label: 'Bioma', unitLabel: 'Bioma', recorteId: BIOMA_RECORTE_ID, enabled: true,
-    image: '/images/territorios/bioma.jpg', plural: null, searchQuestion: null,
+    id: 'bioma', recorteId: BIOMA_RECORTE_ID, enabled: true,
+    image: '/images/territorios/bioma.jpg', searchable: false,
   },
   {
-    id: 'estado', label: 'Estado', unitLabel: 'Estado', recorteId: 'estados', enabled: true,
-    image: '/images/territorios/estado.jpg', plural: 'estados', searchQuestion: 'Qual estado?',
+    id: 'estado', recorteId: 'estados', enabled: true,
+    image: '/images/territorios/estado.jpg', searchable: true,
   },
   {
-    id: 'municipio', label: 'Município', unitLabel: 'Município', recorteId: 'municipios', enabled: true,
-    image: '/images/territorios/municipio.jpg', plural: 'municípios', searchQuestion: 'Qual município?',
+    id: 'municipio', recorteId: 'municipios', enabled: true,
+    image: '/images/territorios/municipio.jpg', searchable: true,
   },
   {
-    id: 'terra_indigena', label: 'Terras Indígenas', unitLabel: 'Terra Indígena', recorteId: 'terras_indigenas', enabled: true,
-    image: '/images/territorios/terra-indigena.jpg', plural: 'terras indígenas', searchQuestion: 'Qual terra indígena?',
+    id: 'terra_indigena', recorteId: 'terras_indigenas', enabled: true,
+    image: '/images/territorios/terra-indigena.jpg', searchable: true,
   },
   {
-    id: 'territorio_quilombola', label: 'Territórios Quilombolas', unitLabel: 'Território Quilombola', recorteId: 'quilombolas', enabled: true,
-    image: '/images/territorios/territorio-quilombola.jpg', plural: 'territórios quilombolas', searchQuestion: 'Qual território quilombola?',
+    id: 'territorio_quilombola', recorteId: 'quilombolas', enabled: true,
+    image: '/images/territorios/territorio-quilombola.jpg', searchable: true,
   },
   {
-    id: 'assentamento', label: 'Assentamentos', unitLabel: 'Assentamento', recorteId: 'assentamentos', enabled: true,
-    image: '/images/territorios/assentamento.jpg', plural: 'assentamentos', searchQuestion: 'Qual assentamento?',
+    id: 'assentamento', recorteId: 'assentamentos', enabled: true,
+    image: '/images/territorios/assentamento.jpg', searchable: true,
   },
   {
-    id: 'propriedade_rural', label: 'Propriedades Rurais', unitLabel: 'Propriedade Rural', recorteId: null, enabled: false,
-    image: '/images/territorios/propriedade-rural.jpg', plural: null, searchQuestion: null,
+    id: 'propriedade_rural', recorteId: null, enabled: false,
+    image: '/images/territorios/propriedade-rural.jpg', searchable: false,
   },
   {
-    id: 'unidade_conservacao', label: 'Unidades de Conservação', unitLabel: 'Unidade de Conservação', recorteId: null, enabled: false,
-    image: '/images/territorios/unidade-conservacao.jpg', plural: null, searchQuestion: null,
+    id: 'unidade_conservacao', recorteId: null, enabled: false,
+    image: '/images/territorios/unidade-conservacao.jpg', searchable: false,
   },
 ]
 
@@ -67,7 +64,6 @@ export interface StoryTheme {
   id:        ThemeId
   /** Raster layer id in config/mapa/layers.json. */
   layerId:   string
-  railLabel: string
   /** Heading bar and summary card border; carries white text, so at least 4.5:1 against white. */
   color:     string
   /** Year of the map on this step; null for a static layer. */
@@ -75,24 +71,14 @@ export interface StoryTheme {
 }
 
 export const STORY_THEMES: StoryTheme[] = [
-  { id: 'estoque',    layerId: 'estoque_carbono',  railLabel: 'Estoque',      color: STEP_COLORS.estoque,    mapYear: null },
-  { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        color: STEP_COLORS.fluxo,      mapYear: null },
-  { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', color: STEP_COLORS.uso,        mapYear: '2024' },
-  { id: 'degradacao', layerId: 'degradacao_terra', railLabel: 'Degradação',   color: STEP_COLORS.degradacao, mapYear: null },
-  { id: 'chuva',      layerId: 'chirps_precip',    railLabel: 'Chuva',        color: STEP_COLORS.chuva,      mapYear: '2024' },
+  { id: 'estoque',    layerId: 'estoque_carbono',  color: STEP_COLORS.estoque,    mapYear: null },
+  { id: 'fluxo',      layerId: 'gfw_netflux',      color: STEP_COLORS.fluxo,      mapYear: null },
+  { id: 'uso',        layerId: 'lulc_mapbiomas',   color: STEP_COLORS.uso,        mapYear: '2024' },
+  { id: 'degradacao', layerId: 'degradacao_terra', color: STEP_COLORS.degradacao, mapYear: null },
+  { id: 'chuva',      layerId: 'chirps_precip',    color: STEP_COLORS.chuva,      mapYear: '2024' },
 ]
 
 export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'degradacao', 'chuva', 'resumo']
-
-export const STEP_LABELS: Record<StepId, string> = {
-  territorio: 'Território',
-  estoque:    'Estoque',
-  fluxo:      'Fluxo',
-  uso:        'Uso da terra',
-  degradacao: 'Degradação',
-  chuva:      'Chuva',
-  resumo:     'Resumo',
-}
 
 export function storyTheme(id: ThemeId): StoryTheme {
   const theme = STORY_THEMES.find((t) => t.id === id)

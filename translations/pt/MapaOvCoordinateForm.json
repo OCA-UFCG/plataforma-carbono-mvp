@@ -1,0 +1,43 @@
+{
+  "MapaOvCoordinateForm": {
+    "tablistLabel": "Tipo de geometria por coordenadas",
+    "tabs": {
+      "point": "Ponto",
+      "rectangle": "Retângulo",
+      "polygon": "Polígono"
+    },
+    "fields": {
+      "lat": "latitude",
+      "lon": "longitude",
+      "lat1": "latitude do canto 1",
+      "lon1": "longitude do canto 1",
+      "lat2": "latitude do canto 2",
+      "lon2": "longitude do canto 2",
+      "vertices": "lista de vértices"
+    },
+    "labels": {
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "corner1": "Canto 1",
+      "corner2": "Canto 2 (oposto)",
+      "vertices": "Vértices — um par por linha"
+    },
+    "placeholders": {
+      "lat": "-9.00  ou  9°00'00\"S",
+      "lon": "-40.00  ou  40°00'00\"O",
+      "vertices": "-9.00, -40.00\n-9.00, -39.80\n-9.20, -39.90"
+    },
+    "help": "Latitude e depois longitude, em graus decimais (-9.25) ou em graus, minutos e segundos (9°15'00\"S). Sul e oeste são negativos.",
+    "errors": {
+      "invalidOne": "{label} inválida.",
+      "checkMany": "Verifique: {labels}.",
+      "oppositeCorners": "Os cantos precisam ser opostos: nenhuma latitude ou longitude repetida.",
+      "collinear": "Os vértices estão alinhados e não formam uma área."
+    },
+    "coverage": {
+      "partial": "Parte da área está fora da Caatinga: as camadas não cobrem o trecho externo.",
+      "outside": "Fora da Caatinga: as camadas não cobrem esse local."
+    },
+    "apply": "Aplicar"
+  }
+}

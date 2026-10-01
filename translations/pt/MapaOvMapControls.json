@@ -1,0 +1,13 @@
+{
+  "MapaOvMapControls": {
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "myLocation": "Minha localização",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "resetNorth": "Orientar para o norte",
+    "basemap": "Mapa base",
+    "drawTools": "Ferramentas de desenho",
+    "hideDrawTools": "Ocultar ferramentas de desenho"
+  }
+}

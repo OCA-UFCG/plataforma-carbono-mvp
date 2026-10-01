@@ -1,11 +1,18 @@
-import type { Passo } from "@/lib/content/sobre/como-funciona";
+import type { TomGrupo } from "@/lib/content/sobre/como-funciona";
 import styles from "./StepCard.module.css";
+
+// A step as the card renders it, already translated.
+export type StepCardContent = {
+  titulo: string;
+  paragrafos: string[];
+  grupos?: { id: string; rotulo: string; tom: TomGrupo; itens: string[] }[];
+};
 
 // One step of "Como funciona", Figma "Card Sobre" 18985:7140 and its variants:
 // the step number in a dark disc, then the title, the text and, on step 2, the
 // labelled groups of information. Rendered inside an <ol>, which announces the
 // position, so the disc is hidden from assistive tech rather than read twice.
-export default function StepCard({ numero, passo }: { numero: number; passo: Passo }) {
+export default function StepCard({ numero, passo }: { numero: number; passo: StepCardContent }) {
   return (
     <li className={styles.card} role="listitem">
       <span className={styles.numero} aria-hidden="true">
@@ -19,7 +26,7 @@ export default function StepCard({ numero, passo }: { numero: number; passo: Pas
           ))}
         </div>
         {passo.grupos?.map((grupo) => (
-          <div key={grupo.rotulo} className={styles.grupo}>
+          <div key={grupo.id} className={styles.grupo}>
             <p className={styles.rotulo}>{grupo.rotulo}</p>
             {/* role="list" restores the semantics `list-style: none` strips in
                 Safari/VoiceOver, as in Destaques.tsx. */}

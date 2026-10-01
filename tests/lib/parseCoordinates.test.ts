@@ -231,21 +231,21 @@ describe('parseVertexList', () => {
 
   it('reports the line number of an unreadable vertex', () => {
     const result = parseVertexList('-7.0, -36.0\nlixo\n-8.0, -35.0')
-    expect(result).toEqual({ ok: false, error: 'Linha 2: coordenada inválida' })
+    expect(result).toEqual({ ok: false, error: { key: 'MapaCoordinates.errors.invalidLine', values: { line: 2 } } })
   })
 
   it('counts blank lines when numbering, so the number matches the textarea', () => {
     const result = parseVertexList('-7.0, -36.0\n\n\nlixo')
-    expect(result).toEqual({ ok: false, error: 'Linha 4: coordenada inválida' })
+    expect(result).toEqual({ ok: false, error: { key: 'MapaCoordinates.errors.invalidLine', values: { line: 4 } } })
   })
 
   it('rejects fewer than three vertices', () => {
     const result = parseVertexList('-7.0, -36.0\n-7.0, -35.0')
-    expect(result).toEqual({ ok: false, error: 'Informe ao menos três vértices' })
+    expect(result).toEqual({ ok: false, error: { key: 'MapaCoordinates.errors.minVertices' } })
   })
 
   it('rejects an empty text', () => {
-    expect(parseVertexList('   \n  ')).toEqual({ ok: false, error: 'Informe ao menos três vértices' })
+    expect(parseVertexList('   \n  ')).toEqual({ ok: false, error: { key: 'MapaCoordinates.errors.minVertices' } })
   })
 })
 

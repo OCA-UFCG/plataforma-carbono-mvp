@@ -1,0 +1,57 @@
+{
+  "TerritoriosTypes": {
+    "types": {
+      "bioma": {
+        "label": "Biome",
+        "unitLabel": "Biome"
+      },
+      "estado": {
+        "label": "State",
+        "unitLabel": "State",
+        "plural": "states",
+        "searchQuestion": "Which state?"
+      },
+      "municipio": {
+        "label": "Municipality",
+        "unitLabel": "Municipality",
+        "plural": "municipalities",
+        "searchQuestion": "Which municipality?"
+      },
+      "terra_indigena": {
+        "label": "Indigenous Lands",
+        "unitLabel": "Indigenous Land",
+        "plural": "indigenous lands",
+        "searchQuestion": "Which indigenous land?"
+      },
+      "territorio_quilombola": {
+        "label": "Quilombola Territories",
+        "unitLabel": "Quilombola Territory",
+        "plural": "quilombola territories",
+        "searchQuestion": "Which quilombola territory?"
+      },
+      "assentamento": {
+        "label": "Settlements",
+        "unitLabel": "Settlement",
+        "plural": "settlements",
+        "searchQuestion": "Which settlement?"
+      },
+      "propriedade_rural": {
+        "label": "Rural Properties",
+        "unitLabel": "Rural Property"
+      },
+      "unidade_conservacao": {
+        "label": "Conservation Units",
+        "unitLabel": "Conservation Unit"
+      }
+    },
+    "steps": {
+      "territorio": "Territory",
+      "estoque": "Stock",
+      "fluxo": "Flux",
+      "uso": "Land use",
+      "degradacao": "Degradation",
+      "chuva": "Rainfall",
+      "resumo": "Summary"
+    }
+  }
+}

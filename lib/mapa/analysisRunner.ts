@@ -7,11 +7,21 @@
 // visible raster. Multiplying four copies by N layers was not viable, so it
 // lives here and every caller is one line.
 
-import type { LayerResult, RasterLayerConfig, RasterStatsResult, SelectedGeometry } from '@/types/mapa'
+import type { LayerResult, RasterLayerConfig, RasterStatsResult, SelectedGeometry, StoredText } from '@/types/mapa'
 import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { useStore } from '@/lib/mapa/store'
+
+/**
+ * What a failed card stores: the message's key, not its text. A card outlives a
+ * language switch and the runner has no component to ask for the locale, so the
+ * card writes the sentence when it renders (`storedText`).
+ */
+const ANALYSIS_ERRORS = {
+  pointValue: { key: 'MapaAnalysis.errors.pointValue' },
+  stats:      { key: 'MapaAnalysis.errors.stats' },
+} as const satisfies Record<string, StoredText>
 
 export interface PendingAnalysis {
   layer: RasterLayerConfig
@@ -176,9 +186,7 @@ export async function runLayerAnalysis(
       land({
         ...base,
         status: 'error',
-        error: !layer.gee?.temporal
-          ? 'Falha ao obter o valor no ponto. Tente novamente.'
-          : 'Falha ao calcular estatísticas. Tente novamente.',
+        error: !layer.gee?.temporal ? ANALYSIS_ERRORS.pointValue : ANALYSIS_ERRORS.stats,
       })
       return
     }
@@ -203,9 +211,7 @@ export async function runLayerAnalysis(
     land({
       ...base,
       status: 'error',
-      error: pointValue
-        ? 'Falha ao obter o valor no ponto. Tente novamente.'
-        : 'Falha ao calcular estatísticas. Tente novamente.',
+      error: pointValue ? ANALYSIS_ERRORS.pointValue : ANALYSIS_ERRORS.stats,
     })
   }
 }

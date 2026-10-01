@@ -1,0 +1,29 @@
+{
+  "MapaUiSidebar": {
+    "title": "Temas",
+    "activeOne": "{count} ativa",
+    "activeMany": "{count} ativas",
+    "home": "Início",
+    "homeTitle": "Desativar todas as camadas e voltar à vista do bioma",
+    "collapse": "Recolher",
+    "collapseAria": "Recolher painel",
+    "thematicOne": "{count} camada temática ligada",
+    "thematicMany": "{count} camadas temáticas ligadas",
+    "reorderHint": "Arraste temas e subcategorias pela alça ⠿ para mudar a ordem no mapa",
+    "clear": "Desligar",
+    "clearAria": "Desligar as camadas temáticas",
+    "clearTitle": "Desligar todas as camadas, exceto as de {territory}",
+    "search": "Buscar camadas",
+    "clearSearch": "Limpar busca",
+    "clearSearchAria": "Limpar busca de camadas",
+    "noResults": "Nenhuma camada encontrada.",
+    "dragToReorder": "Arraste para reordenar",
+    "infoAria": "Ficha da camada {name}",
+    "showLayerAria": "Exibir camada {name}",
+    "hideLayerAria": "Ocultar camada {name}",
+    "dismiss": "Dispensar",
+    "dismissError": "Dispensar erro",
+    "opacity": "Opacidade",
+    "opacityAria": "Opacidade de {name}"
+  }
+}

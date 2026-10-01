@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useStore } from '@/lib/mapa/store'
 import CoordinateForm from './CoordinateForm'
 import { centeredInGutters } from '@/lib/mapa/gutters'
@@ -18,28 +19,19 @@ interface Props {
   onApplyCoordinates: (feature: GeoJSON.Feature) => void
 }
 
-const TOOLS: { mode: Exclude<DrawMode, null>; name: string }[] = [
-  { mode: 'polygon',    name: 'Polígono'  },
-  { mode: 'rectangle',  name: 'Retângulo' },
-  { mode: 'linestring', name: 'Linha'     },
-  { mode: 'point',      name: 'Ponto'     },
-]
-
-const HINT: Record<string, string> = {
-  polygon:    'Clique no mapa para desenhar o polígono',
-  rectangle:  'Arraste no mapa para desenhar o retângulo',
-  linestring: 'Clique no mapa para desenhar a linha',
-  point:      'Clique no mapa para marcar o ponto',
-}
+// Labels and hints live in MapaOvDrawToolbar under the mode's own name. The
+// English "Polygon", "Point" and "Coordinates" are the words `MapaAnalysis.hint`
+// uses to point the user at these tools, so they must stay in step.
+const TOOLS: Exclude<DrawMode, null>[] = ['polygon', 'rectangle', 'linestring', 'point']
 
 /**
  * Horizontal drawing toolbar (glass pill), anchored to the edge of the Temas
  * panel (`left = leftEdge + 12`) on the second row of the left cluster, under
  * the Relatório button. It starts closed; the pencil in the control cluster
- * shows and hides it. Tools as text (Polígono/Retângulo/Linha/Ponto)
- * + Coordenadas + Limpar.
+ * shows and hides it. Tools as text (Polygon/Rectangle/Line/Point)
+ * + Coordinates + Clear.
  *
- * Coordenadas opens a form under the pill, for defining the same geometries by
+ * Coordinates opens a form under the pill, for defining the same geometries by
  * typing them instead of drawing. The pill and the form share a flex column,
  * so the form follows the pill down when the tools wrap onto a second line.
  */
@@ -50,6 +42,7 @@ export default function DrawToolbar({
   const setDrawMode   = useStore((s) => s.setDrawMode)
   const clearDrawings = useStore((s) => s.clearDrawings)
   const c = theme.colors
+  const t = useTranslations('MapaOvDrawToolbar')
 
   const [coordsOpen, setCoordsOpen] = useState(false)
 
@@ -99,12 +92,12 @@ export default function DrawToolbar({
             border: `1px solid ${c.glassBd}`, borderRadius: 22, boxShadow: '0 8px 24px -8px rgba(30,28,18,.4)',
           }}
         >
-          {TOOLS.map((t) => {
-            const active = drawMode === t.mode
+          {TOOLS.map((mode) => {
+            const active = drawMode === mode
             return (
               <button
-                key={t.mode}
-                onClick={() => setDrawMode(active ? null : t.mode)}
+                key={mode}
+                onClick={() => setDrawMode(active ? null : mode)}
                 aria-pressed={active}
                 style={{
                   height: 34, padding: '0 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
@@ -112,7 +105,7 @@ export default function DrawToolbar({
                   fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
                 }}
               >
-                {t.name}
+                {t(`tools.${mode}`)}
               </button>
             )
           })}
@@ -128,7 +121,7 @@ export default function DrawToolbar({
               fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background .2s',
             }}
           >
-            Coordenadas
+            {t('coordinates')}
           </button>
           <div style={{ width: 1, height: 22, background: c.border, margin: '0 3px' }} />
           <button
@@ -138,15 +131,15 @@ export default function DrawToolbar({
               background: 'transparent', color: c.terracota, fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            Limpar
+            {t('clear')}
           </button>
         </div>
 
         {coordsOpen && <CoordinateForm theme={theme} onApply={onApplyCoordinates} />}
       </div>
 
-      {/* Toast de instrução quando uma ferramenta está ativa */}
-      {drawMode && HINT[drawMode] && (
+      {/* Instruction toast while a tool is armed */}
+      {drawMode && (
         <div
           style={{
             position: 'absolute', bottom: 52, ...centeredInGutters(leftEdge, rightOffset), zIndex: 15,
@@ -155,7 +148,7 @@ export default function DrawToolbar({
             fontFamily: 'var(--font-app), sans-serif',
           }}
         >
-          {HINT[drawMode]}. <span style={{ fontWeight: 800, color: '#f5f4ec' }}>Esc</span> cancela
+          {t(`hints.${drawMode}`)}. <span style={{ fontWeight: 800, color: '#f5f4ec' }}>Esc</span> {t('cancel')}
         </div>
       )}
     </>

@@ -1,0 +1,9 @@
+{
+  "MapaOvSearchBar": {
+    "placeholder": "Search territory...",
+    "close": "Close",
+    "loading": "Loading data...",
+    "noResults": "No results found",
+    "scope": "Searches all territorial units."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "RelatorioSection": {
+    "hero": {
+      "totalStock": "Total stock",
+      "mean": "Mean"
+    },
+    "calculating": "Calculating this analysis in Earth Engine…",
+    "error": {
+      "title": "Could not load this analysis.",
+      "retry": "Try again"
+    },
+    "unavailable": {
+      "yearNotFound": "This layer has no data for {year}.",
+      "generic": "This analysis is not available.",
+      "availableYears": "Available years: {years}."
+    },
+    "situation": "Overview",
+    "analyzedYear": "Year analyzed",
+    "noTimeSeries": "no time series",
+    "availableSeries": "Available series",
+    "seriesFailed": "could not be computed",
+    "seriesNotApplicable": "not applicable",
+    "spatialTitle": "Spatial snapshot and distribution",
+    "imageOfYear": "Image from {year}",
+    "imageOfLayer": "Layer image",
+    "distributionOver": "Distribution over {name}",
+    "historicalSeries": "Historical series",
+    "historicalReading": "Historical reading",
+    "recentTrend": "Recent trend:",
+    "seriesContext": "Series context:"
+  }
+}

@@ -15,10 +15,16 @@
 // keyed by layer name has the same drift problem the recorte table would.
 // "A camada <nome>" sidesteps it — "camada" is always feminine, so the
 // article never has to agree with the name that follows it.
+//
+// The sentences live in translations/<locale>/MapaReport.json (narrative.*);
+// this file only decides which one to say and formats the numbers. Called
+// without a `MapaText` it writes Portuguese, as it always did. The caller passes
+// `layerName` and `classes` already in the user's language.
 
 import { describeFlux } from '@/lib/mapa/carbonFlux'
 import { classShares } from '@/lib/mapa/classShares'
 import { numero } from '@/lib/mapa/format'
+import { PT_TEXT, poolLabel, type MapaText } from '@/lib/mapa/text'
 import type { ReportLayerConfig } from '@/config/mapa/reportLayers'
 import type {
   ReportAnalysisStatus,
@@ -45,42 +51,70 @@ const STABLE_THRESHOLD = 0.005
 
 const EMPTY: ReportNarrative = { situation: null, trend: null, context: null }
 
-/** " em 2023", or nothing at all on a layer with no year. */
-function atYear(year: string | null): string {
-  return year ? ` em ${year}` : ''
+const NS = 'MapaReport.narrative'
+
+/** " em 2023" / " in 2023", or nothing at all on a layer with no year. */
+function atYear(year: string | null, tx: MapaText): string {
+  return year ? tx.t(`${NS}.atYear`, { year }) : ''
 }
 
-function withUnit(value: number, unit: string | undefined, digits = 1): string {
-  return unit ? `${numero(value, digits)} ${unit}` : numero(value, digits)
+function withUnit(value: number, unit: string | undefined, digits: number, tx: MapaText): string {
+  return unit ? `${numero(value, digits, tx.locale)} ${unit}` : numero(value, digits, tx.locale)
 }
 
-function situationContinuous(input: NarrativeInput, stats: { mean: number; min: number; max: number }) {
+function situationContinuous(input: NarrativeInput, stats: { mean: number; min: number; max: number }, tx: MapaText) {
   const { recorte, layerName, unit, signedFlux, effectiveYear } = input
 
   if (signedFlux) {
     // The magnitude and the verb come from the module that owns this
     // convention, so the document and the panel say the same word.
-    const flux = describeFlux(stats.mean)
-    if (!flux.label) return null
-    // 'emitiu'/'sequestrou' are verbs and read fine after "a área"; 'em
-    // equilíbrio' is an adjectival phrase and needs the copula the other two
-    // already carry within themselves.
-    const copula = flux.direction === 'neutral' ? 'está ' : ''
-    return `Em ${recorte.featureName}, a camada ${layerName} indica que a área ${copula}${flux.label}, em média, ${withUnit(flux.magnitude, unit, 2)}${atYear(effectiveYear)}.`
+    const flux = describeFlux(stats.mean, tx)
+    if (flux.direction === 'unknown') return null
+    // One sentence per direction rather than a verb slotted into a shared one:
+    // 'emitiu'/'sequestrou' are verbs that read fine after "a área", while 'em
+    // equilíbrio' is an adjectival phrase that needs the copula, and other
+    // languages split them differently again.
+    const key = flux.direction === 'emission' ? 'fluxEmission'
+      : flux.direction === 'removal' ? 'fluxRemoval'
+      : 'fluxNeutral'
+    return tx.t(`${NS}.${key}`, {
+      feature: recorte.featureName,
+      layer:   layerName,
+      value:   withUnit(flux.magnitude, unit, 2, tx),
+      atYear:  atYear(effectiveYear, tx),
+    })
   }
 
-  return `Em ${recorte.featureName}, a camada ${layerName} tem média de ${withUnit(stats.mean, unit)}${atYear(effectiveYear)}, variando de ${numero(stats.min)} a ${withUnit(stats.max, unit)}.`
+  return tx.t(`${NS}.continuous`, {
+    feature: recorte.featureName,
+    layer:   layerName,
+    mean:    withUnit(stats.mean, unit, 1, tx),
+    atYear:  atYear(effectiveYear, tx),
+    min:     numero(stats.min, 1, tx.locale),
+    max:     withUnit(stats.max, unit, 1, tx),
+  })
 }
 
-function situationCategorical(input: NarrativeInput, areas: Record<string, number>) {
+function situationCategorical(input: NarrativeInput, areas: Record<string, number>, tx: MapaText) {
   const { recorte, layerName, classes, config, effectiveYear } = input
-  const dominant = classShares(areas, classes ?? [])[0]
+  const dominant = classShares(areas, classes ?? [], tx)[0]
   if (!dominant) return null
 
-  return `Em ${recorte.featureName}, a classe predominante de ${layerName} é ${dominant.label}, com ${numero(dominant.share)}% da área analisada ${config.coverageContext}${effectiveYear ? `, em ${effectiveYear}` : ''}.`
+  return tx.t(`${NS}.categorical`, {
+    feature:    recorte.featureName,
+    layer:      layerName,
+    class:      dominant.label,
+    share:      numero(dominant.share, 1, tx.locale),
+    context:    config.coverageContext,
+    yearClause: effectiveYear ? tx.t(`${NS}.atYearComma`, { year: effectiveYear }) : '',
+  })
 }
 
-function situationStocks(input: NarrativeInput, report: Extract<RasterStatsResult, { kind: 'stocks' }>['report']) {
+function situationStocks(
+  input: NarrativeInput,
+  report: Extract<RasterStatsResult, { kind: 'stocks' }>['report'],
+  tx: MapaText,
+) {
   const { recorte } = input
   if (report.totalTc <= 0 || report.areaHa <= 0) return null
 
@@ -90,31 +124,43 @@ function situationStocks(input: NarrativeInput, report: Extract<RasterStatsResul
   const density = report.totalTc / report.areaHa
 
   const parts = [
-    `Em ${recorte.featureName}, o estoque total de carbono é de ${numero(report.totalTc, 0)} ${report.unit} sobre ${numero(report.areaHa, 0)} ha, uma densidade média de ${numero(density)} ${report.unit}/ha.`,
+    tx.t(`${NS}.stocksTotal`, {
+      feature: recorte.featureName,
+      total:   numero(report.totalTc, 0, tx.locale),
+      unit:    report.unit,
+      area:    numero(report.areaHa, 0, tx.locale),
+      density: numero(density, 1, tx.locale),
+    }),
   ]
   if (topPool && topClass) {
     parts.push(
-      `O reservatório ${topPool.label} responde por ${numero((topPool.tc / report.totalTc) * 100)}% do total, e a fitofisionomia ${topClass.sigla} por ${numero((topClass.tc / report.totalTc) * 100)}%.`,
+      tx.t(`${NS}.stocksBreakdown`, {
+        // The pool label arrives from the server config in Portuguese.
+        pool:       poolLabel(topPool.band, topPool.label, tx),
+        poolShare:  numero((topPool.tc / report.totalTc) * 100, 1, tx.locale),
+        class:      topClass.sigla,
+        classShare: numero((topClass.tc / report.totalTc) * 100, 1, tx.locale),
+      }),
     )
   }
   return parts.join(' ')
 }
 
-function buildSituation(input: NarrativeInput): string | null {
+function buildSituation(input: NarrativeInput, tx: MapaText): string | null {
   const { snapshot } = input
   if (!snapshot) return null
 
   switch (snapshot.kind) {
-    case 'continuous':  return situationContinuous(input, snapshot.stats)
-    case 'categorical': return situationCategorical(input, snapshot.areas)
-    case 'stocks':      return situationStocks(input, snapshot.report)
+    case 'continuous':  return situationContinuous(input, snapshot.stats, tx)
+    case 'categorical': return situationCategorical(input, snapshot.areas, tx)
+    case 'stocks':      return situationStocks(input, snapshot.report, tx)
     // A point series never reaches a report snapshot; the report's series lives
     // in its own field.
     case 'timeseries':  return null
   }
 }
 
-function buildTrend(input: NarrativeInput): string | null {
+function buildTrend(input: NarrativeInput, tx: MapaText): string | null {
   const { config, unit, signedFlux, effectiveYear, series } = input
   // No vocabulary means the layer's series cannot carry a trend: either it is
   // static, or its mean is not a quantity (see `seriesKind` in the config).
@@ -139,19 +185,21 @@ function buildTrend(input: NarrativeInput): string | null {
   const delta = current - previous
   const relative = previous === 0 ? (delta === 0 ? 0 : Infinity) : Math.abs(delta / previous)
   if (relative < STABLE_THRESHOLD) {
-    return `Em relação a ${previousYear}, o valor permaneceu estável.`
+    return tx.t(`${NS}.trendStable`, { year: previousYear })
   }
 
   const term = delta > 0 ? config.trend.increaseTerm : config.trend.decreaseTerm
-  const magnitude = withUnit(Math.abs(delta), unit)
+  const magnitude = withUnit(Math.abs(delta), unit, 1, tx)
   // The percentage is dropped when the previous value is zero, where it would
   // be a division by zero dressed up as a statistic.
-  const percentage = previous === 0 ? '' : `, ou ${numero(relative * 100)}%`
+  const percentage = previous === 0
+    ? ''
+    : tx.t(`${NS}.trendPercentage`, { value: numero(relative * 100, 1, tx.locale) })
 
-  return `Em relação a ${previousYear}, houve ${term} de ${magnitude}${percentage}.`
+  return tx.t(`${NS}.trendChange`, { year: previousYear, term, magnitude, percentage })
 }
 
-function buildContext(input: NarrativeInput): string | null {
+function buildContext(input: NarrativeInput, tx: MapaText): string | null {
   const { config, unit, series, signedFlux } = input
   if (!config.trend) return null
   // Same reasoning as buildTrend: the series here is the raw zonal mean, not
@@ -172,19 +220,30 @@ function buildContext(input: NarrativeInput): string | null {
   const firstYear = measured[0].date.slice(0, 4)
   const lastYear = measured[measured.length - 1].date.slice(0, 4)
 
-  return `Na série de ${firstYear} a ${lastYear}, a média é ${withUnit(mean, unit)}, com máximo de ${numero(highest.value)} em ${highest.date.slice(0, 4)} e mínimo de ${numero(lowest.value)} em ${lowest.date.slice(0, 4)}.`
+  return tx.t(`${NS}.context`, {
+    first:   firstYear,
+    last:    lastYear,
+    mean:    withUnit(mean, unit, 1, tx),
+    max:     numero(highest.value, 1, tx.locale),
+    maxYear: highest.date.slice(0, 4),
+    min:     numero(lowest.value, 1, tx.locale),
+    minYear: lowest.date.slice(0, 4),
+  })
 }
 
-/** The three sentences of a section, each null when it has nothing to say. */
-export function buildNarrative(input: NarrativeInput): ReportNarrative {
+/**
+ * The three sentences of a section, each null when it has nothing to say.
+ * `input.config` is expected already localized (`getReportLayer(id, tx)`).
+ */
+export function buildNarrative(input: NarrativeInput, tx: MapaText = PT_TEXT): ReportNarrative {
   // An unavailable analysis says nothing: the section prints the status and the
   // years that do exist instead, and inventing prose over a gap is worse than
   // silence.
   if (input.status !== 'available') return EMPTY
 
   return {
-    situation: buildSituation(input),
-    trend:     buildTrend(input),
-    context:   buildContext(input),
+    situation: buildSituation(input, tx),
+    trend:     buildTrend(input, tx),
+    context:   buildContext(input, tx),
   }
 }

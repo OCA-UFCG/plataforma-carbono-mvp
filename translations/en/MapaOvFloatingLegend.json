@@ -1,0 +1,8 @@
+{
+  "MapaOvFloatingLegend": {
+    "title": "Legend",
+    "minimize": "Minimize",
+    "noActiveLayers": "No active layers",
+    "balanceTick": "Balance: neither emission nor removal"
+  }
+}

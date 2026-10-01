@@ -1,0 +1,130 @@
+{
+  "MapaResults": {
+    "profiles": {
+      "stocks": {
+        "note": "Estoque da cobertura pretérita (potencial)."
+      },
+      "solo_carbono": {
+        "totalLabel": "Carbono orgânico do solo",
+        "note": "Profundidade de 0 a 30 cm."
+      },
+      "biomassa_gedi": {
+        "totalLabel": "Biomassa aérea",
+        "note": "Há lacunas entre as trilhas de medição do satélite."
+      },
+      "biomassa_esa_lenhosa": {
+        "totalLabel": "Biomassa aérea"
+      },
+      "biomassa_esa_territorial": {
+        "totalLabel": "Biomassa aérea"
+      },
+      "biomassa_spawn": {
+        "totalLabel": "Carbono da biomassa aérea"
+      },
+      "solo_carbono_embrapa": {
+        "note": "Teor de carbono; não equivale a estoque."
+      },
+      "altura_dossel": {
+        "threshold": "Área com dossel de 5 m ou mais"
+      },
+      "gfw_netflux": {
+        "totalLabel": "Fluxo líquido",
+        "period": "2001 a 2024"
+      },
+      "gfw_emissions": {
+        "totalLabel": "Emissões brutas",
+        "period": "2001 a 2024"
+      },
+      "gfw_removals": {
+        "totalLabel": "Remoções brutas",
+        "period": "2001 a 2024",
+        "note": "Em CO2, sem outros gases."
+      },
+      "gpp_modis": {
+        "meanLabel": "GPP média",
+        "totalLabel": "GPP total"
+      },
+      "npp_modis": {
+        "meanLabel": "NPP média",
+        "totalLabel": "NPP total"
+      },
+      "gpp_pml": {
+        "meanLabel": "GPP média",
+        "totalLabel": "GPP total"
+      },
+      "ndvi_modis": {
+        "meanLabel": "NDVI médio"
+      },
+      "evi_modis": {
+        "meanLabel": "EVI médio"
+      },
+      "chirps_precip": {
+        "meanLabel": "Chuva no ano"
+      },
+      "lst_modis": {
+        "meanLabel": "Temperatura média",
+        "note": "Temperatura da superfície, passagem diurna; não é temperatura do ar."
+      },
+      "lulc_mapbiomas": {
+        "groups": {
+          "nativeForest": "Vegetação nativa florestal",
+          "nativeNonForest": "Vegetação nativa campestre e arbustiva",
+          "farming": "Agropecuária",
+          "nonVegetated": "Área não vegetada",
+          "water": "Água"
+        }
+      },
+      "degradacao_terra": {
+        "severeLabel": "Níveis 4 e 5"
+      }
+    },
+    "format": {
+      "notAvailable": "n/d",
+      "hectaresUnderOne": "menos de 1 ha",
+      "hectaresShortUnderOne": "< 1 ha",
+      "hectaresMillion": "{value} mi ha",
+      "hectaresThousand": "{value} mil ha",
+      "percentUnder": "menos de {value}%",
+      "percentShortUnder": "< {value}%",
+      "source": "Fonte: {source}.",
+      "coverage": "{subject} em {share} da área analisada.",
+      "coverageSubject": "Dado"
+    },
+    "headline": {
+      "median": "mediana {value}{unit}",
+      "mean": "média {value}{unit}",
+      "total": "total {value} {unit}",
+      "fluxRemoval": "{value} {unit} de sequestro",
+      "fluxEmission": "{value} {unit} de emissão",
+      "fluxNeutral": "{value} {unit} em equilíbrio",
+      "degraded": "{share} com degradação",
+      "native": "{share} de vegetação nativa",
+      "burned": "{share} queimou desde {year}",
+      "noFire": "sem queimada mapeada"
+    },
+    "recurrence": {
+      "oneYear": "1 ano",
+      "years": "{count} anos",
+      "range": "{from} a {to} anos",
+      "orMore": "{from} anos ou mais"
+    },
+    "unclassified": {
+      "group": "Não classificada",
+      "classes": "Não classificadas"
+    },
+    "flux": {
+      "emission": {
+        "label": "emitiu",
+        "noun": "emissão"
+      },
+      "removal": {
+        "label": "sequestrou",
+        "noun": "sequestro"
+      },
+      "neutral": {
+        "label": "em equilíbrio",
+        "noun": "equilíbrio"
+      }
+    }
+  }
+}

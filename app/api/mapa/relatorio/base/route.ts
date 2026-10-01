@@ -13,11 +13,17 @@
  * client sends layer ids and the server resolves the assets from layers.json,
  * as stocksRegistry does. The equivalent guard is that the service rejects any
  * layer outside REPORT_LAYERS.
+ *
+ * The layer and recorte names, sources and methodology follow the language
+ * cookie, hence `Vary: Cookie` on the cacheable response (see ../analise/route.ts).
+ * The error messages are deliberately generic developer messages and stay in
+ * English in both languages.
  */
 
 import { NextResponse } from 'next/server'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { clientIp, rateLimit } from '@/lib/mapa/rateLimit'
+import { getMapaText } from '@/lib/mapa/textServer'
 import {
   buildReportShell,
   ReportBadRequestError,
@@ -78,9 +84,10 @@ export async function GET(req: Request) {
   }
 
   try {
-    const shell = buildReportShell({ recorteId, feicaoId, year, layerIds })
+    const tx = await getMapaText()
+    const shell = buildReportShell({ recorteId, feicaoId, year, layerIds, tx })
     return NextResponse.json(shell, {
-      headers: { 'Cache-Control': 'private, max-age=300' },
+      headers: { 'Cache-Control': 'private, max-age=300', Vary: 'Cookie' },
     })
   } catch (err) {
     if (err instanceof ReportNotFoundError) {

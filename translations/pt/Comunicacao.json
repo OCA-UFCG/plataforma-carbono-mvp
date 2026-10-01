@@ -1,0 +1,13 @@
+{
+  "Comunicacao": {
+    "ariaLabel": "Comunicação",
+    "heading": "Comunicação",
+    "moreContext": "materiais de comunicação",
+    "notebookLabel": "CADERNO TEMÁTICO",
+    "booklet": {
+      "label": "CARTILHA",
+      "description": "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema."
+    },
+    "viewMaterial": "Ver material"
+  }
+}

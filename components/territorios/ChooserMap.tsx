@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
+import { useTranslations } from 'next-intl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FeatureCollection, MultiPolygon, Point, Polygon } from 'geojson'
 import { STORY_BASEMAP } from '@/config/territorios/basemap'
-import { MAP_LOCALE, TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
+import { TERRITORY_SCRIPT, mapLocale } from '@/config/territorios/storyScript'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import type { FeatureEntry, PolygonalGeometry } from '@/lib/territorios/featureIds'
 import { interiorPoint } from '@/lib/territorios/interiorPoint'
@@ -68,6 +69,9 @@ function prefersReducedMotion(): boolean {
 }
 
 export default function ChooserMap({ collection, entries, biome, color, markers, selectedIndex, onPick }: ChooserMapProps) {
+  const t = useTranslations('TerritoriosMap')
+  // The map is built once, in the language of the first render.
+  const controlTextRef = useRef(mapLocale((key, values) => t(key, values)))
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const onPickRef = useRef(onPick)
@@ -90,7 +94,7 @@ export default function ChooserMap({ collection, entries, biome, color, markers,
       bounds: [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
       fitBoundsOptions: { padding: 24 },
       attributionControl: { compact: true },
-      locale: MAP_LOCALE,
+      locale: controlTextRef.current,
       dragRotate:      false,
       pitchWithRotate: false,
       touchPitch:      false,

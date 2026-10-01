@@ -1,0 +1,32 @@
+{
+  "RelatorioSection": {
+    "hero": {
+      "totalStock": "Estoque total",
+      "mean": "Média"
+    },
+    "calculating": "Calculando esta análise no Earth Engine…",
+    "error": {
+      "title": "Não foi possível carregar esta análise.",
+      "retry": "Tentar novamente"
+    },
+    "unavailable": {
+      "yearNotFound": "Esta camada não tem dados para {year}.",
+      "generic": "Esta análise não está disponível.",
+      "availableYears": "Anos disponíveis: {years}."
+    },
+    "situation": "Situação",
+    "analyzedYear": "Ano analisado",
+    "noTimeSeries": "sem série temporal",
+    "availableSeries": "Série disponível",
+    "seriesFailed": "não foi possível calcular",
+    "seriesNotApplicable": "não se aplica",
+    "spatialTitle": "Retrato espacial e distribuição",
+    "imageOfYear": "Imagem de {year}",
+    "imageOfLayer": "Imagem da camada",
+    "distributionOver": "Distribuição sobre {name}",
+    "historicalSeries": "Série histórica",
+    "historicalReading": "Leitura histórica",
+    "recentTrend": "Tendência recente:",
+    "seriesContext": "Contexto da série:"
+  }
+}

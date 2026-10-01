@@ -1,0 +1,10 @@
+{
+  "MapaUiLayerResultCard": {
+    "periodRange": "{from} a {to}",
+    "calculating": "Calculando",
+    "noResult": "Sem resultado",
+    "failed": "Falha ao calcular o resultado.",
+    "retry": "Tentar novamente",
+    "noDataAtPoint": "Sem dado neste ponto."
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import ReportDocument from './ReportDocument'
 import { buildReportTheme } from '@/config/mapa/platforms'
 import type { ReportAnalysis, ReportShell } from '@/types/relatorio'
@@ -27,20 +28,31 @@ type Status = 'loading' | 'ready' | 'error'
 /**
  * Every report route answers in English (`'Invalid recorte.'`, `'Recorte not
  * found.'`, …): those strings are for logs and for developers, not for the
- * reader of a printable document. This maps the HTTP status to a Portuguese
- * sentence instead; `payload.error` is still logged to the console for
- * diagnosis, just never rendered.
+ * reader of a printable document, so they are never rendered. This maps the
+ * HTTP status to a key of `RelatorioClient.errors` instead, translated at
+ * render time so the message follows the language; `payload.error` is still
+ * logged to the console for diagnosis.
  */
-function messageForStatus(status: number): string {
-  if (status === 400) return 'O pedido do relatório está incompleto ou inválido.'
-  // "Área" here for the same reason the form's label uses it: "feição" is the
-  // codebase's word for a vector feature, not a word to show a reader.
-  if (status === 404) return 'Recorte, área ou camada não encontrados.'
-  if (status === 429) return 'Muitas requisições no momento. Aguarde um instante e tente novamente.'
-  return 'Não foi possível concluir esta operação. Tente novamente.'
+type ErrorKey = 'badRequest' | 'notFound' | 'rateLimited' | 'generic' | 'shellFailed' | 'analysisFailed'
+
+/** An error carrying the key of its message rather than the message itself. */
+class ReportError extends Error {
+  constructor(readonly key: ErrorKey) {
+    super(key)
+  }
+}
+
+function errorKeyForStatus(status: number): ErrorKey {
+  if (status === 400) return 'badRequest'
+  // The message says "área" and not "feição": "feição" is the codebase's word
+  // for a vector feature, not a word to show a reader.
+  if (status === 404) return 'notFound'
+  if (status === 429) return 'rateLimited'
+  return 'generic'
 }
 
 export default function ReportClient({ recorteId, feicaoId, year, layerIds }: ReportClientProps) {
+  const t = useTranslations('RelatorioClient')
   const theme = useMemo(() => buildReportTheme(), [])
   const [shell, setShell] = useState<ReportShell | null>(null)
   // Initialised to 'loading' rather than written on effect entry: writing
@@ -49,10 +61,11 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
   // error in this project. Only the success and failure paths below write it,
   // and both sit after an await.
   const [shellStatus, setShellStatus] = useState<Status>('loading')
-  const [shellError, setShellError] = useState<string | null>(null)
+  const [shellError, setShellError] = useState<ErrorKey | null>(null)
   const [analyses, setAnalyses] = useState<Map<string, ReportAnalysis>>(new Map())
   const [pending, setPending] = useState<Set<string>>(new Set())
-  const [errors, setErrors] = useState<Map<string, string>>(new Map())
+  // Holds message keys (see ErrorKey), translated where they are rendered.
+  const [errors, setErrors] = useState<Map<string, ErrorKey>>(new Map())
   const [expired, setExpired] = useState(false)
   const query = useMemo(
     () => ({ recorte: recorteId, feicao: feicaoId, ano: year }),
@@ -80,13 +93,13 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}))
           console.error('[ReportClient] /base failed:', res.status, payload?.error)
-          throw new Error(messageForStatus(res.status))
+          throw new ReportError(errorKeyForStatus(res.status))
         }
         setShell(await res.json() as ReportShell)
         setShellStatus('ready')
       } catch (err) {
         if (controller.signal.aborted) return
-        setShellError(err instanceof Error ? err.message : 'Falha ao montar o relatório.')
+        setShellError(err instanceof ReportError ? err.key : 'shellFailed')
         setShellStatus('error')
       }
     }
@@ -115,7 +128,7 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}))
         console.error(`[ReportClient] /analise (${layerId}) failed:`, res.status, payload?.error)
-        throw new Error(messageForStatus(res.status))
+        throw new ReportError(errorKeyForStatus(res.status))
       }
       const analysis = await res.json() as ReportAnalysis
       setAnalyses((prev) => new Map(prev).set(layerId, analysis))
@@ -123,7 +136,7 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
       if (signal?.aborted) return
       setErrors((prev) => new Map(prev).set(
         layerId,
-        err instanceof Error ? err.message : 'Falha ao carregar esta análise.',
+        err instanceof ReportError ? err.key : 'analysisFailed',
       ))
     } finally {
       setPending((prev) => {
@@ -166,20 +179,25 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
     }
   }, [shell, camadas, query, fetchAnalysis])
 
+  const translatedErrors = useMemo(
+    () => new Map([...errors].map(([layerId, key]) => [layerId, t(`errors.${key}`)])),
+    [errors, t],
+  )
+
   if (shellStatus === 'error') {
     return (
       <main className="report-paper">
-        <h1>Não foi possível montar o relatório</h1>
-        <p>{shellError}</p>
+        <h1>{t('failureTitle')}</h1>
+        <p>{shellError && t(`errors.${shellError}`)}</p>
         <p className="report-no-print">
-          <a href="/mapa">Voltar aos mapas</a>
+          <a href="/mapa">{t('backToMaps')}</a>
         </p>
       </main>
     )
   }
 
   if (!shell) {
-    return <main className="report-paper"><p>Montando o relatório…</p></main>
+    return <main className="report-paper"><p>{t('loading')}</p></main>
   }
 
   return (
@@ -188,7 +206,7 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
       shell={shell}
       analyses={analyses}
       pending={pending}
-      errors={errors}
+      errors={translatedErrors}
       expired={expired}
       query={queryString}
       onRetry={(layerId) => void fetchAnalysis(layerId)}

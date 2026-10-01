@@ -14,6 +14,8 @@
 // Only layers declaring `signedFlux` in config/mapa/layers.json go through
 // here; a stock or a gross flux has no sign to hide.
 
+import { PT_TEXT, type MapaText } from '@/lib/mapa/text'
+
 export type FluxDirection = 'emission' | 'removal' | 'neutral' | 'unknown'
 
 export interface FluxDescription {
@@ -39,23 +41,31 @@ export type FluxInkColors = {
 }
 
 /**
- * Splits a signed flux into a magnitude and a direction.
+ * Splits a signed flux into a magnitude and a direction, with no words: what a
+ * caller with no `MapaText` at hand (the Territórios story) needs.
  *
  * Nodata arrives here as NaN (and an absent statistic as undefined), which is
  * why it gets its own direction: calling it 'neutral' would print "em
  * equilíbrio" over a measurement that was never made.
  */
-export function describeFlux(value: number): FluxDescription {
-  if (!Number.isFinite(value)) {
-    return { magnitude: NaN, direction: 'unknown', label: '', noun: '', arrow: '' }
+export function fluxDirection(value: number): Pick<FluxDescription, 'magnitude' | 'direction'> {
+  if (!Number.isFinite(value)) return { magnitude: NaN, direction: 'unknown' }
+  if (value > 0) return { magnitude: value, direction: 'emission' }
+  if (value < 0) return { magnitude: -value, direction: 'removal' }
+  return { magnitude: 0, direction: 'neutral' }
+}
+
+/** `fluxDirection` with the words the panel prints for it, in the language of `tx`. */
+export function describeFlux(value: number, tx: MapaText = PT_TEXT): FluxDescription {
+  const { magnitude, direction } = fluxDirection(value)
+  if (direction === 'unknown') return { magnitude, direction, label: '', noun: '', arrow: '' }
+  return {
+    magnitude,
+    direction,
+    arrow: direction === 'emission' ? '↑' : direction === 'removal' ? '↓' : '',
+    label: tx.t(`MapaResults.flux.${direction}.label`),
+    noun:  tx.t(`MapaResults.flux.${direction}.noun`),
   }
-  if (value > 0) {
-    return { magnitude: value, direction: 'emission', label: 'emitiu', noun: 'emissão', arrow: '↑' }
-  }
-  if (value < 0) {
-    return { magnitude: -value, direction: 'removal', label: 'sequestrou', noun: 'sequestro', arrow: '↓' }
-  }
-  return { magnitude: 0, direction: 'neutral', label: 'em equilíbrio', noun: 'equilíbrio', arrow: '' }
 }
 
 /** Text color for a flux direction. A value with no direction stays neutral. */

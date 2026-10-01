@@ -1,6 +1,7 @@
 'use client'
 
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
@@ -21,14 +22,15 @@ interface Props {
 /**
  * A signed carbon flux as the panel shows it: the magnitude with no sign, in
  * the emission red or the removal green, behind an arrow and above the word
- * that names the direction ("emitiu" / "sequestrou").
+ * that names the direction ("emitiu" / "sequestrou"; "emitted" / "removed" in English).
  *
  * The arrow and the word are not decoration beside the color. Red against
  * green is the worst possible pair for deuteranopia, so for part of the
  * audience the label is the only thing carrying the meaning.
  */
 export default function FluxValue({ value, unit, theme, size, format }: Props) {
-  const flux = describeFlux(value)
+  const tx = useMapaText()
+  const flux = describeFlux(value, tx)
   const ink = fluxInk(flux.direction, theme.colors)
 
   return (

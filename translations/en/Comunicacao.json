@@ -1,0 +1,13 @@
+{
+  "Comunicacao": {
+    "ariaLabel": "Communication",
+    "heading": "Communication",
+    "moreContext": "communication materials",
+    "notebookLabel": "THEMATIC NOTEBOOK",
+    "booklet": {
+      "label": "BOOKLET",
+      "description": "An introductory booklet, in plain language, for communities and other people interested in learning about the topic."
+    },
+    "viewMaterial": "View material"
+  }
+}

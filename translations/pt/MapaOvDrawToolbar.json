@@ -1,0 +1,19 @@
+{
+  "MapaOvDrawToolbar": {
+    "tools": {
+      "polygon": "Polígono",
+      "rectangle": "Retângulo",
+      "linestring": "Linha",
+      "point": "Ponto"
+    },
+    "coordinates": "Coordenadas",
+    "clear": "Limpar",
+    "hints": {
+      "polygon": "Clique no mapa para desenhar o polígono",
+      "rectangle": "Arraste no mapa para desenhar o retângulo",
+      "linestring": "Clique no mapa para desenhar a linha",
+      "point": "Clique no mapa para marcar o ponto"
+    },
+    "cancel": "cancela"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "TerritoriosChooser": {
+    "backToTypes": "Voltar",
+    "mapLabel": "Mapa de {plural}",
+    "loading": "Carregando o mapa",
+    "loadError": "Não foi possível carregar o mapa.",
+    "retry": "Tentar novamente",
+    "locate": "Usar minha localização",
+    "locating": "Buscando sua localização",
+    "locateNote": "Sua localização não é enviada nem guardada.",
+    "locateUnsupported": "Este navegador não oferece localização. Busque pelo nome ou escolha no mapa.",
+    "locateDenied": "Sem permissão para usar a localização. Busque pelo nome ou escolha no mapa.",
+    "locateTimeout": "A localização demorou a responder. Tente de novo ou escolha no mapa.",
+    "locateUnavailable": "Não foi possível obter sua localização. Busque pelo nome ou escolha no mapa.",
+    "locateImprecise": "A localização veio imprecisa demais. Busque pelo nome ou escolha no mapa.",
+    "locateOutside": "Sua localização fica fora da Caatinga. Busque pelo nome ou escolha no mapa.",
+    "locateNotCovered": "Não há território deste tipo na sua localização. Busque pelo nome ou escolha no mapa.",
+    "nearestLead": {
+      "terra_indigena": "Sua localização não fica em nenhuma terra indígena. Estas são as mais próximas:",
+      "territorio_quilombola": "Sua localização não fica em nenhum território quilombola. Estes são os mais próximos:",
+      "assentamento": "Sua localização não fica em nenhum assentamento. Estes são os mais próximos:"
+    },
+    "overlapLead": {
+      "estado": "Sua localização fica na divisa entre estes estados:",
+      "municipio": "Sua localização fica na divisa entre estes municípios:",
+      "terra_indigena": "Sua localização fica em mais de uma terra indígena:",
+      "territorio_quilombola": "Sua localização fica em mais de um território quilombola:",
+      "assentamento": "Sua localização fica em mais de um assentamento:"
+    },
+    "distance": {
+      "lessThan": "a menos de {km} km",
+      "about": "a {km} km"
+    },
+    "searchLabel": "Buscar pelo nome",
+    "searchCount": "{count} {plural} com área na Caatinga.",
+    "searchEmpty": "Nenhum resultado para \"{query}\".",
+    "searchResults": {
+      "one": "{count} resultado",
+      "many": "{count} resultados"
+    },
+    "searchToMap": "Não achou? Escolha no mapa",
+    "confirmTitle": "É este território?",
+    "confirmInBiome": "{area} na Caatinga",
+    "confirm": "Sim, conhecer",
+    "chooseAnother": "Escolher outro"
+  }
+}

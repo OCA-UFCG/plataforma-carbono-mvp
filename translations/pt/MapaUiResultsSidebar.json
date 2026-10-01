@@ -1,0 +1,17 @@
+{
+  "MapaUiResultsSidebar": {
+    "title": "Resultados",
+    "show": "Mostrar resultados",
+    "hide": "Ocultar resultados",
+    "analyzedHectares": "{value} ha analisados",
+    "length": "Comprimento",
+    "download": "Baixar CSV",
+    "downloadTitle": "Baixar esta análise em CSV",
+    "kinds": {
+      "point": "Ponto desenhado",
+      "line": "Linha desenhada",
+      "area": "Área desenhada",
+      "coordinates": "Coordenadas"
+    }
+  }
+}

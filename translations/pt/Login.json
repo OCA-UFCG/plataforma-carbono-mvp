@@ -1,0 +1,15 @@
+{
+  "Login": {
+    "brandAriaLabel": "Caativar",
+    "title": "Acesse a plataforma de carbono",
+    "subtitle": "Entre com as credenciais fornecidas pela equipe da plataforma.",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Senha",
+    "submit": "Entrar",
+    "submitting": "Entrando...",
+    "errors": {
+      "tooManyRequests": "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+      "invalidCredentials": "E-mail ou senha inválidos."
+    }
+  }
+}

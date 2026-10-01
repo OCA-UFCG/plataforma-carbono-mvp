@@ -1,0 +1,130 @@
+{
+  "MapaResults": {
+    "profiles": {
+      "stocks": {
+        "note": "Stock of the past cover (potential)."
+      },
+      "solo_carbono": {
+        "totalLabel": "Soil organic carbon",
+        "note": "Depth of 0 to 30 cm."
+      },
+      "biomassa_gedi": {
+        "totalLabel": "Aboveground biomass",
+        "note": "There are gaps between the satellite measurement tracks."
+      },
+      "biomassa_esa_lenhosa": {
+        "totalLabel": "Aboveground biomass"
+      },
+      "biomassa_esa_territorial": {
+        "totalLabel": "Aboveground biomass"
+      },
+      "biomassa_spawn": {
+        "totalLabel": "Aboveground biomass carbon"
+      },
+      "solo_carbono_embrapa": {
+        "note": "Carbon content; not equivalent to a stock."
+      },
+      "altura_dossel": {
+        "threshold": "Area with a canopy of 5 m or more"
+      },
+      "gfw_netflux": {
+        "totalLabel": "Net flux",
+        "period": "2001 to 2024"
+      },
+      "gfw_emissions": {
+        "totalLabel": "Gross emissions",
+        "period": "2001 to 2024"
+      },
+      "gfw_removals": {
+        "totalLabel": "Gross removals",
+        "period": "2001 to 2024",
+        "note": "In CO2, without other gases."
+      },
+      "gpp_modis": {
+        "meanLabel": "Mean GPP",
+        "totalLabel": "Total GPP"
+      },
+      "npp_modis": {
+        "meanLabel": "Mean NPP",
+        "totalLabel": "Total NPP"
+      },
+      "gpp_pml": {
+        "meanLabel": "Mean GPP",
+        "totalLabel": "Total GPP"
+      },
+      "ndvi_modis": {
+        "meanLabel": "Mean NDVI"
+      },
+      "evi_modis": {
+        "meanLabel": "Mean EVI"
+      },
+      "chirps_precip": {
+        "meanLabel": "Rainfall in the year"
+      },
+      "lst_modis": {
+        "meanLabel": "Mean temperature",
+        "note": "Surface temperature, daytime pass; not air temperature."
+      },
+      "lulc_mapbiomas": {
+        "groups": {
+          "nativeForest": "Native forest vegetation",
+          "nativeNonForest": "Native grassland and shrub vegetation",
+          "farming": "Farming and livestock",
+          "nonVegetated": "Non-vegetated area",
+          "water": "Water"
+        }
+      },
+      "degradacao_terra": {
+        "severeLabel": "Levels 4 and 5"
+      }
+    },
+    "format": {
+      "notAvailable": "n/a",
+      "hectaresUnderOne": "less than 1 ha",
+      "hectaresShortUnderOne": "< 1 ha",
+      "hectaresMillion": "{value}M ha",
+      "hectaresThousand": "{value}k ha",
+      "percentUnder": "less than {value}%",
+      "percentShortUnder": "< {value}%",
+      "source": "Source: {source}.",
+      "coverage": "{subject} in {share} of the analyzed area.",
+      "coverageSubject": "Data"
+    },
+    "headline": {
+      "median": "median {value}{unit}",
+      "mean": "mean {value}{unit}",
+      "total": "total {value} {unit}",
+      "fluxRemoval": "{value} {unit} of removal",
+      "fluxEmission": "{value} {unit} of emissions",
+      "fluxNeutral": "{value} {unit} in balance",
+      "degraded": "{share} degraded",
+      "native": "{share} native vegetation",
+      "burned": "{share} burned since {year}",
+      "noFire": "no mapped fire"
+    },
+    "recurrence": {
+      "oneYear": "1 year",
+      "years": "{count} years",
+      "range": "{from} to {to} years",
+      "orMore": "{from} or more years"
+    },
+    "unclassified": {
+      "group": "Unclassified",
+      "classes": "Unclassified"
+    },
+    "flux": {
+      "emission": {
+        "label": "emitted",
+        "noun": "emission"
+      },
+      "removal": {
+        "label": "removed",
+        "noun": "removal"
+      },
+      "neutral": {
+        "label": "in balance",
+        "noun": "balance"
+      }
+    }
+  }
+}

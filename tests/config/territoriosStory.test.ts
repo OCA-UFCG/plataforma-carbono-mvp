@@ -1,25 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { distanceText } from '@/config/territorios/chooserScript'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import {
   LAND_USE_YEARS,
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
+  STEPS,
   STORY_THEMES,
   TERRITORY_TYPES,
   storyTheme,
 } from '@/config/territorios/story'
-import { STATE_LOCATIVE } from '@/config/territorios/storyScript'
+import { STATE_CODES } from '@/config/territorios/storyScript'
 import { contrast } from '@/lib/color'
 import { listFeicoes } from '@/lib/mapa/recorteRegistry'
 import { ano, paradas } from '@/lib/mapa/temporal'
+import { translatorFor, territoriosMessages, type TestLocale } from '../helpers/territoriosI18n'
 import type { LayerConfig } from '@/types/mapa'
 
 const MIN_CONTRAST = 4.5
 
 const layers = appConfig.layers as LayerConfig[]
+
+const LOCALES_UNDER_TEST: TestLocale[] = ['pt', 'en']
+
+/** A namespace of the shipped messages, as a plain object. */
+function messagesOf(locale: TestLocale, namespace: string): Record<string, Record<string, Record<string, string>>> {
+  return (territoriosMessages(locale) as Record<string, Record<string, Record<string, Record<string, string>>>>)[namespace]
+}
 
 function yearsOf(layerId: string): string[] {
   const layer = layers.find((l) => l.id === layerId)
@@ -57,19 +66,28 @@ describe('STORY_THEMES', () => {
   })
 })
 
-describe('STATE_LOCATIVE', () => {
+describe('STATE_CODES', () => {
   it('places every state a territory of an enabled type names', () => {
     for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
       for (const feature of listFeicoes(type.recorteId!)) {
-        for (const uf of feature.context?.split('/') ?? []) expect(STATE_LOCATIVE[uf], `${type.id} ${uf}`).toBeTruthy()
+        for (const uf of feature.context?.split('/') ?? []) {
+          expect(STATE_CODES as readonly string[], `${type.id} ${uf}`).toContain(uf)
+        }
       }
     }
   })
 
   it('has the ten states the answer of the biome counts', () => {
-    // ANSWER_SCRIPT.territorio.biome: "A Caatinga inteira, em dez estados."
+    // answers.territorio.biome: "A Caatinga inteira, em dez estados."
     expect(listFeicoes('estados')).toHaveLength(10)
-    expect(Object.keys(STATE_LOCATIVE)).toHaveLength(10)
+    expect(STATE_CODES).toHaveLength(10)
+  })
+
+  it('names every state in every language', () => {
+    for (const locale of LOCALES_UNDER_TEST) {
+      const states = messagesOf(locale, 'TerritoriosStory').states
+      expect(Object.keys(states).sort(), locale).toEqual([...STATE_CODES].sort())
+    }
   })
 })
 
@@ -93,16 +111,39 @@ describe('TERRITORY_TYPES', () => {
   })
 })
 
-describe('CHOOSER', () => {
+describe('chooser messages', () => {
   it('never prints a zero distance for a territory the location is not in', () => {
-    expect(CHOOSER.distance(0.04)).toBe('a menos de 0,1 km')
-    expect(CHOOSER.distance(0.1)).toBe('a 0,1 km')
-    expect(CHOOSER.distance(12.4)).toBe('a 12 km')
+    const pt = translatorFor('pt', 'TerritoriosChooser')
+    expect(distanceText(0.04, pt, 'pt')).toBe('a menos de 0,1 km')
+    expect(distanceText(0.1, pt, 'pt')).toBe('a 0,1 km')
+    expect(distanceText(12.4, pt, 'pt')).toBe('a 12 km')
+
+    const en = translatorFor('en', 'TerritoriosChooser')
+    expect(distanceText(0.04, en, 'en')).toBe('less than 0.1 km away')
+    expect(distanceText(3.26, en, 'en')).toBe('3.3 km away')
   })
 
   it('has a lead for overlapping territories on every type the chooser opens', () => {
-    for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
-      expect(CHOOSER.overlapLead[type.id]).toBeTruthy()
+    for (const locale of LOCALES_UNDER_TEST) {
+      const { overlapLead } = messagesOf(locale, 'TerritoriosChooser')
+      for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
+        expect(overlapLead[type.id], `${locale} ${type.id}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('names every type, and asks the question of every type the chooser opens', () => {
+    for (const locale of LOCALES_UNDER_TEST) {
+      const { types, steps } = messagesOf(locale, 'TerritoriosTypes')
+      for (const type of TERRITORY_TYPES) {
+        expect(types[type.id].label, `${locale} ${type.id}`).toBeTruthy()
+        expect(types[type.id].unitLabel, `${locale} ${type.id}`).toBeTruthy()
+        if (type.searchable) {
+          expect(types[type.id].plural, `${locale} ${type.id}`).toBeTruthy()
+          expect(types[type.id].searchQuestion, `${locale} ${type.id}`).toBeTruthy()
+        }
+      }
+      expect(Object.keys(steps).sort(), locale).toEqual([...STEPS].sort())
     }
   })
 })

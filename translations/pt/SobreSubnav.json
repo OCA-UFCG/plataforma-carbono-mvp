@@ -1,0 +1,11 @@
+{
+  "SobreSubnav": {
+    "ariaLabel": "Páginas de Sobre",
+    "pages": {
+      "platform": "Conheça a plataforma",
+      "caatinga": "Conheça a Caatinga",
+      "relation": "Entenda essa relação",
+      "howItWorks": "Como funciona"
+    }
+  }
+}

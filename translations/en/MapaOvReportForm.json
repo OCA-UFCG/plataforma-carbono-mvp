@@ -1,0 +1,16 @@
+{
+  "MapaOvReportForm": {
+    "title": "Generate territorial report",
+    "unit": "Territorial unit",
+    "area": "Area",
+    "loading": "Loading…",
+    "searchByName": "Search by name",
+    "loadError": "Could not load the list of areas. Please try again.",
+    "referenceYear": "Reference year",
+    "variables": "Variables ({selected} of up to {max})",
+    "missingYear": "No data for {year} — available years: {years}.",
+    "liveNote": "Each variable is computed live in Earth Engine, so a report with many variables takes longer to be ready.",
+    "cancel": "Cancel",
+    "generate": "Generate report"
+  }
+}

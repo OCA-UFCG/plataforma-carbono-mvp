@@ -3,7 +3,7 @@ import { useStore } from '@/lib/mapa/store'
 
 /**
  * Turn a raw pixel value from /api/gee/point into a display result: apply the
- * asset's scaleFactor (physical value) and resolve the class label/color.
+ * asset's scaleFactor (physical value) and resolve the class and its color.
  *
  * For Jenks-classified layers (GPP/NPP) the raw DN never matches the 1..N
  * class codes, so the class is derived from the biome-wide breaks, matching
@@ -19,10 +19,10 @@ export function resolvePixelValue(raster: RasterLayerConfig, raw: number): Pixel
   if (isJenks && Array.isArray(breaks) && breaks.length > 0) {
     const classIdx = 1 + breaks.filter((b) => raw > b).length
     const cls = raster.classes?.find((c) => c.value === classIdx)
-    return { value: raw * scaleFactor, label: cls?.label, color: cls?.color }
+    return { value: raw * scaleFactor, classValue: cls?.value, color: cls?.color }
   }
 
   const intVal = Math.trunc(raw)
   const cls = raster.classes?.find((c) => c.value === intVal)
-  return { value: raw * scaleFactor, label: cls?.label, color: cls?.color }
+  return { value: raw * scaleFactor, classValue: cls?.value, color: cls?.color }
 }

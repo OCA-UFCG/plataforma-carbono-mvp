@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import {
   buildCoordinatePoint,
   buildCoordinatePolygon,
@@ -8,6 +10,8 @@ import {
   caatingaCoverage,
   parseDegrees,
   parseVertexList,
+  type Coverage,
+  type TextRef,
 } from '@/lib/mapa/parseCoordinates'
 import type { PlatformTheme } from '@/types/mapa'
 
@@ -19,10 +23,10 @@ interface Props {
 
 type Tab = 'ponto' | 'retangulo' | 'poligono'
 
-const TABS: { id: Tab; name: string }[] = [
-  { id: 'ponto',     name: 'Ponto'     },
-  { id: 'retangulo', name: 'Retângulo' },
-  { id: 'poligono',  name: 'Polígono'  },
+const TABS: { id: Tab; key: 'point' | 'rectangle' | 'polygon' }[] = [
+  { id: 'ponto',     key: 'point'     },
+  { id: 'retangulo', key: 'rectangle' },
+  { id: 'poligono',  key: 'polygon'   },
 ]
 
 const EMPTY_FIELDS = {
@@ -34,32 +38,19 @@ const EMPTY_FIELDS = {
 
 type FieldKey = keyof typeof EMPTY_FIELDS
 
-const FIELD_LABELS: Record<FieldKey, string> = {
-  lat:      'latitude',
-  lon:      'longitude',
-  lat1:     'latitude do canto 1',
-  lon1:     'longitude do canto 1',
-  lat2:     'latitude do canto 2',
-  lon2:     'longitude do canto 2',
-  vertices: 'lista de vértices',
-}
-
+// Placeholders: the example is the module's own default map centre
+// (`map.center` in config/mapa/layers.json), in the interior of the biome. It
+// used to be urban Campina Grande, which reads badly here: layers masked
+// outside vegetation -- gfw_netflux among them -- have no value over a city,
+// and an analysis that comes back empty is indistinguishable from one that
+// never ran. The placeholder only teaches the format, so it should at least
+// not point at a spot where the usual layers are blank. The texts are
+// `placeholders.*` in MapaOvCoordinateForm (the example's hemisphere letter is
+// O / W by language).
+//
 // Every layer is clipped to the biome, so a geometry outside it comes back
-// with no data. Saying so beats leaving an empty result unexplained.
-const COVERAGE_WARNING = {
-  partial: 'Parte da área está fora da Caatinga: as camadas não cobrem o trecho externo.',
-  outside: 'Fora da Caatinga: as camadas não cobrem esse local.',
-}
-
-// The example is the module's own default map centre (`map.center` in
-// config/mapa/layers.json), in the interior of the biome. It used to be urban
-// Campina Grande, which reads badly here: layers masked outside vegetation --
-// gfw_netflux among them -- have no value over a city, and an analysis that
-// comes back empty is indistinguishable from one that never ran. The
-// placeholder only teaches the format, so it should at least not point at a
-// spot where the usual layers are blank.
-const LAT_PLACEHOLDER = '-9.00  ou  9°00\'00"S'
-const LON_PLACEHOLDER = '-40.00  ou  40°00\'00"O'
+// with no data. Saying so (`coverage.*`) beats leaving an empty result
+// unexplained.
 
 /**
  * Typing a geometry instead of drawing it. Three tabs -- a point, a rectangle
@@ -72,49 +63,77 @@ const LON_PLACEHOLDER = '-40.00  ou  40°00\'00"O'
  */
 export default function CoordinateForm({ theme, onApply }: Props) {
   const c = theme.colors
+  const t = useTranslations('MapaOvCoordinateForm')
+  const tx = useMapaText()
+  const latPlaceholder = t('placeholders.lat')
+  const lonPlaceholder = t('placeholders.lon')
+
+  const invalidFieldsMessage = (keys: FieldKey[]): string => {
+    const labels = keys.map((k) => t(`fields.${k}`))
+    if (labels.length === 1) {
+      const [label] = labels
+      return t('errors.invalidOne', {
+        label: `${label[0].toLocaleUpperCase(tx.locale)}${label.slice(1)}`,
+      })
+    }
+    return t('errors.checkMany', { labels: labels.join(', ') })
+  }
 
   const [tab, setTab] = useState<Tab>('ponto')
   const [fields, setFields] = useState(EMPTY_FIELDS)
-  const [error, setError] = useState<string | null>(null)
+  // What went wrong, not the sentence: the map header's language switch leaves
+  // this form mounted, and a stored sentence would stay in the language it was
+  // written in, under labels in the other one. `badFields` alone means the
+  // generic "check these fields"; `errorRef` names a message of its own.
   const [badFields, setBadFields] = useState<FieldKey[]>([])
-  const [warning, setWarning] = useState<string | null>(null)
+  const [errorRef, setErrorRef] = useState<TextRef | null>(null)
+  const [coverage, setCoverage] = useState<Coverage | null>(null)
+
+  const clearMessages = () => {
+    setBadFields([])
+    setErrorRef(null)
+    setCoverage(null)
+  }
 
   const setField = (key: FieldKey, value: string) => {
     setFields((f) => ({ ...f, [key]: value }))
-    // Both messages describe the values as they were when Aplicar ran, so
+    // Both messages describe the values as they were when "Aplicar" ran, so
     // editing any of them makes both stale.
-    setError(null)
-    setBadFields([])
-    setWarning(null)
+    clearMessages()
   }
 
   const selectTab = (next: Tab) => {
     setTab(next)
-    setError(null)
-    setBadFields([])
-    setWarning(null)
+    clearMessages()
   }
 
-  const fail = (keys: FieldKey[], message?: string) => {
+  const fail = (keys: FieldKey[], message?: TextRef) => {
     setBadFields(keys)
-    setError(message ?? invalidFieldsMessage(keys))
-    setWarning(null)
+    setErrorRef(message ?? null)
+    setCoverage(null)
   }
 
   const commit = (feature: GeoJSON.Feature) => {
-    setError(null)
     setBadFields([])
-    const coverage = caatingaCoverage(feature.geometry)
-    setWarning(coverage === 'inside' ? null : COVERAGE_WARNING[coverage])
+    setErrorRef(null)
+    const covered = caatingaCoverage(feature.geometry)
+    setCoverage(covered === 'inside' ? null : covered)
     onApply(feature)
   }
+
+  // Translated on every render, so both follow the current language.
+  const error =
+    badFields.length === 0 ? null
+    : errorRef ? tx.t(errorRef.key, errorRef.values)
+    : invalidFieldsMessage(badFields)
+  const warning = coverage ? t(`coverage.${coverage}`) : null
 
   const applyPoint = () => {
     const lat = parseDegrees(fields.lat, 'lat')
     const lon = parseDegrees(fields.lon, 'lon')
     const bad = badAxisFields([['lat', lat], ['lon', lon]])
     if (bad.length > 0) return fail(bad)
-    commit(buildCoordinatePoint([lon!, lat!]))
+    commit(buildCoordinatePoint([lon!, lat!], tx))
   }
 
   const applyRectangle = () => {
@@ -127,12 +146,9 @@ export default function CoordinateForm({ theme, onApply }: Props) {
     ])
     if (bad.length > 0) return fail(bad)
 
-    const feature = buildCoordinateRectangle([lon1!, lat1!], [lon2!, lat2!])
+    const feature = buildCoordinateRectangle([lon1!, lat1!], [lon2!, lat2!], tx)
     if (!feature) {
-      return fail(
-        ['lat1', 'lon1', 'lat2', 'lon2'],
-        'Os cantos precisam ser opostos: nenhuma latitude ou longitude repetida.',
-      )
+      return fail(['lat1', 'lon1', 'lat2', 'lon2'], { key: 'MapaOvCoordinateForm.errors.oppositeCorners' })
     }
     commit(feature)
   }
@@ -141,9 +157,9 @@ export default function CoordinateForm({ theme, onApply }: Props) {
     const parsed = parseVertexList(fields.vertices)
     if (!parsed.ok) return fail(['vertices'], parsed.error)
 
-    const feature = buildCoordinatePolygon(parsed.vertices)
+    const feature = buildCoordinatePolygon(parsed.vertices, tx)
     if (!feature) {
-      return fail(['vertices'], 'Os vértices estão alinhados e não formam uma área.')
+      return fail(['vertices'], { key: 'MapaOvCoordinateForm.errors.collinear' })
     }
     commit(feature)
   }
@@ -212,17 +228,17 @@ export default function CoordinateForm({ theme, onApply }: Props) {
       {/* Tabs */}
       <div
         role="tablist"
-        aria-label="Tipo de geometria por coordenadas"
+        aria-label={t('tablistLabel')}
         style={{ display: 'flex', gap: 2, marginBottom: 10 }}
       >
-        {TABS.map((t) => {
-          const active = tab === t.id
+        {TABS.map((tab_) => {
+          const active = tab === tab_.id
           return (
             <button
-              key={t.id}
+              key={tab_.id}
               role="tab"
               aria-selected={active}
-              onClick={() => selectTab(t.id)}
+              onClick={() => selectTab(tab_.id)}
               style={{
                 flex: 1, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer',
                 background: active ? c.accentBg : 'transparent',
@@ -230,7 +246,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
                 fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
               }}
             >
-              {t.name}
+              {t(`tabs.${tab_.key}`)}
             </button>
           )
         })}
@@ -238,31 +254,31 @@ export default function CoordinateForm({ theme, onApply }: Props) {
 
       {tab === 'ponto' && (
         <div style={{ display: 'grid', gap: 8 }}>
-          {axisField('lat', 'Latitude', LAT_PLACEHOLDER)}
-          {axisField('lon', 'Longitude', LON_PLACEHOLDER)}
+          {axisField('lat', t('labels.latitude'), latPlaceholder)}
+          {axisField('lon', t('labels.longitude'), lonPlaceholder)}
         </div>
       )}
 
       {tab === 'retangulo' && (
         <div style={{ display: 'grid', gap: 8 }}>
-          <span style={{ ...labelStyle, marginBottom: -2, color: c.textDim }}>Canto 1</span>
-          {axisField('lat1', 'Latitude', LAT_PLACEHOLDER)}
-          {axisField('lon1', 'Longitude', LON_PLACEHOLDER)}
+          <span style={{ ...labelStyle, marginBottom: -2, color: c.textDim }}>{t('labels.corner1')}</span>
+          {axisField('lat1', t('labels.latitude'), latPlaceholder)}
+          {axisField('lon1', t('labels.longitude'), lonPlaceholder)}
           <span style={{ ...labelStyle, marginBottom: -2, marginTop: 2, color: c.textDim }}>
-            Canto 2 (oposto)
+            {t('labels.corner2')}
           </span>
-          {axisField('lat2', 'Latitude', LAT_PLACEHOLDER)}
-          {axisField('lon2', 'Longitude', LON_PLACEHOLDER)}
+          {axisField('lat2', t('labels.latitude'), latPlaceholder)}
+          {axisField('lon2', t('labels.longitude'), lonPlaceholder)}
         </div>
       )}
 
       {tab === 'poligono' && (
         <label style={{ display: 'block' }}>
-          <span style={labelStyle}>Vértices — um par por linha</span>
+          <span style={labelStyle}>{t('labels.vertices')}</span>
           <textarea
             value={fields.vertices}
             onChange={(e) => setField('vertices', e.target.value)}
-            placeholder={'-9.00, -40.00\n-9.00, -39.80\n-9.20, -39.90'}
+            placeholder={t('placeholders.vertices')}
             rows={6}
             style={{
               ...inputStyle('vertices'),
@@ -276,8 +292,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
       )}
 
       <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.45, color: c.caption }}>
-        Latitude e depois longitude, em graus decimais (-9.25) ou em graus, minutos e
-        segundos (9°15&apos;00&quot;S). Sul e oeste são negativos.
+        {t('help')}
       </p>
 
       {error && (
@@ -312,7 +327,7 @@ export default function CoordinateForm({ theme, onApply }: Props) {
           fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
         }}
       >
-        Aplicar
+        {t('apply')}
       </button>
     </div>
   )
@@ -323,13 +338,4 @@ export default function CoordinateForm({ theme, onApply }: Props) {
 /** Field keys whose parse came back null, in the order they were listed. */
 function badAxisFields(parsed: [FieldKey, number | null][]): FieldKey[] {
   return parsed.filter(([, value]) => value === null).map(([key]) => key)
-}
-
-function invalidFieldsMessage(keys: FieldKey[]): string {
-  const labels = keys.map((k) => FIELD_LABELS[k])
-  if (labels.length === 1) {
-    const [label] = labels
-    return `${label[0].toUpperCase()}${label.slice(1)} inválida.`
-  }
-  return `Verifique: ${labels.join(', ')}.`
 }

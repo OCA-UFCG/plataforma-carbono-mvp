@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { SOBRE_PAGES } from "@/lib/marketing/nav";
 import styles from "./SobreSubnav.module.css";
 
@@ -11,10 +12,11 @@ import styles from "./SobreSubnav.module.css";
 // not an ARIA tablist: a tablist would promise arrow-key switching between
 // panels on one page, which is not what these do.
 export default function SobreSubnav() {
+  const t = useTranslations("SobreSubnav");
   const pathname = usePathname();
 
   return (
-    <nav className={styles.subnav} aria-label="Páginas de Sobre">
+    <nav className={styles.subnav} aria-label={t("ariaLabel")}>
       <div className={`container ${styles.list}`}>
         {SOBRE_PAGES.map((page) => {
           const current = pathname === page.href;
@@ -25,7 +27,7 @@ export default function SobreSubnav() {
               className={`${styles.item} text-subtle-medium${current ? ` ${styles.itemCurrent}` : ""}`}
               aria-current={current ? "page" : undefined}
             >
-              {page.label}
+              {t(`pages.${page.key}`)}
             </Link>
           );
         })}

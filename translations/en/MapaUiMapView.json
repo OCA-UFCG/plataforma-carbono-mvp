@@ -1,0 +1,13 @@
+{
+  "MapaUiMapView": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetBearing": "Reset bearing to north",
+    "findMyLocation": "Find my location",
+    "locationNotAvailable": "Location not available",
+    "fullscreenEnter": "Enter fullscreen",
+    "fullscreenExit": "Exit fullscreen",
+    "toggleAttribution": "Toggle attribution",
+    "mapFeedback": "Map feedback"
+  }
+}

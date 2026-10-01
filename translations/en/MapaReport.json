@@ -1,0 +1,96 @@
+{
+  "MapaReport": {
+    "layers": {
+      "estoque_carbono": {
+        "coverageContext": "in this phytophysiognomy",
+        "methodology": "Stocks from the Fourth National Inventory, rasterized at 100 m and summed over the five pools. The total is density multiplied by the geodesic area of the pixel, and it matches the original vector to within 0.03%."
+      },
+      "solo_carbono": {
+        "coverageContext": "in this content range",
+        "methodology": "Soil organic carbon from 0 to 30 cm, MapBiomas Soil collection 2, 30 m.",
+        "trend": {
+          "phenomenon": "soil carbon",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "biomassa_esa_lenhosa": {
+        "coverageContext": "in this biomass range",
+        "methodology": "Aboveground biomass of woody vegetation, ESA CCI Biomass. The series has a gap: 2007, 2010 and from 2015 onwards.",
+        "trend": {
+          "phenomenon": "biomass",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "gfw_netflux": {
+        "coverageContext": "in this flux range",
+        "methodology": "Net forest carbon flux, Global Forest Watch. A negative value is removal from the atmosphere and a positive one is emission; the document replaces the sign with a word."
+      },
+      "lulc_mapbiomas": {
+        "coverageContext": "in this land use and cover class",
+        "methodology": "Land use and land cover, MapBiomas collection 10.1, 30 m, annual series from 1985 onwards."
+      },
+      "fogo_frequencia": {
+        "coverageContext": "in this recurrence range",
+        "methodology": "Cumulative fire frequency since 1985, MapBiomas Fire collection 3. Areas that never burned count as zero.",
+        "trend": {
+          "phenomenon": "fire recurrence",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "gpp_modis": {
+        "coverageContext": "in this productivity class",
+        "methodology": "Gross primary productivity, MODIS MOD17A2HGF, classified into five classes by Jenks over the biome.",
+        "trend": {
+          "phenomenon": "gross productivity",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "npp_modis": {
+        "coverageContext": "in this productivity class",
+        "methodology": "Net primary productivity, MODIS MOD17A3HGF, classified into five classes by Jenks over the biome.",
+        "trend": {
+          "phenomenon": "net productivity",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "chirps_precip": {
+        "coverageContext": "in this precipitation range",
+        "methodology": "Cumulative annual precipitation, daily CHIRPS summed over the year.",
+        "trend": {
+          "phenomenon": "precipitation",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      },
+      "ndvi_modis": {
+        "coverageContext": "in this vigor range",
+        "methodology": "NDVI, MODIS MOD13Q1, mean of the 16-day composites of the year.",
+        "trend": {
+          "phenomenon": "vegetation vigor",
+          "increaseTerm": "increase",
+          "decreaseTerm": "decrease"
+        }
+      }
+    },
+    "narrative": {
+      "atYear": " in {year}",
+      "atYearComma": ", in {year}",
+      "fluxEmission": "In {feature}, the {layer} layer indicates that the area emitted an average of {value}{atYear}.",
+      "fluxRemoval": "In {feature}, the {layer} layer indicates that the area removed an average of {value}{atYear}.",
+      "fluxNeutral": "In {feature}, the {layer} layer indicates that the area is in balance, with an average of {value}{atYear}.",
+      "continuous": "In {feature}, the {layer} layer averages {mean}{atYear}, ranging from {min} to {max}.",
+      "categorical": "In {feature}, the predominant class of {layer} is {class}, with {share}% of the analyzed area {context}{yearClause}.",
+      "stocksTotal": "In {feature}, the total carbon stock is {total} {unit} over {area} ha, an average density of {density} {unit}/ha.",
+      "stocksBreakdown": "The {pool} pool accounts for {poolShare}% of the total, and the {class} phytophysiognomy for {classShare}%.",
+      "trendStable": "Compared with {year}, the value remained stable.",
+      "trendChange": "Compared with {year}, the {term} was {magnitude}{percentage}.",
+      "trendPercentage": ", or {value}%",
+      "context": "Over the {first} to {last} series, the mean is {mean}, with a maximum of {max} in {maxYear} and a minimum of {min} in {minYear}."
+    }
+  }
+}

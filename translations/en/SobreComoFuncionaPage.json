@@ -1,0 +1,87 @@
+{
+  "SobreComoFuncionaPage": {
+    "steps": {
+      "findArea": {
+        "title": "Find your area of interest",
+        "p1": "Search for a municipality or state by name, or turn on the territorial boundaries you want to see on the map. The platform shows the boundaries of the Caatinga, states, municipalities, Indigenous lands, quilombola territories and settlements.",
+        "p2": "You can also mark or outline places on the map using points, lines, rectangles, polygons or coordinates."
+      },
+      "chooseInfo": {
+        "title": "Choose the information",
+        "p1": "The information is organized in four groups:",
+        "groups": {
+          "territory": {
+            "label": "Territory",
+            "items": {
+              "i1": "Caatinga boundaries",
+              "i2": "states",
+              "i3": "municipalities",
+              "i4": "Indigenous lands",
+              "i5": "quilombola territories",
+              "i6": "settlements"
+            }
+          },
+          "carbon": {
+            "label": "Carbon",
+            "items": {
+              "i1": "stock by pool (soil, biomass)",
+              "i2": "vegetation structure",
+              "i3": "productivity",
+              "i4": "carbon fluxes"
+            }
+          },
+          "pressures": {
+            "label": "Land use and pressures",
+            "items": {
+              "i1": "land use and land cover",
+              "i2": "fire occurrence"
+            }
+          },
+          "environment": {
+            "label": "Environment",
+            "items": {
+              "i1": "vegetation",
+              "i2": "vegetation changes over time",
+              "i3": "climate"
+            }
+          }
+        }
+      },
+      "viewMap": {
+        "title": "View it on the map",
+        "p1": "Turn on the information you want to look up. You can view one layer at a time or combine different data on the same map.",
+        "p2": "You can also adjust the transparency of the layers and check the legend for the values, colors and units of measurement of each item."
+      },
+      "choosePeriod": {
+        "title": "Choose the period",
+        "p1": "When there is information for more than one year, use the timeline to look up different periods and follow the changes in the selected area."
+      },
+      "details": {
+        "title": "Check the details",
+        "p1": "Check the description, the unit of measurement, the reference period and the years available for each dataset. The platform also shows information about the sources and methodologies used.",
+        "p2": "The information available may vary according to the territory, the dataset and the period selected."
+      },
+      "report": {
+        "title": "Generate a territorial report",
+        "p1": "Gather the main information about the chosen territory in a single document. Set the year, choose the data you want to include and download the report."
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": {
+        "availability": {
+          "question": "Is all the data available for every territory?",
+          "answer": "No. Availability depends on the area covered, the source and the period of each dataset."
+        },
+        "download": {
+          "question": "Can I download the information?",
+          "answer": "Yes. The data available on the platform can be downloaded for consultation and use in other analyses. Download options vary according to the dataset selected."
+        },
+        "sources": {
+          "question": "Where does the data come from?",
+          "answer": "The data is produced by public institutions, research centers and other sources identified on the platform. You can also look up information about the methodologies used."
+        }
+      }
+    }
+  }
+}

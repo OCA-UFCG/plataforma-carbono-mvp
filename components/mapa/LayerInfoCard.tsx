@@ -1,8 +1,12 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useStore } from '@/lib/mapa/store'
-import { LAYER_META } from '@/config/mapa/layerMeta'
+import { layerKindLabel, layerMetaText } from '@/config/mapa/layerMeta'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
+import { formatNumber } from '@/lib/mapa/locale'
+import { localizeLayer } from '@/lib/mapa/text'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import { IcX } from './icons'
 import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
 
@@ -30,19 +34,23 @@ export default function LayerInfoCard({
   leftEdge: number
   onClose: () => void
 }) {
+  const t = useTranslations('MapaUiInfoCard')
+  const tx = useMapaText()
   const layers = useStore((s) => s.layers)
   const toggleLayer = useStore((s) => s.toggleLayer)
   const temporalDate = useStore((s) => s.temporalDate[layerId])
-  const layer = layers.find((l: LayerConfig) => l.id === layerId)
+  const stored = layers.find((l: LayerConfig) => l.id === layerId)
   const c = theme.colors
-  if (!layer) return null
-  const meta = LAYER_META[layerId]
+  if (!stored) return null
+  // Name, unit and class labels in the user's language.
+  const layer = localizeLayer(stored, tx)
+  const meta = layerMetaText(layerId, tx)
   const raster = layer.type === 'raster' ? (layer as RasterLayerConfig) : null
   const palette = raster?.gee?.visParams?.palette
   const rescale = raster?.rescale
   // Real extremes of the data at the ends, as in the floating legend.
   const real = dataRangeFor(layerId, temporalDate)
-  const fmt = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+  const fmt = (n: number) => formatNumber(n, tx.locale, { maximumFractionDigits: 2 })
   const low = real?.min ?? rescale?.[0]
   const high = real?.max ?? rescale?.[1]
 
@@ -63,18 +71,18 @@ export default function LayerInfoCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        {meta && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 5, padding: '2px 8px' }}>{meta.kind}</span>}
-        {layer.visible && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 5, padding: '2px 8px' }}>Ativa</span>}
-        <button onClick={onClose} aria-label="Fechar ficha" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 2, display: 'flex' }}><IcX size={15} /></button>
+        {meta && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 5, padding: '2px 8px' }}>{layerKindLabel(meta.kind, tx)}</span>}
+        {layer.visible && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 5, padding: '2px 8px' }}>{t('active')}</span>}
+        <button onClick={onClose} aria-label={t('closeAria')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 2, display: 'flex' }}><IcX size={15} /></button>
       </div>
       <div style={{ fontSize: 18, fontWeight: 800, color: c.text, lineHeight: 1.2 }}>{layer.name}</div>
       {meta && <div style={{ fontSize: 13, fontWeight: 700, color: c.dim, marginTop: 2 }}>{meta.source}</div>}
       {meta && <p style={{ fontSize: 14.5, fontWeight: 400, color: c.body, lineHeight: 1.6, margin: '10px 0 0' }}>{meta.description[0].toUpperCase() + meta.description.slice(1)}.</p>}
 
-      {/* legenda */}
+      {/* legend */}
       {raster && raster.colorType === 'continuous' && palette && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>Legenda</div>
+          <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>{t('legend')}</div>
           <div style={{ height: 10, borderRadius: 3, background: `linear-gradient(90deg, ${palette.join(', ')})` }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3, fontSize: 11.5, color: c.dim, fontVariantNumeric: 'tabular-nums' }}>
             <span>{low != null ? fmt(low) : ''}</span>
@@ -85,7 +93,7 @@ export default function LayerInfoCard({
       )}
       {raster && raster.colorType === 'categorical' && raster.classes && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>Classes</div>
+          <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '.1em', color: c.caption, textTransform: 'uppercase', marginBottom: 6 }}>{t('classes')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 10px', maxHeight: 180, overflowY: 'auto' }}>
             {raster.classes.slice(0, 30).map((cl) => (
               <div key={cl.value} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -102,7 +110,7 @@ export default function LayerInfoCard({
         className="ui-press"
         style={{ marginTop: 16, width: '100%', background: layer.visible ? c.mist : c.accent, color: layer.visible ? c.text : '#fff', border: 'none', borderRadius: 999, padding: '9px 0', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}
       >
-        {layer.visible ? 'Desativar camada' : 'Ativar camada'}
+        {layer.visible ? t('deactivate') : t('activate')}
       </button>
     </div>
   )

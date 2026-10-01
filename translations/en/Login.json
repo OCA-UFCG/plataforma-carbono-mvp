@@ -1,0 +1,15 @@
+{
+  "Login": {
+    "brandAriaLabel": "Caativar",
+    "title": "Access the carbon platform",
+    "subtitle": "Sign in with the credentials provided by the platform team.",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "errors": {
+      "tooManyRequests": "Too many attempts. Please wait a few minutes and try again.",
+      "invalidCredentials": "Invalid email or password."
+    }
+  }
+}

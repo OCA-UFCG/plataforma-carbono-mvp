@@ -10,20 +10,25 @@
 
 import 'server-only'
 
+// The Portuguese default (PT_TEXT) this module falls back on.
+import '@/lib/mapa/textPt'
+
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
+import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS, type ReportLayerConfig } from '@/config/mapa/reportLayers'
 import { getEe, initGee } from '@/lib/mapa/geeAuth'
 import { getFeicao } from '@/lib/mapa/recorteRegistry'
 import { buildNarrative } from '@/lib/mapa/reportNarrative'
 import {
-  analysisCacheKey,
-  getCachedAnalysis,
-  setCachedAnalysis,
+  getCachedMeasurement,
+  measurementCacheKey,
+  setCachedMeasurement,
+  type ReportMeasurement,
 } from '@/lib/mapa/reportCache'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import { computeSeries } from '@/lib/mapa/zonalSeries'
-import { computeZonalStats } from '@/lib/mapa/zonalStats'
+import { computeZonalStats, type ZonalStatsInput } from '@/lib/mapa/zonalStats'
+import { layerClasses, layerName, layerSource, PT_TEXT, unitLabel, type MapaText } from '@/lib/mapa/text'
 import type { RasterLayerConfig } from '@/types/mapa'
 import type {
   ReportAnalysis,
@@ -45,7 +50,13 @@ function rasterLayer(layerId: string): RasterLayerConfig {
   return layer
 }
 
-function resolveRecorte(recorteId: string, feicaoId: string): ReportRecorte {
+// Every function below takes the `MapaText` of the request (the NEXT_LOCALE
+// cookie, from `getMapaText()` in the route) and writes the text the document
+// prints in that language: layer and recorte names, units, the source line, the
+// methodology and the narrative. The error messages thrown here are developer
+// facing, deliberately generic and stay in English.
+
+function resolveRecorte(recorteId: string, feicaoId: string, tx: MapaText): ReportRecorte {
   const layer = appConfig.layers.find((l) => l.id === recorteId && l.type === 'vector')
   if (!layer) throw new ReportNotFoundError('Recorte not found.')
 
@@ -54,7 +65,7 @@ function resolveRecorte(recorteId: string, feicaoId: string): ReportRecorte {
 
   return {
     layerId:     recorteId,
-    layerName:   layer.name,
+    layerName:   layerName(layer, tx),
     featureId:   feicao.id,
     featureName: feicao.name,
     ...(feicao.context ? { featureContext: feicao.context } : {}),
@@ -69,8 +80,8 @@ function availableYearsOf(layer: RasterLayerConfig): string[] {
   return layer.gee?.temporal ? paradas(layer.gee.temporal).map(ano) : []
 }
 
-function describe(layerId: string, requestedYear: string): ReportAnalysisDescriptor {
-  const config = getReportLayer(layerId)
+function describe(layerId: string, requestedYear: string, tx: MapaText): ReportAnalysisDescriptor {
+  const config = getReportLayer(layerId, tx)
   if (!config) {
     throw new ReportBadRequestError('Layer is not eligible for the report.')
   }
@@ -80,10 +91,10 @@ function describe(layerId: string, requestedYear: string): ReportAnalysisDescrip
 
   return {
     layerId,
-    name:           layer.name,
-    unit:           layer.unit,
+    name:           layerName(layer, tx),
+    unit:           layer.unit === undefined ? undefined : unitLabel(layer.unit, tx),
     signedFlux:     layer.signedFlux,
-    source:         LAYER_META[layerId]?.source ?? '',
+    source:         layerSource(layerId, LAYER_META[layerId]?.source ?? '', tx),
     methodology:    config.methodology,
     sectionColor:   config.sectionColor,
     availableYears,
@@ -106,8 +117,11 @@ export function buildReportShell(input: {
   year:      string
   layerIds:  string[]
   now?:      () => Date
+  /** Language of the text; Portuguese when omitted. */
+  tx?:       MapaText
 }): ReportShell {
   const { recorteId, feicaoId, year, layerIds } = input
+  const tx = input.tx ?? PT_TEXT
 
   if (layerIds.length === 0) {
     throw new ReportBadRequestError('No layer was selected.')
@@ -120,7 +134,7 @@ export function buildReportShell(input: {
     )
   }
 
-  const recorte = resolveRecorte(recorteId, feicaoId)
+  const recorte = resolveRecorte(recorteId, feicaoId, tx)
   const order = new Map(REPORT_LAYERS.map((entry) => [entry.layerId, entry.order]))
   const selected = deduped.sort(
     (a, b) => (order.get(a) ?? Infinity) - (order.get(b) ?? Infinity),
@@ -131,7 +145,7 @@ export function buildReportShell(input: {
     generatedAt:   (input.now ?? (() => new Date()))().toISOString(),
     recorte,
     requestedYear: year,
-    analyses:      selected.map((layerId) => describe(layerId, year)),
+    analyses:      selected.map((layerId) => describe(layerId, year, tx)),
   }
 }
 
@@ -141,19 +155,18 @@ export async function buildReportAnalysis(input: {
   feicaoId:  string
   year:      string
   layerId:   string
+  /** Language of the narrative and of the descriptor text; Portuguese when omitted. */
+  tx?:       MapaText
 }): Promise<ReportAnalysis> {
   const { recorteId, feicaoId, year, layerId } = input
+  const tx = input.tx ?? PT_TEXT
 
-  const cacheKey = analysisCacheKey(recorteId, feicaoId, year, layerId)
-  const cached = getCachedAnalysis(cacheKey)
-  if (cached) return cached
-
-  const config = getReportLayer(layerId)
+  const config = getReportLayer(layerId, tx)
   if (!config) throw new ReportBadRequestError('Layer is not eligible for the report.')
 
-  const recorte = resolveRecorte(recorteId, feicaoId)
+  const recorte = resolveRecorte(recorteId, feicaoId, tx)
   const feicao = getFeicao(recorteId, feicaoId)!
-  const descriptor = describe(layerId, year)
+  const descriptor = describe(layerId, year, tx)
   const layer = rasterLayer(layerId)
   const asset = layer.gee?.asset
   if (!asset) throw new ReportNotFoundError('Layer has no GEE asset.')
@@ -171,11 +184,50 @@ export async function buildReportAnalysis(input: {
   // exist instead of falling back to the nearest one and showing a number that
   // answers a different question.
   if (descriptor.availableYears.length > 0 && !descriptor.effectiveYear) {
-    const result = empty('year_not_found')
-    setCachedAnalysis(cacheKey, result)
-    return result
+    return empty('year_not_found')
   }
 
+  // The numbers are the same in every language, so they are what is cached;
+  // the text around them is written for this reader.
+  const cacheKey = measurementCacheKey(recorteId, feicaoId, descriptor.effectiveYear, layerId)
+  let measured = getCachedMeasurement(cacheKey)
+  if (!measured) {
+    const fresh = await measure({ layerId, layer, asset, config, geometry: feicao.geometry, descriptor })
+    // Not cached: the cause is usually transient, and the section offers a retry.
+    if (!fresh) return empty('unavailable')
+    setCachedMeasurement(cacheKey, fresh)
+    measured = fresh
+  }
+
+  return {
+    ...descriptor,
+    status:    'available',
+    snapshot:  measured.snapshot,
+    series:    measured.series,
+    narrative: buildNarrative({
+      recorte,
+      layerName:     descriptor.name,
+      unit:          descriptor.unit,
+      signedFlux:    descriptor.signedFlux,
+      classes:       layerClasses(layer, tx),
+      config,
+      status:        'available',
+      effectiveYear: descriptor.effectiveYear,
+      snapshot:      measured.snapshot,
+      series:        measured.series,
+    }, tx),
+  }
+}
+
+/** The year's snapshot and the series from Earth Engine; null when the snapshot could not be measured. */
+async function measure({ layerId, layer, asset, config, geometry, descriptor }: {
+  layerId:    string
+  layer:      RasterLayerConfig
+  asset:      ZonalStatsInput['asset']
+  config:     ReportLayerConfig
+  geometry:   ZonalStatsInput['geometry']
+  descriptor: ReportAnalysisDescriptor
+}): Promise<ReportMeasurement | null> {
   const temporalDate = descriptor.effectiveYear ? `${descriptor.effectiveYear}-01-01` : undefined
 
   // initGee() and computeZonalStats() can both reject rather than resolve
@@ -191,7 +243,7 @@ export async function buildReportAnalysis(input: {
     ee = getEe()
     outcome = await computeZonalStats(ee, {
       asset,
-      geometry:  feicao.geometry,
+      geometry,
       temporalDate,
       classify:  layer.gee?.classify,
       breaks:    layer.gee?.classify?.breaks,
@@ -200,21 +252,19 @@ export async function buildReportAnalysis(input: {
     })
   } catch (err) {
     console.error(`[reportService] ${layerId}: ${err instanceof Error ? err.message : err}`)
-    // Not cached: the cause is usually transient, and the section offers a retry.
-    return empty('unavailable')
+    return null
   }
 
   if (!outcome.ok) {
     console.error(`[reportService] ${layerId}: ${outcome.error} (${outcome.status})`)
-    // Not cached: the cause is usually transient, and the section offers a retry.
-    return empty('unavailable')
+    return null
   }
 
   // The series is optional in a way the snapshot is not. Forty stops reduced
   // over a whole state can exceed the Earth Engine deadline, and losing it must
   // not lose the section: the snapshot, the map and the situation sentence
   // stand on their own.
-  let series: ReportAnalysis['series'] = []
+  let series: ReportMeasurement['series'] = []
   const canHaveSeries =
     config.seriesKind !== 'none' &&
     descriptor.availableYears.length > 1 &&
@@ -227,7 +277,7 @@ export async function buildReportAnalysis(input: {
         anos: descriptor.availableYears.map(Number),
         region: {
           kind:     'zonal',
-          geometry: feicao.geometry,
+          geometry,
           // A floor, never a fixed value: it can only coarsen. CHIRPS is
           // natively 5566 m, and a literal 300 there would resample finer than
           // the data for no gain.
@@ -239,25 +289,5 @@ export async function buildReportAnalysis(input: {
     }
   }
 
-  const analysis: ReportAnalysis = {
-    ...descriptor,
-    status:    'available',
-    snapshot:  outcome.result,
-    series,
-    narrative: buildNarrative({
-      recorte,
-      layerName:     descriptor.name,
-      unit:          descriptor.unit,
-      signedFlux:    descriptor.signedFlux,
-      classes:       layer.classes,
-      config,
-      status:        'available',
-      effectiveYear: descriptor.effectiveYear,
-      snapshot:      outcome.result,
-      series,
-    }),
-  }
-
-  setCachedAnalysis(cacheKey, analysis)
-  return analysis
+  return { snapshot: outcome.result, series }
 }

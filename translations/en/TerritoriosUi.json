@@ -1,0 +1,27 @@
+{
+  "TerritoriosUi": {
+    "pageTitle": "Territories",
+    "loading": "Loading data",
+    "unavailable": "Could not load this data.",
+    "territoryUnavailable": "Could not load the data for this territory.",
+    "retry": "Try again",
+    "retryStep": "Try again: {step}",
+    "rateLimited": "Too many requests right now. Wait and try again.",
+    "sessionExpired": "Your session has expired.",
+    "signIn": "Sign in again",
+    "stepsLabel": "Steps",
+    "next": "Next",
+    "changeTerritory": "Change territory",
+    "showMap": "View on map",
+    "closeMap": "Close map",
+    "mapDialog": "Map: {step}",
+    "mapYear": "Map year",
+    "summaryTitle": "Summary",
+    "summaryUnavailable": "Unavailable right now.",
+    "print": "Print summary",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "copyFailed": "Could not copy the link.",
+    "generatedAt": "Generated on {date}."
+  }
+}

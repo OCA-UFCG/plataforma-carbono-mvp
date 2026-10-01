@@ -1,0 +1,43 @@
+{
+  "MapaOvCoordinateForm": {
+    "tablistLabel": "Type of geometry by coordinates",
+    "tabs": {
+      "point": "Point",
+      "rectangle": "Rectangle",
+      "polygon": "Polygon"
+    },
+    "fields": {
+      "lat": "latitude",
+      "lon": "longitude",
+      "lat1": "corner 1 latitude",
+      "lon1": "corner 1 longitude",
+      "lat2": "corner 2 latitude",
+      "lon2": "corner 2 longitude",
+      "vertices": "vertex list"
+    },
+    "labels": {
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "corner1": "Corner 1",
+      "corner2": "Corner 2 (opposite)",
+      "vertices": "Vertices — one pair per line"
+    },
+    "placeholders": {
+      "lat": "-9.00  or  9°00'00\"S",
+      "lon": "-40.00  or  40°00'00\"W",
+      "vertices": "-9.00, -40.00\n-9.00, -39.80\n-9.20, -39.90"
+    },
+    "help": "Latitude first, then longitude, in decimal degrees (-9.25) or in degrees, minutes and seconds (9°15'00\"S). South and west are negative.",
+    "errors": {
+      "invalidOne": "{label} is invalid.",
+      "checkMany": "Check: {labels}.",
+      "oppositeCorners": "The corners must be opposite: no repeated latitude or longitude.",
+      "collinear": "The vertices are collinear and do not form an area."
+    },
+    "coverage": {
+      "partial": "Part of the area is outside the Caatinga: the layers do not cover the outer stretch.",
+      "outside": "Outside the Caatinga: the layers do not cover this location."
+    },
+    "apply": "Apply"
+  }
+}

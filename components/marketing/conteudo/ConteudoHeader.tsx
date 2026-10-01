@@ -1,4 +1,6 @@
+import { useLocale, useTranslations } from "next-intl";
 import { formatPublicationDate, type Publicacao } from "@/lib/content/comunicacao";
+import type { Locale } from "@/translations/config";
 import BackButton from "./BackButton";
 import styles from "./ConteudoHeader.module.css";
 
@@ -10,7 +12,9 @@ import styles from "./ConteudoHeader.module.css";
 // A <div>, not a <header>: tests/lib/marketingNav.test.ts reads wrapper
 // elements under components/marketing as landing sections.
 export default function ConteudoHeader({ publicacao }: { publicacao: Publicacao }) {
-  const data = formatPublicationDate(publicacao.publicationDate);
+  const t = useTranslations("ComunicacaoConteudoHeader");
+  const locale = useLocale() as Locale;
+  const data = formatPublicationDate(publicacao.publicationDate, locale);
 
   return (
     <div className={styles.header}>
@@ -18,7 +22,7 @@ export default function ConteudoHeader({ publicacao }: { publicacao: Publicacao 
         <BackButton />
         {data && publicacao.publicationDate && (
           <p className={`${styles.date} text-body`}>
-            Publicado em: <time dateTime={publicacao.publicationDate.slice(0, 10)}>{data}</time>
+            {t("publishedOn")} <time dateTime={publicacao.publicationDate.slice(0, 10)}>{data}</time>
           </p>
         )}
       </div>
@@ -30,7 +34,7 @@ export default function ConteudoHeader({ publicacao }: { publicacao: Publicacao 
         <a href={publicacao.pdf} target="_blank" rel="noreferrer" className={`${styles.downloadMobile} text-body`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
           <img src="/icons/conteudo/download.svg" alt="" width={16} height={16} />
-          Baixar PDF
+          {t("download")}
         </a>
       )}
     </div>

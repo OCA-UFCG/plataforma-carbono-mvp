@@ -2,6 +2,12 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { MAPA_URL } from '@/lib/config'
+import ptSubnav from '@/translations/pt/SobreSubnav.json'
+import enSubnav from '@/translations/en/SobreSubnav.json'
+import ptHeader from '@/translations/pt/SiteHeader.json'
+import enHeader from '@/translations/en/SiteHeader.json'
+import ptFooter from '@/translations/pt/SiteFooter.json'
+import enFooter from '@/translations/en/SiteFooter.json'
 import {
   FOOTER_LINKS,
   HEADER_LINKS,
@@ -88,18 +94,38 @@ describe('marketing nav registry', () => {
     }
   })
 
+  // The labels live in the translations, so they are read from there: nav.ts
+  // carries only keys and routes.
   it('labels the navigation in Portuguese', () => {
-    expect(HEADER_LINKS.map((l) => l.label)).toEqual([
+    expect(HEADER_LINKS.map((l) => ptHeader.SiteHeader.nav[l.key])).toEqual([
       'Início',
       'Sobre a plataforma',
       'Comunicação',
     ])
-    expect(SOBRE_PAGES.map((p) => p.label)).toEqual([
+    expect(SOBRE_PAGES.map((p) => ptSubnav.SobreSubnav.pages[p.key])).toEqual([
       'Conheça a plataforma',
       'Conheça a Caatinga',
       'Entenda essa relação',
       'Como funciona',
     ])
+  })
+
+  it('backs every navigation entry with a label in every language', () => {
+    for (const { SobreSubnav } of [ptSubnav, enSubnav]) {
+      for (const page of SOBRE_PAGES) {
+        expect(SobreSubnav.pages[page.key], page.key).toBeTruthy()
+      }
+    }
+    for (const { SiteHeader } of [ptHeader, enHeader]) {
+      for (const link of HEADER_LINKS) {
+        expect(SiteHeader.nav[link.key], link.key).toBeTruthy()
+      }
+    }
+    for (const { SiteFooter } of [ptFooter, enFooter]) {
+      for (const link of FOOTER_LINKS) {
+        expect(SiteFooter.nav[link.key], link.key).toBeTruthy()
+      }
+    }
   })
 })
 

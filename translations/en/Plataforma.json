@@ -1,0 +1,37 @@
+{
+  "Plataforma": {
+    "ariaLabel": "Platform",
+    "label": "Get to know the platform",
+    "moreContext": "about the platform",
+    "tabs": {
+      "oQueE": {
+        "label": "What is CaatiVAR?",
+        "title": "What is CaatiVAR?",
+        "imageAlt": "View of a Caatinga valley with vegetation and a town in the background",
+        "body": "CaatiVAR brings together, in one place and openly, data, maps and content about Caatinga carbon. It was built so that those who live in the biome and those who make decisions about it can learn what each territory holds, assess carbon project proposals and negotiate with greater confidence.",
+        "highlight": "Open information so that the carbon market respects the biome and those who conserve it."
+      },
+      "aCaatinga": {
+        "label": "The Caatinga",
+        "title": "The Caatinga",
+        "imageAlt": "View from the top of a Caatinga mountain range, with dry vegetation in the foreground under a blue sky",
+        "body": "The Caatinga is home to the largest and most diverse Seasonally Dry Tropical Forest in the world. Besides being home to millions of people in cities, rural communities and traditional peoples' territories, it plays a decisive role in climate regulation: in 2022, it was the biome that removed the most carbon from the atmosphere in Brazil. Even so, there are almost no certified carbon projects in the biome.",
+        "highlight": "The biome that removes the most carbon in Brazil is still outside the market."
+      },
+      "carbonoEComunidades": {
+        "label": "Carbon and communities",
+        "title": "Carbon and communities",
+        "imageAlt": "Home in a rural Caatinga community, with a packed-earth yard and surrounding vegetation",
+        "body": "Carbon projects can generate supplementary income, but they must recognise rights, guarantee participation in decisions, including the right to refuse, and share benefits fairly with those who conserve the vegetation and hold essential knowledge about their territories.",
+        "highlight": "Those who conserve the territory must take part in the decisions and the benefits."
+      },
+      "comoFunciona": {
+        "label": "How it works",
+        "title": "How it works",
+        "imageAlt": "Cornfield in front of a hill covered with Caatinga vegetation",
+        "body": "CaatiVAR brings together data on carbon stored in soil and vegetation, productivity and carbon fluxes, climate, changes in vegetation over time, land use and land cover, and fire occurrence, organised for different territorial units of the Caatinga.",
+        "highlight": "Environmental data to understand the conditions of each territory."
+      }
+    }
+  }
+}

@@ -6,8 +6,11 @@ import { MAPA_URL } from '@/lib/config'
 // checks that every route has a page file and that SECTION_IDS matches the ids
 // the landing's section components actually render.
 export type NavLink = {
+  // The label lives in the translations (SiteHeader.nav.<key>,
+  // SiteFooter.nav.<key>), in both languages; this file only carries the
+  // structure.
+  key: 'home' | 'about' | 'communication' | 'maps'
   href: string
-  label: string
   external: boolean
 }
 
@@ -23,32 +26,37 @@ export const SECTION_IDS: readonly string[] = [
 ]
 
 // The map lives in another route group, so it is a full page load, not a <Link>.
-export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Mapas', external: true }
+export const MAPA_LINK: NavLink = { key: 'maps', href: MAPA_URL, external: true }
 
-// Header labels from Figma node 18988:8612. "Sobre a plataforma" replaces the
+// Header entries from Figma node 18988:8612. "Sobre a plataforma" replaces the
 // landing-era "Conheça a plataforma" now that it opens a page of its own.
 export const HEADER_LINKS: NavLink[] = [
-  { href: '/', label: 'Início', external: false },
-  { href: '/sobre', label: 'Sobre a plataforma', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { key: 'home', href: '/', external: false },
+  { key: 'about', href: '/sobre', external: false },
+  { key: 'communication', href: '/comunicacao', external: false },
 ]
 
 export const FOOTER_LINKS: NavLink[] = [
-  { href: '/', label: 'Home', external: false },
-  { href: '/sobre', label: 'Sobre', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { key: 'home', href: '/', external: false },
+  { key: 'about', href: '/sobre', external: false },
+  { key: 'communication', href: '/comunicacao', external: false },
   MAPA_LINK,
 ]
 
 // The four "Sobre" pages, in the order of their sub-navigation (Figma node
-// 18988:8635). Each href must have a page under app/(marketing)/.
-export type SobrePage = { slug: string; href: string; label: string }
+// 18988:8635). Each href must have a page under app/(marketing)/. `key` is what
+// the sub-navigation looks the label up under (SobreSubnav.pages.<key>).
+export type SobrePage = {
+  key: 'platform' | 'caatinga' | 'relation' | 'howItWorks'
+  slug: string
+  href: string
+}
 
 export const SOBRE_PAGES: SobrePage[] = [
-  { slug: 'plataforma', href: '/sobre', label: 'Conheça a plataforma' },
-  { slug: 'caatinga', href: '/sobre/caatinga', label: 'Conheça a Caatinga' },
-  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades', label: 'Entenda essa relação' },
-  { slug: 'como-funciona', href: '/sobre/como-funciona', label: 'Como funciona' },
+  { key: 'platform', slug: 'plataforma', href: '/sobre' },
+  { key: 'caatinga', slug: 'caatinga', href: '/sobre/caatinga' },
+  { key: 'relation', slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades' },
+  { key: 'howItWorks', slug: 'como-funciona', href: '/sobre/como-funciona' },
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the

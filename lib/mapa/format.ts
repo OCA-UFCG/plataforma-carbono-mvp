@@ -1,27 +1,31 @@
-// pt-BR formatting shared by the CSV export, the report narrative and the
-// report document, so the three never disagree on the same number.
+// Number formatting shared by the CSV export, the report narrative and the
+// report document, so the three never disagree on the same number. It follows
+// the locale code (`tx.locale`: 'pt' or 'en'); Portuguese when omitted.
 
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { intlLocale } from '@/lib/mapa/locale'
 
 /**
- * Number for a spreadsheet cell: decimal comma, and no thousands separator.
+ * Number for a spreadsheet cell: decimal comma (decimal point in English), and no
+ * thousands separator.
  *
  * The missing thousands dot is deliberate. Excel in Portuguese reads the comma
  * as the decimal mark, and a dot on top of it leaves a script importer unable
  * to tell a grouping mark from a decimal point.
  */
-export function numeroCsv(value: number): string {
-  return value.toLocaleString('pt-BR', { maximumFractionDigits: 4, useGrouping: false })
+export function numeroCsv(value: number, locale = 'pt'): string {
+  return value.toLocaleString(intlLocale(locale), { maximumFractionDigits: 4, useGrouping: false })
 }
 
 /**
- * Number for prose and for the document: decimal comma with the thousands dot.
+ * Number for prose and for the document: decimal comma with the thousands dot
+ * (decimal point with the thousands comma in English).
  *
  * The opposite choice from `numeroCsv`, for the opposite reason: a total like
  * 4.760.123 is unreadable as a bare run of digits in a sentence.
  */
-export function numero(value: number, digits = 1): string {
-  return value.toLocaleString('pt-BR', {
+export function numero(value: number, digits = 1, locale = 'pt'): string {
+  return value.toLocaleString(intlLocale(locale), {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })

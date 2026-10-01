@@ -168,7 +168,12 @@ export type DrawMode =
 
 export interface PixelValueResult {
   value: number
-  label?: string
+  /**
+   * `value` of the layer's class the pixel falls in (`RasterClass.value`), when
+   * it has classes. The class is kept by id: its name is read from the layer
+   * where it is shown (`pixelClassLabel`), in the language of the moment.
+   */
+  classValue?: number
   color?: string
 }
 
@@ -269,8 +274,32 @@ export interface LayerResult {
   status: 'loading' | 'ready' | 'error'
   stats: PanelResult | null
   pixelValue: PixelValueResult | null
-  error: string | null
+  error: StoredText | null
 }
+
+/** The shape of a geometry the user drew, or typed in the coordinate form. */
+export type DrawnShape = 'point' | 'line' | 'area' | 'coordinates'
+
+/**
+ * What an analysis ran over, as ids: a drawn or typed geometry, or a feature of
+ * a recorte layer with the feature's own name (data, from its hover label
+ * field). The results panel writes the words at render time
+ * (`describeAnalysisSubject`, lib/mapa/analysisSubject.ts).
+ */
+export type AnalysisSubject =
+  | { kind: 'drawn'; shape: DrawnShape }
+  | { kind: 'recorte'; layerId: string; featureName: string | null }
+
+/**
+ * A message kept in state until a component shows it: a key of the app's own
+ * messages with its parameters, or a text that came back from elsewhere (an API
+ * route, the network), shown as it is. A card and a layer error outlive a
+ * language switch, so the sentence is written where it is rendered
+ * (`storedText`, lib/mapa/text.ts), never when it is stored.
+ */
+export type StoredText =
+  | { key: string; values?: Record<string, string | number> }
+  | { text: string }
 
 /**
  * The geometry an analysis runs over, and how it was produced.

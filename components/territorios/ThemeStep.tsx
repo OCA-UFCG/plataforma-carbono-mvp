@@ -1,12 +1,13 @@
 'use client'
 
 import { useLayoutEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import StepChart from './StepChart'
 import type { LandUseYear } from './StoryMap'
+import { useStoryFmt } from './useStoryFmt'
 import StepFigure from './charts/StepFigure'
 import { FIGURE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
-import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
-import { UI } from '@/config/territorios/storyScript'
+import { LAND_USE_YEARS, type TerritoryType } from '@/config/territorios/story'
 import { sectionId } from '@/lib/territorios/activeSection'
 import { stepAnswer } from '@/lib/territorios/storyText'
 import type { StepId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
@@ -42,11 +43,14 @@ export interface ThemeStepProps {
 export default function ThemeStep({
   step, territory, type, load, expired, onRetry, onNext, onShowMap, mapOpen, landUseYear,
 }: ThemeStepProps) {
+  const ui = useTranslations('TerritoriosUi')
+  const steps = useTranslations('TerritoriosTypes')
+  const fmt = useStoryFmt()
   const sectionRef = useRef<HTMLElement | null>(null)
   const color = STEP_COLORS[step]
   const theme = step === 'territorio' ? null : load
   const response = theme?.kind === 'ready' ? theme.response : undefined
-  const answer = stepAnswer(step, { territory, type, response })
+  const answer = stepAnswer(step, { territory, type, response, fmt })
 
   // The chart that replaces "Carregando" pushes the buttons down, and a focused
   // one can leave the screen with its focus ring.
@@ -59,15 +63,15 @@ export default function ThemeStep({
 
   let body: React.ReactNode
   if (theme?.kind === 'loading') {
-    body = <p className="territorios-estado" role="status">{UI.loading}</p>
+    body = <p className="territorios-estado" role="status">{ui('loading')}</p>
   } else if (theme && (theme.kind === 'failed' || theme.response.status === 'unavailable')) {
     const rateLimited = theme.kind === 'failed' && theme.rateLimited
     body = (
       <div className="territorios-estado" role="status">
-        <p>{rateLimited ? UI.rateLimited : UI.unavailable}</p>
+        <p>{rateLimited ? ui('rateLimited') : ui('unavailable')}</p>
         {!expired && (
           <button type="button" className="territorios-btn territorios-btn--contorno" onClick={onRetry}>
-            {UI.retry}
+            {ui('retry')}
           </button>
         )}
       </div>
@@ -91,13 +95,13 @@ export default function ThemeStep({
   return (
     <section ref={sectionRef} id={id} data-step={step} className="territorios-passo" aria-labelledby={`${id}-titulo`}>
       <h2 id={`${id}-titulo`} className="territorios-faixa" style={{ background: color }} tabIndex={-1}>
-        {STEP_LABELS[step]}
+        {steps(`steps.${step}`)}
       </h2>
       <h3 className="territorios-pergunta">{answer.question}</h3>
       <div className="territorios-passo-texto">{body}</div>
       {landUseYear && (
         <div className="territorios-passo-anos" role="group" aria-labelledby={`${id}-anos`}>
-          <span id={`${id}-anos`}>{UI.mapYear}</span>
+          <span id={`${id}-anos`}>{ui('mapYear')}</span>
           {LAND_USE_YEARS.map((y) => (
             <button key={y} type="button" aria-pressed={y === landUseYear.year} onClick={() => landUseYear.onChange(y)}>
               {y}
@@ -113,10 +117,10 @@ export default function ThemeStep({
           aria-expanded={mapOpen}
           onClick={(event) => onShowMap(event.currentTarget)}
         >
-          {UI.showMap}
+          {ui('showMap')}
         </button>
         <button type="button" className="territorios-btn territorios-btn--primario" onClick={onNext}>
-          {UI.next}
+          {ui('next')}
         </button>
       </div>
     </section>

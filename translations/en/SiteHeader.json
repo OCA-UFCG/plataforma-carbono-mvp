@@ -1,0 +1,18 @@
+{
+  "SiteHeader": {
+    "ariaLabel": "Header",
+    "homeAria": "Caativar home page",
+    "mainNav": "Main navigation",
+    "mobileNav": "Mobile navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "signOut": "Sign out",
+    "languageSwitch": "Language",
+    "nav": {
+      "home": "Home",
+      "about": "About the platform",
+      "communication": "Communication",
+      "maps": "Maps"
+    }
+  }
+}

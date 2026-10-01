@@ -1,0 +1,46 @@
+{
+  "TerritoriosCharts": {
+    "here": "Aqui",
+    "biome": "Caatinga",
+    "noData": "Sem dado",
+    "noDataInline": "sem dado",
+    "mm": "{value} mm",
+    "compare": {
+      "withBiome": "{label}: aqui {here}; na Caatinga, {biome}.",
+      "alone": "{label}: {here}."
+    },
+    "estoque": "t de carbono por hectare",
+    "fluxoShare": "Parte da área com árvores",
+    "fluxoPerHa": "t de CO₂e por hectare com árvores",
+    "uso": {
+      "description": "Vegetação nativa em {first} e {last}. {rows}",
+      "row": "{name}: de {from} para {to}.",
+      "share": "Vegetação nativa em {year}"
+    },
+    "degradacao": {
+      "description": "Parte da área em cada nível de degradação. {rows}",
+      "row": "{name}: {parts}.",
+      "share": "Área com degradação",
+      "levels": {
+        "conserved": "conservado",
+        "level1": "nível 1",
+        "level2": "nível 2",
+        "level3": "nível 3",
+        "level4": "nível 4",
+        "level5": "nível 5",
+        "noData": "sem dado"
+      }
+    },
+    "chuva": {
+      "strip": "Chuva de {first} a {last} contra a média daqui. Anos secos: {dry}; normais: {normal}; chuvosos: {wet}.",
+      "year": "{year}: {kind}, {mm} mm.",
+      "noYear": "{year}: sem dado.",
+      "mean": "Chuva média por ano, em mm"
+    },
+    "rainKinds": {
+      "seco": "Seco",
+      "normal": "Normal",
+      "chuvoso": "Chuvoso"
+    }
+  }
+}

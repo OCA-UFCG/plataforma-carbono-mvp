@@ -1,11 +1,15 @@
 'use client'
 
+import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { StatsChartView } from '@/components/mapa/StatsChart'
-import { formatarTc } from '@/components/mapa/StockReportView'
 import ReportMapPreview from './ReportMapPreview'
 import { classShares } from '@/lib/mapa/classShares'
-import { numero } from '@/lib/mapa/format'
+import { numero as formatNumber } from '@/lib/mapa/format'
+import { stockTc } from '@/lib/mapa/results/format'
 import { describeFlux } from '@/lib/mapa/carbonFlux'
+import { localizeLayer, type MapaText } from '@/lib/mapa/text'
+import { useMapaText } from '@/lib/mapa/useMapaText'
 import appConfig from '@/config/mapa/layers.json'
 import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 import type {
@@ -55,7 +59,13 @@ function layerOf(layerId: string): RasterLayerConfig | undefined {
 const REPORT_CHART_WIDTH = 517
 
 /** The headline number of a section, or null when the shape has none. */
-function heroValue(analysis: ReportAnalysis, layer?: RasterLayerConfig) {
+function heroValue(
+  analysis: ReportAnalysis,
+  layer: RasterLayerConfig | undefined,
+  tx: MapaText,
+  t: (key: 'hero.totalStock' | 'hero.mean') => string,
+) {
+  const numero = (value: number, digits = 1) => formatNumber(value, digits, tx.locale)
   const snapshot = analysis.snapshot
   if (!snapshot) return null
 
@@ -63,11 +73,11 @@ function heroValue(analysis: ReportAnalysis, layer?: RasterLayerConfig) {
     // Same scaling StockReportView's own card uses for this exact number, so
     // the hero and the doughnut section below it agree (`12,3 Mt C`, not
     // `12,3 Mt C` beside a raw `12.345.678 t C`).
-    const { valor, unidade } = formatarTc(snapshot.report.totalTc)
-    return { label: 'Estoque total', value: `${valor} ${unidade}` }
+    const { value, unit } = stockTc(snapshot.report.totalTc, tx.locale)
+    return { label: t('hero.totalStock'), value: `${value} ${unit}` }
   }
   if (snapshot.kind === 'categorical') {
-    const dominant = classShares(snapshot.areas, layer?.classes ?? [])[0]
+    const dominant = classShares(snapshot.areas, layer?.classes ?? [], tx)[0]
     return dominant
       ? { label: dominant.label, value: `${numero(dominant.share)}%` }
       : null
@@ -76,10 +86,10 @@ function heroValue(analysis: ReportAnalysis, layer?: RasterLayerConfig) {
     const unit = analysis.unit ? ` ${analysis.unit}` : ''
     if (analysis.signedFlux) {
       // The sign leaves and the direction becomes a word, as the panel does.
-      const flux = describeFlux(snapshot.stats.mean)
-      return { label: flux.label || 'Média', value: `${numero(flux.magnitude, 2)}${unit}` }
+      const flux = describeFlux(snapshot.stats.mean, tx)
+      return { label: flux.label || t('hero.mean'), value: `${numero(flux.magnitude, 2)}${unit}` }
     }
-    return { label: 'Média', value: `${numero(snapshot.stats.mean)}${unit}` }
+    return { label: t('hero.mean'), value: `${numero(snapshot.stats.mean)}${unit}` }
   }
   return null
 }
@@ -88,10 +98,17 @@ export default function ReportSection({
   theme, index, recorte, descriptor, analysis, pending, error, onRetry,
   mapSrc, mapActive, onMapCapture,
 }: ReportSectionProps) {
-  const layer = layerOf(descriptor.layerId)
+  const t = useTranslations('RelatorioSection')
+  const tx = useMapaText()
+  // layers.json carries the class labels in Portuguese; localized here so the
+  // hero card and the class chart read them in the document's language.
+  const layer = useMemo(() => {
+    const config = layerOf(descriptor.layerId)
+    return config && localizeLayer(config, tx)
+  }, [descriptor.layerId, tx])
   const c = theme.colors
   const year = descriptor.effectiveYear ?? descriptor.requestedYear
-  const hero = analysis ? heroValue(analysis, layer) : null
+  const hero = analysis ? heroValue(analysis, layer, tx, t) : null
   /**
    * The stock report is a two-axis breakdown — by pool and by fitofisionomia,
    * each a doughnut with its own legend — so it takes the full width instead of
@@ -120,14 +137,14 @@ export default function ReportSection({
 
       {pending && !analysis && (
         <p className="report-block" style={{ padding: 20, color: c.textDim }}>
-          Calculando esta análise no Earth Engine…
+          {t('calculating')}
         </p>
       )}
 
       {error && !analysis && (
         <div className="report-block" style={{ padding: 20, border: `1px solid ${c.border}` }}>
           <p style={{ margin: 0, fontWeight: 700, color: c.text }}>
-            Não foi possível carregar esta análise.
+            {t('error.title')}
           </p>
           <p style={{ margin: '4px 0 0', color: c.textDim }}>{error}</p>
           <button
@@ -140,7 +157,7 @@ export default function ReportSection({
               border: 'none', borderRadius: 4, font: 'inherit',
             }}
           >
-            Tentar novamente
+            {t('error.retry')}
           </button>
         </div>
       )}
@@ -149,12 +166,12 @@ export default function ReportSection({
         <div className="report-block" style={{ padding: 20, border: `1px solid ${c.border}` }}>
           <p style={{ margin: 0, fontWeight: 700, color: c.text }}>
             {analysis.status === 'year_not_found'
-              ? `Esta camada não tem dados para ${descriptor.requestedYear}.`
-              : 'Esta análise não está disponível.'}
+              ? t('unavailable.yearNotFound', { year: descriptor.requestedYear ?? '' })
+              : t('unavailable.generic')}
           </p>
           {analysis.availableYears.length > 0 && (
             <p style={{ margin: '4px 0 0', color: c.textDim }}>
-              Anos disponíveis: {analysis.availableYears.join(', ')}.
+              {t('unavailable.availableYears', { years: analysis.availableYears.join(', ') })}
             </p>
           )}
         </div>
@@ -171,7 +188,7 @@ export default function ReportSection({
           >
             <div style={{ padding: 20 }}>
               <p style={{ margin: 0, fontWeight: 700, color: c.text }}>
-                Situação{' '}
+                {t('situation')}{' '}
                 <span style={{ fontWeight: 400, color: c.textDim }}>
                   {recorte.featureName}
                 </span>
@@ -189,17 +206,17 @@ export default function ReportSection({
                 }}
               >
                 <div>
-                  <dt style={{ fontWeight: 700, color: c.textDim }}>Ano analisado</dt>
-                  <dd style={{ margin: 0 }}>{year ?? 'sem série temporal'}</dd>
+                  <dt style={{ fontWeight: 700, color: c.textDim }}>{t('analyzedYear')}</dt>
+                  <dd style={{ margin: 0 }}>{year ?? t('noTimeSeries')}</dd>
                 </div>
                 <div>
-                  <dt style={{ fontWeight: 700, color: c.textDim }}>Série disponível</dt>
+                  <dt style={{ fontWeight: 700, color: c.textDim }}>{t('availableSeries')}</dt>
                   <dd style={{ margin: 0 }}>
                     {analysis.series.length > 1
                       ? `${analysis.series[0].date.slice(0, 4)}–${analysis.series[analysis.series.length - 1].date.slice(0, 4)}`
                       : descriptor.seriesExpected
-                        ? 'não foi possível calcular'
-                        : 'não se aplica'}
+                        ? t('seriesFailed')
+                        : t('seriesNotApplicable')}
                   </dd>
                 </div>
               </dl>
@@ -220,7 +237,7 @@ export default function ReportSection({
 
           <div style={{ marginTop: 24 }}>
             <h3 className="report-heading" style={{ margin: 0, fontSize: 16, color: c.textDim }}>
-              Retrato espacial e distribuição
+              {t('spatialTitle')}
             </h3>
             <div
               className={stackedVisuals ? undefined : 'report-visual-grid'}
@@ -245,7 +262,7 @@ export default function ReportSection({
                     color: c.textDim, background: c.mist, borderBottom: `1px solid ${c.border}`,
                   }}
                 >
-                  {year ? `Imagem de ${year}` : 'Imagem da camada'}
+                  {year ? t('imageOfYear', { year }) : t('imageOfLayer')}
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <ReportMapPreview
@@ -265,7 +282,7 @@ export default function ReportSection({
                     color: c.textDim, background: c.mist, borderBottom: `1px solid ${c.border}`,
                   }}
                 >
-                  Distribuição sobre {recorte.featureName}
+                  {t('distributionOver', { name: recorte.featureName })}
                 </div>
                 <div style={{ padding: 12 }}>
                   <StatsChartView
@@ -283,7 +300,7 @@ export default function ReportSection({
           {analysis.series.length > 1 && (
             <div style={{ marginTop: 24 }}>
               <h3 className="report-heading" style={{ margin: 0, fontSize: 16, color: c.textDim }}>
-                Série histórica
+                {t('historicalSeries')}
               </h3>
               <div style={{ marginTop: 10, padding: 12, border: `1px solid ${c.border}` }}>
                 {/* The yearly series is fed to the same component as a
@@ -313,16 +330,16 @@ export default function ReportSection({
               style={{ marginTop: 20, padding: 20, border: `1px solid ${c.border}` }}
             >
               <h3 className="report-heading" style={{ margin: 0, fontSize: 15, color: c.textDim }}>
-                Leitura histórica
+                {t('historicalReading')}
               </h3>
               {analysis.narrative.trend && (
                 <p style={{ margin: '10px 0 0', textAlign: 'justify', color: c.body }}>
-                  <strong>Tendência recente:</strong> {analysis.narrative.trend}
+                  <strong>{t('recentTrend')}</strong> {analysis.narrative.trend}
                 </p>
               )}
               {analysis.narrative.context && (
                 <p style={{ margin: '10px 0 0', textAlign: 'justify', color: c.body }}>
-                  <strong>Contexto da série:</strong> {analysis.narrative.context}
+                  <strong>{t('seriesContext')}</strong> {analysis.narrative.context}
                 </p>
               )}
             </div>

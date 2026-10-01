@@ -4,6 +4,8 @@
 
 import { Fragment, type CSSProperties } from 'react'
 import { DEGRADATION_COLORS } from '@/config/territorios/palette'
+import { useStoryFmt } from '../useStoryFmt'
+import { DEGRADATION_KEYS } from '@/lib/territorios/storyValues'
 import type { DegradationShare } from '@/types/territorios'
 import { ChartFigure, formatShare, inkOn, outlineOf } from './ChartFigure'
 import '@/app/territorios-graficos.css'
@@ -16,16 +18,6 @@ export interface LevelsBarProps {
 // Class codes run the other way: code 6 is Conservado, code 1 is Nível 5, code 0 has no data.
 const ORDER = [6, 5, 4, 3, 2, 1, 0]
 const NO_DATA = 0
-
-const NAMES: Record<number, string> = {
-  6: 'Conservado',
-  5: 'Nível 1 (leve)',
-  4: 'Nível 2',
-  3: 'Nível 3',
-  2: 'Nível 4',
-  1: 'Nível 5 (grave)',
-  0: 'Sem dado',
-}
 
 function fillOf(code: number): CSSProperties {
   const color = DEGRADATION_COLORS[code]
@@ -44,6 +36,9 @@ function shareOf(shares: DegradationShare[], code: number): number {
 }
 
 export default function LevelsBar({ rows, description }: LevelsBarProps) {
+  const fmt = useStoryFmt()
+  const nameOf = (code: number) => fmt.t(`legend.degradation.${DEGRADATION_KEYS[code]}`)
+  const share = (pct: number) => formatShare(pct, fmt)
   const table = rows.map((row) => ({ label: row.label, pct: ORDER.map((code) => shareOf(row.shares, code)) }))
   const noDataShown = table.some((row) => row.pct[ORDER.indexOf(NO_DATA)] > 0)
   const legend = ORDER.filter((code) => code !== NO_DATA || noDataShown)
@@ -62,9 +57,9 @@ export default function LevelsBar({ rows, description }: LevelsBarProps) {
                     key={code}
                     className="tg-seg"
                     style={{ ...fillOf(code), flexGrow: row.pct[i], color: code === NO_DATA ? undefined : inkOn(DEGRADATION_COLORS[code]) }}
-                    title={`${NAMES[code]}: ${formatShare(row.pct[i])}`}
+                    title={`${nameOf(code)}: ${share(row.pct[i])}`}
                   >
-                    <span className="tg-seg-label tg-num">{formatShare(row.pct[i])}</span>
+                    <span className="tg-seg-label tg-num">{share(row.pct[i])}</span>
                   </div>
                 ))}
               </div>
@@ -80,10 +75,10 @@ export default function LevelsBar({ rows, description }: LevelsBarProps) {
           <Fragment key={code}>
             <span className="tg-legend-name">
               <span className="tg-swatch" style={fillOf(code)} />
-              {NAMES[code]}
+              {nameOf(code)}
             </span>
             {table.map((row) => (
-              <span key={row.label} className="tg-levels-value tg-num">{formatShare(row.pct[ORDER.indexOf(code)])}</span>
+              <span key={row.label} className="tg-levels-value tg-num">{share(row.pct[ORDER.indexOf(code)])}</span>
             ))}
           </Fragment>
         ))}

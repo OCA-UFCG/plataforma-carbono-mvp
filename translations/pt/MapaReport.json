@@ -1,0 +1,96 @@
+{
+  "MapaReport": {
+    "layers": {
+      "estoque_carbono": {
+        "coverageContext": "nesta fitofisionomia",
+        "methodology": "Estoques do Quarto Inventário Nacional, rasterizados a 100 m e somados sobre os cinco reservatórios. O total é densidade multiplicada pela área geodésica do pixel, e fecha com o vetor original em 0,03%."
+      },
+      "solo_carbono": {
+        "coverageContext": "nesta faixa de teor",
+        "methodology": "Carbono orgânico do solo de 0 a 30 cm, MapBiomas Solo coleção 2, 30 m.",
+        "trend": {
+          "phenomenon": "carbono do solo",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "biomassa_esa_lenhosa": {
+        "coverageContext": "nesta faixa de biomassa",
+        "methodology": "Biomassa aérea da vegetação lenhosa, ESA CCI Biomass. A série tem lacuna: 2007, 2010 e de 2015 em diante.",
+        "trend": {
+          "phenomenon": "biomassa",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "gfw_netflux": {
+        "coverageContext": "nesta faixa de fluxo",
+        "methodology": "Fluxo líquido de carbono florestal, Global Forest Watch. Valor negativo é remoção da atmosfera e positivo é emissão; o documento troca o sinal por uma palavra."
+      },
+      "lulc_mapbiomas": {
+        "coverageContext": "nesta classe de uso e cobertura",
+        "methodology": "Uso e cobertura da terra, MapBiomas coleção 10.1, 30 m, série anual de 1985 em diante."
+      },
+      "fogo_frequencia": {
+        "coverageContext": "nesta faixa de recorrência",
+        "methodology": "Frequência de fogo acumulada desde 1985, MapBiomas Fogo coleção 3. Áreas nunca queimadas entram como zero.",
+        "trend": {
+          "phenomenon": "recorrência de fogo",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "gpp_modis": {
+        "coverageContext": "nesta classe de produtividade",
+        "methodology": "Produtividade primária bruta, MODIS MOD17A2HGF, classificada em cinco classes por Jenks sobre o bioma.",
+        "trend": {
+          "phenomenon": "produtividade bruta",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "npp_modis": {
+        "coverageContext": "nesta classe de produtividade",
+        "methodology": "Produtividade primária líquida, MODIS MOD17A3HGF, classificada em cinco classes por Jenks sobre o bioma.",
+        "trend": {
+          "phenomenon": "produtividade líquida",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "chirps_precip": {
+        "coverageContext": "nesta faixa de precipitação",
+        "methodology": "Precipitação anual acumulada, CHIRPS diário somado no ano.",
+        "trend": {
+          "phenomenon": "precipitação",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      },
+      "ndvi_modis": {
+        "coverageContext": "nesta faixa de vigor",
+        "methodology": "NDVI, MODIS MOD13Q1, média das composições de 16 dias do ano.",
+        "trend": {
+          "phenomenon": "vigor da vegetação",
+          "increaseTerm": "aumento",
+          "decreaseTerm": "redução"
+        }
+      }
+    },
+    "narrative": {
+      "atYear": " em {year}",
+      "atYearComma": ", em {year}",
+      "fluxEmission": "Em {feature}, a camada {layer} indica que a área emitiu, em média, {value}{atYear}.",
+      "fluxRemoval": "Em {feature}, a camada {layer} indica que a área sequestrou, em média, {value}{atYear}.",
+      "fluxNeutral": "Em {feature}, a camada {layer} indica que a área está em equilíbrio, em média, {value}{atYear}.",
+      "continuous": "Em {feature}, a camada {layer} tem média de {mean}{atYear}, variando de {min} a {max}.",
+      "categorical": "Em {feature}, a classe predominante de {layer} é {class}, com {share}% da área analisada {context}{yearClause}.",
+      "stocksTotal": "Em {feature}, o estoque total de carbono é de {total} {unit} sobre {area} ha, uma densidade média de {density} {unit}/ha.",
+      "stocksBreakdown": "O reservatório {pool} responde por {poolShare}% do total, e a fitofisionomia {class} por {classShare}%.",
+      "trendStable": "Em relação a {year}, o valor permaneceu estável.",
+      "trendChange": "Em relação a {year}, houve {term} de {magnitude}{percentage}.",
+      "trendPercentage": ", ou {value}%",
+      "context": "Na série de {first} a {last}, a média é {mean}, com máximo de {max} em {maxYear} e mínimo de {min} em {minYear}."
+    }
+  }
+}

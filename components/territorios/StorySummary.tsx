@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import StepChart from './StepChart'
 import StepFigure from './charts/StepFigure'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { useStoryFmt } from './useStoryFmt'
+import { confirmDetailText } from '@/config/territorios/chooserScript'
 import { FIGURE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
-import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
-import { ABOUT_SCRIPT, READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import type { TerritoryType } from '@/config/territorios/story'
+import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
 import { sectionId } from '@/lib/territorios/activeSection'
 import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
+import { intlLocale } from '@/lib/territorios/i18n'
 import { formatArea } from '@/lib/territorios/storyValues'
 import type { ThemeLoad } from './ThemeStep'
 import type { ThemeId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
@@ -30,7 +33,12 @@ type ShareNotice = 'copied' | 'failed' | null
 export default function StorySummary({
   territory, type, loads, expired, onRetry, onAnotherTerritory,
 }: StorySummaryProps) {
-  const [generatedAt] = useState(() => new Date().toLocaleDateString('pt-BR'))
+  const ui = useTranslations('TerritoriosUi')
+  const chooser = useTranslations('TerritoriosChooser')
+  const names = useTranslations('TerritoriosTypes')
+  const locale = useLocale()
+  const fmt = useStoryFmt()
+  const [generated] = useState(() => new Date())
   const [notice, setNotice] = useState<ShareNotice>(null)
   const aboutRef = useRef<HTMLDetailsElement | null>(null)
 
@@ -66,11 +74,12 @@ export default function StorySummary({
   for (const [theme, load] of Object.entries(loads) as [ThemeId, ThemeLoad][]) {
     if (load.kind === 'ready') responses[theme] = load.response
   }
-  const input = { responses, territory, type }
+  const input = { responses, territory, type, fmt }
   const rows = summaryRows(input)
   const about = aboutItems(input)
   const title = TERRITORY_SCRIPT.title(territory.featureName, type.id === 'estado' ? undefined : territory.context)
   const id = sectionId('resumo')
+  const generatedAt = generated.toLocaleDateString(intlLocale(locale))
 
   async function share() {
     const url = window.location.href
@@ -93,14 +102,20 @@ export default function StorySummary({
   return (
     <section id={id} data-step="resumo" className="territorios-resumo" aria-labelledby={`${id}-titulo`}>
       <h2 id={`${id}-titulo`} className="territorios-faixa" style={{ background: STEP_COLORS.territorio }} tabIndex={-1}>
-        {UI.summaryTitle}
+        {ui('summaryTitle')}
       </h2>
 
       <header className="territorios-ficha-cabecalho">
         <p className="territorios-ficha-nome">{title}</p>
         <p className="territorios-ficha-detalhe">
           {/* The title above already carries the state. */}
-          {CHOOSER.confirmDetail(type.unitLabel, undefined, formatArea(territory.areaHa), type.id === 'bioma')}
+          {confirmDetailText(
+            names(`types.${type.id}.unitLabel`),
+            undefined,
+            formatArea(territory.areaHa, fmt),
+            (key, values) => chooser(key, values),
+            type.id === 'bioma',
+          )}
         </p>
       </header>
 
@@ -116,18 +131,18 @@ export default function StorySummary({
             >
               <h3 className="territorios-ficha-titulo">{row.title}</h3>
               {load.kind === 'loading' ? (
-                <p className="territorios-ficha-estado">{UI.loading}</p>
+                <p className="territorios-ficha-estado">{ui('loading')}</p>
               ) : load.kind === 'failed' || load.response.status === 'unavailable' ? (
                 <div className="territorios-ficha-estado">
-                  <p>{UI.summaryUnavailable}</p>
+                  <p>{ui('summaryUnavailable')}</p>
                   {!expired && (
                     <button
                       type="button"
                       className="territorios-btn territorios-btn--contorno territorios-no-print"
                       onClick={() => onRetry(row.theme)}
-                      aria-label={`${UI.retry}: ${STEP_LABELS[row.theme]}`}
+                      aria-label={ui('retryStep', { step: names(`steps.${row.theme}`) })}
                     >
-                      {UI.retry}
+                      {ui('retry')}
                     </button>
                   )}
                 </div>
@@ -139,7 +154,7 @@ export default function StorySummary({
                     )}
                     {row.reading && (
                       <p className="territorios-ficha-leitura">
-                        {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
+                        {fmt.t(row.theme === 'fluxo' ? `summary.fluxo.readings.${row.reading}` : `readings.${row.reading}`)}
                       </p>
                     )}
                   </div>
@@ -155,7 +170,7 @@ export default function StorySummary({
       </ul>
 
       <details ref={aboutRef} className="territorios-sobre">
-        <summary>{ABOUT_SCRIPT.title}</summary>
+        <summary>{fmt.t('about.title')}</summary>
         <dl>
           {about.map((item) => (
             <div key={item.title}>
@@ -164,21 +179,21 @@ export default function StorySummary({
             </div>
           ))}
         </dl>
-        <p className="territorios-sobre-data">{UI.generatedAt(generatedAt)}</p>
+        <p className="territorios-sobre-data">{ui('generatedAt', { date: generatedAt })}</p>
       </details>
 
       <div className="territorios-navegacao territorios-navegacao--resumo">
         <button type="button" className="territorios-btn territorios-btn--primario" onClick={() => window.print()}>
-          {UI.print}
+          {ui('print')}
         </button>
         <button type="button" className="territorios-btn territorios-btn--contorno" onClick={() => void share()}>
-          {UI.share}
+          {ui('share')}
         </button>
         <button type="button" className="territorios-btn territorios-btn--contorno" onClick={onAnotherTerritory}>
-          {UI.changeTerritory}
+          {ui('changeTerritory')}
         </button>
         <p className="territorios-aviso-link" role="status">
-          {notice === 'copied' ? UI.linkCopied : notice === 'failed' ? UI.copyFailed : ''}
+          {notice === 'copied' ? ui('linkCopied') : notice === 'failed' ? ui('copyFailed') : ''}
         </p>
       </div>
     </section>

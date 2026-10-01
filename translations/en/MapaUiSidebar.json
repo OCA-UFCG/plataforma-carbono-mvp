@@ -1,0 +1,29 @@
+{
+  "MapaUiSidebar": {
+    "title": "Themes",
+    "activeOne": "{count} active",
+    "activeMany": "{count} active",
+    "home": "Home",
+    "homeTitle": "Turn off all layers and return to the biome view",
+    "collapse": "Collapse",
+    "collapseAria": "Collapse panel",
+    "thematicOne": "{count} thematic layer on",
+    "thematicMany": "{count} thematic layers on",
+    "reorderHint": "Drag themes and subcategories by the ⠿ handle to change their order on the map",
+    "clear": "Turn off",
+    "clearAria": "Turn off the thematic layers",
+    "clearTitle": "Turn off all layers except those under {territory}",
+    "search": "Search layers",
+    "clearSearch": "Clear search",
+    "clearSearchAria": "Clear layer search",
+    "noResults": "No layers found.",
+    "dragToReorder": "Drag to reorder",
+    "infoAria": "Layer sheet for {name}",
+    "showLayerAria": "Show layer {name}",
+    "hideLayerAria": "Hide layer {name}",
+    "dismiss": "Dismiss",
+    "dismissError": "Dismiss error",
+    "opacity": "Opacity",
+    "opacityAria": "Opacity of {name}"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "RelatorioDocument": {
+    "progress": {
+      "analyses": "{done} of {total} analyses ready",
+      "noMaps": "No maps to generate",
+      "ready": "{analyses} analyses and {maps} maps ready",
+      "maps": "{done} of {total} maps generated"
+    },
+    "backToMaps": "Back to maps",
+    "print": "Print or save as PDF",
+    "printDisabledHint": "Available once all analyses and maps have finished",
+    "expired": {
+      "prefix": "Your session has expired.",
+      "link": "Sign in again",
+      "suffix": "to complete the report."
+    },
+    "title": "Territorial carbon report",
+    "byline": "Caativar — Caatinga Observatory, OCA / UFCG-INSA",
+    "fields": {
+      "analysisArea": "Analysis area",
+      "area": "Area",
+      "referenceYear": "Reference year",
+      "generatedOn": "Generated on",
+      "variables": "Variables"
+    },
+    "simplifiedBoundary": "(simplified boundary)",
+    "methodology": {
+      "title": "Methodological notes and sources",
+      "source": "Source",
+      "disclaimer": "Document generated automatically from zonal statistics computed in Google Earth Engine over the indicated territorial unit. The numbers reflect the data available on the generation date."
+    },
+    "footer": "Caativar · OCA / UFCG-INSA · generated on {date}"
+  }
+}

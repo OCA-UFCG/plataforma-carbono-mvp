@@ -108,17 +108,28 @@
 
 .languageOption {
   padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  /* No font shorthand: it would override the text-subtle-semibold the button
+     also carries, since this module loads after globals.css. */
   color: var(--bg-texto-primario);
+  cursor: pointer;
 }
 
-.languageOptionActive {
+.languageOption:disabled {
+  cursor: default;
+}
+
+.languageOption:hover,
+.languageOption:focus-visible {
+  background: var(--am-100);
+}
+
+.languageOptionActive,
+.languageOptionActive:hover,
+.languageOptionActive:focus-visible {
   background: var(--role-categorica1-padrao);
   color: var(--role-primario-texto-sobre);
-}
-
-.language [aria-disabled="true"] {
-  color: var(--role-neutro-texto-desabilitado);
-  cursor: not-allowed;
 }
 
 .sessionButton {

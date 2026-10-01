@@ -1,0 +1,13 @@
+{
+  "ComunicacaoPage": {
+    "intro": {
+      "eyebrow": "Materials",
+      "title": "Communication",
+      "intro": "CaatiVAR brings together, in one open place, data, maps and content about carbon in the Caatinga. It was built so that those who live in the biome and those who make decisions about it can learn what each territory holds, assess carbon project proposals and negotiate with more confidence."
+    },
+    "band": {
+      "eyebrow": "This space is growing",
+      "title": "We are developing more booklets, thematic notebooks and other materials about carbon in the Caatinga."
+    }
+  }
+}

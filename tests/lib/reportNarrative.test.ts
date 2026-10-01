@@ -108,8 +108,9 @@ describe('buildNarrative situation', () => {
         report: {
           totalTc: 2_345_678, areaHa: 59_412, unit: 't C',
           pools: [
-            { band: 'b1', label: 'Biomassa acima do solo', tc: 1_130_000 },
-            { band: 'b2', label: 'Carbono do solo', tc: 1_215_678 },
+            // The bands of gee.stocks.pools: the band is the pool's id.
+            { band: 'b2', label: 'Biomassa acima do solo', tc: 1_130_000 },
+            { band: 'b6', label: 'Carbono orgânico do solo', tc: 1_215_678 },
           ],
           classes: [
             { codigo: 1, sigla: 'Ta', tc: 1_032_098, areaHa: 26_000, porPool: {} },
@@ -120,7 +121,7 @@ describe('buildNarrative situation', () => {
     }))
 
     expect(situation).toBe(
-      'Em Campina Grande, o estoque total de carbono é de 2.345.678 t C sobre 59.412 ha, uma densidade média de 39,5 t C/ha. O reservatório Carbono do solo responde por 51,8% do total, e a fitofisionomia Ta por 44,0%.',
+      'Em Campina Grande, o estoque total de carbono é de 2.345.678 t C sobre 59.412 ha, uma densidade média de 39,5 t C/ha. O reservatório Carbono orgânico do solo responde por 51,8% do total, e a fitofisionomia Ta por 44,0%.',
     )
   })
 

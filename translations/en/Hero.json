@@ -1,0 +1,14 @@
+{
+  "Hero": {
+    "ariaLabel": "Presentation",
+    "eyebrow": "Carbon Market in the Caatinga",
+    "title": "Open data and maps to understand the biome's carbon and decide with greater confidence",
+    "lead": "Open information so that communities and managers can assess carbon projects and negotiate on fairer terms.",
+    "openMaps": "Open the maps",
+    "viewMaterials": "See materials",
+    "photoPicker": "Select background photo",
+    "photoAlt": "Photo {number} of the Caatinga",
+    "showPhoto": "Show {alt}",
+    "credit": "Photo: {name}"
+  }
+}
