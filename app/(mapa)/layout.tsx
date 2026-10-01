@@ -8,6 +8,7 @@ import { libreFranklin } from '../fonts/app'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import { HTML_LANG, type Locale } from '@/translations/config'
+import { CLIENT_NAMESPACES, pickMessages } from '@/translations/clientNamespaces'
 
 // Root layout of the maps and analysis module: full screen, without the
 // marketing header/footer. Since it is a sibling root layout to (marketing)'s,
@@ -39,7 +40,7 @@ export default async function MapaLayout({
   return (
     <html lang={HTML_LANG[locale]} className={libreFranklin.variable}>
       <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100dvh' }}>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={pickMessages(messages, CLIENT_NAMESPACES.mapa)}>
           <AuthProvider>{children}</AuthProvider>
         </NextIntlClientProvider>
         <Analytics />

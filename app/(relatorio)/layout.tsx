@@ -7,6 +7,7 @@ import { libreFranklin } from '../fonts/app'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import { HTML_LANG, type Locale } from '@/translations/config'
+import { CLIENT_NAMESPACES, pickMessages } from '@/translations/clientNamespaces'
 
 // Fourth sibling root layout. The report is a document that scrolls and prints,
 // and (mapa)'s layout zeroes the body scroll and pins the height to the
@@ -41,7 +42,7 @@ export default async function RelatorioLayout({
   return (
     <html lang={HTML_LANG[locale]} className={libreFranklin.variable}>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={pickMessages(messages, CLIENT_NAMESPACES.relatorio)}>
           <AuthProvider>{children}</AuthProvider>
         </NextIntlClientProvider>
       </body>

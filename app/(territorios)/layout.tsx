@@ -6,6 +6,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import { HTML_LANG, type Locale } from '@/translations/config'
+import { CLIENT_NAMESPACES, pickMessages } from '@/translations/clientNamespaces'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
 // its summary, so it cannot share (mapa)'s locked viewport; being a sibling
@@ -47,7 +48,7 @@ export default async function TerritoriosLayout({
   return (
     <html lang={HTML_LANG[locale]} className={`${rubik.variable} ${archivoNarrow.variable}`}>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={pickMessages(messages, CLIENT_NAMESPACES.territorios)}>
           <AuthProvider>{children}</AuthProvider>
         </NextIntlClientProvider>
       </body>

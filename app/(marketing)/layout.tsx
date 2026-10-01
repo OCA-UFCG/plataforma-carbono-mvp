@@ -8,6 +8,7 @@ import { getAuthenticatedSession, loginRedirect } from "@/lib/auth";
 import { REQUEST_PATH_HEADER } from "@/lib/marketing/requestPath";
 import { Analytics } from "@/components/Analytics";
 import { HTML_LANG, type Locale } from "@/translations/config";
+import { CLIENT_NAMESPACES, pickMessages } from "@/translations/clientNamespaces";
 import { archivoNarrow, rubik } from "../fonts/marketing";
 
 // Root layout of the marketing pages. The maps module has its own root layout
@@ -50,7 +51,7 @@ export default async function MarketingLayout({
   return (
     <html lang={HTML_LANG[locale]}>
       <body className={`${rubik.variable} ${archivoNarrow.variable}`}>
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={pickMessages(messages, CLIENT_NAMESPACES.marketing)}>{children}</NextIntlClientProvider>
         <Analytics />
       </body>
     </html>
