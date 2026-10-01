@@ -15,9 +15,13 @@ export async function getMapaText(): Promise<MapaText> {
     const locale = isLocale(raw) ? raw : DEFAULT_LOCALE
     const t = await getTranslations()
     return { locale, t: toTranslator(t as never) }
-  } catch {
-    // Outside a request scope (a script, a test) there is no cookie to read:
-    // the default language beats failing a report over its wording.
+  } catch (err) {
+    // The default language beats failing a report over its wording. Outside a
+    // request scope (a script, a test) there is no cookie to read; inside one
+    // this is a real failure of the request config, such as a message import
+    // that throws, and every report would quietly come back in Portuguese, so
+    // it is logged either way.
+    console.warn('[textServer] request messages unavailable, using Portuguese:', err)
     return PT_TEXT
   }
 }
