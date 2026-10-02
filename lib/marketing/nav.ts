@@ -23,7 +23,7 @@ export const SECTION_IDS: readonly string[] = [
 ]
 
 // The map lives in another route group, so it is a full page load, not a <Link>.
-export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Mapas', external: true }
+export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Plataforma', external: true }
 
 // Header labels from Figma node 18988:8612. "Sobre a plataforma" replaces the
 // landing-era "Conheça a plataforma" now that it opens a page of its own.
