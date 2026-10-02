@@ -42,9 +42,10 @@ export default function Welcome({ theme, month }: Props) {
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-        backgroundImage:
-          'linear-gradient(165deg,rgba(24,26,17,.72),rgba(24,26,17,.5) 45%,rgba(24,26,17,.78)), url(/welcome/foto_agua.jpg)',
-        backgroundSize: 'cover', backgroundPosition: 'center',
+        // The map loads behind the window, blurred and slightly dimmed so the
+        // text stays legible; closing the window leaves it sharp.
+        background: 'rgba(24,26,17,.28)',
+        backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
       }}
       onClick={close}
     >
