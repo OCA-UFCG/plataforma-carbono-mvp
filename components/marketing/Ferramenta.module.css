@@ -1,20 +1,23 @@
 /* Ferramenta, Figma node 18862:8547, 1436x560. Full-bleed band: unlike the
  * sections above it, this one does NOT use the shared `container` utility
  * (see app/globals.css) — the design runs the image and the dark panel
- * edge-to-edge with the viewport. Font sizes/weights/line-heights come only
- * from the .text-* utility classes applied in Ferramenta.tsx; this file
- * handles color, spacing and layout only.
+ * edge-to-edge with the viewport. Font sizes/weights/line-heights come from
+ * the .text-* utility classes applied in Ferramenta.tsx, except the eyebrow's
+ * 14px line box (.eyebrow below); otherwise this file handles color, spacing
+ * and layout.
  *
  * Split ratio: the media column is 729/1436 of the frame (50.7661%), and the
  * panel takes the remainder via `flex: 1` rather than a second hard-coded
  * percentage, so the two always sum to exactly 100% regardless of rounding.
  */
 
+/* The design fills the band with ROLE-Categorica2-Hover (#002430, node
+ * 18862:8547), a dark teal, not the near-black inverse background. */
 .ferramenta {
   display: flex;
   align-items: stretch;
   min-height: 560px;
-  background: var(--bg-fundo-inverso);
+  background: var(--role-categorica2-hover);
 }
 
 .media {
@@ -49,24 +52,28 @@
   background: var(--am-100);
 }
 
-/* Panel content is inset 40px from the panel's OWN left edge (Figma nodes
- * 18862:8551..8574), not aligned to the page's content column — the design
- * deliberately breaks that alignment here since the band is full-bleed. The
- * vertical rhythm below (padding-top 83px, then per-element margins) is read
- * directly off the node's y-positions: eyebrow y=83, h2 y=118, body y=211,
- * list y=304.5, button y=461.5, panel height 560. */
+/* Panel content is inset 40px from the panel's OWN left edge and 80px from its
+ * right (Figma node 18862:8549), not aligned to the page's content column —
+ * the design deliberately breaks that alignment here since the band is
+ * full-bleed. The vertical rhythm below (padding-top 83px, then per-element
+ * margins) is read directly off the nodes' y-positions: eyebrow y=83 (14px
+ * line box), h2 y=118, body y=211, list y=308.5 (its "Margin" frame at 304.5
+ * plus 4px of top padding), button y=461.5, panel height 560. */
 .panel {
   flex: 1 1 50%;
   display: flex;
   flex-direction: column;
-  padding: 83px 40px 58px;
+  padding: 83px 80px 58px 40px;
   color: var(--bg-texto-sobre-inverso);
   min-width: 0;
 }
 
+/* AM200 on a 14px line box (node 18862:8551); .text-subtle-medium sets the
+ * face, size and weight, the line height is overridden here. */
 .eyebrow {
   margin: 0;
-  color: color-mix(in srgb, var(--bg-texto-sobre-inverso) 72%, transparent);
+  line-height: 14px;
+  color: var(--am-200);
   text-transform: uppercase;
 }
 
@@ -76,8 +83,9 @@
  * from the design: without it the heading fits on one line and the panel reads
  * differently from the mock. */
 .title {
-  margin: 15px 0 0;
+  margin: 21px 0 0;
   max-width: 391px;
+  color: var(--ctx-positivo-texto-sobre);
 }
 
 /* 587px is the width of this paragraph's container in Figma node 18862:8554,
@@ -90,7 +98,7 @@
 
 .list {
   list-style: none;
-  margin: 21px 0 0;
+  margin: 25px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -115,9 +123,10 @@
   background: var(--cb-400);
 }
 
+/* 27 = the list's "Margin" frame's 6px bottom padding + the column's 21px gap. */
 .button {
   align-self: flex-start;
-  margin-top: 31px;
+  margin-top: 27px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -125,9 +134,10 @@
   border-radius: var(--radius-interno);
   white-space: nowrap;
   /* Figma node 18862:8574 binds the categorica1 role, not the brand green
-     the hero uses; the hover step is frame 18916:9764. */
+     the hero uses, and a --primary-foreground label; the hover step is frame
+     18916:9764. */
   background: var(--role-categorica1-padrao);
-  color: var(--role-primario-texto-sobre);
+  color: var(--primary-foreground);
 }
 
 .button:hover,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaAngleRight } from "react-icons/fa6";
+import { MdKeyboardArrowRight } from "react-icons/md";
 import styles from "./MoreLink.module.css";
 
 type MoreLinkProps = {
@@ -18,13 +18,14 @@ type MoreLinkProps = {
 // 18862:8546) and in "Comunicação" (node 18862:8578), opening that section's
 // internal page. Its fill samples to #587c22 = --role-marca-ancora-padrao
 // exactly — note that differs from the hero and map buttons, which the design
-// binds to --role-marca-ancora-hover.
+// binds to --role-marca-ancora-hover. The chevron is Material's
+// keyboard_arrow_right, the glyph the design uses (I18862:8579;13:2244).
 export default function MoreLink({ href, contexto }: MoreLinkProps) {
   return (
-    <Link href={href} className={`${styles.moreLink} text-body`}>
+    <Link href={href} className={`${styles.moreLink} text-ui-medium`}>
       Ver mais
       <span className="sr-only"> {contexto}</span>
-      <FaAngleRight aria-hidden className={styles.icon} />
+      <MdKeyboardArrowRight aria-hidden className={styles.icon} />
     </Link>
   );
 }

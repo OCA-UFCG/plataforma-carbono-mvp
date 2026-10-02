@@ -37,7 +37,9 @@
 
 /* As wide as the page count's digits (--page-digits, set by PdfViewer): one
  * digit gives the Figma's 33px; 1ch is 10.2px in Rubik 16. The 22px are the
- * 10px of padding on each side plus the border. */
+ * 10px of padding on each side plus the border. Centred rather than at the
+ * design's 12px inset: for one digit in 33px the two land within 1px, and
+ * once the field widens for more digits a left inset would leave it lopsided. */
 .pageField {
   width: calc(var(--page-digits, 2) * 1ch + 22px);
   padding-inline: 10px;
@@ -55,7 +57,12 @@
   padding-inline: 8px;
 }
 
+/* "/" and the page count, 8px apart as the design spaces them (19015:13074).
+ * The count is Rubik 16/24. */
 .total {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-sans, var(--font-fallback));
   font-size: 16px;
   line-height: 24px;
@@ -63,15 +70,26 @@
   white-space: nowrap;
 }
 
+/* The design sets the slash in Inter Regular 16 at a 1.5 line height
+ * (19015:13078), which is 16/24: no .text-* utility has it, so only the face
+ * and the weight are set here and the size comes from .total. */
+.slash {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 400;
+}
+
 /* Icon buttons (19015:13081, 13085, 13088): 40x40 on --bg-fundo with an
- * --am-100 border and 4px corners (no token for 4px), the 24px icon inside. */
+ * --am-100 border and 4px corners (no token for 4px), the 24px icon 8px from
+ * the edge. The design draws the border inside that 8px of padding; a CSS
+ * border adds to the box, so the padding gives up the border's 1px, or the
+ * icon would be squeezed to 22px wide. */
 .iconButton {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  padding: 8px;
+  padding: 7px;
   border: 1px solid var(--am-100);
   border-radius: 4px;
   background: var(--bg-fundo);
@@ -90,7 +108,9 @@
 }
 
 /* "Baixar PDF" (19015:13089): white on --role-marca-ancora-padrao (4.86:1),
- * 4px corners, the 16px icon 8px before the label; hover steps to -hover. */
+ * 4px corners, the 16px icon 8px before the label, Inter Medium 14/24 from
+ * .text-ui-medium; hover steps to -hover, as the design's filled button does
+ * (18916:9438). */
 .download {
   display: inline-flex;
   align-items: center;
@@ -100,7 +120,6 @@
   border-radius: 4px;
   background: var(--role-marca-ancora-padrao);
   color: var(--role-marca-ancora-texto-sobre);
-  font-weight: 500;
   white-space: nowrap;
   transition: background-color 0.2s ease;
 }

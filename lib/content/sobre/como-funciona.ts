@@ -1,6 +1,9 @@
 // Content of "Como funciona" (/sobre/como-funciona), Figma frame 18988:8943,
 // content node 18988:8972, copied verbatim. The steps are the six variants of
-// the "Card Sobre" component (18985:7140 and siblings).
+// the "Card Sobre" component (18985:7140 and siblings). Ten of step 2's labels
+// end in a space in the design ("limites da Caatinga ", …), which makes those
+// badges 3px wider there; the space is a copy artefact, which HTML would drop
+// at the end of the line anyway, so it is left out.
 
 // Colour of a group of step 2's labels. The four mirror the four themes of the
 // map's layer panel (config/mapa/groups.ts); the design words the third one

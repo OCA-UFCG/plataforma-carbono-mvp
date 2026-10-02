@@ -50,6 +50,18 @@ describe('ConteudoHeader', () => {
   })
 })
 
+describe('ConteudoHeader type', () => {
+  // Figma 19015:13063 ("Voltar") and I19015:13089;1:95 ("Baixar PDF") set
+  // Inter Medium 14/24, which .text-ui-medium carries.
+  it('sets Voltar and the mobile Baixar PDF in the UI face', () => {
+    const markup = html(ConteudoHeader, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })
+
+    expect(markup).toMatch(/<a class="[^"]*\btext-ui-medium\b[^"]*" href="\/comunicacao">/)
+    expect(markup).not.toMatch(/<a class="[^"]*\btext-body\b[^"]*" href="\/comunicacao">/)
+    expect(markup).toMatch(/<a href="https:\/\/x\/v1\.pdf"[^>]*class="[^"]*\btext-ui-medium\b[^"]*">/)
+  })
+})
+
 describe('ConteudoSemPdf', () => {
   it('shows the title and the cover, with nothing to download', () => {
     const markup = html(ConteudoSemPdf, { publicacao: PUBLICACAO })
@@ -82,6 +94,17 @@ describe('PublicationCard', () => {
   })
 })
 
+describe('PublicationCard type', () => {
+  // Figma 18953:6454 ("PDF") and 18953:6457 (the type chip) set Inter Semi Bold
+  // 12/16, which .text-ui-badge carries.
+  it('sets the PDF badge and the type chip in the badge face', () => {
+    const markup = html(PublicationCard, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } })
+
+    expect(markup).toMatch(/<span id="publicacao-cartilha-0-pdf" class="[^"]*\btext-ui-badge\b[^"]*">PDF<\/span>/)
+    expect(markup).toMatch(/<span id="publicacao-cartilha-0-tipo" class="[^"]*\btext-ui-badge\b[^"]*">Cartilha<\/span>/)
+  })
+})
+
 describe('the landing Comunicação cards', () => {
   it('lead to the publication pages', async () => {
     const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) })
@@ -89,6 +112,15 @@ describe('the landing Comunicação cards', () => {
     expect(markup).toContain('href="/comunicacao/caderno-mercado-de-carbono-florestal-na-caatinga"')
     expect(markup).toContain('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')
     expect(markup).toContain('Ver material')
+  })
+
+  // Figma 18862:8580: the cartilha on the left, the caderno on the right.
+  it('sets the cartilha before the caderno, as the design orders them', async () => {
+    const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) })
+
+    expect(markup.indexOf('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')).toBeLessThan(
+      markup.indexOf('href="/comunicacao/caderno-mercado-de-carbono-florestal-na-caatinga"'),
+    )
   })
 })
 

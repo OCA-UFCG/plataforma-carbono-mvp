@@ -1,16 +1,20 @@
 /* Site footer. Figma "Footer", node 18862:8583 (symbol 16864:138883),
- * 1440x196. Font sizes/weights/line-heights come only from the .text-*
- * utility classes applied in SiteFooter.tsx; this file handles color,
- * spacing and layout only. */
+ * 1440x196. Font sizes/weights/line-heights come from the .text-* utility
+ * classes applied in SiteFooter.tsx, except the wordmark's Archivo Narrow 19
+ * and the links' Inter 13, which no utility carries (.brandName and .navList
+ * below); otherwise this file handles color, spacing and layout. */
 
 .siteFooter {
   background: var(--bg-fundo-inverso);
 }
 
+/* Figma centres three columns 40px apart: the outer two share what the
+ * partner logos leave (350px each at 1436), so column 2 starts at x=470 and
+ * column 3 at x=1006 (16864:138728). */
 .inner {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 40px;
   /* 40px, not 48: Figma node 18862:8583 is 196 tall around a 116-tall content
    * row (196 = 40 + 116 + 40). */
@@ -20,42 +24,72 @@
 .column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
   min-width: 0;
 }
 
 /* Column 1 is 350x74 in the design: the mark row (36) over the links row (16),
- * with the gap between them. */
+ * 22px apart (Figma: a 14px gap plus 8px of top padding on the links frame). */
+.columnBrand {
+  flex: 1 1 0;
+  gap: 22px;
+}
+
+.columnPartners {
+  flex: none;
+  gap: 16px;
+}
+
+.columnContact {
+  flex: 1 1 0;
+  gap: 10px;
+}
+
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* The design's 36x36, radius-8 mark slot (18862:8250), holding the OCA mark. */
 .brandMark {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-interno);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
   object-fit: contain;
   flex: none;
 }
 
+/* Archivo Narrow Bold 19px, 0.38px tracking, white (18862:8253). */
 .brandName {
-  color: var(--bg-texto-sobre-inverso);
+  font-family: var(--font-display, var(--font-sans, var(--font-fallback)));
+  font-weight: 700;
+  font-size: 19px;
+  line-height: normal;
+  letter-spacing: 0.38px;
+  color: var(--role-terciario-texto-sobre);
   text-transform: uppercase;
 }
 
 /* A ROW, not a column: Figma lays the four links out horizontally inside
  * column 1 (x=80, 135, 190, 292 within the 1436 frame). Stacking them made the
  * column 184px tall against the design's 74 and pushed the whole footer from
- * 196 to 280. Wraps rather than overflowing if the labels ever grow. */
+ * 196 to 280. Wraps rather than overflowing if the labels ever grow. Inter
+ * Regular 13px on its normal (16px) line box (18862:8259), set on the list so
+ * each <li>'s line box takes it too. */
 .navList {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
   list-style: none;
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 400;
+  font-size: 13px;
+  line-height: normal;
 }
 
+/* Figma rests the links at full --bg-texto-sobre-inverso; they rest at 80%
+ * here so the hover below — not in the design, kept on purpose — has a
+ * brighter state to reach. */
 .navLink {
   color: color-mix(in srgb, var(--bg-texto-sobre-inverso) 80%, transparent);
 }
@@ -65,7 +99,8 @@
   color: var(--bg-texto-sobre-inverso);
 }
 
-/* Columns 2 and 3 share the same small caption heading treatment. */
+/* Columns 2 and 3 share the same heading, Rubik Medium 16/24 (.text-p-ui,
+ * Figma 16864:138736 and 16864:138757). */
 .heading {
   margin: 0;
   color: var(--bg-texto-sobre-inverso);
@@ -93,9 +128,20 @@
   display: block;
 }
 
-@media (max-width: 900px) {
+/* Stacked below 1024px. In the row, the outer columns share what the 496px of
+ * partner logos and the two 40px gaps leave, and the brand row (mark +
+ * wordmark, about 133px) needs (content - 576) / 2 >= 133: under ~1002px it
+ * would spill into the logos. */
+@media (max-width: 1023px) {
   .inner {
     flex-direction: column;
     gap: 40px;
+  }
+
+  /* A 0 flex basis in a column of indefinite height would size the outer
+   * columns from nothing; stacked, every column takes its content height. */
+  .columnBrand,
+  .columnContact {
+    flex: none;
   }
 }

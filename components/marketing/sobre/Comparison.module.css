@@ -61,8 +61,11 @@
   color: var(--ctx-negativo-padrao);
 }
 
+/* The exported arrow is 115px wide because its head overhangs the 114px
+ * vector box (Figma 18988:8758); the box, not the drawing, sets the spacing. */
 .seta {
   flex: none;
+  margin-right: -1px;
 }
 
 /* At phone width the two cards stack and the arrow turns to point down. */

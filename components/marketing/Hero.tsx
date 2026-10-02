@@ -68,23 +68,27 @@ export default function Hero() {
 
       <div className={`container ${styles.contentArea}`}>
         <div className={styles.content}>
-          <p className={`${styles.eyebrow} text-subtle-semibold`}>
+          <p className={`${styles.eyebrow} text-subtle-medium`}>
             Mercado de Carbono na Caatinga
           </p>
-          <h1 className={styles.title}>
-            Dados abertos e mapas para entender o carbono do bioma e decidir com
-            mais segurança
-          </h1>
-          <p className={`${styles.lead} text-lead`}>
-            Informação aberta para que comunidades e gestores avaliem projetos
-            de carbono e negociem em condições mais justas.
-          </p>
+          {/* Figma groups the h1 and the lead in their own container
+              (18862:8524) with a 16px gap, tighter than the column's 21. */}
+          <div className={styles.copy}>
+            <h1 className={styles.title}>
+              Dados abertos e mapas para entender o carbono do bioma e decidir com
+              mais segurança
+            </h1>
+            <p className={`${styles.lead} text-lead`}>
+              Informação aberta para que comunidades e gestores avaliem projetos
+              de carbono e negociem em condições mais justas.
+            </p>
+          </div>
           <div className={styles.actions}>
             {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
-            <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-body`}>
+            <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-ui-medium`}>
               Abrir os mapas
             </a>
-            <a href="#comunicacao" className={`${styles.secondaryButton} text-body`}>
+            <a href="#comunicacao" className={`${styles.secondaryButton} text-ui-medium`}>
               Ver materiais
             </a>
           </div>
@@ -104,11 +108,7 @@ export default function Hero() {
         ))}
       </div>
 
-      <div className={`container ${styles.creditRow}`}>
-        {activePhoto.credit && (
-          <p className={`${styles.credit} text-subtle`}>Foto: {activePhoto.credit}</p>
-        )}
-      </div>
+      {activePhoto.credit && <p className={styles.credit}>Foto: {activePhoto.credit}</p>}
     </section>
   );
 }

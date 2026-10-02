@@ -1,15 +1,10 @@
 /* Comunicação, Figma node 18862:8575 ("Comunicação"), 1436x624, card row
  * 18862:8580 (626x480 cards, 24px gutter). Font sizes/weights/line-heights
- * come only from the .text-* utility classes applied in Comunicacao.tsx (see
- * app/globals.css); this file handles color, spacing and layout only.
- *
- * The card title has no bound type-scale token in the design file itself
- * (the geometry pulled before the MCP quota ran out gives the card's box,
- * not its text style) — `.text-lead` was picked as the closest utility scale
- * for a card headline that sits a step below the section's own `.text-h2`,
- * the same reasoning Plataforma.tsx used for its panel `.titulo`. If the
- * design system later binds a dedicated variable for this card title, this
- * should switch to it.
+ * come from the .text-* utility classes applied in Comunicacao.tsx (see
+ * app/globals.css), except the card's category label and title, whose styles
+ * no utility carries: Rubik Medium 12/20 and Archivo Narrow Bold 30/34.5
+ * (card component 18862:7950, nodes 18846:7819 and 18846:7821), set in
+ * .label and .title below.
  */
 
 .comunicacao {
@@ -55,7 +50,8 @@
 .card {
   position: relative;
   display: grid;
-  border-radius: var(--radius);
+  /* 16px corners (card component 18862:7950); no radius token that size. */
+  border-radius: 16px;
   overflow: hidden;
   background: var(--am-100);
 }
@@ -90,22 +86,15 @@
   height: 100%;
   object-fit: cover;
   object-position: top;
-  transition: transform 0.2s ease;
-}
-
-/* Interactive cards get a small hover/focus lift on the photo; the
- * non-interactive card (no <a>, see Comunicacao.tsx) never receives
- * hover/focus in the first place, since nothing inside it is focusable. */
-a.surface:hover .photo,
-a.surface:focus-visible .photo {
-  transform: scale(1.03);
 }
 
 /* Dark gradient the title sits on. Solid at the bottom (0%, opaque
  * --bg-fundo-inverso) fading to fully transparent by 65% up the card: the
  * text block below sits inside the solid portion, so its contrast against
  * the photo never depends on the photo itself — see the module's title rule
- * below for the actual contrast figure. */
+ * below for the actual contrast figure. Figma's gradients (rest and hover,
+ * 18862:7950 / 18862:7956) run to pure black, which has no token;
+ * --bg-fundo-inverso (#000f15) is the nearest one. */
 .overlay,
 .overlayExpanded {
   position: absolute;
@@ -126,12 +115,16 @@ a.surface:focus-visible .photo {
   transition: opacity 0.2s ease;
 }
 
+/* 34px in from the card's sides and 32px up from its bottom (Figma 18846:7817).
+ * Every step of the block is 12px — label to title, title to description,
+ * description to button — but the 12px above the description lives on the
+ * description itself, so the collapsed .extra adds nothing under the title at
+ * rest. */
 .text {
   position: relative;
-  padding: 24px;
+  padding: 24px 34px 32px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 /* Description + button, collapsed at rest. The 0fr -> 1fr row animates the
@@ -159,7 +152,7 @@ a.surface:focus-visible .photo {
  * what aria-describedby announces. */
 .description {
   color: var(--bg-texto-sobre-inverso);
-  margin: 0;
+  margin: 12px 0 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -206,28 +199,30 @@ a.surface:focus-visible .extra {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .photo,
   .overlayExpanded,
   .extra {
     transition: none;
   }
-
-  a.surface:hover .photo,
-  a.surface:focus-visible .photo {
-    transform: none;
-  }
 }
 
+/* Rubik Medium 12/20 at 70% white, uppercase (Figma 18846:7819). */
 .label {
-  color: var(--bg-texto-sobre-inverso);
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 20px;
+  color: color-mix(in srgb, var(--role-terciario-texto-sobre) 70%, transparent);
   text-transform: uppercase;
-  margin: 0;
+  margin: 0 0 12px;
 }
 
-/* White on the gradient's solid stop (var(--bg-fundo-inverso), #000f15) is
- * 19.8:1 — the title never sits over bare photo pixels, only over that
- * opaque base, so the ratio holds regardless of what the photograph shows. */
+/* Archivo Narrow Bold 30/34.5 (Figma 18846:7821), the hero h1's face. White on
+ * the gradient's solid stop (var(--bg-fundo-inverso), #000f15) is 19.8:1. */
 .title {
+  font-family: var(--font-display, var(--font-sans, var(--font-fallback)));
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 34.5px;
   color: var(--role-terciario-texto-sobre);
   margin: 0;
 }

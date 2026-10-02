@@ -11,15 +11,16 @@ import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 153 + 466 + 247px with 16px gaps between them (898px),
+// `.actions` are 153 + 478 + 189px with 16px gaps between them (852px),
 // none of it allowed to shrink below content (`flex: none` on `.nav` and
-// `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px, still 80 in this range — it only drops
-// to 24 at <=768px) on both sides. 898 + 160 = 1058px is the narrowest
-// viewport the inline header actually fits; 1200 clears it with margin. This
-// is the only JS/CSS breakpoint pair on the branch — this value, the
-// `max-width: 1199px` / `min-width: 1200px` pair in SiteHeader.module.css,
-// and the `.toggle`/`.panel` rules they gate must all move together, or the
-// hamburger and the inline nav can both render, or both vanish.
+// `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px,
+// still 80 in this range — it only drops to 24 at <=768px) on both sides.
+// 852 + 160 = 1012px is the narrowest viewport the inline header actually
+// fits; 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
+// in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
+// all move together, or the hamburger and the inline nav can both render, or
+// both vanish.
 const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
@@ -28,7 +29,9 @@ const MOBILE_PANEL_ID = "site-header-mobile-panel";
 // button I18862:8515;2810:3921). The marketing layout redirects unauthenticated
 // visitors to /login (app/(marketing)/layout.tsx), so anyone who reaches this
 // header is already signed in and "Entrar" could never be the right label —
-// "Sair" is rendered instead, at the same 114x40 geometry.
+// "Sair" is rendered instead, in the same button: 1px border, 6px radius, 16px
+// side padding, hugging its label. Figma's "people" icon is left out: it
+// stands for signing in, not out.
 //
 // This is a plain client component, not AuthProvider: the marketing route group
 // deliberately does not mount AuthProvider (it is the one group that doesn't),
@@ -78,11 +81,11 @@ function SessionAction({ className }: { className?: string }) {
 function LanguageSwitch({ className }: { className?: string }) {
   return (
     <div className={className} role="group" aria-label="Idioma">
-      <span className={`${styles.languageOption} ${styles.languageOptionActive} text-subtle-semibold`}>
+      <span className={`${styles.languageOption} ${styles.languageOptionActive} text-ui-tab`}>
         PT-BR
       </span>
       <span
-        className={`${styles.languageOption} text-subtle-semibold`}
+        className={`${styles.languageOption} text-ui-tab`}
         aria-disabled="true"
         title="Disponível em breve"
       >
@@ -161,7 +164,7 @@ export default function SiteHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`${styles.navLink} text-body${active ? ` ${styles.navLinkActive}` : ""}`}
+                className={`${styles.navLink} ${active ? `text-ui-bold ${styles.navLinkActive}` : "text-ui-medium"}`}
                 aria-current={active ? "page" : undefined}
               >
                 {link.label}
@@ -169,14 +172,14 @@ export default function SiteHeader() {
             );
           })}
           {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
-          <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-body`}>
+          <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-ui-medium`}>
             {MAPA_LINK.label}
           </a>
         </nav>
 
         <div className={styles.actions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
+          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
 
           <button
             type="button"
@@ -218,7 +221,7 @@ export default function SiteHeader() {
         </nav>
         <div className={styles.panelActions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-subtle-semibold`} />
+          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
         </div>
       </div>
     </header>

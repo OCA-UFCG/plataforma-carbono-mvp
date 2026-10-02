@@ -25,7 +25,7 @@ export default function StepCard({ numero, passo }: { numero: number; passo: Pas
                 Safari/VoiceOver, as in Destaques.tsx. */}
             <ul className={styles.etiquetas} role="list">
               {grupo.itens.map((item) => (
-                <li key={item} className={`${styles.etiqueta} ${styles[grupo.tom]}`} role="listitem">
+                <li key={item} className={`${styles.etiqueta} ${styles[grupo.tom]} text-ui-badge`} role="listitem">
                   {item}
                 </li>
               ))}

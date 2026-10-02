@@ -38,9 +38,10 @@ const FOTOS: Record<string, string> = {
 // state (see Comunicacao.module.css). The module
 // ships four cartilhas plus one caderno; the design shows exactly two cards,
 // so the choice of which ones is fixed by the task brief rather than by this
-// component: the caderno (labelled "CADERNO TEMÁTICO") and cartilhas[0]
-// (labelled "CARTILHA"). The header row's "Ver mais" opens the Comunicação
-// page, which lists every publication.
+// component: cartilhas[0] (labelled "CARTILHA") on the left and the caderno
+// (labelled "CADERNO TEMÁTICO") on the right, the design's order (18862:8581,
+// 18862:8582). The header row's "Ver mais" opens the Comunicação page, which
+// lists every publication.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
   const [primeiraCartilha] = conteudo.cartilhas;
 
@@ -51,15 +52,6 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
   // volume 3). This renders whatever cartilhas[0] actually holds instead of
   // hardcoding the Figma string.
   const cards: CardData[] = [
-    {
-      key: "caderno",
-      label: "CADERNO TEMÁTICO",
-      title: conteudo.caderno.title,
-      description: conteudo.caderno.description,
-      // Falls back to the publication's cover art if the photograph is ever removed.
-      cover: FOTOS.caderno ?? conteudo.caderno.cover,
-      slug: conteudo.caderno.slug,
-    },
     ...(primeiraCartilha
       ? [
           {
@@ -72,6 +64,15 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
           },
         ]
       : []),
+    {
+      key: "caderno",
+      label: "CADERNO TEMÁTICO",
+      title: conteudo.caderno.title,
+      description: conteudo.caderno.description,
+      // Falls back to the publication's cover art if the photograph is ever removed.
+      cover: FOTOS.caderno ?? conteudo.caderno.cover,
+      slug: conteudo.caderno.slug,
+    },
   ];
 
   return (
@@ -119,10 +120,10 @@ function ComunicacaoCard({ card }: { card: CardData }) {
       <div className={styles.overlay} aria-hidden="true" />
       <div className={styles.overlayExpanded} aria-hidden="true" />
       <div className={styles.text}>
-        <p className={`${styles.label} text-subtle-semibold`} aria-hidden="true">
+        <p className={styles.label} aria-hidden="true">
           {card.label}
         </p>
-        <h3 id={titleId} className={`${styles.title} text-lead`}>
+        <h3 id={titleId} className={styles.title}>
           {card.title}
         </h3>
         {/* Collapsed rather than unmounted while not hovered, so the
@@ -138,7 +139,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
                 assistive tech (the link's name already says where it goes).
                 The card without a page is not a control, so it gets none. */}
             {linked && (
-              <span className={`${styles.cta} text-body`} aria-hidden="true">
+              <span className={`${styles.cta} text-ui-medium`} aria-hidden="true">
                 Ver material
               </span>
             )}

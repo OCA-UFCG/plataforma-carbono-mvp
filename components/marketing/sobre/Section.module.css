@@ -29,8 +29,9 @@
 
 /* 24px between blocks: the design separates paragraphs with one blank 24px
  * line (18988:8646) and sets the indicator cards 24px from the text around
- * them (18988:8712). One exception is not reproduced: in 18988:8700 the Quote
- * sits 8px under the paragraph above it. */
+ * them (18988:8712). A closing Quote is not one of these blocks: Section.tsx
+ * renders it after .body, where the section's 8px gap places it (18988:8700,
+ * 18988:8799). */
 .body {
   display: flex;
   flex-direction: column;

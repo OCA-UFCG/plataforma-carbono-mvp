@@ -23,12 +23,12 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
         <img src={cover} alt="" className={styles.coverImage} loading="lazy" decoding="async" />
         {/* The badge promises a file to open, so only a card with a PDF has it. */}
         {pdf && (
-          <span id={pdfId} className={styles.pdfBadge}>
+          <span id={pdfId} className={`${styles.pdfBadge} text-ui-badge`}>
             PDF
           </span>
         )}
       </div>
-      <span id={tipoId} className={styles.tipo}>
+      <span id={tipoId} className={`${styles.tipo} text-ui-badge`}>
         {tipo}
       </span>
       <h3 id={titleId} className={styles.title}>

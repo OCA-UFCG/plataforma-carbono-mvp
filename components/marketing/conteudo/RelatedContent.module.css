@@ -11,15 +11,17 @@
   gap: 24px;
 }
 
-/* Rubik SemiBold 24/32, -0.6px (the design's h3), which no .text-* utility
- * has. The design colours it --foreground (#292829), which has no token;
+/* Rubik SemiBold 24/32 tracked -0.6% (-0.144px, the design's h3), which no
+ * .text-* utility has. Its frame is 34px tall (19015:13093), 2px under the
+ * line. The design colours it --foreground (#292829), which has no token;
  * --bg-texto-primario is the nearest. */
 .heading {
   font-family: var(--font-sans, var(--font-fallback));
   font-size: 24px;
   font-weight: 600;
   line-height: 32px;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.144px;
+  padding-bottom: 2px;
   color: var(--bg-texto-primario);
   margin: 0;
 }

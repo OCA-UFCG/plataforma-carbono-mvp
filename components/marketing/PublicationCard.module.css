@@ -1,8 +1,7 @@
 /* PublicationCard, Figma 18978:2075–2079: the cover frame 236x318 (kept as a
  * ratio, so it scales with its column), then the type chip and the title,
  * 8px apart. Hover, 18988:10598: the frame's border darkens and it lifts on a
- * shadow. The two chips set 12/16 semibold, which no .text-* utility covers,
- * so their metrics are set here. */
+ * shadow. The two chips take their Inter metrics from .text-ui-badge. */
 .card {
   min-width: 0;
 }
@@ -33,7 +32,10 @@
 
 /* The covers are 0.707 wide for 1, the frame 0.742: `cover` trims about 2.5%
  * off the top and the bottom, which keeps the partner logos along the foot of
- * the cartilha covers in frame, as the design shows them. */
+ * the cartilha covers in frame, as the design shows them. The design's caderno
+ * placeholder is instead stretched to 133.82% of the frame's height and
+ * pinned to the top (18978:2076), which distorts the art and cuts its logo
+ * strip; a real cover is never distorted here. */
 .coverImage {
   position: absolute;
   inset: 0;
@@ -42,12 +44,10 @@
   object-fit: cover;
 }
 
+/* Inter Semi Bold 12/16 comes from .text-ui-badge (PublicationCard.tsx);
+ * declaring any font property here would override it. */
 .pdfBadge,
 .tipo {
-  font-family: var(--font-sans, var(--font-fallback));
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
   padding: 2px 10px;
   border-radius: 9999px;
   white-space: nowrap;
@@ -57,6 +57,10 @@
 .pdfBadge {
   position: relative;
   display: inline-block;
+  /* Top of the cover's line box, not its baseline: that line box is Rubik
+   * 14/24 and the badge is Inter, so baseline alignment drops it 2px below
+   * the design's 21/21 (I18988:10626;18953:6464). */
+  vertical-align: top;
   background: var(--role-categorica2-padrao);
   color: var(--role-categorica2-texto-sobre);
 }

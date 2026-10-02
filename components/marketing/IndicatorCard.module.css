@@ -14,8 +14,10 @@
   overflow: clip;
 }
 
+/* White, not the cream page background: Figma fills the landing card with
+ * ROLE-Primario-TextoSobre (#ffffff, 18862:8542..8545). */
 .raised {
-  background: var(--bg-fundo);
+  background: var(--role-primario-texto-sobre);
   box-shadow: var(--shadow);
 }
 
@@ -37,31 +39,21 @@
 
 .icon {
   flex: none;
-  width: 18px;
-  height: 18px;
-}
-
-.outlined .icon {
   width: 24px;
   height: 24px;
 }
 
 /* The Sobre instances are 166px tall whatever their text (18988:8714,
- * 18988:8731), with the figure in a 34px box and the 1px stroke drawn inside
- * the card, as Figma draws strokes. A CSS border adds to the box instead, so
- * the bottom padding gives up those 2px. min-height rather than height, so a
- * description that wraps further at narrow widths grows the card instead of
- * being clipped. */
+ * 18988:8731), with the 1px stroke drawn inside the card, as Figma draws
+ * strokes. A CSS border adds to the box instead, so the bottom padding gives
+ * up those 2px. min-height rather than height, so a description that wraps
+ * further at narrow widths grows the card instead of being clipped. */
 .outlined {
   min-height: 166px;
 }
 
 .outlined .body {
   padding-bottom: 22px;
-}
-
-.outlined .value {
-  line-height: 34px;
 }
 
 .label {
@@ -83,7 +75,10 @@
   margin: 0;
 }
 
+/* Both variants set the figure in a 34px box with its 36px line centred in it
+ * (I18862:8542;18808:5950); a 34px line height reproduces that. */
 .value {
+  line-height: 34px;
   color: var(--bg-texto-secundario);
 }
 

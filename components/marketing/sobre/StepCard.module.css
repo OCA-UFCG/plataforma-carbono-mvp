@@ -73,15 +73,12 @@
   padding: 0;
 }
 
-/* 12/16 semibold, which no .text-* utility covers, like the Comunicação
- * page's chips (PublicationCard.module.css). The design's badge is 2px/10px of
- * padding with its 1px stroke drawn INSIDE it, as Figma draws strokes: 20px
- * tall in all. A CSS border adds to the box instead, so the padding gives up
- * the border's 1px; `2px 10px` made each label 22px and step 2 8px too tall. */
+/* The type is .text-ui-badge, Inter SemiBold 12/16 as the design's badge
+ * (18985:7168). The badge is 2px/10px of padding with its 1px stroke drawn
+ * INSIDE it, as Figma draws strokes: 20px tall in all. A CSS border adds to
+ * the box instead, so the padding gives up the border's 1px; `2px 10px` made
+ * each label 22px and step 2 8px too tall. */
 .etiqueta {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
   padding: 1px 9px;
   border: 1px solid;
   border-radius: 9999px;

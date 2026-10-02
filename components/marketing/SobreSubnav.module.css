@@ -1,7 +1,8 @@
 /* SobreSubnav, Figma node 18988:8635: entries 12px apart horizontally inside
  * 16px/12px padding, 34px between them, over a 1px rule in the disabled-text
  * grey (#94a6ac, --role-neutro-texto-desabilitado: the same value as the
- * design's BG-TextoDesabilitado). */
+ * design's BG-TextoDesabilitado). Labels are Inter 500 14/20, the global
+ * .text-ui-tab applied in SobreSubnav.tsx. */
 .subnav {
   background: var(--bg-fundo);
   border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
@@ -16,12 +17,18 @@
   overflow-x: auto;
 }
 
+/* 52px tall, like the design's "tab item" (18988:8636). Figma draws the
+ * current entry's 2px underline inside that box, so the border reserved for
+ * it here (and kept transparent at rest, so the row never shifts) comes out
+ * of the bottom padding: 16px above the label, 14px + 2px below it.
+ * At rest the label is #001d27, --ctx-positivo-texto-sobre-container, the
+ * variable three of the four frames use (18988:8692, 18988:8794,
+ * 18988:8968); the first frame's #002b39 (18988:8637) is the odd one out. */
 .item {
   flex: none;
-  padding: 16px 12px;
-  /* Reserved so the current entry's 2px underline does not shift the row. */
+  padding: 16px 12px 14px;
   border-bottom: 2px solid transparent;
-  color: var(--bg-texto-secundario);
+  color: var(--ctx-positivo-texto-sobre-container);
   white-space: nowrap;
 }
 
@@ -31,11 +38,16 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Hover, Figma frame 18988:10642: an --am-050 fill over a 1px underline in
- * the text colour, drawn as a background under the reserved 2px border so
- * nothing moves. */
+/* Hover, Figma frame 18988:10642: an --am-050 fill, the label in
+ * --bg-texto-secundario over a 1px underline of the same colour, drawn as a
+ * background under the reserved 2px border so nothing moves. The frame draws
+ * these states on the button row the design keeps hidden (18988:8617:
+ * Archivo SemiBold 16, side padding 2px that widens to 8px on hover); only
+ * the fill, the colour and the line carry over to these Inter tabs, whose
+ * 12px side padding already frames the fill. */
 .item:not(.itemCurrent):hover,
 .item:not(.itemCurrent):focus-visible {
+  color: var(--bg-texto-secundario);
   background:
     linear-gradient(var(--bg-texto-secundario), var(--bg-texto-secundario)) bottom / 100% 1px
       no-repeat border-box,

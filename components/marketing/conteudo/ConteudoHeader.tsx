@@ -27,7 +27,7 @@ export default function ConteudoHeader({ publicacao }: { publicacao: Publicacao 
       <p className={`${styles.description} text-body`}>{publicacao.description}</p>
 
       {publicacao.pdf && (
-        <a href={publicacao.pdf} target="_blank" rel="noreferrer" className={`${styles.downloadMobile} text-body`}>
+        <a href={publicacao.pdf} target="_blank" rel="noreferrer" className={`${styles.downloadMobile} text-ui-medium`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
           <img src="/icons/conteudo/download.svg" alt="" width={16} height={16} />
           Baixar PDF

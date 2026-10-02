@@ -15,17 +15,19 @@
 
 /* "Voltar" (19015:13061): 96x40, a 1px --role-categorica1-padrao outline with
  * the label and the arrow in the same colour (5.70:1 on --bg-fundo), 6px
- * corners. Its hover fills --am-100, like the header's session button. */
+ * corners, Inter Medium 14/24 from .text-ui-medium. The design draws the
+ * outline inside its 8px/16px padding (the arrow sits 16px from the edge); a
+ * CSS border adds to the box, so the padding gives up the border's 1px. Its
+ * hover fills --am-100, like the header's session button. */
 .back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   height: 40px;
-  padding: 8px 16px;
+  padding: 7px 15px;
   border: 1px solid var(--role-categorica1-padrao);
   border-radius: var(--radius-interno);
   color: var(--role-categorica1-padrao);
-  font-weight: 500;
   white-space: nowrap;
   transition: background-color 0.2s ease;
 }
@@ -61,6 +63,7 @@
 }
 
 @media (max-width: 767px) {
+  /* Inter Medium 14/24 from .text-ui-medium, as the toolbar's own button. */
   .downloadMobile {
     display: flex;
     align-items: center;
@@ -71,7 +74,6 @@
     border-radius: var(--radius-interno);
     background: var(--role-marca-ancora-padrao);
     color: var(--role-marca-ancora-texto-sobre);
-    font-weight: 500;
   }
 
   .downloadMobile:hover,

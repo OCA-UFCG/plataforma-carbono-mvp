@@ -88,6 +88,26 @@ const PAIRS: [string, string][] = [
   ['--role-categorica1-padrao', '--bg-fundo'],
   ['--bg-texto-primario', '--am-050'],
   ['--bg-texto-primario', '--am-200'],
+  // Figma parity (home): the Mapas button's label is bound to
+  // --primary-foreground (#f8f7f8, I18862:8515;16825:136055), at rest on
+  // -marca-ancora-hover and on the pressed fill it takes on hover. (An
+  // inactive nav link keeps its --bg-texto-primario label on the --am-100
+  // hover fill; that pair is already listed above.)
+  ['--primary-foreground', '--role-marca-ancora-hover'],
+  ['--primary-foreground', '--role-marca-ancora-pressionado'],
+  // The landing's indicator cards are white (ROLE-Primario-TextoSobre as a
+  // fill, Figma 18862:8542..8545): their value, unit and description.
+  ['--bg-texto-secundario', '--role-primario-texto-sobre'],
+  ['--am-400', '--role-primario-texto-sobre'],
+  ['--bg-texto-primario', '--role-primario-texto-sobre'],
+  // Ferramenta's band (Figma 18862:8547) is -categorica2-hover: its eyebrow
+  // (--am-200), title (-ctx-positivo-texto-sobre), body and list; its button
+  // label is --primary-foreground at rest and on the hover fill (18916:9764).
+  ['--am-200', '--role-categorica2-hover'],
+  ['--ctx-positivo-texto-sobre', '--role-categorica2-hover'],
+  ['--bg-texto-sobre-inverso', '--role-categorica2-hover'],
+  ['--primary-foreground', '--role-categorica1-padrao'],
+  ['--primary-foreground', '--role-categorica1-hover'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

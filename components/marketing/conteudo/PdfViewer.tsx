@@ -269,8 +269,8 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               disabled={!ready}
             />
             <span className={styles.total}>
-              <span aria-hidden="true">/</span>
-              <span className="sr-only">de</span> {ready ? pageCount : "--"}
+              <span className={styles.slash} aria-hidden="true">/</span>
+              <span className="sr-only">de</span> <span>{ready ? pageCount : "--"}</span>
             </span>
           </form>
 
@@ -314,7 +314,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
               <img src="/icons/conteudo/fullscreen.svg" alt="" width={24} height={24} />
             </button>
           )}
-          <a href={url} target="_blank" rel="noreferrer" className={`${styles.download} text-body`} onClick={download}>
+          <a href={url} target="_blank" rel="noreferrer" className={`${styles.download} text-ui-medium`} onClick={download}>
             {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
             <img src="/icons/conteudo/download.svg" alt="" width={16} height={16} />
             Baixar PDF

@@ -36,7 +36,7 @@ export default function SiteFooter() {
   return (
     <footer className={styles.siteFooter} aria-label="Rodapé">
       <div className={`container ${styles.inner}`}>
-        <div className={styles.column}>
+        <div className={`${styles.column} ${styles.columnBrand}`}>
           <div className={styles.brand}>
             {/* The design's footer still holds the empty "logo" placeholder
                 (the Caativar lockup reached only the header), so this keeps
@@ -46,11 +46,11 @@ export default function SiteFooter() {
             <Image
               src="/logos/logo_oca.png"
               alt=""
-              width={32}
-              height={32}
+              width={36}
+              height={36}
               className={styles.brandMark}
             />
-            <span className={`${styles.brandName} text-p-ui`}>Caativar</span>
+            <span className={styles.brandName}>Caativar</span>
           </div>
 
           {/* A second nav landmark exists on the page (SiteHeader's
@@ -65,13 +65,13 @@ export default function SiteFooter() {
                 link.external ? (
                   // MAPA_LINK crosses a route group: a full page load, not next/link.
                   <li key={link.href} role="listitem">
-                    <a href={link.href} className={`${styles.navLink} text-body`}>
+                    <a href={link.href} className={styles.navLink}>
                       {link.label}
                     </a>
                   </li>
                 ) : (
                   <li key={link.href} role="listitem">
-                    <Link href={link.href} className={`${styles.navLink} text-body`}>
+                    <Link href={link.href} className={styles.navLink}>
                       {link.label}
                     </Link>
                   </li>
@@ -81,8 +81,8 @@ export default function SiteFooter() {
           </nav>
         </div>
 
-        <div className={styles.column}>
-          <h2 className={`${styles.heading} text-subtle-semibold`}>Parceiros e apoio</h2>
+        <div className={`${styles.column} ${styles.columnPartners}`}>
+          <h2 className={`${styles.heading} text-p-ui`}>Parceiros e apoio</h2>
           <div className={styles.logos}>
             {/* External partner marks, not part of the app's own optimized asset
                 pipeline; explicit width/height avoids the intrinsic-size blowup
@@ -104,8 +104,8 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className={styles.column}>
-          <h2 className={`${styles.heading} text-subtle-semibold`}>CONTATO</h2>
+        <div className={`${styles.column} ${styles.columnContact}`}>
+          <h2 className={`${styles.heading} text-p-ui`}>CONTATO</h2>
           {/* The Figma copy ("E-mail (ex.: contato@Caativar.gov.br)") is
               placeholder text on a domain this project does not own, and no
               real contact address turned up in README.md, DOCUMENTACAO.md or

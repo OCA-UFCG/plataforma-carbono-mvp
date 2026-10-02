@@ -49,7 +49,7 @@ export default function Ferramenta() {
       </div>
 
       <div className={styles.panel}>
-        <p className={`${styles.eyebrow} text-subtle-semibold`}>
+        <p className={`${styles.eyebrow} text-subtle-medium`}>
           A ferramenta central da plataforma
         </p>
         <h2 className={`${styles.title} text-h2`}>
@@ -72,7 +72,7 @@ export default function Ferramenta() {
           ))}
         </ul>
         {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
-        <a href={MAPA_LINK.href} className={`${styles.button} text-body`}>
+        <a href={MAPA_LINK.href} className={`${styles.button} text-ui-medium`}>
           Explore os dados
         </a>
       </div>

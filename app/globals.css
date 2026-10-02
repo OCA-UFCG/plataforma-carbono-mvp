@@ -43,6 +43,10 @@
   --ctx-negativo-container: #efd7d2;
   --ctx-informativo-texto-sobre: #ffffff;
   --ctx-positivo-texto-sobre-container: #001d27;
+  /* The label colour of the filled green buttons ("Mapas",
+   * I18862:8515;16825:136055; "Explore os dados", I18862:8574;13:904), a
+   * variable of the design's base collection rather than the ROLE set. */
+  --primary-foreground: #f8f7f8;
 
   --bg-fundo: #fefefb;
   --bg-fundo-inverso: #000f15;
@@ -133,7 +137,8 @@ section {
   scroll-margin-top: var(--header-height);
 }
 
-/* Type scale (Figma design system, all Rubik). Section CSS Modules apply these
+/* Type scale (Figma design system): Rubik for text, Inter (--font-ui) for the
+ * UI labels the design sets in Inter, below. Section CSS Modules apply these
  * as utility classes instead of hard-coding font metrics, e.g.
  * `<h2 className={`${styles.title} text-h2`}>`; a class composes freely with a
  * module's own selector for color, margin and layout. The h1 is deliberately
@@ -144,7 +149,8 @@ section {
   font-weight: 600;
   font-size: 30px;
   line-height: 36px;
-  letter-spacing: -0.75px;
+  /* The Figma style tracks at -0.75%, which is -0.225px at 30px. */
+  letter-spacing: -0.225px;
 }
 
 .text-lead {
@@ -186,9 +192,8 @@ section {
  * one: "Conheça a plataforma" is 500/14 (Figma node 18862:8546) while
  * "Destaques" is 700/16 (node 18862:8538). This step exists for the former;
  * there is no bound token for either, so both were measured off their nodes.
- * Destaques does not actually use 700/16: it deliberately renders its label
- * with `.text-p-ui-semibold` (600/16) instead — a documented substitution,
- * see the comment in Destaques.module.css. */
+ * Destaques sets its 700/16 in Destaques.module.css, with the 1.5px tracking
+ * no utility carries. */
 .text-subtle-medium {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 500;
@@ -201,6 +206,39 @@ section {
   font-weight: 600;
   font-size: 14px;
   line-height: 20px;
+}
+
+/* UI labels in Inter, measured off the Figma nodes (no bound text style):
+ * button and nav labels (the nav items of 18862:8515, the hero buttons
+ * 18862:8529/8530), the active nav item, which the design sets Bold, the Sobre
+ * tab items (I18988:8636;6:198), and badges, chips and step tags
+ * (I18985:7168;135:1174). */
+.text-ui-medium {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.text-ui-bold {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.text-ui-tab {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.text-ui-badge {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 /* Shared container primitive. Invariant: the content column is exactly

@@ -7,9 +7,8 @@
   height: 100%;
 }
 
-/* The design sets the number in Rubik ExtraBold (800), 48/48. The marketing
- * layout loads Rubik up to 700 only, and font loading is being reworked in
- * PR #57, so this is 700 until that lands. White on the fill is 5.76:1. */
+/* The number is Rubik ExtraBold (800), 48/48, as the design sets it
+ * (18988:8889). White on the fill is 5.76:1. */
 .numero {
   flex: none;
   display: flex;
@@ -20,7 +19,7 @@
   border-radius: 8px 0 0 8px;
   background: var(--role-categorica1-padrao);
   color: var(--ctx-informativo-texto-sobre);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 48px;
   line-height: 48px;
   letter-spacing: -0.576px;
