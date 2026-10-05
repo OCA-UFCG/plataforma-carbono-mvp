@@ -1,4 +1,7 @@
 import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
+import type { INICIO_FERRAMENTA } from "@/lib/content/inicio";
+import type { Copy } from "@/lib/content/site/model";
+import Linhas from "./Linhas";
 import styles from "./Ferramenta.module.css";
 
 // The map image is committed: exported from Figma node 18862:8548 through the
@@ -11,21 +14,14 @@ const MAPA_IMAGEM: { src: string; alt: string } | null = {
   alt: "Mapa do bioma Caatinga sobre o Nordeste do Brasil, com a cobertura vegetal em tons de verde e os estados identificados",
 };
 
-// The four-item list, Figma node 18862:8556.
-const ITENS = [
-  "Dados sobre carbono, vegetação, clima e uso da terra",
-  "Consulta por municípios e outros territórios da Caatinga",
-  "Comparação entre dados e períodos",
-  "Geração de relatório com os dados do território escolhido",
-];
-
 // Ferramenta, Figma node 18862:8547, a full-bleed 560px band split into a map
 // image (729/1436 of the frame) and a dark panel (707/1436) selling the map
 // module. Unlike the sections above it, this one does NOT use the shared
 // `container` utility: the design deliberately runs the image and the panel
 // edge-to-edge with the viewport, and the panel's own content is inset 40px
-// from the panel's left edge, not aligned to the page's content column.
-export default function Ferramenta() {
+// from the panel's left edge, not aligned to the page's content column. The
+// words come from Contentful (lib/content/inicio.ts).
+export default function Ferramenta({ copy }: { copy: Copy<typeof INICIO_FERRAMENTA> }) {
   return (
     <section id="ferramenta" className={styles.ferramenta} aria-label="Ferramenta">
       <div className={styles.media}>
@@ -49,24 +45,17 @@ export default function Ferramenta() {
       </div>
 
       <div className={styles.panel}>
-        <p className={`${styles.eyebrow} text-subtle-medium`}>
-          A ferramenta central da plataforma
-        </p>
-        <h2 className={`${styles.title} text-h2`}>
-          Explore os territórios da Caatinga em detalhes
-        </h2>
+        <p className={`${styles.eyebrow} text-subtle-medium`}>{copy.chamada}</p>
+        <h2 className={`${styles.title} text-h2`}>{copy.titulo}</h2>
         <p className={`${styles.body} text-body`}>
-          Consulte informações sobre diferentes áreas da Caatinga. Localize o
-          território de interesse, combine dados no mapa, acompanhe as
-          mudanças ao longo do tempo e gere um relatório com as informações
-          selecionadas.
+          <Linhas texto={copy.texto} />
         </p>
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
             that `list-style: none` strips from the accessibility tree in
             Safari/VoiceOver — the same defect already fixed in Destaques. */}
         <ul className={styles.list} role="list">
-          {ITENS.map((item) => (
-            <li key={item} className={`${styles.listItem} text-body`} role="listitem">
+          {copy.itens.map((item, i) => (
+            <li key={i} className={`${styles.listItem} text-body`} role="listitem">
               {item}
             </li>
           ))}
@@ -74,10 +63,10 @@ export default function Ferramenta() {
         {/* Both links cross a route group: a full page load, not next/link. */}
         <div className={styles.actions}>
           <a href={MAPA_LINK.href} className={`${styles.button} text-ui-medium`}>
-            Explore os dados
+            {copy.botaoMapa}
           </a>
           <a href={TERRITORIOS_LINK.href} className={`${styles.button} text-ui-medium`}>
-            Ver resumo territorial
+            {copy.botaoResumo}
           </a>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { PageIntroContent } from "@/lib/content/paginas";
+import Linhas from "./Linhas";
 import styles from "./PageIntro.module.css";
 
 // The grey band that opens every internal page, under the site header: Figma
@@ -12,7 +13,9 @@ export default function PageIntro({ eyebrow, title, intro }: PageIntroContent) {
           {eyebrow && <p className={`${styles.eyebrow} text-subtle-medium`}>{eyebrow}</p>}
           <h1 className={`${styles.title} text-h2`}>{title}</h1>
         </div>
-        <p className={`${styles.intro} text-body`}>{intro}</p>
+        <p className={`${styles.intro} text-body`}>
+          <Linhas texto={intro} />
+        </p>
       </div>
     </div>
   );

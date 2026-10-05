@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { ABAS_PLATAFORMA } from '@/lib/content/plataforma'
+import { INICIO_PLATAFORMA, abasPlataforma } from '@/lib/content/plataforma'
+import { copyDefaults } from '@/lib/content/site/model'
+
+const ABAS_PLATAFORMA = abasPlataforma(copyDefaults(INICIO_PLATAFORMA))
 
 describe('plataforma tabs', () => {
   it('declares the four tabs the design shows', () => {
@@ -16,6 +19,7 @@ describe('plataforma tabs', () => {
       expect(aba.conteudo, aba.id).not.toBeNull()
       expect(aba.conteudo?.titulo).toBe(aba.label)
       expect(aba.conteudo?.imagem).toMatch(/^\/images\/plataforma\/[a-z0-9-]+\.webp$/)
+      expect(aba.conteudo.paragrafos.length).toBeGreaterThan(0)
     }
   })
 
@@ -23,5 +27,6 @@ describe('plataforma tabs', () => {
     for (const aba of ABAS_PLATAFORMA) {
       expect(aba.id).toMatch(/^[a-z0-9-]+$/)
     }
+    expect(new Set(ABAS_PLATAFORMA.map((a) => a.id)).size).toBe(ABAS_PLATAFORMA.length)
   })
 })

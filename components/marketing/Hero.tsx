@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MAPA_LINK, TERRITORIOS_LINK, type NavLink } from "@/lib/marketing/nav";
+import type { INICIO_HERO } from "@/lib/content/inicio";
+import type { Copy } from "@/lib/content/site/model";
+import Linhas from "./Linhas";
 import styles from "./Hero.module.css";
 
 // What a photo shows over it: the text, set like Figma nodes 18862:8525 (h1)
@@ -14,67 +17,69 @@ type HeroCard = {
   actions: NavLink[];
 };
 
-const INICIATIVA_CARD: HeroCard = {
-  title: "Dados abertos e mapas para entender o carbono na Caatinga",
-  lead: "Informação aberta para que comunidades e gestores avaliem projetos de carbono e negociem em condições mais justas",
-  actions: [{ href: "/sobre", label: "Sobre a iniciativa", external: false }],
-};
-
-// Spells out the name.
-const VALORIZACAO_CARD: HeroCard = {
-  title: "Caativar: Caatinga, Valorização, Autonomia e Renda",
-  lead: "Informação que valoriza a Caatinga e fortalece autonomia e renda dos territórios",
-  actions: [{ href: "/comunicacao", label: "Acesse os materiais", external: false }],
-};
-
-const RESUMO_CARD: HeroCard = {
-  title: "Uma forma simplificada de conhecer mais sobre diferentes territórios",
-  lead: "Obtenha um panorama resumido com dados sobre carbono, pressões ambientais e clima para o território do seu interesse",
-  actions: [{ ...TERRITORIOS_LINK, label: "Acesse o resumo territorial" }],
-};
-
-const PLATAFORMA_CARD: HeroCard = {
-  title: "Em breve: Plataforma de dados ambientais",
-  lead: "Uma plataforma que reúne dados de carbono, vegetação, solo e clima para diferentes áreas da Caatinga",
-  actions: [{ ...MAPA_LINK, label: "Acesse a plataforma" }],
-};
-
-const CARDS = [INICIATIVA_CARD, VALORIZACAO_CARD, RESUMO_CARD, PLATAFORMA_CARD];
+// The words come from Contentful (lib/content/inicio.ts); where each button
+// leads stays here.
+function heroCards(copy: Copy<typeof INICIO_HERO>): HeroCard[] {
+  return [
+    {
+      title: copy.foto1Titulo,
+      lead: copy.foto1Texto,
+      actions: [{ href: "/sobre", label: copy.foto1Botao, external: false }],
+    },
+    // Spells out the name.
+    {
+      title: copy.foto2Titulo,
+      lead: copy.foto2Texto,
+      actions: [{ href: "/comunicacao", label: copy.foto2Botao, external: false }],
+    },
+    {
+      title: copy.foto3Titulo,
+      lead: copy.foto3Texto,
+      actions: [{ ...TERRITORIOS_LINK, label: copy.foto3Botao }],
+    },
+    {
+      title: copy.foto4Titulo,
+      lead: copy.foto4Texto,
+      actions: [{ ...MAPA_LINK, label: copy.foto4Botao }],
+    },
+  ];
+}
 
 // The four rotating background photos (Figma node 18862:8516, "Background";
 // the design's own image fill is a single placeholder frame, so the rotation
 // behaviour absorbed from the deleted components/HeroBackground.tsx drives
-// these committed assets instead). `credit` is deliberately optional: the
-// Figma overlay text "Foto: [nome da equipe]" is placeholder copy, not real
-// copy. The real, mandatory credit for these photos is documented in
-// IMAGENS.md ("Fotos de Artur Lourenço" — "Crédito na página: 'Fotos: Artur
-// Lourenço'"), the same wording the pre-redesign hero rendered; it is filled
-// in below so the overlay renders it — see the `activePhoto.credit` check.
+// these committed assets instead), each under the card of the same position.
+// `credit` is deliberately optional: the Figma overlay text "Foto: [nome da
+// equipe]" is placeholder copy, not real copy. The real, mandatory credit for
+// these photos is documented in IMAGENS.md ("Fotos de Artur Lourenço" —
+// "Crédito na página: 'Fotos: Artur Lourenço'"), the same wording the
+// pre-redesign hero rendered; it is filled in below so the overlay renders it
+// — see the `activePhoto.credit` check.
 type HeroPhoto = {
   src: string;
   alt: string;
   credit?: string;
-  card: HeroCard;
 };
 
 // `alt` numbers the photos in the order they show, which the dots announce;
 // the file names keep their original numbering.
 const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero2.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço", card: INICIATIVA_CARD },
-  { src: "/images/hero/hero3.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço", card: VALORIZACAO_CARD },
-  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço", card: RESUMO_CARD },
-  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço", card: PLATAFORMA_CARD },
+  { src: "/images/hero/hero2.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero3.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
 ];
 
-// Long enough to read the longest cards (INICIATIVA_CARD and RESUMO_CARD, 27
-// words each) after their 0.8s fade-in.
+// Long enough to read the longest cards (the first and the third, 27 words
+// each as shipped) after their 0.8s fade-in.
 const ROTATION_INTERVAL_MS = 10000;
 
 // Hero, Figma node 18862:8516 ("Background"), 495px tall under the 76px
 // header. Rotation logic absorbed from the deleted components/HeroBackground.tsx:
 // auto-advance every 10s unless the user prefers reduced motion, cross-fading
 // between photos rather than swapping them abruptly.
-export default function Hero() {
+export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
+  const cards = heroCards(copy);
   const [index, setIndex] = useState(0);
   // Bumped by every dot click, so a click restarts the wait in full even when
   // it picks the photo already showing.
@@ -130,11 +135,11 @@ export default function Hero() {
             shifts the page below it. Only the active one is visible; the rest
             are inert, out of the accessibility tree and the tab order. */}
         <div className={styles.content}>
-          {CARDS.map((card) => {
-            const active = card === activePhoto.card;
+          {cards.map((card, position) => {
+            const active = position === index;
             return (
               <div
-                key={card.title}
+                key={position}
                 className={`${styles.card}${active ? ` ${styles.cardActive}` : ""}`}
                 inert={!active}
               >
@@ -142,7 +147,9 @@ export default function Hero() {
                     (18862:8524) with a 16px gap, tighter than the card's 21. */}
                 <div className={styles.copy}>
                   <h1 className={styles.title}>{card.title}</h1>
-                  <p className={`${styles.lead} text-lead`}>{card.lead}</p>
+                  <p className={`${styles.lead} text-lead`}>
+                    <Linhas texto={card.lead} />
+                  </p>
                 </div>
                 <div className={styles.actions}>
                   {card.actions.map((action, i) => {

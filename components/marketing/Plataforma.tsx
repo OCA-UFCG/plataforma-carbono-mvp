@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { ABAS_PLATAFORMA } from "@/lib/content/plataforma";
-import type { ConteudoAba } from "@/lib/content/plataforma";
+import type { AbaPlataforma, ConteudoAba } from "@/lib/content/plataforma";
+import Linhas from "./Linhas";
 import MoreLink from "./MoreLink";
 import Quote from "./sobre/Quote";
 import styles from "./Plataforma.module.css";
@@ -23,15 +23,16 @@ function panelId(id: string) {
 // Figma file does not specify keyboard behaviour, so it follows the WAI-ARIA
 // tabs pattern (automatic activation: moving focus with the arrow keys also
 // selects the tab and swaps the panel). "Ver mais" opens the longer
-// version of this section, the /sobre pages.
-export default function Plataforma() {
-  const [activeId, setActiveId] = useState(ABAS_PLATAFORMA[0].id);
+// version of this section, the /sobre pages. The words come from Contentful
+// through the landing page (lib/content/plataforma.ts).
+export default function Plataforma({ titulo, abas }: { titulo: string; abas: AbaPlataforma[] }) {
+  const [activeId, setActiveId] = useState(abas[0].id);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const activeIndex = ABAS_PLATAFORMA.findIndex((aba) => aba.id === activeId);
+  const activeIndex = abas.findIndex((aba) => aba.id === activeId);
 
   function selectAndFocus(index: number) {
-    const aba = ABAS_PLATAFORMA[index];
+    const aba = abas[index];
     setActiveId(aba.id);
     tabRefs.current[aba.id]?.focus();
   }
@@ -44,11 +45,11 @@ export default function Plataforma() {
     switch (event.key) {
       case "ArrowRight":
         event.preventDefault();
-        selectAndFocus((activeIndex + 1) % ABAS_PLATAFORMA.length);
+        selectAndFocus((activeIndex + 1) % abas.length);
         break;
       case "ArrowLeft":
         event.preventDefault();
-        selectAndFocus((activeIndex - 1 + ABAS_PLATAFORMA.length) % ABAS_PLATAFORMA.length);
+        selectAndFocus((activeIndex - 1 + abas.length) % abas.length);
         break;
       case "Home":
         event.preventDefault();
@@ -56,7 +57,7 @@ export default function Plataforma() {
         break;
       case "End":
         event.preventDefault();
-        selectAndFocus(ABAS_PLATAFORMA.length - 1);
+        selectAndFocus(abas.length - 1);
         break;
       default:
         break;
@@ -69,12 +70,12 @@ export default function Plataforma() {
         {/* Label left, "Ver mais" right — the 40px header row of Figma node
             18862:8546. */}
         <div className={styles.headerRow}>
-          <p className={`${styles.label} text-subtle-medium`}>Conheça a iniciativa</p>
+          <p className={`${styles.label} text-subtle-medium`}>{titulo}</p>
           <MoreLink href="/sobre" contexto="sobre a plataforma" />
         </div>
 
-        <div className={styles.tablist} role="tablist" aria-label="Conheça a iniciativa">
-          {ABAS_PLATAFORMA.map((aba) => {
+        <div className={styles.tablist} role="tablist" aria-label={titulo}>
+          {abas.map((aba) => {
             const selected = aba.id === activeId;
             return (
               <button
@@ -104,7 +105,7 @@ export default function Plataforma() {
             alike) always mount every panel this way; a single dynamic panel
             leaves the three inactive tabs' `aria-controls` pointing at an id
             absent from the DOM, which axe-core/Lighthouse/WAVE all flag. */}
-        {ABAS_PLATAFORMA.map((aba) => (
+        {abas.map((aba) => (
           <div
             key={aba.id}
             role="tabpanel"
@@ -141,9 +142,9 @@ function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
       <div className={styles.texto}>
         <h2 className={`${styles.titulo} text-h2`}>{conteudo.titulo}</h2>
         <div className={styles.corpo}>
-          {conteudo.paragrafos.map((paragrafo) => (
-            <p key={paragrafo} className={`${styles.paragrafo} text-body`}>
-              {paragrafo}
+          {conteudo.paragrafos.map((paragrafo, i) => (
+            <p key={i} className={`${styles.paragrafo} text-body`}>
+              <Linhas texto={paragrafo} />
             </p>
           ))}
           <Quote>{conteudo.destaque}</Quote>

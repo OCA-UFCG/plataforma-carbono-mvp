@@ -1,4 +1,5 @@
 import { useId } from "react";
+import Paragrafos from "../Paragrafos";
 import styles from "./IconCard.module.css";
 
 type IconCardProps = {
@@ -24,9 +25,7 @@ export default function IconCard({ titulo, icone, paragrafos }: IconCardProps) {
         {/* The design sets a card's paragraphs on consecutive lines, with no
             gap between them. */}
         <div>
-          {paragrafos.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
+          <Paragrafos textos={paragrafos} />
         </div>
       </div>
     </section>
