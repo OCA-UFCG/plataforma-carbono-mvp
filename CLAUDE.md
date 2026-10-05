@@ -59,6 +59,12 @@ Sensitive configuration never travels from the client: the server resolves `clip
 
 `app/(mapa)/mapa/page.tsx` does `dynamic(..., { ssr: false })` on `components/mapa/Mapa.tsx` — MapLibre needs WebGL/`window`. Global state is Zustand (`lib/mapa/store.ts`); `MapView.tsx` owns the map, drawing (mapbox-gl-draw) and click-to-stats; results are cached under `layer:static:geometryHash`.
 
+### Institutional copy in Contentful
+
+The words of the marketing pages (`/`, `/sobre/*`, `/comunicacao`) come from Contentful, one content type per section or page, each holding a single entry. The types are declared in `lib/content/` with `defineCopy` (`lib/content/site/model.ts`): each field is a `line`, `paragraph`, `text` (paragraphs split on a blank line) or `list` (one item per line), and its value in the code is both the fallback and what seeds a new space. Pages read them with `loadSiteCopy` (`lib/content/site/fetch.ts`); a failed request, a missing entry or an empty required field falls back to the code, field by field. Images, their alt text, icons, links and interface labels (`"Ver mais"`, `"Sair"`) stay in the code, and so does the number of cards in each section.
+
+Changing a field means changing three things together: the definition in `lib/content/`, the content type in the space (`npm run contentful:provision -- --apply` with `CONTENTFUL_MANAGEMENT_TOKEN`; it never overwrites an existing entry) and, when the copy itself changes, the entry. The entry wins over the code, so new copy committed to `lib/content/` does not reach the page until the entry is updated too. `tests/lib/contentfulSpace.test.ts` runs every copy query against the configured space and fails on a missing type or field. Published edits reach the pages within the hour (`REVALIDATE_SECONDS` in `lib/contentful.ts`).
+
 ### Monthly theme
 
 The UI accent is the current month's color, derived from a 40-year NDFI series (`lib/phenology.ts`, `lib/ndfi-series.json`, shared by the landing page and the map module — hence `lib/` rather than `lib/mapa/`). `config/mapa/platforms.ts::buildAccent` derives the tones; the module writes the `--acc*` CSS vars inline on its root along with `data-month`. **Do not write `[data-month]` blocks in CSS** — there would be 24 of them and they would drift out of sync with the JS theme. `npm run contrast` runs `buildAccent` across 12 months × 2 modes and fails below 4.5:1.
