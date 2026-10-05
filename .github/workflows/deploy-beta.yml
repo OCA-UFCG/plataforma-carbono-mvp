@@ -12,6 +12,16 @@ on:
 permissions:
   contents: read
 
+# One deploy at a time. Each run builds its commit, pushes it as :latest and
+# has the runner pull :latest, so parallel runs (one per merge, when merges
+# land close together) race: beta ends on whichever image was pushed last,
+# not necessarily the newest commit. Queued runs give way to the newest one;
+# the running one is never cancelled, as push-beta removes the container
+# before starting its replacement.
+concurrency:
+  group: deploy-beta
+  cancel-in-progress: false
+
 jobs:
   build-image:
     if: github.event.workflow_run.conclusion == 'success'
