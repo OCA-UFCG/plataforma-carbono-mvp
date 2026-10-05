@@ -48,7 +48,7 @@ export default function TypeCards({ onSelect }: TypeCardsProps) {
             <PanelArt src={type.image} />
             {open ? (
               <div className="territorios-painel-conteudo">
-                <h2 ref={titleRef} tabIndex={-1} className="territorios-painel-titulo">{type.unitLabel}</h2>
+                <h3 ref={titleRef} tabIndex={-1} className="territorios-painel-titulo">{type.unitLabel}</h3>
                 <p className="territorios-painel-texto">{INTRO.descriptions[type.id]}</p>
                 {type.enabled ? (
                   <button type="button" className="territorios-painel-botao" onClick={() => onSelect(type)}>

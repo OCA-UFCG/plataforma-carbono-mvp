@@ -1,13 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import SiteHeader from '@/components/marketing/SiteHeader'
-import IntroScreen from './IntroScreen'
 import StepRail from './StepRail'
 import StorySummary from './StorySummary'
 import type { LandUseYear } from './StoryMap'
 import ThemeStep, { type ThemeLoad } from './ThemeStep'
+import TypeCards from './TypeCards'
+import TypeStrip from './TypeStrip'
 import { useActiveSection } from './useActiveSection'
 import {
   BIOMA_FEATURE_ID,
@@ -19,7 +20,7 @@ import {
   territoryTypeByRecorte,
   type TerritoryType,
 } from '@/config/territorios/story'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { CHOOSER, INTRO } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { wantedThemes } from '@/lib/territorios/activeSection'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
@@ -101,13 +102,12 @@ function initialStep(etapa: string): StepId {
   return isStep(etapa) ? etapa : 'territorio'
 }
 
-/** A new screen starts at its top, not at the offset the previous, longer one left. */
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'instant' })
-}
-
-/** Path and query of a story screen, for the address bar and the login link. */
-function storyPath(type: TerritoryType | null, featureId: string, step: StepId): string {
+/**
+ * Address of a screen of the section. The query, not the path, holds the state,
+ * so the same links work wherever the section is placed: /territorios today, a
+ * section of the home later.
+ */
+function storyPath(pathname: string, type: TerritoryType | null, featureId: string, step: StepId): string {
   const params = new URLSearchParams()
   if (type?.recorteId) params.set('recorte', type.recorteId)
   if (type?.recorteId && featureId) {
@@ -115,10 +115,23 @@ function storyPath(type: TerritoryType | null, featureId: string, step: StepId):
     params.set('etapa', step)
   }
   const query = params.toString()
-  return query ? `/territorios?${query}` : '/territorios'
+  return query ? `${pathname}?${query}` : pathname
 }
 
+/** Type and territory an address names; the bioma has a single feature. */
+function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; featureId: string } {
+  const type = enabledType(params.get('recorte') ?? '')
+  if (type?.recorteId === BIOMA_RECORTE_ID) return { type, featureId: BIOMA_FEATURE_ID }
+  return { type, featureId: type ? params.get('feicao') ?? '' : '' }
+}
+
+/**
+ * The whole Territórios tool as one section of a page: its title band stays, and
+ * only the body below it changes, from the gallery of types to the chooser and
+ * the story. Each change of screen is an entry in the browser's history.
+ */
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
+  const pathname = usePathname()
   const [type, setType] = useState<TerritoryType | null>(() => enabledType(initialRecorte))
   const [featureId, setFeatureId] = useState(() => {
     const restored = enabledType(initialRecorte)
@@ -133,6 +146,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   /** The territory printed from a section other than the summary, which then wants every theme. */
   const [printedKey, setPrintedKey] = useState<string | null>(null)
 
+  const sectionRef = useRef<HTMLElement | null>(null)
   const introHeadingRef = useRef<HTMLHeadingElement | null>(null)
   const storyHeadingRef = useRef<HTMLHeadingElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
@@ -226,9 +240,10 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     window.history.scrollRestoration = 'manual'
   }, [])
 
+  // Steps replace the entry; screens push one (see goTo).
   useEffect(() => {
-    window.history.replaceState(null, '', storyPath(type, featureId, settled))
-  }, [type, featureId, settled])
+    window.history.replaceState(null, '', storyPath(pathname, type, featureId, settled))
+  }, [pathname, type, featureId, settled])
 
   useEffect(() => {
     if (!moveFocusRef.current) return
@@ -245,7 +260,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     const step = restoreRef.current
     restoreRef.current = null
     if (step !== STEPS[0]) scrollToStep(step, 'instant')
-  }, [payload, scrollToStep])
+  }, [payload, screen, scrollToStep])
 
   useEffect(() => {
     if (!recorteId || !featureId) return
@@ -375,32 +390,53 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     })
   }, [expired])
 
+  /** A new screen starts at the top of the section, not where the previous, longer one left the page. */
+  const scrollToSection = useCallback(() => {
+    const section = sectionRef.current
+    if (section && section.getBoundingClientRect().top < 0) section.scrollIntoView({ block: 'start', behavior: 'instant' })
+  }, [])
+
+  /** Shows a screen of the section, without touching the history. */
+  const show = useCallback((nextType: TerritoryType | null, nextFeature: string, step: StepId) => {
+    setSheetStep(null)
+    moveFocusRef.current = true
+    setType(nextType)
+    setFeatureId(nextFeature)
+    resetTo(step)
+    scrollToSection()
+  }, [resetTo, scrollToSection])
+
+  function goTo(nextType: TerritoryType | null, nextFeature: string) {
+    restoreRef.current = null
+    window.history.pushState(null, '', storyPath(pathname, nextType, nextFeature, STEPS[0]))
+    show(nextType, nextFeature, STEPS[0])
+  }
+
+  // The browser's back and forward walk the same screens, and a story entry
+  // reopens on the step it was left at.
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search)
+      const next = stateFromQuery(params)
+      const step = initialStep(params.get('etapa') ?? '')
+      restoreRef.current = next.featureId ? step : null
+      show(next.type, next.featureId, step)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [show])
+
   function chooseType(next: TerritoryType) {
     if (!next.enabled || !next.recorteId) return
-    setType(next)
-    scrollToTop()
-    if (next.recorteId === BIOMA_RECORTE_ID) chooseTerritory(BIOMA_FEATURE_ID)
-    else setFeatureId('')
+    goTo(next, next.recorteId === BIOMA_RECORTE_ID ? BIOMA_FEATURE_ID : '')
   }
 
-  function chooseTerritory(id: string) {
-    setSheetStep(null)
-    restoreRef.current = null
-    moveFocusRef.current = true
-    setFeatureId(id)
-    resetTo(STEPS[0])
-    scrollToTop()
-  }
+  const chooseTerritory = (id: string) => goTo(type, id)
 
-  function changeTerritory() {
-    setSheetStep(null)
-    restoreRef.current = null
-    moveFocusRef.current = true
-    setType(null)
-    setFeatureId('')
-    resetTo(STEPS[0])
-    scrollToTop()
-  }
+  const changeType = () => goTo(null, '')
+
+  // The bioma has no chooser, so another one means another type.
+  const changeTerritory = () => (type?.recorteId === BIOMA_RECORTE_ID ? changeType() : goTo(type, ''))
 
   const loads = Object.fromEntries(
     THEME_IDS.map((theme) => [theme, entries[theme] ?? LOADING]),
@@ -423,28 +459,33 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   )
 
   return (
-    <>
-      {/* Outside <main>, where a <header> keeps its banner role. The home's
-          SiteHeader works here because the layout loads globals.css, which holds
-          the .container, .text-* and .sr-only classes it relies on; its links
-          cross into the (marketing) root layout as full page loads. */}
-      {screen === 'intro' && <SiteHeader />}
+    <section ref={sectionRef} className="territorios-secao" aria-labelledby="territorios-secao-titulo">
+      <div className="territorios-secao-faixa territorios-no-print">
+        <div className="container territorios-secao-faixa-conteudo">
+          <p className="territorios-secao-sobretitulo text-subtle-medium">{INTRO.eyebrow}</p>
+          <h2 id="territorios-secao-titulo" ref={introHeadingRef} tabIndex={-1} className="territorios-secao-titulo text-h2">
+            {INTRO.title}
+          </h2>
+        </div>
+      </div>
+
       {expired && (
         <p className="territorios-aviso territorios-no-print" role="alert">
           {UI.sessionExpired}{' '}
-          <a href={`/login?redirect=${encodeURIComponent(storyPath(type, featureId, settled))}`}>{UI.signIn}</a>
+          <a href={`/login?redirect=${encodeURIComponent(storyPath(pathname, type, featureId, settled))}`}>{UI.signIn}</a>
         </p>
       )}
 
-      <main className={screen === 'story' ? 'territorios territorios--historia' : 'territorios'}>
-        {screen === 'intro' && <IntroScreen onSelect={chooseType} headingRef={introHeadingRef} />}
+      <div className={screen === 'story' ? 'container territorios territorios--historia' : 'container territorios'}>
+        {screen === 'intro' && <TypeCards onSelect={chooseType} />}
+
+        {screen !== 'intro' && type && <TypeStrip type={type} onChange={changeType} />}
 
         {screen === 'search' && type && (
           <TerritoryChooser
             key={type.id}
             type={type}
             onChoose={chooseTerritory}
-            onBack={changeTerritory}
             onUnauthorized={onUnauthorized}
           />
         )}
@@ -455,10 +496,9 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
             <header className="territorios-cabecalho territorios-no-print" inert={sheetOpen}>
               <div>
-                <p className="territorios-rotulo">{type.unitLabel}</p>
-                <h1 ref={storyHeadingRef} tabIndex={-1} className="territorios-nome">
+                <h3 ref={storyHeadingRef} tabIndex={-1} className="territorios-nome">
                   {payload ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context) : UI.pageTitle}
-                </h1>
+                </h3>
               </div>
               <button type="button" className="territorios-btn territorios-btn--contorno" onClick={changeTerritory}>
                 {UI.changeTerritory}
@@ -546,7 +586,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
             )}
           </>
         )}
-      </main>
-    </>
+      </div>
+    </section>
   )
 }

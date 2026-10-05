@@ -6,12 +6,6 @@
  * read with the tokens and button classes of globals.css and territorios.css.
  */
 
-/* The map runs to the window's edges, so the page column steps aside. */
-.territorios:has(> .territorios-escolha) {
-  max-width: none;
-  padding: 0;
-}
-
 .territorios-escolha {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -31,7 +25,7 @@
   align-content: start;
   gap: 20px;
   min-width: 0;
-  padding: 8px 16px 20px;
+  padding: 0 0 20px;
 }
 
 .territorios-escolha-topo {
@@ -40,31 +34,8 @@
   gap: 4px;
 }
 
-.territorios-escolha-voltar {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 44px;
-  margin-left: -8px;
-  padding: 0 12px 0 8px;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  color: var(--bg-texto-primario);
-  background: none;
-  border: 0;
-  border-radius: var(--radius-interno);
-  cursor: pointer;
-}
 
-.territorios-escolha-voltar:hover {
-  background: var(--am-100);
-}
 
-.territorios-escolha-voltar svg {
-  width: 16px;
-  height: 16px;
-}
 
 .territorios-escolha-caminhos {
   display: grid;
@@ -220,8 +191,10 @@
   /* The floor gives way on a phone held sideways, so a strip of page stays
      outside the map, whose one-finger drag pans it instead of the page. */
   height: clamp(min(240px, 75svh), 45svh, 520px);
+  overflow: hidden;
   background: var(--am-050);
-  border-top: 1px solid var(--am-100);
+  border: 1px solid var(--am-100);
+  border-radius: var(--radius);
 }
 
 .territorios-escolha-mapa:focus-visible {
@@ -322,20 +295,22 @@
     grid-template-columns: 360px minmax(0, 1fr);
     grid-template-areas: 'painel mapa';
     align-items: start;
-    min-height: 100svh;
+    gap: 24px;
   }
 
   .territorios-escolha-painel {
     gap: 32px;
-    padding: 24px;
+    padding: 0;
   }
 
+  /* Inside the section, under the site header, at most one screen tall. */
   .territorios-escolha-mapa {
     position: sticky;
-    top: 0;
-    height: 100svh;
-    border-top: 0;
-    border-left: 1px solid var(--am-100);
+    top: calc(var(--topo-fixo) + 16px);
+    height: clamp(420px, calc(100svh - var(--topo-fixo) - 32px), 680px);
+    overflow: hidden;
+    border: 1px solid var(--am-100);
+    border-radius: var(--radius);
   }
 }
 

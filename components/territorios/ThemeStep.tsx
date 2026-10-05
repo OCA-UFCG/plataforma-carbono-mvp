@@ -90,10 +90,10 @@ export default function ThemeStep({
 
   return (
     <section ref={sectionRef} id={id} data-step={step} className="territorios-passo" aria-labelledby={`${id}-titulo`}>
-      <h2 id={`${id}-titulo`} className="territorios-faixa" style={{ background: color }} tabIndex={-1}>
+      <h4 id={`${id}-titulo`} className="territorios-faixa" style={{ background: color }} tabIndex={-1}>
         {STEP_LABELS[step]}
-      </h2>
-      <h3 className="territorios-pergunta">{answer.question}</h3>
+      </h4>
+      <h5 className="territorios-pergunta">{answer.question}</h5>
       <div className="territorios-passo-texto">{body}</div>
       {landUseYear && (
         <div className="territorios-passo-anos" role="group" aria-labelledby={`${id}-anos`}>

@@ -92,9 +92,9 @@ export default function StorySummary({
 
   return (
     <section id={id} data-step="resumo" className="territorios-resumo" aria-labelledby={`${id}-titulo`}>
-      <h2 id={`${id}-titulo`} className="territorios-faixa" style={{ background: STEP_COLORS.territorio }} tabIndex={-1}>
+      <h4 id={`${id}-titulo`} className="territorios-faixa" style={{ background: STEP_COLORS.territorio }} tabIndex={-1}>
         {UI.summaryTitle}
-      </h2>
+      </h4>
 
       <header className="territorios-ficha-cabecalho">
         <p className="territorios-ficha-nome">{title}</p>
@@ -114,7 +114,7 @@ export default function StorySummary({
               className={load.kind === 'loading' ? 'territorios-ficha-linha territorios-no-print' : 'territorios-ficha-linha'}
               style={{ '--tema-cor': STEP_COLORS[row.theme] } as React.CSSProperties}
             >
-              <h3 className="territorios-ficha-titulo">{row.title}</h3>
+              <h5 className="territorios-ficha-titulo">{row.title}</h5>
               {load.kind === 'loading' ? (
                 <p className="territorios-ficha-estado">{UI.loading}</p>
               ) : load.kind === 'failed' || load.response.status === 'unavailable' ? (

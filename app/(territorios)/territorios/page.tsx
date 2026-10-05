@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import SiteFooter from '@/components/marketing/SiteFooter'
+import SiteHeader from '@/components/marketing/SiteHeader'
 import TerritoriosApp from '@/components/territorios/TerritoriosApp'
 import { getAuthenticatedSession } from '@/lib/auth'
 
@@ -32,5 +34,16 @@ export default async function TerritoriosPage({
     redirect('/login?redirect=' + encodeURIComponent('/territorios' + (query ? '?' + query : '')))
   }
 
-  return <TerritoriosApp initialRecorte={recorte} initialFeicao={feicao} initialEtapa={etapa} />
+  // Stands in for the home, where the section will live: the site's header and
+  // footer around it, and nothing else on the page.
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <h1 className="sr-only">Territórios</h1>
+        <TerritoriosApp initialRecorte={recorte} initialFeicao={feicao} initialEtapa={etapa} />
+      </main>
+      <SiteFooter />
+    </>
+  )
 }

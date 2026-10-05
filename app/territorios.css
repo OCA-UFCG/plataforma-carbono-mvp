@@ -18,6 +18,8 @@
   /* The sticky map and the section anchors sit below the sticky step rail;
      44 px is also the touch target of its buttons. */
   --trilha-altura: 44px;
+  /* What sticks over the top of the page above the section: the site header. */
+  --topo-fixo: var(--header-height, 0px);
 }
 
 /* globals.css animates every scroll of the viewport. Each scroll of the story
@@ -65,11 +67,9 @@ input:focus-visible,
   border: 0;
 }
 
-/* Page */
+/* Section body, inside the home's .container. */
 .territorios {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding-block: 32px 64px;
 }
 
 .territorios-aviso {
@@ -88,13 +88,6 @@ input:focus-visible,
   text-underline-offset: 3px;
 }
 
-.territorios-rotulo {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  text-transform: uppercase;
-  color: var(--bg-texto-secundario);
-}
 
 .territorios-pergunta {
   font-size: 24px;
@@ -150,36 +143,31 @@ input:focus-visible,
   cursor: default;
 }
 
-/* Opening: the home's header, the title band, then the type cards. The screen
-   runs edge to edge like the home's pages, so the page column steps aside. */
-.territorios:has(> .territorios-intro) {
-  max-width: none;
-  padding: 0;
-}
-
-.territorios-intro-faixa {
+/* The section's title band, which stays while the body below it changes. It
+   imitates the home's PageIntro. */
+.territorios-secao-faixa {
   background: var(--am-100);
 }
 
-.territorios-intro-faixa-conteudo {
+.territorios-secao-faixa-conteudo {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-block: 32px;
 }
 
-.territorios-intro-sobretitulo {
+.territorios-secao-sobretitulo {
   color: var(--bg-texto-secundario);
   text-transform: uppercase;
 }
 
 /* 4.01:1 on --am-100, as PageIntro's title: large text only (30 px, 600). */
-.territorios-intro-titulo {
+.territorios-secao-titulo {
   color: var(--role-marca-ancora-padrao);
 }
 
-.territorios-intro-corpo {
-  padding-block: 32px 48px;
+.territorios-secao-titulo:focus {
+  outline: none;
 }
 
 /* Search */
@@ -265,7 +253,7 @@ input:focus-visible,
 
 .territorios-trilha {
   position: sticky;
-  top: 0;
+  top: var(--topo-fixo);
   z-index: 5;
   display: flex;
   align-items: stretch;
@@ -276,24 +264,8 @@ input:focus-visible,
   border-bottom: 1px solid var(--am-100);
 }
 
-.territorios-trilha-logo {
-  display: flex;
-  flex: none;
-  align-items: center;
-  padding-right: 16px;
-  border-right: 1px solid var(--am-100);
-  border-radius: var(--radius-interno);
-}
 
-.territorios-trilha-logo img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
 
-.territorios-trilha-logo:focus-visible {
-  outline-offset: -2px;
-}
 
 .territorios-trilha-nav {
   flex: 1;
@@ -380,8 +352,8 @@ input:focus-visible,
 .territorios-historia-mapa {
   grid-area: mapa;
   position: sticky;
-  top: calc(var(--trilha-altura) + 24px);
-  height: calc(100svh - var(--trilha-altura) - 48px);
+  top: calc(var(--topo-fixo) + var(--trilha-altura) + 24px);
+  height: calc(100svh - var(--topo-fixo) - var(--trilha-altura) - 48px);
   min-height: 320px;
   margin-top: 32px;
 }
@@ -392,19 +364,19 @@ input:focus-visible,
 .territorios-resumo {
   min-height: 70svh;
   padding-top: 32px;
-  scroll-margin-top: calc(var(--trilha-altura) + 8px);
+  scroll-margin-top: calc(var(--topo-fixo) + var(--trilha-altura) + 8px);
 }
 
 /* The summary stops right under the rail, where the story's grid ends, so no
    strip of the sticky map shows above it; its band lands where a step's does. */
 .territorios-resumo {
   padding-top: 40px;
-  scroll-margin-top: var(--trilha-altura);
+  scroll-margin-top: calc(var(--topo-fixo) + var(--trilha-altura));
 }
 
 /* The last step keeps the sticky map whole until the summary comes up. */
 .territorios-passo:last-child {
-  min-height: calc(100svh - var(--trilha-altura) - 8px);
+  min-height: calc(100svh - var(--topo-fixo) - var(--trilha-altura) - 8px);
 }
 
 .territorios-passo {
@@ -804,18 +776,14 @@ input:focus-visible,
 
 @media (min-width: 640px) {
   .territorios {
-    padding: 48px clamp(24px, 4vw, 48px) 80px;
+    padding-block: 40px 80px;
   }
 }
 
 @media (max-width: 767px) {
 
-  .territorios-intro-faixa-conteudo {
+  .territorios-secao-faixa-conteudo {
     padding-block: 24px;
-  }
-
-  .territorios-intro-corpo {
-    padding-block: 16px 32px;
   }
 
   /* The rail folds into a bar naming the current step; its button drops the
@@ -824,12 +792,6 @@ input:focus-visible,
     gap: 12px;
   }
 
-  .territorios-trilha-logo {
-    min-width: 44px;
-    justify-content: center;
-    padding-right: 0;
-    border-right: 0;
-  }
 
   .territorios-trilha-alternar {
     display: flex;
@@ -949,6 +911,13 @@ input:focus-visible,
 
   body {
     background: #ffffff;
+  }
+
+  /* Only the final sheet prints: the rest of the page, the section's band and
+     the chosen type step aside while a story is open. */
+  body:has(.territorios-resumo) > :not(main),
+  main:has(.territorios-resumo) > :not(.territorios-secao) {
+    display: none !important;
   }
 
   .territorios {

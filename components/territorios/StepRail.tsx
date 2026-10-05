@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useId, useRef, useState } from 'react'
 import { RAIL } from '@/config/territorios/chooserScript'
 import { STEP_COLORS } from '@/config/territorios/palette'
@@ -69,11 +68,6 @@ export default function StepRail({ current, onSelect, inert = false }: StepRailP
 
   return (
     <div ref={railRef} className="territorios-trilha territorios-no-print" data-aberta={open || undefined} inert={inert}>
-      {/* Another root layout: a full page load, not next/link. */}
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="territorios-trilha-logo" aria-label={RAIL.homeLabel}>
-        <Image src="/logos/logo_oca.png" alt="" width={28} height={28} />
-      </a>
       <nav className="territorios-trilha-nav" aria-label={UI.stepsLabel}>
         <button
           ref={toggleRef}
