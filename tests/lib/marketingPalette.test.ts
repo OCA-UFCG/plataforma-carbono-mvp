@@ -88,7 +88,7 @@ const PAIRS: [string, string][] = [
   ['--role-categorica1-padrao', '--bg-fundo'],
   ['--bg-texto-primario', '--am-050'],
   ['--bg-texto-primario', '--am-200'],
-  // Figma parity (home): the Mapas button's label is bound to
+  // Figma parity (home): the Plataforma button's label is bound to
   // --primary-foreground (#f8f7f8, I18862:8515;16825:136055), at rest on
   // -marca-ancora-hover and on the pressed fill it takes on hover. (An
   // inactive nav link keeps its --bg-texto-primario label on the --am-100

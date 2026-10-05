@@ -90,7 +90,7 @@
   color: var(--role-marca-ancora-hover);
 }
 
-/* Figma renders the "Mapas" button at rest with the hover-role green and a
+/* Figma renders the "Plataforma" button at rest with the hover-role green and a
  * --primary-foreground label (I18862:8515;16825:136055); the darker
  * pressed-role green is used here as the interactive hover/focus step. */
 .mapaButton {
