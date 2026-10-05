@@ -71,25 +71,32 @@ const PHOTOS: HeroPhoto[] = [
   { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga", credit: "Artur Lourenço" },
 ];
 
-const ROTATION_INTERVAL_MS = 6000;
+// Long enough to read the longer copies (CAATINGA_COPY and DEFAULT_COPY, 32
+// words each) after their 0.8s fade-in.
+const ROTATION_INTERVAL_MS = 10000;
 
 // Hero, Figma node 18862:8516 ("Background"), 495px tall under the 76px
 // header. Rotation logic absorbed from the deleted components/HeroBackground.tsx:
-// auto-advance every 6s unless the user prefers reduced motion, cross-fading
+// auto-advance every 10s unless the user prefers reduced motion, cross-fading
 // between photos rather than swapping them abruptly.
 export default function Hero() {
   const [index, setIndex] = useState(0);
+  // Bumped by every dot click, so a click restarts the wait in full even when
+  // it picks the photo already showing.
+  const [clicks, setClicks] = useState(0);
 
+  // A timeout per photo rather than one interval, so the wait starts over
+  // whenever the photo changes, by the timer or by a dot.
   useEffect(() => {
     if (PHOTOS.length < 2) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
-    const id = setInterval(
+    const id = setTimeout(
       () => setIndex((i) => (i + 1) % PHOTOS.length),
       ROTATION_INTERVAL_MS
     );
-    return () => clearInterval(id);
-  }, []);
+    return () => clearTimeout(id);
+  }, [index, clicks]);
 
   const activePhoto = PHOTOS[index];
   const activeCopy = activePhoto.copy ?? DEFAULT_COPY;
@@ -152,7 +159,10 @@ export default function Hero() {
             className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
             aria-label={`Mostrar ${photo.alt}`}
             aria-pressed={i === index}
-            onClick={() => setIndex(i)}
+            onClick={() => {
+              setIndex(i);
+              setClicks((c) => c + 1);
+            }}
           />
         ))}
       </div>

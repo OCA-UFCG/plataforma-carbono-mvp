@@ -8,7 +8,7 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 
 | Arquivo | Onde aparece |
 |---|---|
-| `hero/hero1.jpg` a `hero5.jpg` | Carrossel automático do hero (rotação a cada 6 s) |
+| `hero/hero1.jpg` a `hero5.jpg` | Carrossel automático do hero (rotação a cada 10 s) |
 
 `cta_caatinga.jpg`, `sobre_caatinga.jpg` e a galeria em mosaico (`galeria/cg1.jpg` a `cg9.jpg`, `importa/imp1.jpg` a `imp3.jpg`) foram removidos do projeto junto com as seções que os usavam; nenhum desses arquivos, nem as pastas `galeria/` e `importa/`, existe mais em `public/images/`. As imagens antigas de NASA e Wikimedia também já haviam sido removidas. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
 
