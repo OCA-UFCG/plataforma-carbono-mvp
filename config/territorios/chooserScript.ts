@@ -1,5 +1,5 @@
-// Every string of the screens around the Territórios story: the opening with
-// the type cards, the chooser where one territory of a type is picked on the
+// Every string of the screens around the Territórios story: the section's title
+// band and the gallery of types, the chooser where one territory of a type is picked on the
 // map, by location or by name, and the step rail. The story's own strings live
 // in storyScript.ts.
 
@@ -9,9 +9,8 @@ import type { TerritoryTypeId } from '@/types/territorios'
 export const INTRO = {
   eyebrow: 'Territórios',
   title:   'Que território você quer conhecer?',
-  /** Receives the labels of the types not enabled yet, as the cards name them. */
-  homeLabel: 'Página inicial da Caativar',
   explore:   'Explorar',
+  changeType: 'Trocar tipo',
   soonBadge: 'Em breve',
   /** One line under the title of each open panel. Counts from public/data/vector/*.geojson. */
   descriptions: {
@@ -27,7 +26,6 @@ export const INTRO = {
 }
 
 export const CHOOSER = {
-  backToTypes: 'Voltar',
   mapLabel:    (plural: string) => `Mapa de ${plural}`,
   loading:     'Carregando o mapa',
   loadError:   'Não foi possível carregar o mapa.',
@@ -79,7 +77,6 @@ export const CHOOSER = {
 }
 
 export const RAIL = {
-  homeLabel: INTRO.homeLabel,
   /** Position among the six theme steps; the summary shows its name alone. */
   position:  (n: number, total: number) => `${n} de ${total}`,
 }

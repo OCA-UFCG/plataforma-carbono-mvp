@@ -31,7 +31,6 @@ export interface TerritoryChooserProps {
   type:           TerritoryType
   /** Receives the recorteRegistry id /api/territorios/territorio expects. */
   onChoose:       (featureId: string) => void
-  onBack:         () => void
   /**
    * For a 401 from any request the chooser makes. Every file it reads today is
    * a public static one, so nothing calls it yet.
@@ -140,7 +139,7 @@ async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
   return res.json()
 }
 
-export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryChooserProps) {
+export default function TerritoryChooser({ type, onChoose }: TerritoryChooserProps) {
   const layer = useMemo(() => vectorLayer(type.recorteId), [type.recorteId])
   const labelField = layer ? labelFieldOf(layer) : undefined
 
@@ -331,13 +330,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
     <section className="territorios-escolha">
       <div className="territorios-escolha-painel">
         <header className="territorios-escolha-topo">
-          <button type="button" className="territorios-escolha-voltar" onClick={onBack}>
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {CHOOSER.backToTypes}
-          </button>
-          <h1 ref={headingRef} tabIndex={-1} className="territorios-pergunta">{type.searchQuestion}</h1>
+          <h3 ref={headingRef} tabIndex={-1} className="territorios-pergunta">{type.searchQuestion}</h3>
         </header>
 
         {candidateEntry && (
