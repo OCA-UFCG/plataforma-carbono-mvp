@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Section from "@/components/marketing/sobre/Section";
-import Quote from "@/components/marketing/sobre/Quote";
 import MediaText from "@/components/marketing/sobre/MediaText";
 import Comparison from "@/components/marketing/sobre/Comparison";
 import IndicatorCard from "@/components/marketing/IndicatorCard";
@@ -33,7 +32,6 @@ export default function SobreCaatingaPage() {
               ))}
             </p>
           ))}
-          <Quote>{c.vegetacao.destaque}</Quote>
         </Section>
 
         <Section title={c.clima.titulo}>

@@ -22,7 +22,7 @@ describe('Conheça a plataforma (/sobre)', () => {
 
   it('answers the two questions of the icon cards, each with an icon that exists', () => {
     expect(p.cards.map((card) => card.titulo)).toEqual([
-      'Qual é a missão da CaatiVAR?',
+      'Qual é a missão da Caativar?',
       'Para quem é a plataforma?',
     ])
     for (const card of p.cards) {
@@ -120,12 +120,14 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
     expect(indicadores.map((i) => i.value)).toEqual(['410 Mt', '60%', '125tC/ha', '1,5–5tCO₂/ha/ano'])
   })
 
-  // The landing's highlights (lib/content/destaques.ts) repeat two of these
-  // figures, which must agree. The third shared subject does not: the landing
-  // says 48% "da remoção bruta de carbono do Brasil", this page "cerca de 40%
-  // das remoções realizadas pelos biomas brasileiros". DOCUMENTACAO.md already
-  // lists that divergence for the content owner; it is not resolved here.
-  it('agrees with the landing on efficiency and removal capacity', () => {
+  // The landing's highlights (lib/content/destaques.ts) repeat three of these
+  // figures, which must agree: since the 2026-10-05 meeting the landing's
+  // removal card gives the same 40% as this page, not the 48% of gross carbon
+  // removal it carried before.
+  it('agrees with the landing on removal, efficiency and removal capacity', () => {
+    expect(c.clima.indicador.description).toContain(
+      `cerca de ${DESTAQUES.find((d) => d.rotulo === 'Remoção de carbono')?.numero}%`,
+    )
     const landing = (rotulo: string) => DESTAQUES.find((d) => d.rotulo === rotulo)
     expect(`${landing('Eficiência de carbono')?.numero}${landing('Eficiência de carbono')?.unidade}`).toBe(
       c.eficiencia.indicador.value,

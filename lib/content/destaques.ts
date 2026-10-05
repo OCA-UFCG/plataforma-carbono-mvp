@@ -9,20 +9,14 @@
 // one exported SVG, one per card, so a future design pass can swap a single
 // card's glyph without touching the others.
 //
-// The second card deliberately departs from the Figma copy, on the content
-// owner's instruction. The design read 40% "das remoções de gases de efeito
-// estufa do Brasil em 2022" with no source. The figure now shown is the 48%
-// the previous landing carried, which is a DIFFERENT metric — gross CARBON
-// removal, not all greenhouse gases — so the label and the sentence moved with
-// the number rather than the number alone: "48% of GHG removals" is a claim
-// neither source supports.
-//
-// Source for the figure and wording, carried over from the previous landing
-// (now lib/content/dimensoes.ts): DA COSTA et al. (2025); MENDES et al.
-// (2023; 2025). The card has no field to display it — the design's card has no
-// source line — so it is recorded here. Raised in the PR: a headline figure on
-// a platform whose argument is open scientific data arguably ought to show its
-// provenance, which would need a design change.
+// The first two cards carry the copy of the content doc's 2026-10-05 meeting.
+// The second is back to the design's 40% of the greenhouse gases removed in
+// Brazil in 2022, which the content doc's bulletin sources to Climate TRACE
+// (2022): 410 Mt CO2e, the figure /sobre/caatinga gives. It replaces the 48%
+// of gross carbon removal the previous landing carried, a different metric
+// (DA COSTA et al., 2025; MENDES et al., 2023; 2025). The card has no field to
+// display a source — the design's card has no source line — so it is recorded
+// here.
 export type Destaque = {
   icone: string
   rotulo: string
@@ -34,18 +28,17 @@ export type Destaque = {
 export const DESTAQUES: Destaque[] = [
   {
     icone: '/icons/destaques/populacao.svg',
-    rotulo: 'População do bioma',
+    rotulo: 'População',
     numero: '26',
     unidade: 'milhões',
-    texto: 'de pessoas vivem no bioma.',
+    texto: 'de pessoas vivem no bioma Caatinga.',
   },
   {
     icone: '/icons/destaques/remocao.svg',
     rotulo: 'Remoção de carbono',
-    numero: '48',
+    numero: '40',
     unidade: '%',
-    texto:
-      'da remoção bruta de carbono do Brasil em 2022, ocupando cerca de 10% do território.',
+    texto: 'dos gases de efeito estufa removidos no país em 2022 foi pelo bioma.',
   },
   {
     icone: '/icons/destaques/eficiencia.svg',
