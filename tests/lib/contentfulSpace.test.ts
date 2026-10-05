@@ -7,6 +7,8 @@ import {
   getComunicacaoContent,
   listPublicacoes,
 } from '@/lib/content/comunicacao'
+import { copyQuery } from '@/lib/content/site/fetch'
+import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 
 // Smoke test against the real space: it is the only check that catches the
 // content model drifting away from the query, which the GraphQL API only reports
@@ -76,5 +78,18 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
     const shipped = [DEFAULT_CADERNO.slug, ...DEFAULT_CARTILHAS.map((c) => c.slug)]
 
     expect(shipped.filter((slug) => !enderecos.has(slug)), 'shipped addresses missing from the CMS').toEqual([])
+  })
+
+  // The pages fall back to the shipped copy on any error, so they would hide a
+  // content type missing from the space or a field the model lacks; the query
+  // is run here without that net, and every type must have its entry.
+  it('serves an entry of every institutional copy type, with every field the pages read', async () => {
+    const getContent = getContentfulClient()
+    const types = Object.fromEntries(SITE_COPY_TYPES.map((type) => [type.id, type]))
+    const response = await getContent!<Record<string, { items: unknown[] }>>(copyQuery(types))
+
+    for (const type of SITE_COPY_TYPES) {
+      expect(response[type.id]?.items, type.id).toHaveLength(1)
+    }
   })
 })
