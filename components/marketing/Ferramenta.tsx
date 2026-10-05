@@ -1,4 +1,4 @@
-import { MAPA_LINK } from "@/lib/marketing/nav";
+import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
 import styles from "./Ferramenta.module.css";
 
 // The map image is committed: exported from Figma node 18862:8548 through the
@@ -71,10 +71,15 @@ export default function Ferramenta() {
             </li>
           ))}
         </ul>
-        {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
-        <a href={MAPA_LINK.href} className={`${styles.button} text-ui-medium`}>
-          Explore os dados
-        </a>
+        {/* Both links cross a route group: a full page load, not next/link. */}
+        <div className={styles.actions}>
+          <a href={MAPA_LINK.href} className={`${styles.button} text-ui-medium`}>
+            Explore os dados
+          </a>
+          <a href={TERRITORIOS_LINK.href} className={`${styles.button} text-ui-medium`}>
+            Ver resumo territorial
+          </a>
+        </div>
       </div>
     </section>
   );

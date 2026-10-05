@@ -4,6 +4,37 @@ import { useEffect, useState } from "react";
 import { MAPA_LINK } from "@/lib/marketing/nav";
 import styles from "./Hero.module.css";
 
+type HeroCopy = {
+  title: string;
+  lead: string;
+};
+
+// The text over the photos, set like Figma nodes 18862:8525 (h1) and
+// 18862:8526 (lead); the design's eyebrow, "Mercado de Carbono na Caatinga",
+// is gone. The first three photos each bring one; the rest show DEFAULT_COPY.
+
+// Spells out the name: Caatinga, Valorização, Autonomia e Renda.
+const VALORIZACAO_COPY: HeroCopy = {
+  title:
+    "Informação que valoriza a Caatinga e fortalece autonomia e renda dos territórios",
+  lead: "Caativar: Caatinga, Valorização, Autonomia e Renda",
+};
+
+const CAATINGA_COPY: HeroCopy = {
+  title:
+    "Dados abertos e mapas para entender o carbono da Caatinga e decidir com mais segurança",
+  lead: "Informação aberta para que comunidades e gestores avaliem projetos de carbono e negociem em condições mais justas.",
+};
+
+// The design's own copy: CAATINGA_COPY about "o bioma".
+const DEFAULT_COPY: HeroCopy = {
+  title:
+    "Dados abertos e mapas para entender o carbono do bioma e decidir com mais segurança",
+  lead: CAATINGA_COPY.lead,
+};
+
+const COPIES = [VALORIZACAO_COPY, CAATINGA_COPY, DEFAULT_COPY];
+
 // The five rotating background photos (Figma node 18862:8516, "Background";
 // the design's own image fill is a single placeholder frame, so the rotation
 // behaviour absorbed from the deleted components/HeroBackground.tsx drives
@@ -17,12 +48,25 @@ type HeroPhoto = {
   src: string;
   alt: string;
   credit?: string;
+  copy?: HeroCopy;
 };
 
+// `alt` numbers the photos in the order they show, which the dots announce;
+// the file names keep their original numbering.
 const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero1.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero2.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero3.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
+  {
+    src: "/images/hero/hero2.jpg",
+    alt: "Foto 1 da Caatinga",
+    credit: "Artur Lourenço",
+    copy: VALORIZACAO_COPY,
+  },
+  {
+    src: "/images/hero/hero3.jpg",
+    alt: "Foto 2 da Caatinga",
+    credit: "Artur Lourenço",
+    copy: CAATINGA_COPY,
+  },
+  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
   { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
   { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga", credit: "Artur Lourenço" },
 ];
@@ -48,6 +92,7 @@ export default function Hero() {
   }, []);
 
   const activePhoto = PHOTOS[index];
+  const activeCopy = activePhoto.copy ?? DEFAULT_COPY;
 
   return (
     <section id="inicio" className={styles.hero} aria-label="Apresentação">
@@ -68,25 +113,29 @@ export default function Hero() {
 
       <div className={`container ${styles.contentArea}`}>
         <div className={styles.content}>
-          <p className={`${styles.eyebrow} text-subtle-medium`}>
-            Mercado de Carbono na Caatinga
-          </p>
-          {/* Figma groups the h1 and the lead in their own container
-              (18862:8524) with a 16px gap, tighter than the column's 21. */}
-          <div className={styles.copy}>
-            <h1 className={styles.title}>
-              Dados abertos e mapas para entender o carbono do bioma e decidir com
-              mais segurança
-            </h1>
-            <p className={`${styles.lead} text-lead`}>
-              Informação aberta para que comunidades e gestores avaliem projetos
-              de carbono e negociem em condições mais justas.
-            </p>
+          {/* Every copy is rendered, stacked in one cell that takes the
+              tallest one's height, so changing photo never resizes the hero
+              and shifts the page below it. Only the active one is visible
+              (and in the accessibility tree). */}
+          <div className={styles.copyStack}>
+            {COPIES.map((copy) => {
+              const active = copy === activeCopy;
+              return (
+                <div
+                  key={copy.title}
+                  className={`${styles.copy}${active ? ` ${styles.copyActive}` : ""}`}
+                  aria-hidden={!active}
+                >
+                  <h1 className={styles.title}>{copy.title}</h1>
+                  <p className={`${styles.lead} text-lead`}>{copy.lead}</p>
+                </div>
+              );
+            })}
           </div>
           <div className={styles.actions}>
             {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
             <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-ui-medium`}>
-              Abrir os mapas
+              Acessar plataforma
             </a>
             <a href="#comunicacao" className={`${styles.secondaryButton} text-ui-medium`}>
               Ver materiais

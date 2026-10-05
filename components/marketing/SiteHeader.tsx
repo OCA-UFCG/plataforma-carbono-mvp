@@ -6,17 +6,18 @@ import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { HEADER_LINKS, MAPA_LINK, activeNavHref } from "@/lib/marketing/nav";
+import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 153 + 478 + 189px with 16px gaps between them (852px),
+// `.actions` are 153 + 672 + 189px with 16px gaps between them (1046px),
 // none of it allowed to shrink below content (`flex: none` on `.nav` and
 // `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px,
 // still 80 in this range — it only drops to 24 at <=768px) on both sides.
-// 852 + 160 = 1012px is the narrowest viewport the inline header actually
-// fits; 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// 1046 + 160 = 1206px fits the header at full size; from 1200 to 1205 the
+// logo gives up those few pixels (147px at 1200), which the eye cannot tell.
+// This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or
@@ -171,7 +172,12 @@ export default function SiteHeader() {
               </Link>
             );
           })}
-          {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
+          {/* TERRITORIOS_LINK and MAPA_LINK cross a route group: a full page
+              load, not next/link. Neither is ever active, as the header only
+              renders inside the marketing group. */}
+          <a href={TERRITORIOS_LINK.href} className={`${styles.navLink} text-ui-medium`}>
+            {TERRITORIOS_LINK.label}
+          </a>
           <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-ui-medium`}>
             {MAPA_LINK.label}
           </a>
@@ -211,6 +217,13 @@ export default function SiteHeader() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={TERRITORIOS_LINK.href}
+            className={`${styles.panelLink} text-p-ui`}
+            onClick={() => setOpen(false)}
+          >
+            {TERRITORIOS_LINK.label}
+          </a>
           <a
             href={MAPA_LINK.href}
             className={`${styles.panelMapaButton} text-body`}
