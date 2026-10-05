@@ -97,7 +97,7 @@ describe('marketing nav registry', () => {
   it('labels the navigation in Portuguese', () => {
     expect(HEADER_LINKS.map((l) => l.label)).toEqual([
       'Início',
-      'Sobre a plataforma',
+      'Sobre',
       'Comunicação',
     ])
     expect(SOBRE_PAGES.map((p) => p.label)).toEqual([

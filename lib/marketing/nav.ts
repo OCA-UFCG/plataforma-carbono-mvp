@@ -34,11 +34,12 @@ export const TERRITORIOS_LINK: NavLink = {
   external: true,
 }
 
-// Header labels from Figma node 18988:8612. "Sobre a plataforma" replaces the
-// landing-era "Conheça a plataforma" now that it opens a page of its own.
+// Header labels after Figma node 18988:8612, which has "Sobre a plataforma"
+// (itself replacing the landing-era "Conheça a plataforma"); it is shortened
+// to "Sobre", the footer's label for the same page.
 export const HEADER_LINKS: NavLink[] = [
   { href: '/', label: 'Início', external: false },
-  { href: '/sobre', label: 'Sobre a plataforma', external: false },
+  { href: '/sobre', label: 'Sobre', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
 ]
 
@@ -61,8 +62,8 @@ export const SOBRE_PAGES: SobrePage[] = [
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the
-// path itself or a parent of it, so every /sobre/* page lights "Sobre a
-// plataforma". "/" only owns itself, or it would own everything.
+// path itself or a parent of it, so every /sobre/* page lights "Sobre". "/"
+// only owns itself, or it would own everything.
 export function activeNavHref(pathname: string): string | null {
   for (const { href } of HEADER_LINKS) {
     if (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)) {
