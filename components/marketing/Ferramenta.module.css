@@ -123,10 +123,17 @@
   background: var(--cb-400);
 }
 
-/* 27 = the list's "Margin" frame's 6px bottom padding + the column's 21px gap. */
-.button {
-  align-self: flex-start;
+/* 27 = the list's "Margin" frame's 6px bottom padding + the column's 21px gap.
+ * The two buttons sit 21px apart (Figma frame 19137:33403) and wrap onto a
+ * second row when the panel is narrower than both. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 21px;
   margin-top: 27px;
+}
+
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;

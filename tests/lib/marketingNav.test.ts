@@ -7,6 +7,7 @@ import {
   HEADER_LINKS,
   SECTION_IDS,
   SOBRE_PAGES,
+  TERRITORIOS_LINK,
   activeNavHref,
 } from '@/lib/marketing/nav'
 
@@ -86,6 +87,11 @@ describe('marketing nav registry', () => {
       if (!link.external) continue
       expect(link.href).toBe(MAPA_URL)
     }
+  })
+
+  it('sends "Resumo territorial" to the Territórios route group', () => {
+    const page = path.join(process.cwd(), 'app/(territorios)', TERRITORIOS_LINK.href, 'page.tsx')
+    expect(existsSync(page), `${TERRITORIOS_LINK.href} has no page.tsx`).toBe(true)
   })
 
   it('labels the navigation in Portuguese', () => {
