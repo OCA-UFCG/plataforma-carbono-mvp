@@ -16,8 +16,9 @@ function panelId(id: string) {
   return `plataforma-panel-${id}`;
 }
 
-// Plataforma, Figma node 18862:8546 ("Sobre"), the "Conheça a plataforma"
-// tabbed section; the other three tabs are its variant instances 18916:9520,
+// Plataforma, Figma node 18862:8546 ("Sobre"), the tabbed section the design
+// labels "Conheça a plataforma" and the 2026-10-05 meeting "Conheça a
+// iniciativa"; the other three tabs are its variant instances 18916:9520,
 // 18916:9585 and 18916:9650, and the tab hover is frame 18916:9468. The
 // Figma file does not specify keyboard behaviour, so it follows the WAI-ARIA
 // tabs pattern (automatic activation: moving focus with the arrow keys also
@@ -68,11 +69,11 @@ export default function Plataforma() {
         {/* Label left, "Ver mais" right — the 40px header row of Figma node
             18862:8546. */}
         <div className={styles.headerRow}>
-          <p className={`${styles.label} text-subtle-medium`}>Conheça a plataforma</p>
+          <p className={`${styles.label} text-subtle-medium`}>Conheça a iniciativa</p>
           <MoreLink href="/sobre" contexto="sobre a plataforma" />
         </div>
 
-        <div className={styles.tablist} role="tablist" aria-label="Conheça a plataforma">
+        <div className={styles.tablist} role="tablist" aria-label="Conheça a iniciativa">
           {ABAS_PLATAFORMA.map((aba) => {
             const selected = aba.id === activeId;
             return (

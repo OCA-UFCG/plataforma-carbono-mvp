@@ -27,15 +27,21 @@ const VALORIZACAO_CARD: HeroCard = {
   actions: [{ href: "/comunicacao", label: "Acesse os materiais", external: false }],
 };
 
-const TERRITORIOS_CARD: HeroCard = {
-  title: "Explore os territórios da Caatinga em detalhes",
-  lead: "Duas formas de conhecer dados ambientais sobre os territórios do seu interesse",
-  actions: [TERRITORIOS_LINK, MAPA_LINK],
+const RESUMO_CARD: HeroCard = {
+  title: "Uma forma simplificada de conhecer mais sobre diferentes territórios",
+  lead: "Obtenha um panorama resumido com dados sobre carbono, pressões ambientais e clima para o território do seu interesse",
+  actions: [{ ...TERRITORIOS_LINK, label: "Acesse o resumo territorial" }],
 };
 
-const CARDS = [INICIATIVA_CARD, VALORIZACAO_CARD, TERRITORIOS_CARD];
+const PLATAFORMA_CARD: HeroCard = {
+  title: "Em breve: Plataforma de dados ambientais",
+  lead: "Uma plataforma que reúne dados de carbono, vegetação, solo e clima para diferentes áreas da Caatinga",
+  actions: [{ ...MAPA_LINK, label: "Acesse a plataforma" }],
+};
 
-// The three rotating background photos (Figma node 18862:8516, "Background";
+const CARDS = [INICIATIVA_CARD, VALORIZACAO_CARD, RESUMO_CARD, PLATAFORMA_CARD];
+
+// The four rotating background photos (Figma node 18862:8516, "Background";
 // the design's own image fill is a single placeholder frame, so the rotation
 // behaviour absorbed from the deleted components/HeroBackground.tsx drives
 // these committed assets instead). `credit` is deliberately optional: the
@@ -56,11 +62,12 @@ type HeroPhoto = {
 const PHOTOS: HeroPhoto[] = [
   { src: "/images/hero/hero2.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço", card: INICIATIVA_CARD },
   { src: "/images/hero/hero3.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço", card: VALORIZACAO_CARD },
-  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço", card: TERRITORIOS_CARD },
+  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço", card: RESUMO_CARD },
+  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço", card: PLATAFORMA_CARD },
 ];
 
-// Long enough to read the longest card (INICIATIVA_CARD, 27 words) after its
-// 0.8s fade-in.
+// Long enough to read the longest cards (INICIATIVA_CARD and RESUMO_CARD, 27
+// words each) after their 0.8s fade-in.
 const ROTATION_INTERVAL_MS = 10000;
 
 // Hero, Figma node 18862:8516 ("Background"), 495px tall under the 76px

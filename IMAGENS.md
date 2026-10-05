@@ -8,9 +8,9 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 
 | Arquivo | Onde aparece |
 |---|---|
-| `hero/hero1.jpg` a `hero3.jpg` | Carrossel automático do hero (rotação a cada 10 s), na ordem `hero2`, `hero3`, `hero1` |
+| `hero/hero1.jpg` a `hero4.jpg` | Carrossel automático do hero (rotação a cada 10 s), na ordem `hero2`, `hero3`, `hero1`, `hero4` |
 
-`hero/hero4.jpg` e `hero/hero5.jpg` saíram com o carrossel reduzido a três fotos. `cta_caatinga.jpg`, `sobre_caatinga.jpg` e a galeria em mosaico (`galeria/cg1.jpg` a `cg9.jpg`, `importa/imp1.jpg` a `imp3.jpg`) foram removidos do projeto junto com as seções que os usavam; nenhum desses arquivos, nem as pastas `galeria/` e `importa/`, existe mais em `public/images/`. As imagens antigas de NASA e Wikimedia também já haviam sido removidas. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
+`hero/hero5.jpg` saiu quando o carrossel passou a ter uma foto por card. `cta_caatinga.jpg`, `sobre_caatinga.jpg` e a galeria em mosaico (`galeria/cg1.jpg` a `cg9.jpg`, `importa/imp1.jpg` a `imp3.jpg`) foram removidos do projeto junto com as seções que os usavam; nenhum desses arquivos, nem as pastas `galeria/` e `importa/`, existe mais em `public/images/`. As imagens antigas de NASA e Wikimedia também já haviam sido removidas. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
 
 ## Cartilhas (public/images/cartilhas/)
 

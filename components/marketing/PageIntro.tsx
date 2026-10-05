@@ -9,7 +9,7 @@ export default function PageIntro({ eyebrow, title, intro }: PageIntroContent) {
     <div className={styles.pageIntro}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.heading}>
-          <p className={`${styles.eyebrow} text-subtle-medium`}>{eyebrow}</p>
+          {eyebrow && <p className={`${styles.eyebrow} text-subtle-medium`}>{eyebrow}</p>}
           <h1 className={`${styles.title} text-h2`}>{title}</h1>
         </div>
         <p className={`${styles.intro} text-body`}>{intro}</p>

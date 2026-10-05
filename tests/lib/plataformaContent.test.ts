@@ -4,7 +4,7 @@ import { ABAS_PLATAFORMA } from '@/lib/content/plataforma'
 describe('plataforma tabs', () => {
   it('declares the four tabs the design shows', () => {
     expect(ABAS_PLATAFORMA.map((a) => a.label)).toEqual([
-      'O que é a CaatiVAR?',
+      'O que é a Caativar?',
       'A Caatinga',
       'Carbono e comunidades',
       'Como funciona',

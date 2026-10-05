@@ -1,8 +1,10 @@
-// Content for the "Conheça a plataforma" tabbed section (Plataforma,
+// Content for the "Conheça a iniciativa" tabbed section (Plataforma,
 // Figma node 18862:8546, "Sobre"). The first tab's copy comes from that node;
 // the other three from its variant instances on the same page, 18916:9520
 // ("A Caatinga"), 18916:9585 ("Carbono e comunidades") and 18916:9650
-// ("Como funciona"). Image alt text is not in the design and is written here.
+// ("Como funciona"). The copy of the first, second and fourth tabs is the
+// content doc's 2026-10-05 meeting revision. Image alt text is not in the
+// design and is written here.
 
 export type ConteudoAba = {
   imagem: string
@@ -21,16 +23,16 @@ export type AbaPlataforma = {
 export const ABAS_PLATAFORMA: AbaPlataforma[] = [
   {
     id: 'o-que-e',
-    label: 'O que é a CaatiVAR?',
+    label: 'O que é a Caativar?',
     conteudo: {
       imagem: '/images/plataforma/o-que-e.webp',
       imagemAlt: 'Vista de um vale da Caatinga com vegetação e cidade ao fundo',
-      titulo: 'O que é a CaatiVAR?',
+      titulo: 'O que é a Caativar?',
       paragrafos: [
-        'A CaatiVAR reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
+        'A Caativar é uma iniciativa que reúne, em um só lugar e de forma aberta, conteúdos, mapas e dados ambientais de municípios, estados, territórios tradicionais e assentamentos da Caatinga. Foi pensada para quem vive no bioma e quem decide sobre ele.',
       ],
       destaque:
-        'Informação aberta para que o mercado de carbono respeite o bioma e quem o conserva.',
+        'Informação aberta para que os projetos de carbono respeitem o bioma e quem o conserva.',
     },
   },
   {
@@ -41,9 +43,10 @@ export const ABAS_PLATAFORMA: AbaPlataforma[] = [
       imagemAlt: 'Vista do alto de uma serra da Caatinga, com vegetação seca em primeiro plano sob céu azul',
       titulo: 'A Caatinga',
       paragrafos: [
-        'A Caatinga abriga a maior e mais diversa Floresta Tropical Sazonalmente Seca do mundo. Além de ser a casa de milhões de pessoas em cidades, comunidades rurais e territórios de povos tradicionais, desempenha um papel decisivo na regulação do clima: em 2022, foi o bioma que mais removeu carbono da atmosfera no Brasil. Mesmo assim, quase não há projetos de carbono certificados no bioma.',
+        'A Caatinga abriga a maior e mais diversa Floresta Tropical Sazonalmente Seca do mundo. Além de ser o lugar onde milhões de pessoas vivem, desempenha um papel relevante na regulação do clima. Em 2022, foi o bioma que mais removeu carbono da atmosfera no Brasil. Mesmo assim, há poucas iniciativas que reconhecem os serviços ecossistêmicos que o bioma fornece.',
       ],
-      destaque: 'O bioma que mais remove carbono no Brasil ainda está fora do mercado.',
+      destaque:
+        'A Caatinga oferece serviços ecossistêmicos essenciais, ainda pouco reconhecidos e valorizados.',
     },
   },
   {
@@ -67,7 +70,7 @@ export const ABAS_PLATAFORMA: AbaPlataforma[] = [
       imagemAlt: 'Plantação de milho diante de um morro coberto pela vegetação da Caatinga',
       titulo: 'Como funciona',
       paragrafos: [
-        'A CaatiVAR reúne dados sobre o carbono armazenado no solo e na vegetação, a produtividade e os fluxos de carbono, o clima, as mudanças da vegetação ao longo do tempo, o uso e a cobertura da terra e a ocorrência de fogo, organizados para diferentes recortes territoriais da Caatinga.',
+        'A Caativar reúne dados sobre o carbono armazenado no solo e na vegetação, a produtividade e os fluxos de carbono, as mudanças no uso e cobertura da terra, a ocorrência de fogo e o clima, organizados para diferentes recortes territoriais da Caatinga.',
       ],
       destaque: 'Dados ambientais para compreender as condições de cada território.',
     },

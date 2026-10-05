@@ -1,6 +1,7 @@
 // Content of "Conheça a Caatinga" (/sobre/caatinga), Figma frame 18988:8667,
-// content node 18988:8696, copied verbatim. Image alt text is not in the
-// design and is written here.
+// content node 18988:8696, copied verbatim; the opening and the vegetation
+// section carry the content doc's 2026-10-05 meeting revision. Image alt text
+// is not in the design and is written here.
 
 import type { IndicatorCardProps } from '@/components/marketing/IndicatorCard'
 
@@ -9,24 +10,21 @@ type Indicador = Pick<IndicatorCardProps, 'label' | 'value' | 'description'>
 export const CAATINGA = {
   // 18988:8697: the opening text, with no heading of its own.
   abertura: [
-    'A Caatinga abriga a maior e mais diversa Floresta Tropical Sazonalmente Seca do mundo. Ocupa cerca de 10% do território nacional e apresenta paisagens, espécies e formas de vida adaptadas às condições do clima semiárido.',
-    'Mais do que um ambiente natural, a Caatinga é um território habitado. Suas cidades e comunidades reúnem diferentes modos de viver, produzir e conviver com os períodos de chuva e de seca.',
+    'A Caatinga abriga a maior e mais diversa Floresta Tropical Sazonalmente Seca do mundo e ocupa cerca de 10% do território nacional. Suas paisagens, espécies e formas de vida são marcadas pela adaptação às condições do clima semiárido.',
+    'Nesse bioma vivem cerca de 26 milhões de pessoas, distribuídas entre cidades e comunidades que desenvolveram diferentes formas de viver, produzir e conviver com os ciclos de chuva e seca.',
   ],
 
-  // 18988:8700. The design sets the second and third lines together, with no
-  // blank line between them; each inner array is one block.
+  // 18988:8700. Each inner array is one block, its strings lines set without
+  // a blank line between them. The 2026-10-05 meeting rewrote the text as one
+  // paragraph and dropped the design's highlight, "A Caatinga muda com as
+  // estações, mas permanece viva e produtiva".
   vegetacao: {
     titulo: 'Como funciona a vegetação?',
     blocos: [
       [
-        'A vegetação da Caatinga acompanha o ritmo das chuvas. Durante a estação seca, muitas plantas perdem suas folhas para reduzir a perda de água. Esse comportamento faz parte de sua adaptação natural ao clima.',
-      ],
-      [
-        'Quando a chuva retorna, novas folhas surgem rapidamente e a fotossíntese é retomada. Nesse período, aumentam as trocas de água, energia e carbono entre a vegetação e a atmosfera.',
-        'Por isso, a paisagem pode mudar bastante ao longo do ano: os tons secos dão lugar ao verde poucos dias após as primeiras chuvas.',
+        'A vegetação da Caatinga tem dinâmica própria que depende dos ciclos da chuva. Durante a estação seca, muitas plantas perdem suas folhas para reduzir a perda de água. Quando a chuva retorna, novas folhas surgem rapidamente. Nesse período, aumentam as trocas de água, energia e carbono entre a vegetação e a atmosfera. Por isso, a paisagem pode mudar bastante ao longo do ano.',
       ],
     ],
-    destaque: 'A Caatinga muda com as estações, mas permanece viva e produtiva.',
   },
 
   // 18988:8708

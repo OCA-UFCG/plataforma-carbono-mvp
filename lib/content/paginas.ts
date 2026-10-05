@@ -4,7 +4,7 @@
 // "Comunicação" (18978:2048). Each page's own content lives in its own module.
 
 export type PageIntroContent = {
-  eyebrow: string
+  eyebrow?: string
   title: string
   intro: string
 }
@@ -16,22 +16,22 @@ export type PhotoBandContent = {
   items?: string[]
 }
 
-// Figma node 18988:8613.
+// Figma node 18988:8613, with the copy of the content doc's 2026-10-05
+// meeting, which dropped the design's "Institucional" eyebrow.
 export const SOBRE_INTRO: PageIntroContent = {
-  eyebrow: 'Institucional',
-  title: 'Sobre o Caativar',
+  title: 'Sobre a Caativar',
   intro:
-    'A CaatiVAR é uma plataforma sobre o mercado de carbono na Caatinga. Nela, você encontra dados, mapas e conteúdos para entender como esse mercado funciona e o que ele pode representar para o bioma e seus territórios.',
+    'A Caativar é uma iniciativa da Superintendência do Desenvolvimento do Nordeste (Sudene), em parceria com o Observatório da Caatinga e Desertificação (OCA) da Universidade Federal de Campina Grande (UFCG).',
 }
 
-// Figma node 18978:2050. The paragraph repeats the landing's description of
-// the platform word for word; it looks like placeholder copy, and is an open
+// Figma node 18978:2050. The paragraph is the landing's former description of
+// the platform, word for word; it looks like placeholder copy, and is an open
 // question to the content owner (issue #44, question 4).
 export const COMUNICACAO_INTRO: PageIntroContent = {
   eyebrow: 'Materiais',
   title: 'Comunicação',
   intro:
-    'A CaatiVAR reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
+    'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
 }
 
 // Figma node 18988:8651, at the foot of "Conheça a plataforma" only.
