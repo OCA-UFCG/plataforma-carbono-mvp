@@ -13,8 +13,8 @@
 /* The design's 495px is a floor: the h1 -> lead gap is 16px (.copy), the
  * button row is 8 + 40px (the secondary button's border is 1px, so both
  * buttons are 40 tall) and the dot row is 13px (.dots). At 1276px the tallest
- * card, INICIATIVA_CARD (3 title lines + 2 lead lines), stays under it:
- *   82 + 226.6 + 21 + 48 + 40 + 13 + 29 = 459.6. */
+ * card, RESUMO_CARD (3 title lines + 3 lead lines), stays under it:
+ *   82 + 254.6 + 21 + 48 + 40 + 13 + 29 = 487.6. */
 .hero {
   position: relative;
   min-height: 495px;
