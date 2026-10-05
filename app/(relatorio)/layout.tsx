@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import '../relatorio.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
+import { FAVICON } from '@/lib/favicon'
 import { libreFranklin } from '../fonts/app'
 
 // Fourth sibling root layout. The report is a document that scrolls and prints,
@@ -15,7 +16,7 @@ import { libreFranklin } from '../fonts/app'
 export const metadata: Metadata = {
   title: 'Relatório territorial | Caativar',
   description: 'Relatório automático de carbono por recorte territorial do bioma Caatinga. OCA, UFCG, INSA.',
-  icons: { icon: '/logos/logo_oca.png' },
+  icons: FAVICON,
 }
 
 export default async function RelatorioLayout({

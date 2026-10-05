@@ -164,7 +164,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 - O botão primário do hero amarra o preenchimento de **repouso** ao token de papel `ROLE-MarcaAncora-Hover` (nó `18862:8529`), sem token distinto para o estado de hover; implementado como desenhado, com comentário no código para não ser "corrigido" sem querer.
 - O componente genérico de "tab item" (nó `8702:53247`) pertence a outro design system (`slate/*`, `Verde Sudene #018f39`, variáveis do shadcn, nenhuma variável de tipografia).
 - Os quatro ícones dos cartões de destaque são o mesmo glifo, byte a byte idêntico — fiel à fonte no Figma, mas quatro indicadores diferentes acabam sem diferenciação visual nenhuma.
-- O slot da logo da Caativar no Figma é uma caixa vazia; o header reaproveita `logo_oca.png`.
+- Resolvido: o slot da logo da Caativar no Figma era uma caixa vazia e o header reaproveitava `logo_oca.png`. Hoje o header usa `public/logos/caativar.svg`, exportada do quadro de logos (nó `19099:6670`), e a aba de todas as rotas usa o símbolo dessa logo, `caativar-simbolo.svg` (ver `lib/favicon.ts`).
 - Possível terceira família tipográfica: os rótulos das abas medem como Archivo SemiBold 16px, que não é nem Rubik (corpo) nem Archivo Narrow (exibição). Não resolvido — a cota da API do Figma acabou antes de confirmar.
 - CI (`.github/workflows/ci.yml`) roda só `npm ci`, `npm run build` e `npm run contrast`; não roda `npm test` nem `npm run lint`. Tudo nesta reconstrução foi verificado localmente.
 
