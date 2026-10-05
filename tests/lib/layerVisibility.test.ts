@@ -112,7 +112,7 @@ describe('draw order by theme and subtheme', () => {
   }
 
   it('starts in the panel order: Carbono, then Uso do solo, then Ambiente', () => {
-    expect(useStore.getState().themeOrder).toEqual(['carbono', 'uso_solo', 'ambiente'])
+    expect(useStore.getState().themeOrder).toEqual(['carbono', 'uso_solo', 'ambiente', 'localidades'])
     expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('ndvi_modis'))
     expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('lulc_mapbiomas'))
   })
@@ -120,7 +120,7 @@ describe('draw order by theme and subtheme', () => {
   it('draws a theme moved up above the themes it passed', () => {
     useStore.getState().moveTheme('uso_solo', 'carbono')
 
-    expect(useStore.getState().themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente'])
+    expect(useStore.getState().themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
     expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(topOf('carbono'))
   })
 

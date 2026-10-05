@@ -5,7 +5,7 @@ import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
-import { analysisHint, clickableRecortes } from '@/lib/mapa/analysisTargets'
+import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
@@ -49,9 +49,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
   // One card per visible raster, in panel order (topmost first), whether or
   // not it has an answer yet: a layer still computing shows its skeleton.
-  const rasters = layers.filter(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  )
+  const rasters = layers.filter(isMeasuredRaster)
   const hasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
 
   // The topmost layer opens; the rest answer from their headers until asked for.

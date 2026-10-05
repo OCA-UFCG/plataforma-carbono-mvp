@@ -14,9 +14,12 @@ const rasters = (appConfig.layers as LayerConfig[]).filter(
 const byId = new Map(rasters.map((l) => [l.id, l]))
 
 describe('result profiles', () => {
-  it('give every raster layer exactly one profile, and name no other layer', () => {
+  it('give every measured raster layer exactly one profile, and name no other layer', () => {
     expect(rasters.length).toBeGreaterThan(0)
-    for (const l of rasters) expect(RESULT_PROFILES[l.id], `${l.id} has no result profile`).toBeDefined()
+    for (const l of rasters) {
+      if (l.analysis === false) expect(RESULT_PROFILES[l.id], `${l.id} is not measured`).toBeUndefined()
+      else expect(RESULT_PROFILES[l.id], `${l.id} has no result profile`).toBeDefined()
+    }
     for (const id of Object.keys(RESULT_PROFILES)) expect(byId.has(id), `${id} is not a raster layer`).toBe(true)
   })
 

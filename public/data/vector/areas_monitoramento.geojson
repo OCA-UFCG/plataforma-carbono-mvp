@@ -1,0 +1,110 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nome": "Caatinga Campina Grande (CCG)",
+        "sigla": "CCG",
+        "altitude_m": 490,
+        "altura_dossel_m": 5,
+        "altura_torre_m": 7,
+        "solo": "Neossolo Litólico",
+        "dominio_fitogeografico": "Ecótono do Agreste com a Mata Atlântica",
+        "periodo_observacao": "2013 a 2017",
+        "fontes": "Borges et al. (2019); Moro et al. (2016)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -35.974722,
+          -7.279722
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nome": "Caatinga Embrapa, Reserva do Semiárido (CES)",
+        "sigla": "CES",
+        "altitude_m": 378,
+        "altura_dossel_m": 6,
+        "altura_torre_m": 16,
+        "solo": "Neossolo Litólico",
+        "dominio_fitogeografico": "Área cristalina",
+        "periodo_observacao": "2011 a 2012",
+        "fontes": "Moro et al. (2016); Souza et al. (2018)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -38.526944,
+          -8.308611
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nome": "Caatinga São João (CSJO)",
+        "sigla": "CSJO",
+        "altitude_m": 705,
+        "altura_dossel_m": 6,
+        "altura_torre_m": 7,
+        "solo": "Entisol",
+        "dominio_fitogeografico": "Ecótono do Agreste com a Mata Atlântica",
+        "periodo_observacao": "abril de 2019 a março de 2020",
+        "fontes": "Oliveira e Soares (2018); Moro et al. (2016); Oliveira et al. (2023)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -36.406667,
+          -8.809167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nome": "Caatinga Estação Ecológica do Seridó (CSES)",
+        "sigla": "CSES",
+        "altitude_m": 205,
+        "altura_dossel_m": 6,
+        "altura_torre_m": 11,
+        "solo": "Neossolo Litólico",
+        "dominio_fitogeografico": "Área cristalina",
+        "periodo_observacao": "2014 a 2015",
+        "fontes": "Campos et al. (2019); Marques; Moro et al. (2016)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.251389,
+          -6.578333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nome": "Caatinga Serra Talhada (CST)",
+        "sigla": "CST",
+        "altitude_m": 467,
+        "altura_dossel_m": 8,
+        "altura_torre_m": 11,
+        "solo": "Luvissolo",
+        "dominio_fitogeografico": "Área cristalina",
+        "periodo_observacao": "2014 a 2015",
+        "fontes": "Silva et al. (2017); Moro et al. (2016)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -38.383889,
+          -7.968056
+        ]
+      }
+    }
+  ]
+}

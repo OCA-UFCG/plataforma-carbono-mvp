@@ -15,6 +15,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { area as turfArea } from '@turf/area'
 import appConfig from '@/config/mapa/layers.json'
+import { TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import {
   featureEntries,
@@ -62,6 +63,7 @@ interface VectorEntry {
   id:               string
   name:             string
   type:             string
+  theme?:           string
   url?:             string
   labelField?:      string
   hoverLabelField?: string
@@ -83,9 +85,14 @@ function vectorLayers(): VectorEntry[] {
   return (appConfig.layers as VectorEntry[]).filter((l) => l.type === 'vector')
 }
 
-/** The recorte layers that can be a report unit: the vectors that have a label. */
+/**
+ * The recorte layers that can be a report unit: the labelled vectors of the
+ * Território theme. Other themes hold points, such as the flux tower sites,
+ * which have no area to report on.
+ */
 export function listRecortes(): RecorteInfo[] {
   return vectorLayers().flatMap((layer) => {
+    if (layer.theme !== TERRITORY_THEME_ID) return []
     const labelField = labelFieldOf(layer)
     if (!labelField || !layer.url) return []
     return [{ layerId: layer.id, layerName: layer.name, labelField }]

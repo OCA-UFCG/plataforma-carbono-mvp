@@ -12,6 +12,7 @@ import Welcome from './Welcome'
 import { useStore, camadasARestaurar, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildTheme } from '@/config/mapa/platforms'
 import { resolveMonth } from '@/lib/phenology'
+import { isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import type { PlatformTheme } from '@/types/mapa'
 
 export default function Mapa() {
@@ -43,7 +44,7 @@ export default function Mapa() {
   // Same predicate ResultsSidebar renders on -- shared, because two copies of
   // it is what let the panel and the controls disagree about being open.
   const resultsHasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
-  const activeRaster = layers.some((l) => l.type === 'raster' && l.visible)
+  const activeRaster = layers.some(isMeasuredRaster)
   const resultsVisible = resultsHasContent || activeRaster
 
   const [resultsCollapsed, setResultsCollapsed] = useState(false)

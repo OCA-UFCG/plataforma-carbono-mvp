@@ -3,6 +3,8 @@ export interface SubthemeInfo {
   label: string
   /** A choice replaces the previous layer of this subtheme. */
   exclusive: boolean
+  /** Shows the 3D terrain switch under the subtheme's layers. */
+  terrain?: true
 }
 
 export interface ThemeInfo {
@@ -55,6 +57,15 @@ export const THEMES: ThemeInfo[] = [
     subthemes: [
       { id: 'vegetacao', label: 'Vegetação e fenologia', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
+      // The one thematic exception, so the hillshade can be combined with
+      // altitude or slope; layers.json order sets which one is drawn on top.
+      { id: 'relevo', label: 'Relevo', exclusive: false, terrain: true },
+    ],
+  },
+  {
+    id: 'localidades', label: 'Localidades', color: '#8B5E34', image: '/images/cards/localidades.png',
+    subthemes: [
+      { id: 'monitoramento', label: 'Áreas de Monitoramento', exclusive: false },
     ],
   },
 ]

@@ -91,6 +91,8 @@ interface MapaStore {
   /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
   homeSignal: number
   basemapId: string
+  /** Relief in 3D, from the elevation tiles of the Relevo subtheme. Not persisted. */
+  terrain3d: boolean
   darkMode: boolean
   // Current viewport and drawing. They live in the store so persistence has a
   // single read point; MapView consumes them on mount and feeds them afterwards.
@@ -137,6 +139,7 @@ interface MapaStore {
   setAnalysisLabel: (v: string | null) => void
   setAnalysisKind:  (v: string | null) => void
   setBasemap:     (id: string) => void
+  setTerrain3d:   (on: boolean) => void
   setView:        (v: PersistedView) => void
   setDrawing:     (f: GeoJSON.Feature | null) => void
   toggleDarkMode: () => void
@@ -166,6 +169,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   clearSignal: 0,
   homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
+  terrain3d: false,
   // Dark mode: hydrates from localStorage on the client and, with no stored
   // mark, follows the operating system preference.
   // LEGACY: until 2026-07 the key was 'websig-dark-mode'. It is still read once
@@ -297,6 +301,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   setAnalysisLabel: (v)    => set({ analysisLabel: v }),
   setAnalysisKind:  (v)    => set({ analysisKind: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
+  setTerrain3d:   (on)     => set({ terrain3d: on }),
   toggleDarkMode: () =>
     set((s) => {
       const next = !s.darkMode

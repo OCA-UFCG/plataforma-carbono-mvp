@@ -203,6 +203,18 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     threshold: { value: 5, label: 'Área com dossel de 5 m ou mais' },
     period: '2023',
   },
+  altitude_fabdem: {
+    archetype: 'distribution',
+    scale: 30,
+    bins: [0, 200, 400, 600, 800, 1000],
+  },
+  // The edges are the Embrapa relief classes, from "plano" (0 to 3%) to
+  // "escarpado" (above 75%).
+  declividade_fabdem: {
+    archetype: 'distribution',
+    scale: 30,
+    bins: [0, 3, 8, 20, 45, 75],
+  },
 
   gfw_netflux: {
     archetype: 'flux',

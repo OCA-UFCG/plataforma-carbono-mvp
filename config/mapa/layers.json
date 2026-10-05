@@ -98,6 +98,25 @@
       "subtheme": "territorios"
     },
     {
+      "id": "areas_monitoramento",
+      "name": "Áreas de Monitoramento",
+      "unitName": "Área de monitoramento",
+      "type": "vector",
+      "url": "/data/vector/areas_monitoramento.geojson",
+      "visible": false,
+      "opacity": 100,
+      "color": "#D62828",
+      "hoverLabelField": "nome",
+      "pickPriority": 60,
+      "theme": "localidades",
+      "subtheme": "monitoramento",
+      "pulse": true,
+      "model": {
+        "url": "/models/torre.glb",
+        "height": 22
+      }
+    },
+    {
       "id": "estoque_carbono",
       "name": "Estoque de Carbono (Quarto Inventário Nacional)",
       "type": "raster",
@@ -1178,6 +1197,133 @@
       "unit": "°C",
       "theme": "ambiente",
       "subtheme": "clima"
+    },
+    {
+      "id": "altitude_fabdem",
+      "name": "Altitude (FABDEM)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/altitude_fabdem_m",
+          "band": "altitude",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 1400,
+          "palette": [
+            "#3b7d4a",
+            "#6fa65a",
+            "#b5cf7b",
+            "#ece59a",
+            "#e3c27a",
+            "#cf9a5a",
+            "#a8703f",
+            "#7f5233",
+            "#f3efe8"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        1400
+      ],
+      "unit": "m",
+      "theme": "ambiente",
+      "subtheme": "relevo"
+    },
+    {
+      "id": "declividade_fabdem",
+      "name": "Declividade (FABDEM)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/declividade_fabdem_pct",
+          "band": "declividade_pct",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 45,
+          "palette": [
+            "#ffffcc",
+            "#ffeda0",
+            "#fed976",
+            "#feb24c",
+            "#fd8d3c",
+            "#fc4e2a",
+            "#e31a1c",
+            "#b10026"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        45
+      ],
+      "unit": "%",
+      "theme": "ambiente",
+      "subtheme": "relevo"
+    },
+    {
+      "id": "hillshade_fabdem",
+      "name": "Relevo Sombreado (FABDEM)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/hillshade_fabdem",
+          "band": "hillshade",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 130,
+          "max": 230,
+          "palette": [
+            "#000000",
+            "#ffffff"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 40,
+      "colorType": "continuous",
+      "rescale": [
+        130,
+        230
+      ],
+      "analysis": false,
+      "theme": "ambiente",
+      "subtheme": "relevo"
+    },
+    {
+      "id": "sombreado_terreno",
+      "name": "Relevo Sombreado (Copernicus GLO-30)",
+      "type": "raster",
+      "source": "dem",
+      "dem": {
+        "url": "https://tiles.mapterhorn.com/tilejson.json"
+      },
+      "visible": false,
+      "opacity": 70,
+      "colorType": "continuous",
+      "analysis": false,
+      "theme": "ambiente",
+      "subtheme": "relevo"
     },
     {
       "id": "lulc_mapbiomas",

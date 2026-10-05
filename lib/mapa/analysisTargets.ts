@@ -1,4 +1,4 @@
-import type { LayerConfig, VectorLayerConfig } from '@/types/mapa'
+import type { LayerConfig, RasterLayerConfig, VectorLayerConfig } from '@/types/mapa'
 
 /**
  * What a click on the map is actually able to analyse.
@@ -27,9 +27,14 @@ const recorteList = new Intl.ListFormat('pt-BR', { style: 'long', type: 'disjunc
 const DRAW_FALLBACK =
   'ou delimite a área com Polígono, Ponto ou Coordenadas, nas ferramentas de desenho do botão do lápis.'
 
-/** Index of the topmost visible raster; -1 when none is on. */
+/** A visible raster the results panel measures. */
+export function isMeasuredRaster(layer: LayerConfig): layer is RasterLayerConfig {
+  return layer.type === 'raster' && layer.visible && layer.analysis !== false
+}
+
+/** Index of the topmost visible raster that is measured; -1 when none is on. */
 export function topVisibleRasterIndex(layers: LayerConfig[]): number {
-  return layers.findIndex((layer) => layer.type === 'raster' && layer.visible)
+  return layers.findIndex(isMeasuredRaster)
 }
 
 /**

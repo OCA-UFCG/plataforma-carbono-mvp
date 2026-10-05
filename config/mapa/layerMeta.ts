@@ -16,6 +16,7 @@ export const LAYER_META: Record<string, LayerMeta> = {
   municipios:       { description: 'malha municipal',                source: 'IBGE',                 kind: 'Vetorial' },
   terras_indigenas: { description: 'terras indígenas',              source: 'Funai',                kind: 'Vetorial' },
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
+  areas_monitoramento: { description: 'sítios com torre de fluxo por covariância de vórtices em área de Caatinga', source: 'Moro et al. (2016) e estudos de cada sítio', kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
 
   // The only layer whose click opens a report, not the band statistics: the
@@ -58,4 +59,14 @@ export const LAYER_META: Record<string, LayerMeta> = {
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5 km',        kind: 'Raster contínuo' },
   lst_modis:        { description: 'temperatura de superfície',      source: 'MODIS, 1 km',         kind: 'Raster contínuo' },
+  // FABDEM is Copernicus GLO-30 with trees and buildings removed, so it reads
+  // the ground and not the canopy. Its CC BY-NC-SA 4.0 licence bars commercial
+  // use and binds derived data to the same terms, which is why the description
+  // names it.
+  altitude_fabdem:    { description: 'altitude do terreno, com árvores e edificações removidas do modelo digital de elevação; licença CC BY-NC-SA 4.0', source: 'FABDEM v1.2, 30 m', kind: 'Raster contínuo' },
+  declividade_fabdem: { description: 'declividade do terreno em porcentagem; licença CC BY-NC-SA 4.0', source: 'FABDEM v1.2, 30 m', kind: 'Raster contínuo' },
+  // Drawn by MapLibre from public elevation tiles, the same that feed the 3D
+  // terrain. GLO-30 keeps trees and buildings, unlike the FABDEM above.
+  sombreado_terreno:  { description: 'relevo sombreado do modelo de superfície Copernicus GLO-30, que inclui vegetação e edificações', source: 'Mapterhorn, Copernicus GLO-30', kind: 'Raster contínuo' },
+  hillshade_fabdem:   { description: 'relevo sombreado, com luz vinda do noroeste a 45° de elevação; licença CC BY-NC-SA 4.0', source: 'FABDEM v1.2, 30 m', kind: 'Raster contínuo' },
 }
