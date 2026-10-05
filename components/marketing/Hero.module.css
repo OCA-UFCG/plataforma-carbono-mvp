@@ -13,8 +13,8 @@
 /* The design's 495px is a floor: the h1 -> lead gap is 16px (.copy), the
  * button row is 8 + 40px (the secondary button's border is 1px, so both
  * buttons are 40 tall) and the dot row is 13px (.dots). At 1276px the tallest
- * copy, CAATINGA_COPY (4 title lines + 2 lead lines), sets it at 511:
- *   82 + 278.1 + 21 + 48 + 40 + 13 + 29 = 511.1. */
+ * card, INICIATIVA_CARD (3 title lines + 2 lead lines), stays under it:
+ *   82 + 226.6 + 21 + 48 + 40 + 13 + 29 = 459.6. */
 .hero {
   position: relative;
   min-height: 495px;
@@ -85,31 +85,23 @@
   padding-block: 82px 40px;
 }
 
+/* The photos' cards share one grid cell, so the hero is as tall as the
+ * tallest card whichever is showing. Each sits at the bottom of the cell, so
+ * the buttons keep their place and a shorter card just starts lower. The
+ * outgoing card fades out before the incoming one fades in, so the two never
+ * overlap legibly mid-change. */
 .content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 21px;
+  display: grid;
   max-width: 568px;
 }
 
-/* The photos' copies share one grid cell, so the hero is as tall as the
- * tallest copy whichever is showing. Each sits at the bottom of the cell,
- * keeping the column's 21px above the buttons; a shorter copy just starts
- * lower. The outgoing copy fades out before the incoming one fades in, so the
- * two never overlap legibly mid-change. */
-.copyStack {
-  display: grid;
-}
-
-/* Figma groups the h1 and the lead in their own container (18862:8524) with
- * a 16px gap, tighter than the column's 21. */
-.copy {
+.card {
   grid-area: 1 / 1;
   align-self: end;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 21px;
   opacity: 0;
   visibility: hidden;
   transition:
@@ -117,7 +109,7 @@
     visibility 0s linear 0.4s;
 }
 
-.copyActive {
+.cardActive {
   opacity: 1;
   visibility: visible;
   transition:
@@ -126,10 +118,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .copy,
-  .copyActive {
+  .card,
+  .cardActive {
     transition: none;
   }
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* The h1's own scale (see file header comment): Archivo Narrow, Bold, 48px,
@@ -167,7 +165,7 @@
 }
 
 /* Resting fill is deliberately bound to -hover, not -padrao: Figma node
- * 18862:8529 (the "Acessar plataforma" button) carries exactly two colour
+ * 18862:8529 (the hero's filled button) carries exactly two colour
  * variables, ROLE-MarcaAncora-TextoSobre and ROLE-MarcaAncora-Hover, with no
  * -Padrao binding at all. This matches the design; do not "fix" it back. */
 .primaryButton {
