@@ -1,0 +1,261 @@
+/* Opening gallery of territory types: a row of panels, one open at a time.
+   A closed panel shows its art and its name read upwards; the open one widens
+   and carries the name, one line and the button into the type. On a phone the
+   row becomes a column of bands. */
+
+.territorios-galeria {
+  display: flex;
+  gap: 16px;
+  height: clamp(440px, 64vh, 600px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.territorios-painel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--am-200);
+  transition: flex-grow 0.5s ease;
+}
+
+.territorios-painel[data-aberto] {
+  flex-grow: 5.5;
+}
+
+.territorios-painel-arte {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dark from the bottom up, under the white text; --bg-fundo-inverso. */
+.territorios-painel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgb(0 15 21 / 0) 35%, rgb(0 15 21 / 0.55) 60%, rgb(0 15 21 / 0.9) 100%);
+  pointer-events: none;
+}
+
+.territorios-painel-aba,
+.territorios-painel-conteudo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: #ffffff;
+}
+
+.territorios-painel-aba {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 0 28px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.territorios-painel-aba:hover {
+  background: rgb(0 15 21 / 0.18);
+}
+
+.territorios-painel-aba:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: -6px;
+  border-radius: 16px;
+}
+
+/* Read from the bottom up, as on a book's spine. */
+.territorios-painel-rotulo,
+.territorios-painel-rotulo-embreve {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+
+.territorios-painel-rotulo {
+  font-family: var(--font-titulo);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.territorios-painel-rotulo-embreve,
+.territorios-painel-embreve {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.territorios-painel-conteudo {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 40px;
+  /* Waits for the panel to widen, so the text is never laid out in a strip. */
+  animation: territorios-painel-entra 0.3s ease 0.25s both;
+}
+
+@keyframes territorios-painel-entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.territorios-painel-titulo {
+  margin: 0;
+  font-family: var(--font-titulo);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 44px;
+  text-transform: uppercase;
+}
+
+.territorios-painel-titulo:focus {
+  outline: none;
+}
+
+.territorios-painel-titulo:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+.territorios-painel-texto {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.territorios-painel-botao {
+  min-height: 48px;
+  padding: 0 32px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--role-marca-ancora-texto-sobre);
+  background: var(--role-marca-ancora-hover);
+  border: 0;
+  border-radius: var(--radius-interno);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.territorios-painel-botao:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+.territorios-painel-botao:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.territorios-painel-embreve {
+  padding: 8px 16px;
+  border: 1px solid #ffffff;
+  border-radius: var(--radius-interno);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .territorios-galeria {
+    gap: 8px;
+  }
+
+  .territorios-painel[data-aberto] {
+    flex-grow: 4;
+  }
+
+  .territorios-painel-conteudo {
+    padding: 24px;
+  }
+
+  .territorios-painel-titulo {
+    font-size: 32px;
+    line-height: 36px;
+  }
+}
+
+@media (max-width: 767px) {
+  .territorios-galeria {
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+  }
+
+  .territorios-painel {
+    flex: none;
+    height: 64px;
+    transition: height 0.4s ease;
+  }
+
+  .territorios-painel[data-aberto] {
+    height: 380px;
+  }
+
+  .territorios-painel::after {
+    background: linear-gradient(to right, rgb(0 15 21 / 0.85), rgb(0 15 21 / 0.35));
+  }
+
+  .territorios-painel[data-aberto]::after {
+    background: linear-gradient(to bottom, rgb(0 15 21 / 0) 25%, rgb(0 15 21 / 0.6) 55%, rgb(0 15 21 / 0.9) 100%);
+  }
+
+  .territorios-painel-aba {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
+
+  .territorios-painel-rotulo,
+  .territorios-painel-rotulo-embreve {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+
+  .territorios-painel-rotulo {
+    font-size: 18px;
+  }
+
+  .territorios-painel-conteudo {
+    gap: 12px;
+    padding: 24px 20px;
+    animation-delay: 0.2s;
+  }
+
+  .territorios-painel-titulo {
+    font-size: 28px;
+    line-height: 32px;
+  }
+
+  .territorios-painel-texto {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .territorios-painel,
+  .territorios-painel-aba,
+  .territorios-painel-botao {
+    transition: none;
+  }
+
+  .territorios-painel-conteudo {
+    animation: none;
+  }
+}

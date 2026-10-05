@@ -6,18 +6,24 @@
 import { numero } from '@/lib/mapa/format'
 import type { TerritoryTypeId } from '@/types/territorios'
 
-/** "a", "a e b", "a, b e c". */
-function listPt(items: readonly string[]): string {
-  if (items.length < 2) return items.join('')
-  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`
-}
-
 export const INTRO = {
   eyebrow: 'Territórios',
   title:   'Que território você quer conhecer?',
   /** Receives the labels of the types not enabled yet, as the cards name them. */
-  soon:    (labels: readonly string[]) => `Em breve: ${listPt(labels.map((l) => l.toLowerCase()))}`,
   homeLabel: 'Página inicial da Caativar',
+  explore:   'Explorar',
+  soonBadge: 'Em breve',
+  /** One line under the title of each open panel. Counts from public/data/vector/*.geojson. */
+  descriptions: {
+    bioma:                 'A Caatinga inteira, com 862.626 km² em dez estados.',
+    estado:                'Os dez estados com área na Caatinga.',
+    municipio:             'Os 1.210 municípios com área na Caatinga.',
+    terra_indigena:        'As 50 terras indígenas com área na Caatinga.',
+    territorio_quilombola: 'Os 86 territórios quilombolas com área na Caatinga.',
+    assentamento:          'Os 1.923 assentamentos da reforma agrária com área na Caatinga.',
+    propriedade_rural:     'Imóveis rurais do Cadastro Ambiental Rural.',
+    unidade_conservacao:   'Unidades de conservação federais, estaduais e municipais.',
+  } satisfies Record<TerritoryTypeId, string>,
 }
 
 export const CHOOSER = {
