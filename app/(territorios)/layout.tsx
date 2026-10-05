@@ -3,6 +3,7 @@ import '../globals.css'
 import '../territorios.css'
 import { archivoNarrow, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import { FAVICON } from '@/lib/favicon'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
 // its summary, so it cannot share (mapa)'s locked viewport; being a sibling
@@ -19,7 +20,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 export const metadata: Metadata = {
   title: 'Territórios | Caativar',
   robots: { index: false, follow: false },
-  icons: { icon: '/logos/logo_oca.png' },
+  icons: FAVICON,
 }
 
 // The session is checked by the page, not here. Layout and page render in

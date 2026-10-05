@@ -4,6 +4,7 @@ import '../mapa.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { Analytics } from '@/components/Analytics'
+import { FAVICON } from '@/lib/favicon'
 import { libreFranklin } from '../fonts/app'
 
 // Root layout of the maps and analysis module: full screen, without the
@@ -13,7 +14,7 @@ import { libreFranklin } from '../fonts/app'
 export const metadata: Metadata = {
   title: 'Mapas e análises | Caativar',
   description: 'Módulo de mapas e análises do carbono florestal do bioma Caatinga. OCA, UFCG, INSA.',
-  icons: { icon: '/logos/logo_oca.png' },
+  icons: FAVICON,
 }
 
 export default async function MapaLayout({

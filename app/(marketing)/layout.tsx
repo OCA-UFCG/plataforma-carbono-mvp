@@ -5,6 +5,7 @@ import "../globals.css";
 import { getAuthenticatedSession, loginRedirect } from "@/lib/auth";
 import { REQUEST_PATH_HEADER } from "@/lib/marketing/requestPath";
 import { Analytics } from "@/components/Analytics";
+import { FAVICON } from "@/lib/favicon";
 import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 
 // Root layout of the marketing pages. The maps module has its own root layout
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   },
   description:
     "Sistema integrado de monitoramento do carbono florestal do bioma Caatinga: dados espaciais, metodologia adaptada ao semiárido, governança e integridade dos mercados de carbono.",
-  icons: { icon: "/logos/logo_oca.png" },
+  icons: FAVICON,
 };
 
 export default async function MarketingLayout({
