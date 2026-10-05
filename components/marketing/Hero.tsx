@@ -35,12 +35,12 @@ const TERRITORIOS_CARD: HeroCard = {
 
 const CARDS = [INICIATIVA_CARD, VALORIZACAO_CARD, TERRITORIOS_CARD];
 
-// The five rotating background photos (Figma node 18862:8516, "Background";
+// The three rotating background photos (Figma node 18862:8516, "Background";
 // the design's own image fill is a single placeholder frame, so the rotation
 // behaviour absorbed from the deleted components/HeroBackground.tsx drives
 // these committed assets instead). `credit` is deliberately optional: the
 // Figma overlay text "Foto: [nome da equipe]" is placeholder copy, not real
-// copy. The real, mandatory credit for these five photos is documented in
+// copy. The real, mandatory credit for these photos is documented in
 // IMAGENS.md ("Fotos de Artur Lourenço" — "Crédito na página: 'Fotos: Artur
 // Lourenço'"), the same wording the pre-redesign hero rendered; it is filled
 // in below so the overlay renders it — see the `activePhoto.credit` check.
@@ -52,14 +52,11 @@ type HeroPhoto = {
 };
 
 // `alt` numbers the photos in the order they show, which the dots announce;
-// the file names keep their original numbering. The last two photos run the
-// first two cards again.
+// the file names keep their original numbering.
 const PHOTOS: HeroPhoto[] = [
   { src: "/images/hero/hero2.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço", card: INICIATIVA_CARD },
   { src: "/images/hero/hero3.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço", card: VALORIZACAO_CARD },
   { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço", card: TERRITORIOS_CARD },
-  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço", card: INICIATIVA_CARD },
-  { src: "/images/hero/hero5.jpg", alt: "Foto 5 da Caatinga", credit: "Artur Lourenço", card: VALORIZACAO_CARD },
 ];
 
 // Long enough to read the longest card (INICIATIVA_CARD, 27 words) after its
