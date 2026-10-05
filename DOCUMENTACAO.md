@@ -4,7 +4,7 @@ Plataforma de monitoramento do carbono florestal do bioma Caatinga. Exibe camada
 
 Esta é a Fase 1, focada em três coisas: as camadas presentes, os recortes territoriais e as estatísticas por recorte e por desenho. Sem camadas temporais nesta fase.
 
-O módulo de mapas e as páginas institucionais são uma aplicação Next.js só, num repositório só. O módulo ocupa a rota `/mapa`; as páginas de marketing ocupam `/`. O botão "Abrir os mapas" usa `MAPA_URL` (`lib/config.ts`), que resolve para `/mapa` a menos que `NEXT_PUBLIC_MAPA_URL` diga outra coisa.
+O módulo de mapas e as páginas institucionais são uma aplicação Next.js só, num repositório só. O módulo ocupa a rota `/mapa`; as páginas de marketing ocupam `/`. O botão "Acessar plataforma" usa `MAPA_URL` (`lib/config.ts`), que resolve para `/mapa` a menos que `NEXT_PUBLIC_MAPA_URL` diga outra coisa.
 
 ## Stack
 
@@ -111,7 +111,7 @@ Plataforma única: só o tema "Caativar". O seletor de plataformas e os layouts 
 
 O motivo é CSS. O `mapa.css` zera a rolagem (`html, body { overflow: hidden }`), pinta o fundo com `--paper` e troca a família tipográfica; aplicado às páginas de marketing, mataria a rolagem da landing. O `globals.css` define `.container`, a escala tipográfica e os tokens do design system do Figma, que não têm uso no mapa. Com layouts raiz separados, o Next.js emite um chunk de CSS por grupo e nenhum dos dois alcança o outro. Verificado no build: o CSS de `/` não contém `--paper`, `--acc` nem `overflow:hidden` no `body`; o de `/mapa` não contém `.container`, `--role-marca-ancora-padrao` nem Rubik.
 
-O preço é que navegar entre os dois grupos é um carregamento de página inteiro, não uma transição de cliente. Por isso todo link que cruza a fronteira usa `<a href>`, não `next/link`: os botões "Abrir os mapas" e a marca no header do módulo, que volta para `/`.
+O preço é que navegar entre os dois grupos é um carregamento de página inteiro, não uma transição de cliente. Por isso todo link que cruza a fronteira usa `<a href>`, não `next/link`: o botão "Acessar plataforma" e a marca no header do módulo, que volta para `/`.
 
 ## Configuração e execução
 

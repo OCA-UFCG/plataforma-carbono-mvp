@@ -86,7 +86,7 @@ export default function Hero() {
           <div className={styles.actions}>
             {/* MAPA_LINK crosses a route group: a full page load, not next/link. */}
             <a href={MAPA_LINK.href} className={`${styles.primaryButton} text-ui-medium`}>
-              Abrir os mapas
+              Acessar plataforma
             </a>
             <a href="#comunicacao" className={`${styles.secondaryButton} text-ui-medium`}>
               Ver materiais

@@ -144,7 +144,7 @@
 }
 
 /* Resting fill is deliberately bound to -hover, not -padrao: Figma node
- * 18862:8529 (the "Abrir os mapas" button) carries exactly two colour
+ * 18862:8529 (the "Acessar plataforma" button) carries exactly two colour
  * variables, ROLE-MarcaAncora-TextoSobre and ROLE-MarcaAncora-Hover, with no
  * -Padrao binding at all. This matches the design; do not "fix" it back. */
 .primaryButton {
