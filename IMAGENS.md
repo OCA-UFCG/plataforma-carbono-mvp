@@ -82,6 +82,15 @@ Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encont
 
 Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação em evento), `f3.jpg` (oficina), `f4.jpg` (roda de diálogo), `f6.jpg` (foto de grupo), `f7.jpg` (oficina com a sociedade civil). A sétima selecionada era um momento cultural em orientação retrato (`f5`), removida porque o carrossel usa moldura paisagem 3:2 e a foto perdia metade do conteúdo no recorte. As legendas são provisórias (descrevem o que se vê); ajustar quando houver a identificação dos eventos. A pasta `../fotos` tem mais imagens disponíveis e um `photos_caatinga.zip` (não usado).
 
+## Eventos (public/images/eventos/)
+
+Fotos dos dois eventos da aba "Eventos e articulações" da página Comunicação, exportadas do Figma (preenchimento de imagem do card, nó 19254:16456) e convertidas para JPEG progressivo de 760 px de largura com Pillow. Só entram no fallback (`DEFAULT_EVENTOS` em `lib/content/eventos.ts`): com o Contentful configurado, a página usa a foto de cada entrada de Evento. O crédito de cada foto está na legenda do card.
+
+| Arquivo | Evento | Crédito |
+|---|---|---|
+| `encontro-brasil-tunisia.jpg` | Encontro Brasil e Tunísia (17/09/2026) | peasa.ufcg.edu.br, 2026 |
+| `reuniao-mpi.jpg` | Reunião com o Ministério dos Povos Indígenas (15/09/2026) | MPI, 2026 |
+
 ## Plataforma (public/images/)
 
 `plataforma_preview.jpg` (captura de tela do mapa, camada de GPP ativa) foi removido junto com a versão anterior da seção "A plataforma"; o arquivo não existe mais. A seção reconstruída usa `plataforma/o-que-e.webp` (680×500, 72 KB), exportada pela API REST do

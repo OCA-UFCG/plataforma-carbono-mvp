@@ -84,6 +84,23 @@ const PUBLICATION_TYPES: ProvisionedType[] = [
       { id: 'order', name: 'Ordem', type: 'Integer', required: true },
     ],
   },
+  {
+    id: 'evento',
+    name: 'Evento',
+    description:
+      'Evento ou articulação da aba "Eventos e articulações" da página Comunicação. A página lista os eventos do mais recente ao mais antigo, pela data.',
+    displayField: 'title',
+    fields: [
+      { id: 'categoria', name: 'Categoria', type: 'Symbol', required: true },
+      { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'date', name: 'Data', type: 'Date', required: true },
+      { id: 'local', name: 'Local', type: 'Symbol', required: false },
+      { id: 'description', name: 'Descrição', type: 'Text', required: true },
+      { id: 'photo', name: 'Foto', type: 'Link', linkType: 'Asset', required: true, image: true },
+      { id: 'photoAlt', name: 'Texto alternativo da foto', type: 'Symbol', required: true },
+      { id: 'caption', name: 'Legenda e fonte da foto', type: 'Text', required: false },
+    ],
+  },
 ]
 
 // A copy field is required unless declared optional: the page has a place for

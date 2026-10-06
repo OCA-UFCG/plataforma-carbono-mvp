@@ -7,6 +7,7 @@ import {
   getComunicacaoContent,
   listPublicacoes,
 } from '@/lib/content/comunicacao'
+import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 
@@ -91,5 +92,14 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
     for (const type of SITE_COPY_TYPES) {
       expect(response[type.id]?.items, type.id).toHaveLength(1)
     }
+  })
+
+  // getEventos falls back to the design's events on any error, so it would
+  // hide a space never provisioned with the `evento` type; the query runs here
+  // without that net.
+  it('serves the eventos query, with every field the page reads', async () => {
+    const response = await getContentfulClient()!<{ eventoCollection?: { items: unknown[] } }>(EVENTOS_QUERY)
+
+    expect(response.eventoCollection?.items).toBeInstanceOf(Array)
   })
 })
