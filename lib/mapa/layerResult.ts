@@ -22,7 +22,6 @@ import type {
   AnnualProfile,
   DistributionProfile,
   RecurrenceProfile,
-  ResultProfile,
 } from '@/config/mapa/resultProfiles'
 import type { AreaBin, PanelResult, RecurrenceCount } from '@/types/mapa'
 
@@ -85,22 +84,6 @@ export function countsFromGroups(groups: { k: number; sum: number }[]): Recurren
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function areaWhere(hectares: any, value: any, condition?: any): any {
   return condition ? hectares.multiply(condition) : hectares.updateMask(value.mask())
-}
-
-/**
- * The layer's asset changed to give a physical yearly value, for the annual
- * profiles that declare one. MODIS productivity is stored in raw counts with a
- * 0,0001 scale, and the 8-day GPP must be summed over the year rather than
- * averaged; the map tile keeps the raw counts, because its Jenks breaks were
- * computed on them.
- */
-export function physicalAsset(asset: GeeAssetConfig, profile: ResultProfile): GeeAssetConfig {
-  if (profile.archetype !== 'annual' || !profile.physical) return asset
-  return {
-    ...asset,
-    ...(profile.physical.reducer ? { reducer: profile.physical.reducer } : {}),
-    multiplier: (asset.multiplier ?? 1) * profile.physical.multiplier,
-  }
 }
 
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
@@ -297,7 +280,7 @@ async function annual(
   temporalDate: string | undefined, sums: Fn,
 ): Promise<PanelResult> {
   const scale = analysisScale(asset.scale ?? 500, regionM2)
-  const v = buildEeImage(ee, physicalAsset(asset, profile), temporalDate).rename('v')
+  const v = buildEeImage(ee, asset, temporalDate).rename('v')
   const m2 = ee.Image.pixelArea()
   // The mean is weighted by the geodesic pixel area: a plain `mean` weights
   // every pixel alike, and a degree-gridded product such as CHIRPS has pixels

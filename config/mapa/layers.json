@@ -680,7 +680,7 @@
       "gee": {
         "asset": {
           "type": "imageCollection",
-          "id": "MODIS/061/MOD17A2HGF",
+          "id": "MODIS/061/MOD17A3HGF",
           "band": "Gpp",
           "filterDate": [
             "2023-01-01",
@@ -689,66 +689,38 @@
           "reducer": "mean",
           "scale": 500,
           "validMin": 0,
-          "validMax": 32760,
-          "scaleFactor": 0.0001
-        },
-        "classify": {
-          "numClasses": 5,
-          "method": "jenks",
-          "breaks": [
-            228.6304,
-            293.3043,
-            351.413,
-            433.6087
-          ]
+          "validMax": 30000,
+          "multiplier": 0.1
         },
         "visParams": {
+          "min": 0,
+          "max": 2500,
           "palette": [
-            "#d73027",
-            "#fc8d59",
-            "#fee08b",
-            "#91cf60",
-            "#1a9850"
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
           ]
         },
         "temporal": {
           "dateRange": [
             "2001-01-01",
-            "2024-01-01"
+            "2025-01-01"
           ]
         }
       },
       "visible": false,
       "opacity": 80,
-      "colorType": "categorical",
-      "unit": "kg*C/m²/8day",
-      "classes": [
-        {
-          "value": 1,
-          "label": "Muito baixo",
-          "color": "#d73027"
-        },
-        {
-          "value": 2,
-          "label": "Baixo",
-          "color": "#fc8d59"
-        },
-        {
-          "value": 3,
-          "label": "Médio",
-          "color": "#fee08b"
-        },
-        {
-          "value": 4,
-          "label": "Alto",
-          "color": "#91cf60"
-        },
-        {
-          "value": 5,
-          "label": "Muito alto",
-          "color": "#1a9850"
-        }
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        2500
       ],
+      "unit": "g C/m²/ano",
       "theme": "carbono",
       "subtheme": "fluxos"
     },
@@ -818,65 +790,37 @@
           "scale": 500,
           "validMin": -30000,
           "validMax": 32760,
-          "scaleFactor": 0.0001
-        },
-        "classify": {
-          "numClasses": 5,
-          "method": "jenks",
-          "breaks": [
-            5352,
-            7133,
-            9055,
-            11883
-          ]
+          "multiplier": 0.1
         },
         "visParams": {
+          "min": 0,
+          "max": 1400,
           "palette": [
-            "#d73027",
-            "#fc8d59",
-            "#fee08b",
-            "#91cf60",
-            "#1a9850"
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
           ]
         },
         "temporal": {
           "dateRange": [
             "2001-01-01",
-            "2024-01-01"
+            "2025-01-01"
           ]
         }
       },
       "visible": false,
       "opacity": 80,
-      "colorType": "categorical",
-      "unit": "kg C/m²/ano",
-      "classes": [
-        {
-          "value": 1,
-          "label": "Muito baixo",
-          "color": "#d73027"
-        },
-        {
-          "value": 2,
-          "label": "Baixo",
-          "color": "#fc8d59"
-        },
-        {
-          "value": 3,
-          "label": "Médio",
-          "color": "#fee08b"
-        },
-        {
-          "value": 4,
-          "label": "Alto",
-          "color": "#91cf60"
-        },
-        {
-          "value": 5,
-          "label": "Muito alto",
-          "color": "#1a9850"
-        }
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        1400
       ],
+      "unit": "g C/m²/ano",
       "theme": "carbono",
       "subtheme": "fluxos"
     },

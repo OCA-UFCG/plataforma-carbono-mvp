@@ -72,12 +72,6 @@ export interface AnnualProfile extends Common {
   archetype: 'annual'
   meanLabel: string
   unit: string
-  /**
-   * Changes to the layer's asset needed for a physical yearly value. The map
-   * tile of the MODIS productivity layers stays in raw counts, because its
-   * Jenks breaks were computed on them.
-   */
-  physical?: { reducer?: 'sum'; multiplier: number }
   /** Productivity: the yearly value summed over the area; m² per unit of the total. */
   total?: { label: string; unit: string; areaDivisor: number }
 }
@@ -243,14 +237,12 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     archetype: 'annual',
     meanLabel: 'GPP média',
     unit: 'g C/m²/ano',
-    physical: { reducer: 'sum', multiplier: 0.1 },
     total: { label: 'GPP total', unit: 't C/ano', areaDivisor: 1e6 },
   },
   npp_modis: {
     archetype: 'annual',
     meanLabel: 'NPP média',
     unit: 'g C/m²/ano',
-    physical: { multiplier: 0.1 },
     total: { label: 'NPP total', unit: 't C/ano', areaDivisor: 1e6 },
   },
   gpp_pml: {
