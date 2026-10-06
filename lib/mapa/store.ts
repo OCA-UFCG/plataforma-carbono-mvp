@@ -26,8 +26,9 @@ const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
 // The layers the panel offers. A `hidden` layer stays in layers.json, so the
-// Territórios story and the GEE allowlist still reach it, but the map module
-// never lists, draws or restores it.
+// GEE allowlist and the Territórios story still reach it, but the map module
+// never lists, draws or restores it; a theme or subtheme left without layers
+// drops out of the panel with them.
 const PANEL_LAYERS = (appConfig.layers as LayerConfig[]).filter((l) => !l.hidden)
 
 // State from the previous session, checked against today's layers.json. Read

@@ -114,7 +114,8 @@
       "model": {
         "url": "/models/torre.glb",
         "height": 22
-      }
+      },
+      "hidden": true
     },
     {
       "id": "estoque_carbono",
@@ -1182,7 +1183,8 @@
       ],
       "unit": "m",
       "theme": "ambiente",
-      "subtheme": "relevo"
+      "subtheme": "relevo",
+      "hidden": true
     },
     {
       "id": "declividade_fabdem",
@@ -1221,7 +1223,8 @@
       ],
       "unit": "%",
       "theme": "ambiente",
-      "subtheme": "relevo"
+      "subtheme": "relevo",
+      "hidden": true
     },
     {
       "id": "hillshade_fabdem",
@@ -1254,7 +1257,8 @@
       ],
       "analysis": false,
       "theme": "ambiente",
-      "subtheme": "relevo"
+      "subtheme": "relevo",
+      "hidden": true
     },
     {
       "id": "sombreado_terreno",
@@ -1269,7 +1273,8 @@
       "colorType": "continuous",
       "analysis": false,
       "theme": "ambiente",
-      "subtheme": "relevo"
+      "subtheme": "relevo",
+      "hidden": true
     },
     {
       "id": "lulc_mapbiomas",
