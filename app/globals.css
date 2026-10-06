@@ -43,6 +43,9 @@
   --ctx-negativo-container: #efd7d2;
   --ctx-informativo-texto-sobre: #ffffff;
   --ctx-positivo-texto-sobre-container: #001d27;
+  /* The badge on the cards of "Duas formas de explorar os dados" (Figma
+   * 19253:15372), on the working copy QP5obFCTTfjCSMVO8VgOc7. */
+  --role-categorica1-texto-sobre: #ffffff;
   /* The label colour of the filled green buttons ("Mapas",
    * I18862:8515;16825:136055; "Explore os dados", I18862:8574;13:904), a
    * variable of the design's base collection rather than the ROLE set. */
@@ -61,6 +64,8 @@
   --am-100: #e6eaeb;
   --am-200: #bfcace;
   --am-400: #526f78;
+  /* The cards' panel in "Duas formas de explorar os dados" (19253:15369). */
+  --am-500: #002b39;
   --ar-050: #fefefb;
   --cb-400: #72ae9b;
   --cb-600: #27725b;
@@ -151,6 +156,16 @@ section {
   line-height: 36px;
   /* The Figma style tracks at -0.75%, which is -0.225px at 30px. */
   letter-spacing: -0.225px;
+}
+
+/* Rubik SemiBold 20/28, the Figma h4 style; it tracks at -0.5%, which is
+ * -0.1px at 20px. */
+.text-h4 {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.1px;
 }
 
 .text-lead {

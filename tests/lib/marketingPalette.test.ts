@@ -28,12 +28,10 @@ const PAIRS: [string, string][] = [
   // as foreground (the Comunicação h2, the active tab, the active nav link,
   // the global focus ring) on the page background. The hero's primary button
   // rests on --role-marca-ancora-hover instead (Hero.module.css, deliberate,
-  // matching Figma node 18862:8529), so that pair is covered here too;
-  // Ferramenta's button rests on -categorica1-padrao, the pair above.
+  // matching Figma node 18862:8529), so that pair is covered here too.
   ['--role-marca-ancora-padrao', '--bg-fundo'],
   ['--role-marca-ancora-texto-sobre', '--role-marca-ancora-hover'],
-  // Hover states (Figma "Hover" frames on the home section, 18916:*):
-  // Ferramenta's button darkens to -categorica1-hover (18916:9764); the nav
+  // Hover states (Figma "Hover" frames on the home section, 18916:*): the nav
   // link and the "Entrar" button put their text on an --am-100 fill
   // (18916:9717, 18916:9741); an inactive tab darkens to the primary text
   // colour (18916:9468), already covered by the first pair above.
@@ -100,21 +98,23 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-secundario', '--role-primario-texto-sobre'],
   ['--am-400', '--role-primario-texto-sobre'],
   ['--bg-texto-primario', '--role-primario-texto-sobre'],
-  // Ferramenta's band (Figma 18862:8547) is -categorica2-hover: its eyebrow
-  // (--am-200), title (-ctx-positivo-texto-sobre), body and list; its button
-  // label is --primary-foreground at rest and on the hover fill (18916:9764).
-  ['--am-200', '--role-categorica2-hover'],
-  ['--ctx-positivo-texto-sobre', '--role-categorica2-hover'],
-  ['--bg-texto-sobre-inverso', '--role-categorica2-hover'],
-  ['--primary-foreground', '--role-categorica1-padrao'],
-  ['--primary-foreground', '--role-categorica1-hover'],
+  // "Duas formas de explorar os dados" (Figma 19253:14778, hover 19253:15506):
+  // each card's panel is --am-500, under its badge, its title and text (bound
+  // to --bg-fundo) and the hover list. The eyebrow on --am-100 and the button
+  // label on -marca-ancora-padrao are pairs above; the title is a large-text
+  // pair, below.
+  ['--role-categorica1-texto-sobre', '--am-500'],
+  ['--bg-fundo', '--am-500'],
+  ['--bg-texto-sobre-inverso', '--am-500'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
 // where AA asks for 3:1 instead of 4.5:1.
 const LARGE_TEXT_PAIRS: [string, string][] = [
   // The internal pages' h1, 30px semibold, on the intro band (Figma node
-  // 18988:8616). 4.01:1: short of the normal-text bar, clear of this one.
+  // 18988:8616), and the landing's "Os mesmos dados de carbono, dois
+  // caminhos", the same h2 on the same band (19253:14784). 4.01:1: short of
+  // the normal-text bar, clear of this one.
   ['--role-marca-ancora-padrao', '--am-100'],
   // The red card's 24px semibold title on its fill (issue #51), 3.76:1.
   ['--ctx-negativo-padrao', '--ctx-negativo-container'],

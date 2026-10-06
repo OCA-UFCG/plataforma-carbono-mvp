@@ -1,7 +1,8 @@
 import type { CopyType } from './model'
-import { INICIO_FERRAMENTA, INICIO_HERO } from '../inicio'
+import { INICIO_HERO } from '../inicio'
 import { INICIO_DESTAQUES } from '../destaques'
 import { INICIO_PLATAFORMA } from '../plataforma'
+import { INICIO_CAMINHOS } from '../caminhos'
 import { COMUNICACAO_PAGINA, SOBRE_INTRO } from '../paginas'
 import { SOBRE_PLATAFORMA } from '../sobre/plataforma'
 import { CAATINGA } from '../sobre/caatinga'
@@ -15,7 +16,7 @@ export const SITE_COPY_TYPES: CopyType[] = [
   INICIO_HERO,
   INICIO_DESTAQUES,
   INICIO_PLATAFORMA,
-  INICIO_FERRAMENTA,
+  INICIO_CAMINHOS,
   SOBRE_INTRO,
   SOBRE_PLATAFORMA,
   CAATINGA,

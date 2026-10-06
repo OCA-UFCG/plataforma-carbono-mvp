@@ -24,6 +24,17 @@ describe('marketing type utilities', () => {
     expect(rule('.text-h2')['letter-spacing']).toBe('-0.225px')
   })
 
+  // The Figma h4 style, Rubik SemiBold 20/28 tracked at -0.5% (-0.1px), as
+  // the cards of "Duas formas de explorar os dados" set it (19253:15373).
+  it('sets the h4 in Rubik 600 20px/28px, tracked at -0.1px', () => {
+    const props = rule('.text-h4')
+    expect(props['font-family']).toBe('var(--font-sans, var(--font-fallback))')
+    expect(props['font-weight']).toBe('600')
+    expect(props['font-size']).toBe('20px')
+    expect(props['line-height']).toBe('28px')
+    expect(props['letter-spacing']).toBe('-0.1px')
+  })
+
   it.each([
     ['.text-ui-medium', '500', '14px', '24px'],
     ['.text-ui-bold', '700', '14px', '24px'],
