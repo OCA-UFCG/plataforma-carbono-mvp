@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { INICIO_DESTAQUES, destaquesCards } from '@/lib/content/destaques'
 import { copyDefaults } from '@/lib/content/site/model'
@@ -25,5 +27,12 @@ describe('destaques content', () => {
 
   it('gives every card its own icon', () => {
     expect(new Set(DESTAQUES.map((d) => d.icone)).size).toBe(4)
+  })
+
+  // Four paths are not four icons: the files were once four copies of the
+  // same "Map" glyph. The design now draws a different one per card.
+  it('draws a different glyph on every card', () => {
+    const svgs = DESTAQUES.map((d) => readFileSync(path.join(process.cwd(), 'public', d.icone), 'utf8'))
+    expect(new Set(svgs).size).toBe(4)
   })
 })

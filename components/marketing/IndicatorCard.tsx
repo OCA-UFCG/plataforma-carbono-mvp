@@ -8,9 +8,9 @@ export type IndicatorCardProps = {
   // size, as the Sobre cards do ("1,5–5tCO₂/ha/ano"), goes in `value` instead.
   unit?: string;
   description: string;
-  // Defaults to the component's own 24px "Map" icon, the same artwork on the
-  // landing (Figma I18862:8542;18808:5943) and the Sobre pages
-  // (I18988:8714;18808:5943).
+  // Defaults to the component's own 24px "Map" icon, the artwork of the Sobre
+  // pages (Figma I18988:8714;18808:5943). The landing passes one per card
+  // (lib/content/destaques.ts).
   icon?: string;
   // 'raised': white card with a shadow, on the landing's grey band (Figma
   // 18862:8542..8545). 'outlined': cream fill inside a 1px border, on the page
