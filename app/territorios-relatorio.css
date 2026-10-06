@@ -300,8 +300,9 @@ button.territorios-selo:focus-visible {
 }
 
 /* The territory's cards (19254:37459): its share of the biome at 172 px, its
-   rank in the rest; D-DIN Bold 24 over Rubik 14. The bioma has none, and its
-   empty list takes no room. */
+   rank in the rest; D-DIN Bold 24 over Rubik 14. A territory under 0,1% of
+   the biome keeps the rank alone, across the column; the bioma has none, and
+   its empty list takes no room. */
 .territorios-indicadores {
   display: grid;
   grid-template-columns: 172px minmax(0, 1fr);
@@ -313,6 +314,10 @@ button.territorios-selo:focus-visible {
 
 .territorios-indicadores:empty {
   display: none;
+}
+
+.territorios-indicador:only-child {
+  grid-column: 1 / -1;
 }
 
 .territorios-indicador {

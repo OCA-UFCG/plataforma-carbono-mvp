@@ -500,12 +500,23 @@ describe('territoryIndicators', () => {
 
   it('agrees the rank with a feminine type', () => {
     const ti = payload({ areaRank: { position: 3, total: 50 } })
-    expect(territoryIndicators({ territory: ti, type: typeOf('terra_indigena') })[1])
+    expect(territoryIndicators({ territory: ti, type: typeOf('terra_indigena') }).at(-1))
       .toEqual({ value: '3ª', text: 'maior entre as 50 terras indígenas' })
   })
 
-  it('gives the biome no card, and a territory without a rank only its share', () => {
+  it('gives the biome no card', () => {
     expect(territoryIndicators({ territory: CG, type: bioma })).toEqual([])
-    expect(territoryIndicators({ territory: CG, type: municipio })).toHaveLength(1)
+  })
+
+  it('leaves out a share under 0,1%, which would only read "menos de 0,1%"', () => {
+    // Campina Grande: 59.553 ha of 86,6 million, 0,07% of the biome.
+    expect(territoryIndicators({ territory: payload({ areaRank: { position: 120, total: 1210 } }), type: municipio }))
+      .toEqual([{ value: '120º', text: 'maior entre os 1.210 municípios' }])
+    expect(territoryIndicators({ territory: CG, type: municipio })).toEqual([])
+  })
+
+  it('shows a share from 0,1% up', () => {
+    const tenth = payload({ areaHa: 86_000, biomaAreaHa: 86_000_000 })
+    expect(territoryIndicators({ territory: tenth, type: municipio })).toEqual([{ value: '0,1%', text: 'da área da Caatinga' }])
   })
 })

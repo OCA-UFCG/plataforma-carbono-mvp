@@ -121,15 +121,20 @@ function territoryAnswer({ territory, type }: StepInput): Answer {
   return { headline: areaParts(territory.areaHa), sentence }
 }
 
+/** Below this share of the biome the card would only say "menos de 0,1%". */
+const SHARE_CARD_MIN_PCT = 0.1
+
 /**
  * The cards under the territory's area (Figma 19254:37459): its share of the
- * biome, and its rank by area among the territories of its type. None for the
- * biome, which is the whole.
+ * biome, from 0,1% up, and its rank by area among the territories of its type.
+ * None for the biome, which is the whole. Most municipalities and every
+ * smaller type fall under 0,1% and keep the rank alone.
  */
 export function territoryIndicators({ territory, type }: { territory: TerritoryPayload; type: TerritoryType }): Indicator[] {
   if (isBioma(type)) return []
   const s = TERRITORY_SCRIPT
-  const items: Indicator[] = [{ value: formatPercent(biomeAreaSharePct(territory)), text: s.biomeShare }]
+  const share = biomeAreaSharePct(territory)
+  const items: Indicator[] = share >= SHARE_CARD_MIN_PCT ? [{ value: formatPercent(share), text: s.biomeShare }] : []
   const rank = territory.areaRank
   if (rank && type.plural) {
     const feminine = FEMININE_TYPES.has(type.id)
