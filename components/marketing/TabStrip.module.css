@@ -62,3 +62,10 @@
       no-repeat border-box,
     var(--am-050);
 }
+
+/* A Comunicação tab panel takes focus (tabIndex 0, as the WAI-ARIA tabs
+ * pattern asks); it spans the page, so its ring is drawn inside it. */
+.panel:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: -2px;
+}
