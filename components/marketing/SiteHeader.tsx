@@ -102,6 +102,7 @@ function LanguageSwitch({ className }: { className?: string }) {
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const activeHref = activeNavHref(usePathname());
+  const territoriosActive = activeHref === TERRITORIOS_LINK.href;
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
   // breakpoint, so it does not linger over the desktop layout.
@@ -172,9 +173,13 @@ export default function SiteHeader() {
             );
           })}
           {/* TERRITORIOS_LINK and MAPA_LINK cross a route group: a full page
-              load, not next/link. Neither is ever active, as the header only
-              renders inside the marketing group. */}
-          <a href={TERRITORIOS_LINK.href} className={`${styles.navLink} text-ui-medium`}>
+              load, not next/link. The story renders this header too and marks
+              its own entry (Figma 19254:37327). */}
+          <a
+            href={TERRITORIOS_LINK.href}
+            className={`${styles.navLink} ${territoriosActive ? `text-ui-bold ${styles.navLinkActive}` : "text-ui-medium"}`}
+            aria-current={territoriosActive ? "page" : undefined}
+          >
             {TERRITORIOS_LINK.label}
           </a>
           <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-ui-medium`}>
@@ -219,6 +224,7 @@ export default function SiteHeader() {
           <a
             href={TERRITORIOS_LINK.href}
             className={`${styles.panelLink} text-p-ui`}
+            aria-current={territoriosActive ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
             {TERRITORIOS_LINK.label}
