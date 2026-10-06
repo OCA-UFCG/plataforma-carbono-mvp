@@ -23,8 +23,8 @@ export default function PhotoBand({ image, eyebrow, title, items, tone }: PhotoB
         </div>
         {items && items.length > 0 && (
           <ul className={styles.items} role="list">
-            {items.map((item) => (
-              <li key={item} className={`${styles.item} text-body`} role="listitem">
+            {items.map((item, i) => (
+              <li key={i} className={`${styles.item} text-body`} role="listitem">
                 {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
                 <img src="/icons/close.svg" alt="" width={26} height={26} className={styles.icon} />
                 {item}

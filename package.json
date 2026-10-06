@@ -14,7 +14,7 @@
     "trim": "node scripts/trim-precision.mjs",
     "contrast": "tsx scripts/check-contrast.mts",
     "prewarm": "node scripts/prewarm.mjs",
-    "contentful:provision": "node scripts/contentful-provision.mjs"
+    "contentful:provision": "tsx scripts/contentful-provision.mts"
   },
   "dependencies": {
     "@google/earthengine": "^1.7.21",

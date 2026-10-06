@@ -1,4 +1,5 @@
 import type { Passo } from "@/lib/content/sobre/como-funciona";
+import Paragrafos from "../Paragrafos";
 import styles from "./StepCard.module.css";
 
 // One step of "Como funciona", Figma "Card Sobre" 18985:7140 and its variants:
@@ -14,18 +15,16 @@ export default function StepCard({ numero, passo }: { numero: number; passo: Pas
       <div className={styles.corpo}>
         <h2 className={styles.titulo}>{passo.titulo}</h2>
         <div className={styles.texto}>
-          {passo.paragrafos.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
+          <Paragrafos textos={passo.paragrafos} />
         </div>
         {passo.grupos?.map((grupo) => (
-          <div key={grupo.rotulo} className={styles.grupo}>
+          <div key={grupo.tom} className={styles.grupo}>
             <p className={styles.rotulo}>{grupo.rotulo}</p>
             {/* role="list" restores the semantics `list-style: none` strips in
                 Safari/VoiceOver, as in Destaques.tsx. */}
             <ul className={styles.etiquetas} role="list">
-              {grupo.itens.map((item) => (
-                <li key={item} className={`${styles.etiqueta} ${styles[grupo.tom]} text-ui-badge`} role="listitem">
+              {grupo.itens.map((item, i) => (
+                <li key={i} className={`${styles.etiqueta} ${styles[grupo.tom]} text-ui-badge`} role="listitem">
                   {item}
                 </li>
               ))}

@@ -1,3 +1,4 @@
+import Linhas from "../Linhas";
 import styles from "./CautionCard.module.css";
 
 type CautionCardProps = {
@@ -21,15 +22,17 @@ export default function CautionCard({ titulo, introducao, itens, fechamento }: C
       {/* role="list" restores the semantics `list-style: none` strips in
           Safari/VoiceOver, as in Destaques.tsx. */}
       <ul className={styles.itens} role="list">
-        {itens.map((item) => (
-          <li key={item} className={styles.item} role="listitem">
+        {itens.map((item, i) => (
+          <li key={i} className={styles.item} role="listitem">
             {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma icon */}
             <img src="/icons/sobre/close-negativo.svg" alt="" width={26} height={26} className={styles.icone} />
             {item}
           </li>
         ))}
       </ul>
-      <p className={styles.forte}>{fechamento}</p>
+      <p className={styles.forte}>
+        <Linhas texto={fechamento} />
+      </p>
     </section>
   );
 }

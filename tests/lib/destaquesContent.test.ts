@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { DESTAQUES } from '@/lib/content/destaques'
+import { INICIO_DESTAQUES, destaquesCards } from '@/lib/content/destaques'
+import { copyDefaults } from '@/lib/content/site/model'
+
+const DESTAQUES = destaquesCards(copyDefaults(INICIO_DESTAQUES))
 
 describe('destaques content', () => {
   it('ships the four cards the design lays out', () => {
@@ -18,5 +21,9 @@ describe('destaques content', () => {
     for (const d of DESTAQUES) {
       expect(d.numero).not.toMatch(/\d\.\d/) // a decimal point would be en-US
     }
+  })
+
+  it('gives every card its own icon', () => {
+    expect(new Set(DESTAQUES.map((d) => d.icone)).size).toBe(4)
   })
 })

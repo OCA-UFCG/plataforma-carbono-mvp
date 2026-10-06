@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CAATINGA } from '@/lib/content/sobre/caatinga'
+import { CAATINGA_PESSOAS_IMAGEM } from '@/lib/content/sobre/caatinga'
 
 // The RIFF/WEBP signature, the first chunk and the size of a WebP photo in
 // public/. A photo here must be a simple lossy file, one 'VP8 ' chunk: that
@@ -22,7 +22,7 @@ describe('Sobre photos', () => {
   // fill shows (18988:8735); its original carries GPS coordinates, which the
   // simple 'VP8 ' format cannot hold.
   it('gives "Um bioma de natureza e pessoas" its own crop at 2x its 298x219 frame, without metadata', () => {
-    expect(CAATINGA.pessoas.imagem).toBe('/images/sobre/natureza-pessoas.webp')
-    expect(webp(CAATINGA.pessoas.imagem)).toEqual({ format: 'RIFF/WEBPVP8 ', width: 596, height: 438 })
+    expect(CAATINGA_PESSOAS_IMAGEM.src).toBe('/images/sobre/natureza-pessoas.webp')
+    expect(webp(CAATINGA_PESSOAS_IMAGEM.src)).toEqual({ format: 'RIFF/WEBPVP8 ', width: 596, height: 438 })
   })
 })
