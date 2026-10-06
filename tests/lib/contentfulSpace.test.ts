@@ -7,6 +7,7 @@ import {
   getComunicacaoContent,
   listPublicacoes,
 } from '@/lib/content/comunicacao'
+import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 
@@ -46,12 +47,7 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
   it('serves the comunicacao content through the application code', async () => {
     const content = await getComunicacaoContent(getContentfulClient())
 
-    expect(content.cartilhas.map((cartilha) => cartilha.volume)).toEqual([
-      'Volume 1',
-      'Volume 2',
-      'Volume 3',
-      'Volume 4',
-    ])
+    expect(content.cartilhas.map((cartilha) => cartilha.volume)).toEqual(['Volume 1'])
     expect(content.caderno.title).toContain('A aproximação do mercado de carbono florestal')
     expect(content.fotosFormacao).toHaveLength(6)
     expect(content.fotosFormacao[0].caption).toBe('Encontro em assentamento da reforma agrária')
@@ -91,5 +87,14 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
     for (const type of SITE_COPY_TYPES) {
       expect(response[type.id]?.items, type.id).toHaveLength(1)
     }
+  })
+
+  // getEventos falls back to the design's events on any error, so it would
+  // hide a space never provisioned with the `evento` type; the query runs here
+  // without that net.
+  it('serves the eventos query, with every field the page reads', async () => {
+    const response = await getContentfulClient()!<{ eventoCollection?: { items: unknown[] } }>(EVENTOS_QUERY)
+
+    expect(response.eventoCollection?.items).toBeInstanceOf(Array)
   })
 })

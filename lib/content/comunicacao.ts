@@ -46,26 +46,8 @@ export const DEFAULT_CARTILHAS: Cartilha[] = [
   {
     slug: 'cartilha-1-o-que-e-credito-de-carbono',
     volume: 'Volume 1',
-    title: 'O que é crédito de carbono?',
+    title: 'Mercado de carbono: o que isso tem a ver com a Caatinga?',
     cover: '/images/cartilhas/vol1.jpg',
-  },
-  {
-    slug: 'cartilha-2-como-funciona-o-mercado-de-carbono',
-    volume: 'Volume 2',
-    title: 'Como funciona o mercado de carbono?',
-    cover: '/images/cartilhas/vol2.jpg',
-  },
-  {
-    slug: 'cartilha-3-a-caatinga-e-o-carbono',
-    volume: 'Volume 3',
-    title: 'A Caatinga e o carbono: qual a relação?',
-    cover: '/images/cartilhas/vol3.jpg',
-  },
-  {
-    slug: 'cartilha-4-desafios-e-caminhos',
-    volume: 'Volume 4',
-    title: 'Desafios e caminhos para um mercado de carbono que beneficia a todos',
-    cover: '/images/cartilhas/vol4.jpg',
   },
 ]
 

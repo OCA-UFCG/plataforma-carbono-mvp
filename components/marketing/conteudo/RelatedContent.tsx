@@ -5,9 +5,10 @@ import styles from "./RelatedContent.module.css";
 
 // "Conteúdos Relacionados", Figma node 19015:13091: the heading, then the same
 // cards on the same auto-fill grid as the Comunicação page (Publicacoes): five
-// 236px tracks at the 1276px container. With four publications the cards keep
-// the design's width and the fifth track stays empty, since the grid fills
-// tracks rather than stretching cards; narrower, it reflows down to one column.
+// 236px tracks at the 1276px container. With fewer than five publications the
+// cards keep the design's width and the remaining tracks stay empty, since the
+// grid fills tracks rather than stretching cards; narrower, it reflows down to
+// one column.
 // The id sits on the heading, not the wrapper (tests/lib/marketingNav.test.ts).
 export default function RelatedContent({ publicacoes }: { publicacoes: Publicacao[] }) {
   if (publicacoes.length === 0) return null;

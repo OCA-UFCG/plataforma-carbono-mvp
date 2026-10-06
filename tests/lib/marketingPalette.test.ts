@@ -113,6 +113,14 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-primario', '--bg-superficie'],
   ['--foreground', '--bg-superficie'],
   ['--foreground', '--bg-fundo'],
+  // Comunicação's "Eventos e articulações" (Figma 19254:16478): the category
+  // badge, the title and "Mostrar mais" on the card's --bg-superficie fill,
+  // and the button's hover (EventoCard.module.css). The card's text is a pair
+  // above.
+  ['--role-categorica1-padrao', '--bg-superficie'],
+  ['--role-marca-ancora-pressionado', '--bg-superficie'],
+  ['--role-marca-ancora-padrao', '--bg-superficie'],
+  ['--role-marca-ancora-hover', '--am-050'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

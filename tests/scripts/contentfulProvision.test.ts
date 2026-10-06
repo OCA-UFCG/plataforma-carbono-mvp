@@ -6,6 +6,7 @@ import {
   toEditorControl,
 } from '@/lib/content/site/provision'
 import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
+import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
 import { copyDefaults, copyFromEntry } from '@/lib/content/site/model'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
@@ -62,6 +63,20 @@ describe('the provisioned content model', () => {
 
       expect(fieldIds(COLLECTIONS[collection as keyof typeof COLLECTIONS])).toContain('order')
     }
+  })
+
+  it('carries every field the eventos query selects', () => {
+    const selected = selectedFields(EVENTOS_QUERY, 'eventoCollection')
+
+    expect(selected.length).toBeGreaterThan(0)
+    expect(fieldIds('evento')).toEqual(expect.arrayContaining(selected))
+  })
+
+  // The query sorts by it, and an event without one has no place in the list.
+  it('requires the date of an event', () => {
+    const date = CONTENT_TYPES.find((c) => c.id === 'evento')?.fields.find((f) => f.id === 'date')
+
+    expect(date).toMatchObject({ type: 'Date', required: true })
   })
 
   it('gives both publication types an address, a date and a description', () => {
@@ -132,7 +147,7 @@ describe('the provisioned institutional copy', () => {
   })
 
   it('leaves the publication types to their default editors', () => {
-    for (const id of ['cartilha', 'caderno', 'fotoFormacao']) {
+    for (const id of ['cartilha', 'caderno', 'fotoFormacao', 'evento']) {
       expect(CONTENT_TYPES.find((c) => c.id === id)?.fields.map(toEditorControl).filter(Boolean)).toEqual([])
     }
   })

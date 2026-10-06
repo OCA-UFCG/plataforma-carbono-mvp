@@ -36,21 +36,16 @@ const FOTOS: Record<string, string> = {
 // description, plus a "Ver material" button on a card that has a publication page; on
 // touch screens, which have no hover, that expanded state is the resting
 // state (see Comunicacao.module.css). The module
-// ships four cartilhas plus one caderno; the design shows exactly two cards,
-// so the choice of which ones is fixed by the task brief rather than by this
-// component: cartilhas[0] (labelled "CARTILHA") on the left and the caderno
+// ships one cartilha plus one caderno, but Contentful may hold more cartilhas;
+// the design shows exactly two cards, so the choice of which ones is fixed by
+// the task brief rather than by this component: cartilhas[0] (labelled
+// "CARTILHA") on the left and the caderno
 // (labelled "CADERNO TEMÁTICO") on the right, the design's order (18862:8581,
 // 18862:8582). The header row's "Ver mais" opens the Comunicação page, which
 // lists every publication.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
   const [primeiraCartilha] = conteudo.cartilhas;
 
-  // Known content discrepancy, left for the content owner rather than
-  // resolved here: the Figma card reads "Mercado de carbono: o que isso tem
-  // a ver com a Caatinga?", which matches none of the four DEFAULT_CARTILHAS
-  // volumes (the nearest is "A Caatinga e o carbono: qual a relação?",
-  // volume 3). This renders whatever cartilhas[0] actually holds instead of
-  // hardcoding the Figma string.
   const cards: CardData[] = [
     ...(primeiraCartilha
       ? [

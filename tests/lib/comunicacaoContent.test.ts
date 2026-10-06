@@ -15,11 +15,11 @@ describe('getComunicacaoContent without Contentful', () => {
   it('serves the content the landing page ships with and never touches the network', async () => {
     const content = await getComunicacaoContent(null)
 
-    expect(content.cartilhas).toHaveLength(4)
+    expect(content.cartilhas).toHaveLength(1)
     expect(content.cartilhas[0]).toEqual({
       slug: 'cartilha-1-o-que-e-credito-de-carbono',
       volume: 'Volume 1',
-      title: 'O que é crédito de carbono?',
+      title: 'Mercado de carbono: o que isso tem a ver com a Caatinga?',
       cover: '/images/cartilhas/vol1.jpg',
     })
     expect(content.caderno.title).toContain('A aproximação do mercado de carbono florestal')
