@@ -36,7 +36,6 @@
 
 .columnPartners {
   flex: none;
-  gap: 16px;
 }
 
 .columnContact {
@@ -50,7 +49,8 @@
   gap: 12px;
 }
 
-/* The design's 36x36, radius-8 mark slot (18862:8250), holding the OCA mark. */
+/* The design's 36x36, radius-8 mark slot (18862:8250), holding the Caativar
+ * symbol. */
 .brandMark {
   width: 36px;
   height: 36px;
@@ -73,7 +73,10 @@
 /* A ROW, not a column: Figma lays the four links out horizontally inside
  * column 1 (x=80, 135, 190, 292 within the 1436 frame). Stacking them made the
  * column 184px tall against the design's 74 and pushed the whole footer from
- * 196 to 280. Wraps rather than overflowing if the labels ever grow. Inter
+ * 196 to 280. Wraps rather than overflowing if the labels ever grow, which
+ * "Resumo territorial" made happen: the five links need about 404px against
+ * the column's 350, so "Plataforma" takes a second row and the footer is 178
+ * tall instead of the design's 156 (which predates that link). Inter
  * Regular 13px on its normal (16px) line box (18862:8259), set on the list so
  * each <li>'s line box takes it too. */
 .navList {
@@ -99,15 +102,14 @@
   color: var(--bg-texto-sobre-inverso);
 }
 
-/* Columns 2 and 3 share the same heading, Rubik Medium 16/24 (.text-p-ui,
- * Figma 16864:138736 and 16864:138757). */
+/* Column 3's heading, Rubik Medium 16/24 (.text-p-ui, Figma 16864:138757). */
 .heading {
   margin: 0;
   color: var(--bg-texto-sobre-inverso);
 }
 
-/* Column 2: "Parceiros e apoio" over the partner logos. Aligned to a common
- * baseline (flex-end) since the three marks differ in height.
+/* Column 2: the partner logos, with no heading, as in the design. Aligned to
+ * a common baseline (flex-end) since the three marks differ in height.
  *
  * The 16px below comes from the design: Figma's "HorizontalBorder" frame is
  * 497x76 around a 60-tall logo row, with paddingBottom 16 and — despite the

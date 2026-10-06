@@ -76,6 +76,11 @@ cada). A ordem no design é **Sudene, UFCG, OCA** (x=470, 643 e 858 dentro do fr
 O logo do INSA (`public/logos/logo_insa.png`) não aparece: o design credita três instituições, o
 rodapé anterior creditava quatro. Decisão de conteúdo a confirmar.
 
+Os logos ficam sem título acima, como no design; o rótulo "Parceiros e apoio" saiu em 06/10/2026.
+Ao lado do nome "Caativar", o rodapé mostra o símbolo da Caativar em branco
+(`public/logos/caativar-simbolo-branco.svg`, o `caativar-simbolo.svg` com todas as cores trocadas
+por branco), no lugar da marca da OCA.
+
 ## Formação (public/images/formacao/)
 
 Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos). A seção Formação e seu carrossel foram removidos na reconstrução da landing; as fotos sobrevivem em `DEFAULT_FOTOS_FORMACAO` mas nada as renderiza hoje. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).

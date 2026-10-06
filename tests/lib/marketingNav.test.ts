@@ -85,8 +85,18 @@ describe('marketing nav registry', () => {
   it('sends external links away from the marketing route group', () => {
     for (const link of [...HEADER_LINKS, ...FOOTER_LINKS]) {
       if (!link.external) continue
-      expect(link.href).toBe(MAPA_URL)
+      expect([MAPA_URL, TERRITORIOS_LINK.href]).toContain(link.href)
     }
+  })
+
+  it('lists "Resumo territorial" in the footer, before the platform', () => {
+    expect(FOOTER_LINKS.map((l) => l.label)).toEqual([
+      'Home',
+      'Sobre',
+      'Comunicação',
+      'Resumo territorial',
+      'Plataforma',
+    ])
   })
 
   it('sends "Resumo territorial" to the Territórios route group', () => {
