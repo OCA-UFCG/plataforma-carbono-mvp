@@ -148,29 +148,6 @@
 /* Figma's "Entrar" button (I18862:8515;2810:3921, 97x40 around its label and
  * icon): a 1px border drawn inside the box, so 7 + 1 = 8px above and 15 + 1 =
  * 16px beside the 24px label line, 40px tall, hugging the label. */
-.sessionButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 15px;
-  border-radius: var(--radius-interno);
-  border: 1px solid var(--role-categorica1-padrao);
-  background: var(--bg-fundo);
-  color: var(--role-categorica1-padrao);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.sessionButton:hover,
-.sessionButton:focus-visible {
-  background: var(--am-100);
-}
-
-.sessionButton:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
 /* Hamburger, hidden on desktop. */
 .toggle {
   display: none;
@@ -242,8 +219,7 @@
  * there for why 1200px and why the two must move together. */
 @media (max-width: 1199px) {
   .nav,
-  .actions > .language,
-  .actions > .sessionButton {
+  .actions > .language {
     display: none;
   }
 

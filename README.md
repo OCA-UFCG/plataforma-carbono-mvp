@@ -22,7 +22,7 @@ Sobe em http://localhost:3000. Configure `.env.local` a partir de `.env.example`
 
 ## Autenticação
 
-Todas as páginas, incluindo a landing (`/`) e o mapa, exigem uma sessão Firebase válida. A única página pública é `/login`; as rotas `/api/gee/*` também exigem sessão. O login usa e-mail e senha, sem cadastro público: os usuários são criados manualmente no Firebase Console.
+Só a plataforma exige uma sessão Firebase válida: o mapa (`/mapa`) e o relatório (`/relatorio`), assim como as rotas `/api/gee/*` e `/api/mapa/relatorio/*`. As páginas institucionais (`/`, `/sobre`, `/comunicacao`), o resumo territorial (`/territorios`) e `/login` são públicos. O resumo usa as rotas `/api/territorios/*`, também públicas, e de `/api/gee/tile` recebe sem sessão apenas os tiles que o seu mapa desenha. Depois do login o visitante vai para o mapa. O login usa e-mail e senha, sem cadastro público: os usuários são criados manualmente no Firebase Console.
 
 1. Crie um projeto no [Firebase Console](https://console.firebase.google.com/) e registre uma aplicação Web.
 2. Em **Authentication > Sign-in method**, habilite somente **Email/Password**.
@@ -56,7 +56,7 @@ A seção Comunicação (coleção de cartilhas e caderno temático em destaque)
 3. Para uma sessão de prévia do editor, use `CONTENTFUL_PREVIEW=true` junto de `CONTENTFUL_PREVIEW_TOKEN`. Sem o token de prévia a configuração é tratada como ausente, e a página volta ao conteúdo padrão.
 4. Crie os três content types com `CONTENTFUL_MANAGEMENT_TOKEN=... npm run contentful:provision -- --apply`. Sem `--apply` o comando só imprime o modelo, e sem o token do management ele imprime o modelo sem consultar o space.
 
-As credenciais do Contentful são exclusivas do servidor, como as do Firebase: o prefixo `NEXT_PUBLIC_` embutiria o token no bundle do navegador. Elas são lidas a cada requisição, com cache de 3600 s (60 s em prévia), e não são necessárias no build nem nos secrets do GitHub Actions. Isso muda se a landing deixar de exigir sessão e passar a ser gerada estaticamente: aí o build também vai precisar delas.
+As credenciais do Contentful são exclusivas do servidor, como as do Firebase: o prefixo `NEXT_PUBLIC_` embutiria o token no bundle do navegador. Elas são lidas a cada requisição, com cache de 3600 s (60 s em prévia), e não são necessárias no build nem nos secrets do GitHub Actions. Para isso as páginas institucionais são renderizadas a cada requisição (`dynamic = "force-dynamic"` em `app/(marketing)/layout.tsx`), mesmo sem exigir sessão; se passarem a ser geradas estaticamente, o build também vai precisar delas.
 
 `tests/lib/contentfulSpace.test.ts` consulta o space configurado pelo mesmo caminho de código da página e se ignora sozinho quando não há credencial, então `npm test` passa igual em máquina sem acesso e no CI.
 

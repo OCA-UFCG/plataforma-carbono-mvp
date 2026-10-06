@@ -1,8 +1,6 @@
-import { redirect } from 'next/navigation'
 import SiteFooter from '@/components/marketing/SiteFooter'
 import SiteHeader from '@/components/marketing/SiteHeader'
 import TerritoriosApp from '@/components/territorios/TerritoriosApp'
-import { getAuthenticatedSession } from '@/lib/auth'
 
 interface TerritoriosPageParams {
   recorte?: string | string[]
@@ -23,16 +21,6 @@ export default async function TerritoriosPage({
   const recorte = single(params.recorte)
   const feicao = single(params.feicao)
   const etapa = single(params.etapa)
-
-  // Only the page receives the query, so the login redirect lives here and
-  // brings the visitor back to the same step (see the layout for why it has
-  // no redirect of its own).
-  if (!await getAuthenticatedSession()) {
-    const query = new URLSearchParams(
-      Object.entries({ recorte, feicao, etapa }).filter(([, value]) => value),
-    ).toString()
-    redirect('/login?redirect=' + encodeURIComponent('/territorios' + (query ? '?' + query : '')))
-  }
 
   // Stands in for the home, where the section will live: the site's header and
   // footer around it, and nothing else on the page.

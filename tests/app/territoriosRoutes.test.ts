@@ -2,16 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ThemeResponse } from '@/types/territorios'
 
 const mocks = vi.hoisted(() => ({
-  getAuthenticatedRequest: vi.fn<() => Promise<{ uid: string } | null>>(async () => ({ uid: 'u' })),
   rateLimit: vi.fn(() => ({ ok: true, retryAfter: 0 })),
   getTheme: vi.fn<() => Promise<ThemeResponse>>(),
 }))
 
-vi.mock('@/lib/auth', () => ({
-  getAuthenticatedRequest: mocks.getAuthenticatedRequest,
-  unauthorizedResponse: () =>
-    new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }),
-}))
 vi.mock('@/lib/mapa/rateLimit', () => ({
   rateLimit: mocks.rateLimit,
   clientIp: () => '127.0.0.1',
@@ -44,19 +38,18 @@ function themeResponse(status: ThemeResponse['status']): ThemeResponse {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.getAuthenticatedRequest.mockResolvedValue({ uid: 'u' })
   mocks.rateLimit.mockReturnValue({ ok: true, retryAfter: 0 })
   mocks.getTheme.mockResolvedValue(themeResponse('available'))
 })
 
 describe('GET /api/territorios/territorio', () => {
-  it('requires an authenticated session before the rate limit', async () => {
-    mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
-
+  // The story is public. No request here carries a session cookie, so every
+  // case below is also a visitor's.
+  it('answers a visitor without a session, under the rate limit', async () => {
     const res = await getTerritorio(req('/api/territorios/territorio', territorioQuery))
 
-    expect(res.status).toBe(401)
-    expect(mocks.rateLimit).not.toHaveBeenCalled()
+    expect(res.status).toBe(200)
+    expect(mocks.rateLimit).toHaveBeenCalledOnce()
   })
 
   it('returns 429 with Retry-After when the rate limit is spent', async () => {
@@ -117,14 +110,12 @@ describe('GET /api/territorios/territorio', () => {
 })
 
 describe('GET /api/territorios/tema', () => {
-  it('requires an authenticated session before doing any work', async () => {
-    mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
-
+  it('answers a visitor without a session, under the rate limit', async () => {
     const res = await getTema(req('/api/territorios/tema', temaQuery))
 
-    expect(res.status).toBe(401)
-    expect(mocks.rateLimit).not.toHaveBeenCalled()
-    expect(mocks.getTheme).not.toHaveBeenCalled()
+    expect(res.status).toBe(200)
+    expect(mocks.rateLimit).toHaveBeenCalledOnce()
+    expect(mocks.getTheme).toHaveBeenCalledOnce()
   })
 
   it('returns 429 with Retry-After when the rate limit is spent', async () => {

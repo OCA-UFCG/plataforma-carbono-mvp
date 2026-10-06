@@ -23,12 +23,8 @@ export const metadata: Metadata = {
   icons: FAVICON,
 }
 
-// The session is checked by the page, not here. Layout and page render in
-// parallel and the first redirect thrown wins: measured on 2026-09-16, a
-// redirect from this layout always beat the page's and dropped recorte, feicao
-// and etapa from the return address. Withholding the children instead turned
-// the page's redirect into a 200 carrying it in the RSC payload. The group has
-// a single page, and that page redirects before rendering anything.
+// Public, like the marketing pages: no session check. Its API routes and the
+// story's tiles from /api/gee/tile answer without one (lib/territorios/storyTiles.ts).
 export default function TerritoriosLayout({
   children,
 }: {

@@ -4,18 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
-import { signOut as firebaseSignOut } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 153 + 584 + 189px with 16px gaps between them (958px),
+// `.actions` are 153 + 584 + 107px with 16px gaps between them (876px),
 // none of it allowed to shrink below content (`flex: none` on `.nav` and
 // `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px,
 // still 80 in this range — it only drops to 24 at <=768px) on both sides.
-// 958 + 160 = 1118px is the narrowest viewport the inline header fits at full
+// 876 + 160 = 1036px is the narrowest viewport the inline header fits at full
 // size; 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
@@ -24,48 +22,6 @@ import styles from "./SiteHeader.module.css";
 const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
-
-// The session slot standing in for the Figma "Entrar" button (node 18862:8515,
-// button I18862:8515;2810:3921). The marketing layout redirects unauthenticated
-// visitors to /login (app/(marketing)/layout.tsx), so anyone who reaches this
-// header is already signed in and "Entrar" could never be the right label —
-// "Sair" is rendered instead, in the same button: 1px border, 6px radius, 16px
-// side padding, hugging its label. Figma's "people" icon is left out: it
-// stands for signing in, not out.
-//
-// This is a plain client component, not AuthProvider: the marketing route group
-// deliberately does not mount AuthProvider (it is the one group that doesn't),
-// and only the logout action is needed here, not the user object. The two-step
-// sequence mirrors components/auth/AuthProvider.tsx's signOut (cookie first,
-// then Firebase client state), with the same try/finally discipline so a failed
-// fetch still clears client state.
-function SessionAction({ className }: { className?: string }) {
-  const [pending, setPending] = useState(false);
-
-  async function handleSignOut() {
-    setPending(true);
-    try {
-      await fetch("/api/session", { method: "DELETE" });
-    } finally {
-      try {
-        await firebaseSignOut(getFirebaseAuth());
-      } finally {
-        window.location.replace("/login");
-      }
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className={className}
-      onClick={() => void handleSignOut()}
-      disabled={pending}
-    >
-      Sair
-    </button>
-  );
-}
 
 // The PT-BR / En control from the Figma design (I18862:8515;16825:136014),
 // rendered as designed but inert: internationalisation is out of scope, so
@@ -189,8 +145,6 @@ export default function SiteHeader() {
 
         <div className={styles.actions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
-
           <button
             type="button"
             className={styles.toggle}
@@ -239,7 +193,6 @@ export default function SiteHeader() {
         </nav>
         <div className={styles.panelActions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
         </div>
       </div>
     </header>
