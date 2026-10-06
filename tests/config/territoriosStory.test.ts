@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
@@ -70,9 +70,18 @@ describe('TERRITORY_TYPES', () => {
     }
   })
 
-  it('has a photo for every type', () => {
+  // The RIFF/WEBP signature, the first chunk and the frame size, as
+  // tests/lib/sobrePhotos.test.ts reads them: a simple lossy 'VP8 ' file has
+  // no room for EXIF, so no phone metadata (GPS included) rides along.
+  it('gives every type its card\'s photo at 2x the 405x202 frame (Figma 19254:37356), without metadata', () => {
     for (const type of TERRITORY_TYPES) {
-      expect(existsSync(path.join(process.cwd(), 'public', type.image)), type.id).toBe(true)
+      const buf = readFileSync(path.join(process.cwd(), 'public', type.image))
+      expect(type.image, type.id).toMatch(/^\/images\/territorios\/[a-z-]+\.webp$/)
+      expect({
+        format: `${buf.toString('ascii', 0, 4)}/${buf.toString('ascii', 8, 16)}`,
+        width:  buf.readUInt16LE(26) & 0x3fff,
+        height: buf.readUInt16LE(28) & 0x3fff,
+      }, type.id).toEqual({ format: 'RIFF/WEBPVP8 ', width: 811, height: 404 })
     }
   })
 })

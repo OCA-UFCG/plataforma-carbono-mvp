@@ -1,23 +1,25 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element -- the panel art is swapped for an empty fill when it fails to load, which next/image does not report */
-import { useEffect, useRef, useState } from 'react'
+/* eslint-disable @next/next/no-img-element -- the photo is swapped for an empty fill when it fails to load, which next/image does not report */
+import { useState } from 'react'
 import '@/app/territorios-galeria.css'
 import { INTRO } from '@/config/territorios/chooserScript'
+import { UI_ICONS } from '@/config/territorios/icons'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 
 export interface TypeCardsProps {
   onSelect: (type: TerritoryType) => void
 }
 
-function PanelArt({ src }: { src: string }) {
+function CardPhoto({ src }: { src: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) return null
   return (
     <img
-      className="territorios-painel-arte"
       src={src}
       alt=""
+      width={811}
+      height={404}
       // The page is server-rendered, so a missing image can fail before
       // hydration attaches onError; a finished load with no pixels is that
       // same failure.
@@ -27,46 +29,30 @@ function PanelArt({ src }: { src: string }) {
   )
 }
 
-/** Every type as a panel; one is open at a time, with its line and the way in. */
+/**
+ * The gallery of territory types (Figma 19254:37353): "Escolha o recorte" over
+ * a grid of cards, each a photo over a bar with the type's name and an arrow.
+ * The whole card is the button into the type.
+ */
 export default function TypeCards({ onSelect }: TypeCardsProps) {
-  const [openId, setOpenId] = useState(TERRITORY_TYPES[0].id)
-  const openedByVisitor = useRef(false)
-  const titleRef = useRef<HTMLHeadingElement | null>(null)
-
-  // The tab the visitor pressed unmounts as its panel opens; focus goes to the
-  // open panel's title instead of falling back to the page.
-  useEffect(() => {
-    if (openedByVisitor.current) titleRef.current?.focus({ preventScroll: true })
-  }, [openId])
-
   return (
-    <ul className="territorios-galeria">
-      {TERRITORY_TYPES.map((type) => {
-        const open = type.id === openId
-        return (
-          <li key={type.id} className="territorios-painel" data-aberto={open || undefined}>
-            <PanelArt src={type.image} />
-            {open ? (
-              <div className="territorios-painel-conteudo">
-                <h3 ref={titleRef} tabIndex={-1} className="territorios-painel-titulo">{type.unitLabel}</h3>
-                <p className="territorios-painel-texto">{INTRO.descriptions[type.id]}</p>
-                <button type="button" className="territorios-painel-botao" onClick={() => onSelect(type)}>
-                  {INTRO.explore}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="territorios-painel-aba"
-                aria-expanded={false}
-                onClick={() => { openedByVisitor.current = true; setOpenId(type.id) }}
-              >
-                <span className="territorios-painel-rotulo">{type.unitLabel}</span>
-              </button>
-            )}
+    <section className="territorios-recortes" aria-labelledby="territorios-recortes-titulo">
+      <h3 id="territorios-recortes-titulo" className="territorios-recortes-titulo">{INTRO.chooseCut}</h3>
+      <ul className="territorios-recortes-grade">
+        {TERRITORY_TYPES.map((type) => (
+          <li key={type.id}>
+            <button type="button" className="territorios-recorte" onClick={() => onSelect(type)}>
+              <span className="territorios-recorte-foto">
+                <CardPhoto src={type.image} />
+              </span>
+              <span className="territorios-recorte-rodape">
+                <span className="territorios-recorte-nome">{type.unitLabel}</span>
+                <img src={UI_ICONS.forward} alt="" width={24} height={24} />
+              </span>
+            </button>
           </li>
-        )
-      })}
-    </ul>
+        ))}
+      </ul>
+    </section>
   )
 }

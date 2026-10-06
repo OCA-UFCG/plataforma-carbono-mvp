@@ -12,6 +12,7 @@ export interface TerritoryType {
   unitLabel: string
   /** Vector layer id in config/mapa/layers.json. */
   recorteId: string
+  /** The type card's photo, a 2x crop of its 405x202 frame (Figma 19254:37356). */
   image:     string
   /** Lowercase plural for "{n} municípios com área na Caatinga"; null when there is no search. */
   plural:         string | null
@@ -25,27 +26,27 @@ export const BIOMA_FEATURE_ID = 'bioma-caatinga'
 export const TERRITORY_TYPES: TerritoryType[] = [
   {
     id: 'bioma', label: 'Bioma', unitLabel: 'Bioma', recorteId: BIOMA_RECORTE_ID,
-    image: '/images/territorios/bioma.jpg', plural: null, searchQuestion: null,
+    image: '/images/territorios/bioma.webp', plural: null, searchQuestion: null,
   },
   {
     id: 'estado', label: 'Estado', unitLabel: 'Estado', recorteId: 'estados',
-    image: '/images/territorios/estado.jpg', plural: 'estados', searchQuestion: 'Qual estado?',
+    image: '/images/territorios/estado.webp', plural: 'estados', searchQuestion: 'Qual estado?',
   },
   {
     id: 'municipio', label: 'Município', unitLabel: 'Município', recorteId: 'municipios',
-    image: '/images/territorios/municipio.jpg', plural: 'municípios', searchQuestion: 'Qual município?',
+    image: '/images/territorios/municipio.webp', plural: 'municípios', searchQuestion: 'Qual município?',
   },
   {
     id: 'terra_indigena', label: 'Terras Indígenas', unitLabel: 'Terra Indígena', recorteId: 'terras_indigenas',
-    image: '/images/territorios/terra-indigena.jpg', plural: 'terras indígenas', searchQuestion: 'Qual terra indígena?',
+    image: '/images/territorios/terra-indigena.webp', plural: 'terras indígenas', searchQuestion: 'Qual terra indígena?',
   },
   {
     id: 'territorio_quilombola', label: 'Territórios Quilombolas', unitLabel: 'Território Quilombola', recorteId: 'quilombolas',
-    image: '/images/territorios/territorio-quilombola.jpg', plural: 'territórios quilombolas', searchQuestion: 'Qual território quilombola?',
+    image: '/images/territorios/territorio-quilombola.webp', plural: 'territórios quilombolas', searchQuestion: 'Qual território quilombola?',
   },
   {
     id: 'assentamento', label: 'Assentamentos', unitLabel: 'Assentamento', recorteId: 'assentamentos',
-    image: '/images/territorios/assentamento.jpg', plural: 'assentamentos', searchQuestion: 'Qual assentamento?',
+    image: '/images/territorios/assentamento.webp', plural: 'assentamentos', searchQuestion: 'Qual assentamento?',
   },
 ]
 

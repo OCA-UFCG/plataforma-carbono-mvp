@@ -1,244 +1,121 @@
-/* Opening gallery of territory types: a row of panels, one open at a time.
-   A closed panel shows its art and its name read upwards; the open one widens
-   and carries the name, one line and the button into the type. On a phone the
-   row becomes a column of bands. */
+/* The gallery of territory types (Figma 19254:37353): "Escolha o recorte" over
+   a grid of cards, three to a row, each a photo over a bar with the type's
+   name and an arrow. The whole card is one button. */
 
-.territorios-galeria {
-  display: flex;
-  gap: 16px;
-  height: clamp(440px, 64vh, 600px);
+.territorios-recortes {
+  display: grid;
+  gap: 24px;
+}
+
+/* 19254:37354: Rubik Bold 16, tracked 1.5 px, in capitals. */
+.territorios-recortes-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+}
+
+.territorios-recortes-grade {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 31px 30px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.territorios-painel {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
+/* 19254:37356: 254 px tall, the photo 202 px over a 52 px bar, on the cream
+   card surface with the design's soft shadow. */
+.territorios-recorte {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
   overflow: hidden;
-  border-radius: 16px;
+  text-align: left;
+  background: var(--bg-superficie-variante);
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.1), 0 1px 1.5px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+}
+
+.territorios-recorte:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+.territorios-recorte-foto {
+  position: relative;
+  display: block;
+  height: 202px;
   background: var(--am-200);
-  transition: flex-grow 0.5s ease;
 }
 
-.territorios-painel[data-aberto] {
-  flex-grow: 5.5;
-}
-
-.territorios-painel-arte {
-  position: absolute;
-  inset: 0;
+.territorios-recorte-foto img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Dark from the bottom up, under the white text; --bg-fundo-inverso. */
-.territorios-painel::after {
+/* The hover's veil over the photo (19254:39318). */
+.territorios-recorte-foto::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgb(0 15 21 / 0) 35%, rgb(0 15 21 / 0.55) 60%, rgb(0 15 21 / 0.9) 100%);
+  background: rgb(0 0 0 / 0.2);
+  opacity: 0;
+  transition: opacity 0.18s ease;
   pointer-events: none;
 }
 
-.territorios-painel-aba,
-.territorios-painel-conteudo {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  color: #ffffff;
-}
-
-.territorios-painel-aba {
+.territorios-recorte-rodape {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 0 0 28px;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  transition: background-color 0.18s ease;
-}
-
-.territorios-painel-aba:hover {
-  background: rgb(0 15 21 / 0.18);
-}
-
-.territorios-painel-aba:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: -6px;
-  border-radius: 16px;
-}
-
-/* Read from the bottom up, as on a book's spine. */
-.territorios-painel-rotulo {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  white-space: nowrap;
-}
-
-.territorios-painel-rotulo {
-  font-family: var(--font-titulo);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 24px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.territorios-painel-conteudo {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
-  padding: 40px;
-  /* Waits for the panel to widen, so the text is never laid out in a strip. */
-  animation: territorios-painel-entra 0.3s ease 0.25s both;
-}
-
-@keyframes territorios-painel-entra {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: none; }
-}
-
-.territorios-painel-titulo {
-  margin: 0;
-  font-family: var(--font-titulo);
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 44px;
-  text-transform: uppercase;
-}
-
-.territorios-painel-titulo:focus {
-  outline: none;
-}
-
-.territorios-painel-titulo:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 4px;
-}
-
-.territorios-painel-texto {
-  max-width: 44ch;
-  margin: 0;
-  font-size: 18px;
-  line-height: 28px;
-}
-
-.territorios-painel-botao {
-  min-height: 48px;
-  padding: 0 32px;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--role-marca-ancora-texto-sobre);
-  background: var(--role-marca-ancora-hover);
-  border: 0;
-  border-radius: var(--radius-interno);
-  cursor: pointer;
+  padding: 12px 16px;
+  background: var(--am-100);
   transition: background-color 0.18s ease;
 }
 
-.territorios-painel-botao:hover {
-  background: var(--role-marca-ancora-pressionado);
+.territorios-recorte-rodape img {
+  flex: none;
 }
 
-.territorios-painel-botao:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 3px;
+/* 19254:37356: Rubik SemiBold 20/28. */
+.territorios-recorte-nome {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+  color: var(--bg-texto-primario);
+}
+
+/* 19254:39318: the bar darkens to --am-200 and the photo dims. */
+.territorios-recorte:hover .territorios-recorte-rodape,
+.territorios-recorte:focus-visible .territorios-recorte-rodape {
+  background: var(--am-200);
+}
+
+.territorios-recorte:hover .territorios-recorte-foto::after,
+.territorios-recorte:focus-visible .territorios-recorte-foto::after {
+  opacity: 1;
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .territorios-galeria {
-    gap: 8px;
-  }
-
-  .territorios-painel[data-aberto] {
-    flex-grow: 4;
-  }
-
-  .territorios-painel-conteudo {
-    padding: 24px;
-  }
-
-  .territorios-painel-titulo {
-    font-size: 32px;
-    line-height: 36px;
+  .territorios-recortes-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
   }
 }
 
 @media (max-width: 767px) {
-  .territorios-galeria {
-    flex-direction: column;
-    gap: 8px;
-    height: auto;
-  }
-
-  .territorios-painel {
-    flex: none;
-    height: 64px;
-    transition: height 0.4s ease;
-  }
-
-  .territorios-painel[data-aberto] {
-    height: 380px;
-  }
-
-  .territorios-painel::after {
-    background: linear-gradient(to right, rgb(0 15 21 / 0.85), rgb(0 15 21 / 0.35));
-  }
-
-  .territorios-painel[data-aberto]::after {
-    background: linear-gradient(to bottom, rgb(0 15 21 / 0) 25%, rgb(0 15 21 / 0.6) 55%, rgb(0 15 21 / 0.9) 100%);
-  }
-
-  .territorios-painel-aba {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-
-  .territorios-painel-rotulo {
-    writing-mode: horizontal-tb;
-    transform: none;
-  }
-
-  .territorios-painel-rotulo {
-    font-size: 18px;
-  }
-
-  .territorios-painel-conteudo {
-    gap: 12px;
-    padding: 24px 20px;
-    animation-delay: 0.2s;
-  }
-
-  .territorios-painel-titulo {
-    font-size: 28px;
-    line-height: 32px;
-  }
-
-  .territorios-painel-texto {
-    font-size: 16px;
-    line-height: 24px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .territorios-painel,
-  .territorios-painel-aba,
-  .territorios-painel-botao {
-    transition: none;
-  }
-
-  .territorios-painel-conteudo {
-    animation: none;
+  .territorios-recortes-grade {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 }
