@@ -1,13 +1,16 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- fixed-size icon exported from Figma */
 import dynamic from 'next/dynamic'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FeatureCollection } from 'geojson'
 import '@/app/territorios-escolha.css'
 import ConfirmCard from './ConfirmCard'
+import PanelNav from './PanelNav'
 import TerritorySearch from './TerritorySearch'
 import appConfig from '@/config/mapa/layers.json'
-import { CHOOSER } from '@/config/territorios/chooserScript'
+import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
+import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import type { TerritoryType } from '@/config/territorios/story'
 import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
@@ -31,6 +34,8 @@ export interface TerritoryChooserProps {
   type:           TerritoryType
   /** Receives the recorteRegistry id /api/territorios/territorio expects. */
   onChoose:       (featureId: string) => void
+  /** "Recorte": back to the gallery of types (Figma 19254:37408). */
+  onBack:         () => void
   /**
    * For a 401 from any request the chooser makes. Every file it reads today is
    * a public static one, so nothing calls it yet.
@@ -139,7 +144,7 @@ async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
   return res.json()
 }
 
-export default function TerritoryChooser({ type, onChoose }: TerritoryChooserProps) {
+export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryChooserProps) {
   const layer = useMemo(() => vectorLayer(type.recorteId), [type.recorteId])
   const labelField = layer ? labelFieldOf(layer) : undefined
 
@@ -365,6 +370,7 @@ export default function TerritoryChooser({ type, onChoose }: TerritoryChooserPro
               aria-describedby={noteId}
             >
               {CHOOSER.locate}
+              <img src={UI_ICONS.locate} alt="" width={16} height={16} />
             </button>
             <p id={noteId} className="territorios-escolha-nota">{CHOOSER.locateNote}</p>
 
@@ -400,6 +406,12 @@ export default function TerritoryChooser({ type, onChoose }: TerritoryChooserPro
             )}
           </div>
         </div>
+
+        {/* "Ver relatório" confirms the proposed territory, as "Sim, conhecer" does (19254:37409). */}
+        <PanelNav
+          onBack={onBack}
+          next={{ label: REPORT.seeReport, onClick: candidateEntry ? () => onChoose(candidateEntry.id) : null }}
+        />
       </div>
 
       <div

@@ -153,6 +153,11 @@ describe('activeNavHref', () => {
     expect(activeNavHref('/comunicacao')).toBe('/comunicacao')
   })
 
+  it('marks "Resumo territorial" on the story, which renders this header too', () => {
+    expect(activeNavHref('/territorios')).toBe(TERRITORIOS_LINK.href)
+    expect(activeNavHref('/territoriosx')).toBeNull()
+  })
+
   it('marks nothing for a route no entry owns', () => {
     expect(activeNavHref('/sobrefalso')).toBeNull()
     expect(activeNavHref('/outra')).toBeNull()

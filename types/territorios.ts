@@ -31,8 +31,6 @@ export type TerritoryTypeId =
   | 'terra_indigena'
   | 'territorio_quilombola'
   | 'assentamento'
-  | 'propriedade_rural'
-  | 'unidade_conservacao'
 
 type Geometry = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
 
@@ -137,6 +135,13 @@ export interface StepAnswer {
 /** Where the territory stands against the Caatinga, in words that judge nothing. */
 export type Reading = 'acima' | 'abaixo' | 'perto'
 
+/**
+ * Whether a reading is good news for the territory: more carbon held, more
+ * taken from the air, more native vegetation, less fire. The words of the
+ * reading judge nothing; only the color of its badge does.
+ */
+export type Tone = 'good' | 'bad' | 'neutral'
+
 /** One line of the final sheet. */
 export interface SummaryRow {
   theme:    ThemeId
@@ -144,11 +149,26 @@ export interface SummaryRow {
   headline: { value: string; unit: string } | null
   sentence: string
   reading:  Reading | null
+  /** Color of the reading's badge; null with no reading. */
+  tone:     Tone | null
 }
 
 /** One item of the "Sobre os dados" block at the end. */
 export interface AboutItem {
   title: string
+  text:  string
+}
+
+/** Where a territory stands among those of its type by area. */
+export interface AreaRank {
+  /** 1 for the largest; ties share the better place. */
+  position: number
+  total:    number
+}
+
+/** A card under the territory's area: a figure and the words after it. */
+export interface Indicator {
+  value: string
   text:  string
 }
 
@@ -163,6 +183,8 @@ export interface TerritoryPayload {
   /** Geodesic area inside the biome boundary, in hectares. */
   areaHa:      number
   biomaAreaHa: number
+  /** Its place among the territories of its type by area; null for the biome. */
+  areaRank:    AreaRank | null
   bbox:        [number, number, number, number]
   boundary:    'full' | 'simplified'
   geometry:    Geometry

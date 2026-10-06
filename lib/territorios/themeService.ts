@@ -2,8 +2,8 @@
 //
 // A theme is looked up in three places, cheapest first: the precomputed file
 // (the biome, too large to answer live), an in-memory cache, and Earth Engine.
-// Only the recortes of enabled territory types are served, so this cannot be
-// used to reduce a raster over any other vector layer.
+// Only the recortes of the territory types are served, so this cannot be used
+// to reduce a raster over any other vector layer.
 
 import 'server-only'
 
@@ -11,7 +11,8 @@ import appConfig from '@/config/mapa/layers.json'
 import precomputedJson from '@/config/territorios/precomputed.json'
 import { BIOMA_FEATURE_ID, BIOMA_RECORTE_ID, TERRITORY_TYPES } from '@/config/territorios/story'
 import { getEe, initGee } from '@/lib/mapa/geeAuth'
-import { getFeicao, type FeicaoResolvida } from '@/lib/mapa/recorteRegistry'
+import { getFeicao, listFeicoes, type FeicaoResolvida } from '@/lib/mapa/recorteRegistry'
+import { rankByArea } from '@/lib/territorios/areaRank'
 import { computeTheme } from '@/lib/territorios/computeTheme'
 import { ellipsoidAreaHa } from '@/lib/territorios/ellipsoidArea'
 import {
@@ -67,9 +68,9 @@ function setCached(key: string, response: ThemeResponse): void {
 }
 
 function resolve(recorteId: string, featureId: string): { recorteName: string; feicao: FeicaoResolvida } {
-  const enabled = TERRITORY_TYPES.some((t) => t.enabled && t.recorteId === recorteId)
+  const known = TERRITORY_TYPES.some((t) => t.recorteId === recorteId)
   const layer = appConfig.layers.find((l) => l.id === recorteId && l.type === 'vector')
-  if (!enabled || !layer) throw new TerritoryNotFoundError('Recorte not found.')
+  if (!known || !layer) throw new TerritoryNotFoundError('Recorte not found.')
 
   const feicao = getFeicao(recorteId, featureId)
   if (!feicao) throw new TerritoryNotFoundError('Feature not found.')
@@ -114,6 +115,21 @@ function getBiomeReference(): BiomeReference {
   return biomeReference
 }
 
+/** Area of every feature of a recorte, by id, measured as getTerritory measures one. */
+const areasByRecorte = new Map<string, Map<string, number>>()
+
+function recorteAreas(recorteId: string): Map<string, number> {
+  const cached = areasByRecorte.get(recorteId)
+  if (cached) return cached
+  const areas = new Map<string, number>()
+  for (const { id } of listFeicoes(recorteId)) {
+    const feicao = getFeicao(recorteId, id)
+    if (feicao) areas.set(id, ellipsoidAreaHa(feicao.geometry))
+  }
+  areasByRecorte.set(recorteId, areas)
+  return areas
+}
+
 export function getTerritory(recorteId: string, featureId: string): TerritoryPayload {
   const { recorteName, feicao } = resolve(recorteId, featureId)
   if (biomeAreaHa === undefined) {
@@ -131,6 +147,7 @@ export function getTerritory(recorteId: string, featureId: string): TerritoryPay
     // The registry's spherical area stays the WebSIG's; the visitor reads this one.
     areaHa:      ellipsoidAreaHa(feicao.geometry),
     biomaAreaHa: biomeAreaHa,
+    areaRank:    recorteId === BIOMA_RECORTE_ID ? null : rankByArea(recorteAreas(recorteId), feicao.id),
     bbox:        feicao.bbox,
     boundary:    feicao.boundary,
     geometry:    feicao.geometry,

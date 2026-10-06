@@ -1,7 +1,7 @@
 // Every string of the screens around the Territórios story: the section's title
-// band and the gallery of types, the chooser where one territory of a type is picked on the
-// map, by location or by name, and the step rail. The story's own strings live
-// in storyScript.ts.
+// band, its badges and tabs, the gallery of types, and the chooser where one
+// territory of a type is picked on the map, by location or by name. The
+// story's own strings live in storyScript.ts.
 
 import { numero } from '@/lib/mapa/format'
 import type { TerritoryTypeId } from '@/types/territorios'
@@ -11,7 +11,6 @@ export const INTRO = {
   title:   'Que território você quer conhecer?',
   explore:   'Explorar',
   changeType: 'Trocar tipo',
-  soonBadge: 'Em breve',
   /** One line under the title of each open panel. Counts from public/data/vector/*.geojson. */
   descriptions: {
     bioma:                 'A Caatinga inteira, com 862.626 km² em dez estados.',
@@ -20,8 +19,6 @@ export const INTRO = {
     terra_indigena:        'As 50 terras indígenas com área na Caatinga.',
     territorio_quilombola: 'Os 86 territórios quilombolas com área na Caatinga.',
     assentamento:          'Os 1.923 assentamentos da reforma agrária com área na Caatinga.',
-    propriedade_rural:     'Imóveis rurais do Cadastro Ambiental Rural.',
-    unidade_conservacao:   'Unidades de conservação federais, estaduais e municipais.',
   } satisfies Record<TerritoryTypeId, string>,
 }
 
@@ -76,7 +73,15 @@ export const CHOOSER = {
   chooseAnother: 'Escolher outro',
 }
 
-export const RAIL = {
-  /** Position among the six theme steps; the summary shows its name alone. */
-  position:  (n: number, total: number) => `${n} de ${total}`,
+/** Labels of the report's title band, tabs and panel buttons (Figma 19254:37412). */
+export const REPORT = {
+  /** The type badge, "Recorte: município", and the way back to the types. */
+  cut:             'Recorte',
+  location:        'Localização',
+  /** The location badge before a territory is chosen (19254:37384). */
+  locationPending: 'escolher',
+  /** The bioma's location: there is nothing else to choose. */
+  biomeLocation:   'Caatinga',
+  download:        'Baixar',
+  seeReport:       'Ver relatório',
 }

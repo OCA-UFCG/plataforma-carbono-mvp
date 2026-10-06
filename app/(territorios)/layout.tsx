@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import '../globals.css'
 import '../territorios.css'
-import { archivoNarrow, inter, rubik } from '../fonts/marketing'
+import { archivoNarrow, dDin, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { FAVICON } from '@/lib/favicon'
 
@@ -35,7 +35,7 @@ export default function TerritoriosLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${dDin.variable}`}>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -106,6 +106,13 @@ const PAIRS: [string, string][] = [
   ['--role-categorica1-texto-sobre', '--am-500'],
   ['--bg-fundo', '--am-500'],
   ['--bg-texto-sobre-inverso', '--am-500'],
+  // Territórios report (Figma 19254:37467): the reading badges and the text of
+  // a summary card on its --bg-superficie fill, and the figure's unit on the page.
+  ['--ctx-positivo-padrao', '--bg-superficie'],
+  ['--ctx-negativo-padrao', '--bg-superficie'],
+  ['--bg-texto-primario', '--bg-superficie'],
+  ['--foreground', '--bg-superficie'],
+  ['--foreground', '--bg-fundo'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
@@ -118,6 +125,10 @@ const LARGE_TEXT_PAIRS: [string, string][] = [
   ['--role-marca-ancora-padrao', '--am-100'],
   // The red card's 24px semibold title on its fill (issue #51), 3.76:1.
   ['--ctx-negativo-padrao', '--ctx-negativo-container'],
+  // The land use and fire figures, 40px D-DIN Bold, and their 24px titles
+  // (Figma 19257:13575), on the page and on a summary card: 4.4:1.
+  ['--ar-800', '--bg-fundo'],
+  ['--ar-800', '--bg-superficie'],
 ]
 
 describe('landing palette', () => {

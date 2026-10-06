@@ -109,24 +109,25 @@
   margin-top: 4px;
 }
 
-/* Answer figure */
+/* Answer figure: D-DIN Bold 40 (Figma 19254:37456), the unit beside it in the
+   body face (19254:37457). */
 
 .tg-step-figure {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 8px;
+  gap: 0 4px;
   margin: 0;
   color: var(--bg-texto-primario, #001d27);
 }
 
 .tg-step-figure-value {
   min-width: 0;
-  font-family: var(--font-display, 'Archivo Narrow'), 'Arial Narrow', sans-serif;
+  font-family: var(--font-figures, var(--font-display, 'Archivo Narrow')), 'Arial Narrow', sans-serif;
   font-weight: 700;
-  font-size: clamp(48px, 13vw, 64px);
-  line-height: 1.0733;
-  letter-spacing: -0.01em;
+  font-size: 40px;
+  line-height: 40px;
+  letter-spacing: -0.6px;
   /* Proportional figures at display size; the old layout sets tnum on body. */
   font-feature-settings: normal;
   font-variant-numeric: lining-nums proportional-nums;
@@ -134,10 +135,10 @@
 }
 
 .tg-step-figure-unit {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-  color: var(--am-400, #526f78);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--foreground, #292829);
 }
 
 /* ComparisonBar */
@@ -165,20 +166,35 @@
   box-shadow: 0 0 0 2px var(--bg-fundo, #fefefb);
 }
 
+/* The summary card's bar (Figma 19254:17361): the value above an 11 px track,
+   the Caatinga below it, in 12 px with the figure in medium. #d9d9d9 is the
+   design's track, with no token of its own. */
 .tg-cmp--compact .tg-tag,
 .tg-cmp--compact .tg-chart-title {
   font-size: 12px;
-  line-height: 16px;
+  line-height: 20px;
+}
+
+.tg-cmp--compact .tg-tag b {
+  font-weight: 500;
 }
 
 .tg-cmp--compact .tg-cmp-track {
-  height: 8px;
-  margin: 4px 0;
+  height: 11px;
+  margin: 2px 0;
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.tg-cmp--compact .tg-cmp-fill {
+  border-radius: 4px;
 }
 
 .tg-cmp--compact .tg-cmp-marker {
-  top: -4px;
-  bottom: -4px;
+  top: -2px;
+  bottom: -1px;
+  width: 3px;
+  left: clamp(0px, calc(var(--at) - 1.5px), calc(100% - 3px));
 }
 
 /* LevelsBar */

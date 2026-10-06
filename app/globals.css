@@ -41,6 +41,7 @@
   --role-primario-container: #d3e0ee;
   --ctx-negativo-padrao: #b54c40;
   --ctx-negativo-container: #efd7d2;
+  --ctx-positivo-padrao: #587c22;
   --ctx-informativo-texto-sobre: #ffffff;
   --ctx-positivo-texto-sobre-container: #001d27;
   /* The badge on the cards of "Duas formas de explorar os dados" (Figma
@@ -59,6 +60,10 @@
   --bg-borda: #526f78;
   --bg-overlay: #000f1580;
   --bg-superficie-variante: #fcf8eb;
+  /* The summary cards of the Territórios report (Figma 19254:37508). */
+  --bg-superficie: #fefcf7;
+  /* Body text of the report's answers and cards (19254:37457). */
+  --foreground: #292829;
 
   --am-050: #f2f4f5;
   --am-100: #e6eaeb;
@@ -67,6 +72,7 @@
   /* The cards' panel in "Duas formas de explorar os dados" (19253:15369). */
   --am-500: #002b39;
   --ar-050: #fefefb;
+  --ar-800: #7f765a;
   --cb-400: #72ae9b;
   --cb-600: #27725b;
   --cu-900: #1d3e45;

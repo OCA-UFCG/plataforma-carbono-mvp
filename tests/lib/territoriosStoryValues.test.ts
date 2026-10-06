@@ -38,6 +38,7 @@ const territory: TerritoryPayload = {
   bbox: [-36.1, -7.4, -35.7, -7.1], boundary: 'full',
   geometry: { type: 'Polygon', coordinates: [] },
   biome: NO_BIOME,
+  areaRank: null,
 }
 
 /** The biome reference as precomputed.json gives it on 2026-09-16 (fire on 2026-10-05). */

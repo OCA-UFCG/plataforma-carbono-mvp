@@ -1,0 +1,345 @@
+/*
+ * Building blocks of the Territórios report (Figma 19254:37412 and its
+ * siblings): the actions of the title band, its badges, the tab bar, the tab
+ * icons and the buttons at the foot of a panel. Imported by the components
+ * that draw them; territorios.css holds the band itself and the panels.
+ */
+
+/* Titles and actions on one row, bottom-aligned (19254:37414). */
+.territorios-secao-faixa--acoes .territorios-secao-faixa-conteudo {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding-block: 40px 16px;
+}
+
+.territorios-secao-faixa-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* The eyebrow sets solid, Rubik Medium 14/14 (19254:37416), so the band is
+   the design's 110 px: 40 + 14 + 4 + 36 + 16. */
+.territorios-secao-faixa--acoes .territorios-secao-sobretitulo {
+  line-height: 14px;
+}
+
+/* The report's title takes the design's green (19254:37417), 4.75:1 on
+   --am-100; the gallery keeps the section's olive. */
+.territorios-secao-faixa--acoes .territorios-secao-titulo {
+  color: var(--role-categorica1-padrao);
+}
+
+.territorios-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Badge (19254:37432): Rubik 16, the value bold, the edit icon after it.
+   Figma draws its strokes inside the box, so each padding here is the
+   design's less the 1 px border. */
+.territorios-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 7px 9px;
+  border: 1px solid var(--role-categorica1-padrao);
+  border-radius: 9999px;
+  background: none;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--role-categorica1-padrao);
+  white-space: nowrap;
+}
+
+.territorios-selo b {
+  font-weight: 700;
+}
+
+.territorios-selo img {
+  flex: none;
+}
+
+button.territorios-selo {
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+/* 19254:39194. */
+button.territorios-selo:hover,
+button.territorios-selo:focus-visible {
+  background: var(--role-categorica1-container);
+}
+
+/* "Baixar" and "Compartilhar" (19254:37434, 19254:37435): Inter Medium 14. */
+.territorios-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 7px 15px;
+  border: 1px solid var(--role-categorica1-padrao);
+  border-radius: var(--radius-interno);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.territorios-acao img {
+  flex: none;
+}
+
+.territorios-acao--baixar {
+  background: var(--role-categorica1-padrao);
+  color: #ffffff;
+}
+
+/* 19254:39180. */
+.territorios-acao--baixar:hover,
+.territorios-acao--baixar:focus-visible {
+  background: var(--role-categorica1-hover);
+  border-color: var(--role-categorica1-hover);
+}
+
+.territorios-acao--compartilhar {
+  background: none;
+  color: var(--role-categorica1-padrao);
+}
+
+/* 19254:39174. */
+.territorios-acao--compartilhar:hover,
+.territorios-acao--compartilhar:focus-visible {
+  background: var(--role-categorica1-container);
+}
+
+/* Before a territory is chosen (19254:37385, 19254:37386). */
+.territorios-acao:disabled {
+  cursor: default;
+}
+
+.territorios-acao--baixar:disabled {
+  background: var(--role-neutro-texto-desabilitado);
+  border-color: var(--role-neutro-texto-desabilitado);
+}
+
+.territorios-acao--compartilhar:disabled {
+  background: none;
+  border-color: var(--role-neutro-texto-desabilitado);
+  color: var(--role-neutro-texto-desabilitado);
+}
+
+.territorios-acao[aria-busy='true'] {
+  cursor: progress;
+}
+
+/* While "Baixar" waits for the summary's last themes: a turning ring in place
+   of its icon, in the label's color. Still, but drawn, under reduced motion. */
+.territorios-acao-girando {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: territorios-girar 0.8s linear infinite;
+}
+
+@keyframes territorios-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* "Link copiado", under the buttons. */
+.territorios-aviso-link {
+  flex-basis: 100%;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: right;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-aviso-link:empty {
+  display: none;
+}
+
+/* Tab bar (19254:37436): Inter Medium 14, the open tab olive and underlined. */
+.territorios-abas {
+  background: var(--bg-fundo);
+  border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
+}
+
+.territorios-abas-lista {
+  display: flex;
+  gap: 34px;
+  padding-top: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.territorios-abas-lista li {
+  flex: none;
+}
+
+.territorios-aba {
+  display: block;
+  padding: 16px 12px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.territorios-aba:hover,
+.territorios-aba:focus-visible {
+  color: var(--role-marca-ancora-padrao);
+}
+
+/* The bar clips anything drawn outside it. */
+.territorios-aba:focus-visible {
+  outline-offset: -2px;
+}
+
+.territorios-aba[aria-current='step'] {
+  color: var(--role-marca-ancora-padrao);
+  border-bottom-color: var(--role-marca-ancora-padrao);
+  box-shadow: var(--shadow-sm);
+}
+
+.territorios-aba:disabled {
+  color: var(--role-neutro-texto-desabilitado);
+  cursor: default;
+}
+
+/* A tab's icon in its 24 px box (19257:5752). */
+.territorios-icone {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+.territorios-icone img {
+  position: absolute;
+  display: block;
+}
+
+/* Buttons at the foot of a panel (19254:37462): two halves, or the way back
+   alone at 220 px on the summary (19254:37515). */
+.territorios-painel-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.territorios-painel-nav--voltar {
+  grid-template-columns: minmax(0, 220px);
+}
+
+.territorios-navegar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 7px 15px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius-interno);
+  background: none;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.territorios-navegar--voltar {
+  background: var(--bg-fundo);
+}
+
+/* No hover in the design; the outline buttons' own (territorios.css). */
+.territorios-navegar:hover,
+.territorios-navegar:focus-visible {
+  background: var(--am-100);
+}
+
+/* "Ver relatório" before a territory is proposed (19254:37409); #b3b3b3 is
+   the design's disabled border, with no token of its own. */
+.territorios-navegar:disabled {
+  border-color: #b3b3b3;
+  background: none;
+  color: #b3b3b3;
+  cursor: default;
+}
+
+.territorios-navegar img {
+  flex: none;
+}
+
+/* The territory's cards (19254:37459): its share of the biome at 172 px, its
+   rank in the rest; D-DIN Bold 24 over Rubik 14. A territory under 0,1% of
+   the biome keeps the rank alone, across the column; the bioma has none, and
+   its empty list takes no room. */
+.territorios-indicadores {
+  display: grid;
+  grid-template-columns: 172px minmax(0, 1fr);
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.territorios-indicadores:empty {
+  display: none;
+}
+
+.territorios-indicador:only-child {
+  grid-column: 1 / -1;
+}
+
+.territorios-indicador {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--am-100);
+  border-radius: var(--radius);
+}
+
+.territorios-indicador-valor {
+  font-family: var(--font-figures, var(--font-display)), sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 36px;
+  letter-spacing: -0.18px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-indicador-texto {
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--bg-texto-secundario);
+}

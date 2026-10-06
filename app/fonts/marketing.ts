@@ -50,3 +50,14 @@ export const archivoNarrow = localFont({
   variable: '--font-display',
   display: 'swap',
 })
+
+// The big figures of the Territórios report (Figma 19254:37456, 19254:17340):
+// D-DIN Bold, Datto's face under the OFL (OFL-D-DIN.txt). Shipped as Datto's
+// own OTF, unconverted and unsubset: the license reserves the name "D-DIN" for
+// unmodified files. Declared on the territorios <html> only.
+export const dDin = localFont({
+  src: './D-DIN-Bold.otf',
+  weight: '700',
+  variable: '--font-figures',
+  display: 'swap',
+})

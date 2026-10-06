@@ -1,9 +1,11 @@
 /*
- * The Territórios chooser: a 360 px column (back, question, search, location)
- * beside the map of every territory of a type on a computer; the same column
- * above a map of 45svh on a phone, where the confirmation rises as a sheet from
- * the bottom edge. Imported by components/territorios/TerritoryChooser.tsx and
- * read with the tokens and button classes of globals.css and territorios.css.
+ * The Territórios chooser: a 464 px column (question, search, location, and
+ * at its foot the way back and "Ver relatório") beside the map of every
+ * territory of a type at the report's 340:250 on a computer (Figma
+ * 19254:37396); the same column above a map of 45svh on a phone, where the
+ * confirmation rises as a sheet from the bottom edge. Imported by
+ * components/territorios/TerritoryChooser.tsx and read with the tokens and
+ * button classes of globals.css and territorios.css.
  */
 
 .territorios-escolha {
@@ -17,6 +19,30 @@
 /* The panels below set their own display, which would override the attribute. */
 .territorios-escolha [hidden] {
   display: none !important;
+}
+
+/* 19254:37401: the question in the brand olive. */
+.territorios-escolha .territorios-pergunta {
+  color: var(--role-marca-ancora-padrao);
+}
+
+/* 19254:37402: label in Rubik Medium 16, the count right under the field. */
+.territorios-escolha .territorios-campo {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.territorios-escolha .territorios-input {
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 7px 12px;
+}
+
+.territorios-escolha .territorios-contagem {
+  margin-top: 6px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
 }
 
 .territorios-escolha-painel {
@@ -75,9 +101,15 @@
   gap: 8px;
 }
 
+/* 19254:37406: Inter Medium 14, 1 px green outline, the pin after the label;
+   40 px tall, as the design's padding includes its stroke. */
 .territorios-escolha-localizar {
   width: 100%;
-  min-height: 48px;
+  min-height: 40px;
+  padding-block: 7px;
+  border-width: 1px;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
   white-space: normal;
 }
 
@@ -292,25 +324,32 @@
 
 @media (min-width: 768px) {
   .territorios-escolha {
-    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-columns: 464px minmax(0, 1fr);
     grid-template-areas: 'painel mapa';
-    align-items: start;
+    align-items: stretch;
     gap: 24px;
   }
 
+  /* The way back and on sits at the column's foot, level with the map's
+     bottom edge (19254:37397). */
   .territorios-escolha-painel {
-    gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
     padding: 0;
   }
 
-  /* Inside the section, under the site header, at most one screen tall. */
+  .territorios-escolha-painel > .territorios-painel-nav {
+    margin-top: auto;
+  }
+
+  /* The report's 340:250 (19254:37410), its border and corners. */
   .territorios-escolha-mapa {
-    position: sticky;
-    top: calc(var(--topo-fixo) + 16px);
-    height: clamp(420px, calc(100svh - var(--topo-fixo) - 32px), 680px);
-    overflow: hidden;
-    border: 1px solid var(--am-100);
-    border-radius: var(--radius);
+    align-self: start;
+    height: auto;
+    aspect-ratio: 340 / 250;
+    border-color: #d1cec8;
+    border-radius: 12px;
   }
 }
 

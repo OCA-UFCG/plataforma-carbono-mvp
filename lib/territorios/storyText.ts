@@ -11,9 +11,11 @@ import { STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
 import {
   ABOUT_SCRIPT,
   ANSWER_SCRIPT,
+  FEMININE_TYPES,
   STATE_LOCATIVE,
   STEP_QUESTIONS,
   SUMMARY_ROW_SCRIPT,
+  TERRITORY_SCRIPT,
 } from '@/config/territorios/storyScript'
 import {
   areaParts,
@@ -38,6 +40,7 @@ import {
 } from '@/lib/territorios/storyValues'
 import type {
   AboutItem,
+  Indicator,
   Reading,
   StepAnswer,
   StepId,
@@ -46,6 +49,7 @@ import type {
   ThemeData,
   ThemeId,
   ThemeResponse,
+  Tone,
 } from '@/types/territorios'
 
 export interface SummaryInput {
@@ -115,6 +119,28 @@ function territoryAnswer({ territory, type }: StepInput): Answer {
     sentence = where ? s.located(where) : s.plain
   }
   return { headline: areaParts(territory.areaHa), sentence }
+}
+
+/** Below this share of the biome the card would only say "menos de 0,1%". */
+const SHARE_CARD_MIN_PCT = 0.1
+
+/**
+ * The cards under the territory's area (Figma 19254:37459): its share of the
+ * biome, from 0,1% up, and its rank by area among the territories of its type.
+ * None for the biome, which is the whole. Most municipalities and every
+ * smaller type fall under 0,1% and keep the rank alone.
+ */
+export function territoryIndicators({ territory, type }: { territory: TerritoryPayload; type: TerritoryType }): Indicator[] {
+  if (isBioma(type)) return []
+  const s = TERRITORY_SCRIPT
+  const share = biomeAreaSharePct(territory)
+  const items: Indicator[] = share >= SHARE_CARD_MIN_PCT ? [{ value: formatPercent(share), text: s.biomeShare }] : []
+  const rank = territory.areaRank
+  if (rank && type.plural) {
+    const feminine = FEMININE_TYPES.has(type.id)
+    items.push({ value: s.rankValue(rank.position, feminine), text: s.rankText(rank.total, type.plural, feminine) })
+  }
+  return items
 }
 
 function stockAnswer({ response, territory, type }: StepInput): Answer {
@@ -241,18 +267,39 @@ export function stepAnswer(step: Exclude<StepId, 'resumo'>, input: StepInput): S
   }
 }
 
+/**
+ * Whether more than the Caatinga is good news, per theme; null where it is
+ * neither, as with rain. Flux is left out: more per hectare is good news for a
+ * removal and bad news for an emission, so its row passes its own direction.
+ */
+const MORE_IS_BETTER: Record<Exclude<ThemeId, 'fluxo'>, boolean | null> = {
+  estoque: true,
+  uso:     true,
+  fogo:    false,
+  chuva:   null,
+}
+
+/** The color of a reading's badge on the summary (Figma 19254:37508). */
+export function readingTone(reading: Reading | null, moreIsBetter: boolean | null): Tone | null {
+  if (reading === null) return null
+  if (reading === 'perto' || moreIsBetter === null) return 'neutral'
+  return (reading === 'acima') === moreIsBetter ? 'good' : 'bad'
+}
+
 function stockRow({ response, territory, type }: StepInput): Row {
   const s = SUMMARY_ROW_SCRIPT.estoque
   const data = availableData(response, 'estoque')
   const chart = data && stockChart(data.report, territory)
-  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.estoque.noData, reading: null }
+  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.estoque.noData, reading: null, tone: null }
 
   const { here, reference } = chart.density
   const cmp = against(here, reference, type)
+  const reading = cmp?.reading ?? null
   return {
     headline: { value: formatNumber(here), unit: s.unit },
     sentence: joinSentences(s.total(formatTonnes(data.report.totalTc)), cmp && s.biome(formatNumber(cmp.reference))),
-    reading:  cmp?.reading ?? null,
+    reading,
+    tone:     readingTone(reading, MORE_IS_BETTER.estoque),
   }
 }
 
@@ -260,8 +307,8 @@ function fluxRow({ response, territory, type }: StepInput): Row {
   const s = SUMMARY_ROW_SCRIPT.fluxo
   const data = availableData(response, 'fluxo')
   const m = data && fluxMetrics(data)
-  if (!data || !m) return { headline: null, sentence: ANSWER_SCRIPT.fluxo.noForest, reading: null }
-  if (m.direction === 'neutral') return { headline: null, sentence: s.balance, reading: null }
+  if (!data || !m) return { headline: null, sentence: ANSWER_SCRIPT.fluxo.noForest, reading: null, tone: null }
+  if (m.direction === 'neutral') return { headline: null, sentence: s.balance, reading: null, tone: null }
 
   // Per hectare of forest is the one flux figure a territory and the biome
   // share a base for; the total goes in the sentence.
@@ -278,6 +325,7 @@ function fluxRow({ response, territory, type }: StepInput): Row {
         : !isBioma(type) && biomePerHa !== null && s.biomeDirection[biomeFluxDirection(biomePerHa)],
     ),
     reading: cmp?.reading ?? null,
+    tone:    readingTone(cmp?.reading ?? null, m.direction === 'removal'),
   }
 }
 
@@ -285,7 +333,7 @@ function landUseRow({ response, territory, type }: StepInput): Row {
   const s = SUMMARY_ROW_SCRIPT.uso
   const data = availableData(response, 'uso')
   const chart = data && landUseChart(data, territory)
-  if (!chart) return { headline: null, sentence: ANSWER_SCRIPT.uso.noData, reading: null }
+  if (!chart) return { headline: null, sentence: ANSWER_SCRIPT.uso.noData, reading: null, tone: null }
 
   const ref = isBioma(type) ? null : chart.reference
   return {
@@ -295,6 +343,7 @@ function landUseRow({ response, territory, type }: StepInput): Row {
       ref && s.biome(formatPercent(ref.from), formatPercent(ref.to)),
     ),
     reading: ref ? readingOf(chart.here.to, ref.to) : null,
+    tone:    readingTone(ref ? readingOf(chart.here.to, ref.to) : null, MORE_IS_BETTER.uso),
   }
 }
 
@@ -302,7 +351,7 @@ function fireRow({ response, territory, type }: StepInput): Row {
   const s = SUMMARY_ROW_SCRIPT.fogo
   const data = availableData(response, 'fogo')
   const share = data && fireBurnedSharePct(data)
-  if (!data || share === null) return { headline: null, sentence: ANSWER_SCRIPT.fogo.noData, reading: null }
+  if (!data || share === null) return { headline: null, sentence: ANSWER_SCRIPT.fogo.noData, reading: null, tone: null }
 
   const peak = firePeakYear(data)
   const cmp = against(share, territory.biome.fireBurnedSharePct, type)
@@ -310,6 +359,7 @@ function fireRow({ response, territory, type }: StepInput): Row {
     headline: { value: formatPercent(share), unit: s.unit },
     sentence: joinSentences(cmp && s.biome(formatPercent(cmp.reference)), peak === null ? s.none : s.peak(peak)),
     reading:  cmp?.reading ?? null,
+    tone:     readingTone(cmp?.reading ?? null, MORE_IS_BETTER.fogo),
   }
 }
 
@@ -317,7 +367,7 @@ function rainRow({ response, territory, type }: StepInput): Row {
   const s = SUMMARY_ROW_SCRIPT.chuva
   const data = availableData(response, 'chuva')
   const chart = data && rainChart(data.series, territory)
-  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.chuva.noData, reading: null }
+  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.chuva.noData, reading: null, tone: null }
 
   // The mean is what the reading compares, so it is the row's figure.
   const lastMm = rainLastYearMm(data.series)
@@ -329,6 +379,7 @@ function rainRow({ response, territory, type }: StepInput): Row {
       lastMm === null ? s.missing : s.year[rainKind(lastMm, chart.meanMm)](formatNumber(lastMm)),
     ),
     reading: cmp?.reading ?? null,
+    tone:    readingTone(cmp?.reading ?? null, MORE_IS_BETTER.chuva),
   }
 }
 
@@ -340,7 +391,7 @@ export function summaryRows(input: SummaryInput): SummaryRow[] {
   return STORY_THEMES.map(({ id }): SummaryRow => {
     const head = { theme: id, title: SUMMARY_ROW_SCRIPT.titles[id] }
     const response = input.responses[id]
-    if (!settled(id, response)) return { ...head, headline: null, sentence: '', reading: null }
+    if (!settled(id, response)) return { ...head, headline: null, sentence: '', reading: null, tone: null }
 
     const row = { response, territory: input.territory, type: input.type }
     switch (id) {

@@ -1,37 +1,47 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- fixed-size icons exported from Figma */
 import { useEffect, useRef, useState } from 'react'
+import '@/app/territorios-resumo.css'
+import PanelNav from './PanelNav'
 import StepChart from './StepChart'
+import StepIcon from './StepIcon'
 import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
-import { FIGURE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { UI_ICONS } from '@/config/territorios/icons'
+import { STEP_COLORS } from '@/config/territorios/palette'
 import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { ABOUT_SCRIPT, READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
-import { sectionId } from '@/lib/territorios/activeSection'
+import { sectionId } from '@/lib/territorios/storyTabs'
 import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
 import { formatArea } from '@/lib/territorios/storyValues'
 import type { ThemeLoad } from './ThemeStep'
 import type { ThemeId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
 
 export interface StorySummaryProps {
+  /** Another tab is open; the summary stays in the page so "Baixar" can print it. */
+  hidden:    boolean
   territory: TerritoryPayload
   type:      TerritoryType
   loads:     Record<ThemeId, ThemeLoad>
   /** The session is gone: the retry buttons would only fail again. */
   expired:   boolean
   onRetry:   (theme: ThemeId) => void
-  onAnotherTerritory: () => void
+  /** "Recorte": back to the gallery of types. */
+  onBack:    () => void
 }
 
-type ShareNotice = 'copied' | 'failed' | null
-
-// The final sheet: one row per theme, "Sobre os dados" folded, and the actions.
-// Printing outputs this section alone (territorios.css), with the fold open.
+/**
+ * The summary tab (Figma 19254:37467): a card per theme, its reading as a
+ * badge colored by whether it is good news, "Sobre os dados" folded, and the
+ * way back. Printing outputs this section alone, with the fold open, whichever
+ * tab is on screen; the band that names the territory does not print, so the
+ * name heads the sheet on paper only.
+ */
 export default function StorySummary({
-  territory, type, loads, expired, onRetry, onAnotherTerritory,
+  hidden, territory, type, loads, expired, onRetry, onBack,
 }: StorySummaryProps) {
   const [generatedAt] = useState(() => new Date().toLocaleDateString('pt-BR'))
-  const [notice, setNotice] = useState<ShareNotice>(null)
   const aboutRef = useRef<HTMLDetailsElement | null>(null)
 
   // A folded <details> prints folded; the sheet prints it open and folds it
@@ -56,12 +66,6 @@ export default function StorySummary({
     }
   }, [])
 
-  useEffect(() => {
-    if (!notice) return
-    const timer = setTimeout(() => setNotice(null), 4000)
-    return () => clearTimeout(timer)
-  }, [notice])
-
   const responses: Partial<Record<ThemeId, ThemeResponse>> = {}
   for (const [theme, load] of Object.entries(loads) as [ThemeId, ThemeLoad][]) {
     if (load.kind === 'ready') responses[theme] = load.response
@@ -72,31 +76,14 @@ export default function StorySummary({
   const title = TERRITORY_SCRIPT.title(territory.featureName, type.id === 'estado' ? undefined : territory.context)
   const id = sectionId('resumo')
 
-  async function share() {
-    const url = window.location.href
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title, url })
-      } catch {
-        // Closing the share sheet rejects too; there is nothing to report.
-      }
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(url)
-      setNotice('copied')
-    } catch {
-      setNotice('failed')
-    }
-  }
-
   return (
-    <section id={id} data-step="resumo" className="territorios-resumo" aria-labelledby={`${id}-titulo`}>
-      <h4 id={`${id}-titulo`} className="territorios-faixa" style={{ background: STEP_COLORS.territorio }} tabIndex={-1}>
-        {UI.summaryTitle}
-      </h4>
+    <section id={id} data-step="resumo" className="territorios-resumo" aria-labelledby={`${id}-titulo`} hidden={hidden}>
+      <h3 id={`${id}-titulo`} className="territorios-etapa-titulo" style={{ color: STEP_COLORS.resumo }} tabIndex={-1}>
+        <StepIcon step="resumo" />
+        {STEP_LABELS.resumo}
+      </h3>
 
-      <header className="territorios-ficha-cabecalho">
+      <header className="territorios-ficha-cabecalho territorios-so-impressao">
         <p className="territorios-ficha-nome">{title}</p>
         <p className="territorios-ficha-detalhe">
           {/* The title above already carries the state. */}
@@ -104,17 +91,26 @@ export default function StorySummary({
         </p>
       </header>
 
-      <ul className="territorios-ficha">
+      <ul className="territorios-fichas">
         {rows.map((row) => {
           const load = loads[row.theme]
+          const color = STEP_COLORS[row.theme]
           return (
             <li
               key={row.theme}
-              // A print from another section can come before this theme was ever requested.
-              className={load.kind === 'loading' ? 'territorios-ficha-linha territorios-no-print' : 'territorios-ficha-linha'}
-              style={{ '--tema-cor': STEP_COLORS[row.theme] } as React.CSSProperties}
+              // A print from another tab can come before this theme was ever requested.
+              className={load.kind === 'loading' ? 'territorios-ficha territorios-no-print' : 'territorios-ficha'}
             >
-              <h5 className="territorios-ficha-titulo">{row.title}</h5>
+              {/* The title comes first, so heading navigation lands ahead of the
+                  badge; the stylesheet lifts the badge above it, as drawn. */}
+              <div className="territorios-ficha-topo">
+                <h4 className="territorios-ficha-titulo">{row.title}</h4>
+                {row.reading && row.tone && (
+                  <p className="territorios-ficha-leitura" data-tom={row.tone}>
+                    {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
+                  </p>
+                )}
+              </div>
               {load.kind === 'loading' ? (
                 <p className="territorios-ficha-estado">{UI.loading}</p>
               ) : load.kind === 'failed' || load.response.status === 'unavailable' ? (
@@ -134,16 +130,9 @@ export default function StorySummary({
               ) : (
                 <>
                   <div className="territorios-ficha-valor">
-                    {row.headline && (
-                      <StepFigure value={row.headline.value} unit={row.headline.unit} color={FIGURE_COLORS[row.theme]} />
-                    )}
-                    {row.reading && (
-                      <p className="territorios-ficha-leitura">
-                        {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
-                      </p>
-                    )}
+                    {row.headline && <StepFigure value={row.headline.value} unit={row.headline.unit} color={color} />}
+                    <p className="territorios-ficha-frase">{row.sentence}</p>
                   </div>
-                  <p className="territorios-ficha-frase">{row.sentence}</p>
                   <div className="territorios-ficha-grafico">
                     <StepChart theme={row.theme} response={load.response} territory={territory} type={type} compact />
                   </div>
@@ -155,7 +144,11 @@ export default function StorySummary({
       </ul>
 
       <details ref={aboutRef} className="territorios-sobre">
-        <summary>{ABOUT_SCRIPT.title}</summary>
+        <summary>
+          {ABOUT_SCRIPT.title}
+          <img className="territorios-sobre-abrir" src={UI_ICONS.open} alt="" width={24} height={24} />
+          <img className="territorios-sobre-fechar" src={UI_ICONS.close} alt="" width={24} height={24} />
+        </summary>
         <dl>
           {about.map((item) => (
             <div key={item.title}>
@@ -167,20 +160,7 @@ export default function StorySummary({
         <p className="territorios-sobre-data">{UI.generatedAt(generatedAt)}</p>
       </details>
 
-      <div className="territorios-navegacao territorios-navegacao--resumo">
-        <button type="button" className="territorios-btn territorios-btn--primario" onClick={() => window.print()}>
-          {UI.print}
-        </button>
-        <button type="button" className="territorios-btn territorios-btn--contorno" onClick={() => void share()}>
-          {UI.share}
-        </button>
-        <button type="button" className="territorios-btn territorios-btn--contorno" onClick={onAnotherTerritory}>
-          {UI.changeTerritory}
-        </button>
-        <p className="territorios-aviso-link" role="status">
-          {notice === 'copied' ? UI.linkCopied : notice === 'failed' ? UI.copyFailed : ''}
-        </p>
-      </div>
+      <PanelNav onBack={onBack} />
     </section>
   )
 }

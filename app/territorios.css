@@ -5,8 +5,10 @@
  *
  * The layout imports globals.css first, so every token (--role-*, --bg-*,
  * --am-*, --radius*, --shadow*) and type class (.text-*) is the home's own;
- * this file only adds the story's aliases and overrides the base rules it
- * needs otherwise.
+ * this file only adds the story's aliases, overrides the base rules it needs
+ * otherwise, and lays out the band and the report's panels. The components
+ * bring their own sheets: the gallery, the chooser, the report's building
+ * blocks, the summary, the charts and the map.
  */
 
 :root {
@@ -15,16 +17,12 @@
   --font-raleway: var(--font-sans);
   --font-titulo: var(--font-display), var(--font-sans), sans-serif;
 
-  /* The sticky map and the section anchors sit below the sticky step rail;
-     44 px is also the touch target of its buttons. */
-  --trilha-altura: 44px;
   /* What sticks over the top of the page above the section: the site header. */
   --topo-fixo: var(--header-height, 0px);
 }
 
-/* globals.css animates every scroll of the viewport. Each scroll of the story
-   names its own behavior, and the corrections useActiveSection.ts makes while
-   the charts change height must land at once. */
+/* globals.css animates every scroll of the viewport. A change of screen or of
+   tab brings the section back at once. */
 html {
   scroll-behavior: auto;
 }
@@ -144,7 +142,8 @@ input:focus-visible,
 }
 
 /* The section's title band, which stays while the body below it changes. It
-   imitates the home's PageIntro. */
+   imitates the home's PageIntro; components/territorios/ReportBand.tsx draws
+   it, and territorios-relatorio.css lays out its actions. */
 .territorios-secao-faixa {
   background: var(--am-100);
 }
@@ -231,193 +230,94 @@ input:focus-visible,
   background: var(--am-050);
 }
 
-/* Story header and step rail */
-.territorios-cabecalho {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--am-100);
-}
-
-.territorios-nome {
-  margin-top: 4px;
-  font-family: var(--font-titulo);
-  font-size: clamp(28px, 6vw, 48px);
-  font-weight: 700;
-  line-height: 1.08;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-trilha {
-  position: sticky;
-  top: var(--topo-fixo);
-  z-index: 5;
-  display: flex;
-  align-items: stretch;
-  gap: 16px;
-  height: var(--trilha-altura);
-  margin-top: 8px;
-  background: var(--bg-fundo);
-  border-bottom: 1px solid var(--am-100);
-}
-
-
-
-
-.territorios-trilha-nav {
-  flex: 1;
-  min-width: 0;
-}
-
-.territorios-trilha-alternar {
-  display: none;
-}
-
-.territorios-trilha-lista {
-  display: flex;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x proximity;
-  /* A scrollbar would push the rail past the height the sticky map sits under;
-     the rail scrolls itself to the active step. */
-  scrollbar-width: none;
-  list-style: none;
-}
-
-.territorios-trilha-lista::-webkit-scrollbar {
-  display: none;
-}
-
-.territorios-trilha-lista li {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-}
-
-/* The bar below the active step takes the step's color (--etapa-cor, set
-   inline from STEP_COLORS); each one is 5.3:1 or more on --bg-fundo. */
-.territorios-etapa {
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 4px 12px 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  text-align: left;
-  white-space: nowrap;
-  color: var(--am-400);
-  background: none;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-}
-
-.territorios-etapa:hover {
-  color: var(--bg-texto-primario);
-  background: var(--am-050);
-}
-
-/* The rail clips anything drawn outside its height. */
-.territorios-etapa:focus-visible {
-  outline-offset: -2px;
-}
-
-.territorios-etapa[aria-current='step'] {
-  color: var(--bg-texto-primario);
-  border-bottom-color: var(--etapa-cor, var(--role-marca-ancora-padrao));
-}
-
-/* Story: the sections scroll beside the sticky map. No ancestor of the rail or
-   the map may set overflow, or they stop sticking. Native scroll anchoring is
-   off because useActiveSection.ts holds the active section in place itself,
-   which Safari before 27 needs; with both, Chrome and Firefox would move twice. */
-.territorios-historia {
+/* Report: the open tab's panel beside the map (Figma 19254:37446). The text
+   column is 464 px; the map takes the rest at the design's 340:250. */
+.territorios-relatorio {
   display: grid;
-  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
-  grid-template-areas: 'secoes mapa';
-  gap: 0 40px;
-  align-items: start;
-  overflow-anchor: none;
-}
-
-.territorios-secoes {
-  grid-area: secoes;
-  min-width: 0;
-}
-
-.territorios-historia-mapa {
-  grid-area: mapa;
-  position: sticky;
-  top: calc(var(--topo-fixo) + var(--trilha-altura) + 24px);
-  height: calc(100svh - var(--topo-fixo) - var(--trilha-altura) - 48px);
-  min-height: 320px;
-  margin-top: 32px;
-}
-
-/* One section: color bar, question, answer, chart, then the buttons. The
-   minimum height lets every section reach the trigger line. */
-.territorios-passo,
-.territorios-resumo {
-  min-height: 70svh;
-  padding-top: 32px;
-  scroll-margin-top: calc(var(--topo-fixo) + var(--trilha-altura) + 8px);
-}
-
-/* The summary stops right under the rail, where the story's grid ends, so no
-   strip of the sticky map shows above it; its band lands where a step's does. */
-.territorios-resumo {
-  padding-top: 40px;
-  scroll-margin-top: calc(var(--topo-fixo) + var(--trilha-altura));
-}
-
-/* The last step keeps the sticky map whole until the summary comes up. */
-.territorios-passo:last-child {
-  min-height: calc(100svh - var(--topo-fixo) - var(--trilha-altura) - 8px);
-}
-
-.territorios-passo {
-  display: grid;
+  grid-template-columns: 464px minmax(0, 1fr);
   gap: 24px;
+  align-items: stretch;
+}
+
+/* Set on the summary's tab: the attribute alone loses to the display above. */
+.territorios-relatorio[hidden] {
+  display: none;
+}
+
+.territorios-relatorio-mapa {
+  position: relative;
+  align-self: start;
+  min-width: 0;
+  aspect-ratio: 340 / 250;
+}
+
+/* The map fills its frame and takes the design's border and corners
+   (19254:37465); two classes, so territorios-mapa.css, which loads later,
+   cannot undo it. */
+.territorios-relatorio-mapa > .territorios-mapa {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  border-color: #d1cec8;
+  border-radius: 12px;
+}
+
+/* One tab (19254:37447): the answer at the top, the buttons at the foot. */
+.territorios-etapa-painel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  min-width: 0;
+}
+
+.territorios-etapa-corpo {
+  display: grid;
   align-content: start;
+  gap: 16px;
+  min-width: 0;
 }
 
-/* The background comes inline, one color per step; white reads on each at
-   5.38:1 or more. */
-.territorios-faixa {
-  padding: 8px 16px;
-  border-radius: var(--radius-interno);
-  font-size: 14px;
+/* The tab's title: its icon, and its color inline from STEP_COLORS (19257:5752). */
+.territorios-etapa-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
   font-weight: 600;
-  line-height: 20px;
-  text-transform: uppercase;
-  color: var(--role-marca-ancora-texto-sobre);
+  line-height: 32px;
+  letter-spacing: -0.144px;
 }
 
-/* Focused by the scroll to its section or by a change of screen, not by the visitor. */
-.territorios-faixa:focus,
-.territorios-nome:focus {
+/* Focused by a change of tab or of screen, not by the visitor. */
+.territorios-etapa-titulo:focus {
   outline: none;
+}
+
+/* 19254:37454. */
+.territorios-etapa-pergunta {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
 }
 
 .territorios-passo-texto {
   display: grid;
-  gap: 24px;
+  gap: 16px;
   min-width: 0;
 }
 
 .territorios-resposta {
   display: grid;
-  gap: 8px;
+  gap: 16px;
 }
 
+/* 19254:37458. */
 .territorios-resposta-frase {
-  font-size: 20px;
-  line-height: 28px;
-  color: var(--bg-texto-primario);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--foreground);
 }
 
 .territorios-graficos {
@@ -438,17 +338,7 @@ input:focus-visible,
   margin-top: 16px;
 }
 
-.territorios-navegacao {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 24px 0 32px;
-  border-top: 1px solid var(--am-100);
-}
-
-/* Land use map year, on a computer; the phone's sheet has its own over the map. */
+/* Land use map year, beside the map it switches. */
 .territorios-passo-anos {
   display: flex;
   flex-wrap: wrap;
@@ -482,295 +372,21 @@ input:focus-visible,
   color: var(--bg-fundo);
 }
 
-.territorios-navegacao--resumo {
-  margin-top: 40px;
-}
-
-/* The map opens as a sheet on a phone only. */
-.territorios-ver-mapa,
-.territorios-folha-fundo,
-.territorios-folha-topo {
-  display: none;
-}
-
-/* Final sheet: full width under the story, no live map. */
-.territorios-ficha-cabecalho {
-  display: grid;
-  gap: 4px;
-  margin-top: 16px;
-}
-
-.territorios-ficha-nome {
-  font-family: var(--font-titulo);
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 700;
-  line-height: 1.08;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-ficha-detalhe {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--am-400);
-}
-
-.territorios-ficha {
-  display: grid;
-  margin-top: 24px;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--am-100);
-}
-
-/* One line per theme: figure and reading, the sentence, the bar. --tema-cor
-   comes inline from STEP_COLORS. */
-.territorios-ficha-linha {
-  display: grid;
-  grid-template-columns: minmax(0, 260px) minmax(0, 1fr) minmax(0, 300px);
-  grid-template-areas:
-    'titulo titulo titulo'
-    'valor frase grafico';
-  gap: 8px 32px;
-  align-items: start;
-  padding: 16px 0 24px 16px;
-  border-bottom: 1px solid var(--am-100);
-  border-left: 4px solid var(--tema-cor, var(--am-400));
-  break-inside: avoid;
-}
-
-.territorios-ficha-titulo {
-  grid-area: titulo;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: var(--am-400);
-}
-
-.territorios-ficha-valor {
-  grid-area: valor;
-  display: grid;
-  gap: 4px;
-}
-
-.territorios-ficha-grafico {
-  grid-area: grafico;
-}
-
-/* The step figure, one size down for the lines side by side. */
-.territorios-ficha-valor .tg-step-figure-value {
-  font-size: 40px;
-}
-
-.territorios-ficha-valor .tg-step-figure-unit {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.territorios-ficha-leitura {
-  justify-self: start;
-  padding: 2px 8px;
-  border: 1px solid var(--am-200);
-  border-radius: var(--radius-interno);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-ficha-frase {
-  grid-area: frase;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-ficha-estado {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 12px;
-  justify-items: start;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--am-400);
-}
-
-.territorios-sobre {
-  margin-top: 32px;
-  border-top: 1px solid var(--am-100);
-  border-bottom: 1px solid var(--am-100);
-}
-
-.territorios-sobre summary {
-  min-height: 44px;
-  padding: 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  cursor: pointer;
-}
-
-.territorios-sobre summary:focus-visible {
-  outline: 2px solid var(--role-marca-ancora-foco);
-  outline-offset: 2px;
-}
-
-.territorios-sobre dl {
-  display: grid;
-  gap: 12px;
-  max-width: 72ch;
-  padding-bottom: 12px;
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.territorios-sobre dt {
-  font-weight: 600;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-sobre dd {
-  margin: 0;
-  color: var(--am-400);
-}
-
-.territorios-sobre-data {
-  padding-bottom: 16px;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--am-400);
-}
-
-.territorios-aviso-link {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-aviso-link:empty {
-  display: none;
-}
-
 @media (min-width: 768px) and (max-width: 1023px) {
-  .territorios-historia {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0 24px;
-  }
-
-  .territorios-ficha-linha {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      'titulo titulo'
-      'valor frase'
-      'grafico grafico';
+  .territorios-relatorio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Phone: one column, and the map as a sheet over the page, opened from each
-   step's button. */
+/* Narrow screens: the map under the panel. The site is built for computers
+   for now; this only keeps the report readable. */
 @media (max-width: 767px) {
-  .territorios-historia {
+  .territorios-relatorio {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'secoes';
-    gap: 0;
   }
 
-  .territorios-historia-mapa {
-    display: none;
-  }
-
-  .territorios-historia-mapa[data-aberta] {
-    position: fixed;
-    inset: auto 0 0;
-    z-index: 30;
-    display: flex;
-    flex-direction: column;
-    height: 70svh;
-    min-height: 0;
-    margin: 0;
-    padding: 8px 8px 0;
-    background: var(--bg-fundo);
-    border-radius: var(--radius) var(--radius) 0 0;
-    box-shadow: var(--shadow-lg);
-  }
-
-  .territorios-historia-mapa[data-aberta] .territorios-mapa {
-    flex: 1;
-    min-height: 0;
-    height: auto;
-    border-radius: var(--radius) var(--radius) 0 0;
-  }
-
-  .territorios-folha-fundo {
-    position: fixed;
-    inset: 0;
-    z-index: 29;
-    display: block;
-    background: var(--bg-overlay);
-  }
-
-  .territorios-folha-topo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0 4px 8px;
-  }
-
-  .territorios-folha-titulo {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-  }
-
-  .territorios-ver-mapa {
-    display: inline-flex;
-  }
-
-  .territorios-passo,
-  .territorios-passo:last-child {
-    min-height: 0;
-    padding-top: 24px;
-  }
-
-  .territorios-resumo {
-    min-height: 0;
-    padding-top: 32px;
-  }
-
-  .territorios-passo {
-    gap: 16px;
-  }
-
-  .territorios-passo-texto {
-    gap: 16px;
-  }
-
-  .territorios-passo-anos {
-    display: none;
-  }
-
-  /* The page's padding would sit above the sticky rail; the header gets the room below it. */
-  .territorios.territorios--historia {
-    padding-top: 0;
-  }
-
-  .territorios-trilha {
-    margin-top: 0;
-  }
-
-  .territorios-cabecalho {
-    padding: 16px 0;
-  }
-
-  .territorios-ficha-linha {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'titulo' 'valor' 'frase' 'grafico';
-    padding-left: 12px;
-  }
-
-  .territorios-navegacao {
-    margin-top: 0;
-    padding: 16px 0 24px;
+  .territorios-secao-faixa-conteudo {
+    padding-block: 24px;
   }
 }
 
@@ -780,109 +396,15 @@ input:focus-visible,
   }
 }
 
-@media (max-width: 767px) {
-
-  .territorios-secao-faixa-conteudo {
-    padding-block: 24px;
-  }
-
-  /* The rail folds into a bar naming the current step; its button drops the
-     same list down, over the map. */
-  .territorios-trilha {
-    gap: 12px;
-  }
-
-
-  .territorios-trilha-alternar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    height: 100%;
-    padding: 0 4px;
-    font-size: 14px;
-    line-height: 20px;
-    text-align: left;
-    color: var(--bg-texto-primario);
-    background: none;
-    border: 0;
-    cursor: pointer;
-  }
-
-  .territorios-trilha-alternar:focus-visible {
-    outline-offset: -2px;
-  }
-
-  .territorios-trilha-posicao {
-    flex: none;
-    color: var(--am-400);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .territorios-trilha-atual {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .territorios-trilha-alternar svg {
-    flex: none;
-    width: 16px;
-    height: 16px;
-    transition: transform 0.18s ease;
-  }
-
-  .territorios-trilha[data-aberta] .territorios-trilha-alternar svg {
-    transform: rotate(180deg);
-  }
-
-  .territorios-trilha-lista {
-    display: none;
-  }
-
-  .territorios-trilha[data-aberta] .territorios-trilha-lista {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    display: block;
-    height: auto;
-    padding: 4px 0;
-    overflow: visible;
-    background: var(--bg-fundo);
-    border: 1px solid var(--am-200);
-    border-radius: 0 0 var(--radius) var(--radius);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .territorios-trilha[data-aberta] .territorios-etapa {
-    height: 44px;
-    padding: 0 16px 0 12px;
-    border-bottom: 0;
-    border-left: 4px solid transparent;
-  }
-
-  .territorios-trilha[data-aberta] .territorios-etapa[aria-current='step'] {
-    border-left-color: var(--etapa-cor, var(--role-marca-ancora-padrao));
-  }
-}
-
 @media (max-width: 519px) {
   .territorios-pergunta {
     font-size: 20px;
     line-height: 28px;
   }
-
-  .territorios-navegacao .territorios-btn {
-    flex: 1 1 auto;
-  }
 }
 
-/* MapLibre's zoom buttons are 29 px, and on the phone story map, where one
-   finger scrolls the page, they are the quickest way to zoom. */
+/* MapLibre's zoom buttons are 29 px; on a touch screen they are the quickest
+   way to zoom. */
 @media (pointer: coarse) {
   .territorios-mapa .maplibregl-ctrl-group button {
     width: 44px;
@@ -913,8 +435,8 @@ input:focus-visible,
     background: #ffffff;
   }
 
-  /* Only the final sheet prints: the rest of the page, the section's band and
-     the chosen type step aside while a story is open. */
+  /* Only the summary prints: the rest of the page, the section's band and
+     tabs, and the open tab step aside while a report is open. */
   body:has(.territorios-resumo) > :not(main),
   main:has(.territorios-resumo) > :not(.territorios-secao) {
     display: none !important;
@@ -925,46 +447,8 @@ input:focus-visible,
     padding: 0;
   }
 
-  .territorios-trilha,
-  .territorios-cabecalho,
-  .territorios-historia,
-  .territorios-navegacao,
+  .territorios-relatorio,
   .territorios-no-print {
     display: none !important;
-  }
-
-  .territorios-resumo {
-    min-height: 0;
-    padding-top: 0;
-  }
-
-  .territorios-ficha-linha {
-    grid-template-columns: 50mm minmax(0, 1fr) 55mm;
-    grid-template-areas:
-      'titulo titulo titulo'
-      'valor frase grafico';
-    gap: 4px 6mm;
-    padding: 8px 0 10px 10px;
-  }
-
-  .territorios-ficha-valor .tg-step-figure-value {
-    font-size: 30px;
-  }
-
-  .territorios-sobre summary {
-    min-height: 0;
-    list-style: none;
-  }
-
-  .territorios-sobre summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* Browsers drop background colors and some borders by default when printing. */
-  .territorios-ficha-linha,
-  .territorios-faixa,
-  .tg-chart {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 }

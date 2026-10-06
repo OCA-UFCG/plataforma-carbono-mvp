@@ -137,12 +137,14 @@ export default function StepChart({ theme, response, territory, type, compact = 
       if (!chart) return null
       if (compact) {
         return (
+          // The summary's bar takes the tab's color, as its card does (Figma
+          // 19254:37510); the dumbbell below keeps the map's native green.
           <Bar
             {...bar}
             value={{ here: chart.here.to, reference: chart.reference?.to ?? null }}
             label={CHART_SCRIPT.uso.share}
             format={formatPercent}
-            color={LAND_USE_COLORS.nativa}
+            color={STEP_COLORS.uso}
             max={100}
           />
         )
