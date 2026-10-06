@@ -2,8 +2,8 @@
 //
 // A theme is looked up in three places, cheapest first: the precomputed file
 // (the biome, too large to answer live), an in-memory cache, and Earth Engine.
-// Only the recortes of enabled territory types are served, so this cannot be
-// used to reduce a raster over any other vector layer.
+// Only the recortes of the territory types are served, so this cannot be used
+// to reduce a raster over any other vector layer.
 
 import 'server-only'
 
@@ -67,9 +67,9 @@ function setCached(key: string, response: ThemeResponse): void {
 }
 
 function resolve(recorteId: string, featureId: string): { recorteName: string; feicao: FeicaoResolvida } {
-  const enabled = TERRITORY_TYPES.some((t) => t.enabled && t.recorteId === recorteId)
+  const known = TERRITORY_TYPES.some((t) => t.recorteId === recorteId)
   const layer = appConfig.layers.find((l) => l.id === recorteId && l.type === 'vector')
-  if (!enabled || !layer) throw new TerritoryNotFoundError('Recorte not found.')
+  if (!known || !layer) throw new TerritoryNotFoundError('Recorte not found.')
 
   const feicao = getFeicao(recorteId, featureId)
   if (!feicao) throw new TerritoryNotFoundError('Feature not found.')

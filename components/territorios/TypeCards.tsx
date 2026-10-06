@@ -50,13 +50,9 @@ export default function TypeCards({ onSelect }: TypeCardsProps) {
               <div className="territorios-painel-conteudo">
                 <h3 ref={titleRef} tabIndex={-1} className="territorios-painel-titulo">{type.unitLabel}</h3>
                 <p className="territorios-painel-texto">{INTRO.descriptions[type.id]}</p>
-                {type.enabled ? (
-                  <button type="button" className="territorios-painel-botao" onClick={() => onSelect(type)}>
-                    {INTRO.explore}
-                  </button>
-                ) : (
-                  <p className="territorios-painel-embreve">{INTRO.soonBadge}</p>
-                )}
+                <button type="button" className="territorios-painel-botao" onClick={() => onSelect(type)}>
+                  {INTRO.explore}
+                </button>
               </div>
             ) : (
               <button
@@ -66,7 +62,6 @@ export default function TypeCards({ onSelect }: TypeCardsProps) {
                 onClick={() => { openedByVisitor.current = true; setOpenId(type.id) }}
               >
                 <span className="territorios-painel-rotulo">{type.unitLabel}</span>
-                {!type.enabled && <span className="territorios-painel-rotulo-embreve">{INTRO.soonBadge}</span>}
               </button>
             )}
           </li>

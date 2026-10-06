@@ -85,9 +85,8 @@ const THEME_IDS = STORY_THEMES.map((t) => t.id)
 const LOADING: ThemeLoad = { kind: 'loading' }
 const NO_RETRIES: ThemeId[] = []
 
-function enabledType(recorteId: string): TerritoryType | null {
-  const type = territoryTypeByRecorte(recorteId)
-  return type?.enabled ? type : null
+function typeOf(recorteId: string): TerritoryType | null {
+  return territoryTypeByRecorte(recorteId) ?? null
 }
 
 function isStep(value: string): value is StepId {
@@ -120,7 +119,7 @@ function storyPath(pathname: string, type: TerritoryType | null, featureId: stri
 
 /** Type and territory an address names; the bioma has a single feature. */
 function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; featureId: string } {
-  const type = enabledType(params.get('recorte') ?? '')
+  const type = typeOf(params.get('recorte') ?? '')
   if (type?.recorteId === BIOMA_RECORTE_ID) return { type, featureId: BIOMA_FEATURE_ID }
   return { type, featureId: type ? params.get('feicao') ?? '' : '' }
 }
@@ -132,9 +131,9 @@ function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; 
  */
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
   const pathname = usePathname()
-  const [type, setType] = useState<TerritoryType | null>(() => enabledType(initialRecorte))
+  const [type, setType] = useState<TerritoryType | null>(() => typeOf(initialRecorte))
   const [featureId, setFeatureId] = useState(() => {
-    const restored = enabledType(initialRecorte)
+    const restored = typeOf(initialRecorte)
     if (restored?.recorteId === BIOMA_RECORTE_ID) return BIOMA_FEATURE_ID
     return restored ? initialFeicao : ''
   })
@@ -427,7 +426,6 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   }, [show])
 
   function chooseType(next: TerritoryType) {
-    if (!next.enabled || !next.recorteId) return
     goTo(next, next.recorteId === BIOMA_RECORTE_ID ? BIOMA_FEATURE_ID : '')
   }
 

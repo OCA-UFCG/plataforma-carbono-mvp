@@ -7,13 +7,12 @@ import type { StepId, TerritoryTypeId, ThemeId } from '@/types/territorios'
 
 export interface TerritoryType {
   id:        TerritoryTypeId
-  /** Plural, for the "Em breve" line of the types not enabled yet. */
+  /** Plural, capitalized as the layer names it. */
   label:     string
   /** Singular, for the type cards and the screen subtitle. */
   unitLabel: string
-  /** Vector layer id in config/mapa/layers.json; null for the types with no data yet. */
-  recorteId: string | null
-  enabled:   boolean
+  /** Vector layer id in config/mapa/layers.json. */
+  recorteId: string
   image:     string
   /** Lowercase plural for "{n} municípios com área na Caatinga"; null when there is no search. */
   plural:         string | null
@@ -26,36 +25,28 @@ export const BIOMA_FEATURE_ID = 'bioma-caatinga'
 
 export const TERRITORY_TYPES: TerritoryType[] = [
   {
-    id: 'bioma', label: 'Bioma', unitLabel: 'Bioma', recorteId: BIOMA_RECORTE_ID, enabled: true,
+    id: 'bioma', label: 'Bioma', unitLabel: 'Bioma', recorteId: BIOMA_RECORTE_ID,
     image: '/images/territorios/bioma.jpg', plural: null, searchQuestion: null,
   },
   {
-    id: 'estado', label: 'Estado', unitLabel: 'Estado', recorteId: 'estados', enabled: true,
+    id: 'estado', label: 'Estado', unitLabel: 'Estado', recorteId: 'estados',
     image: '/images/territorios/estado.jpg', plural: 'estados', searchQuestion: 'Qual estado?',
   },
   {
-    id: 'municipio', label: 'Município', unitLabel: 'Município', recorteId: 'municipios', enabled: true,
+    id: 'municipio', label: 'Município', unitLabel: 'Município', recorteId: 'municipios',
     image: '/images/territorios/municipio.jpg', plural: 'municípios', searchQuestion: 'Qual município?',
   },
   {
-    id: 'terra_indigena', label: 'Terras Indígenas', unitLabel: 'Terra Indígena', recorteId: 'terras_indigenas', enabled: true,
+    id: 'terra_indigena', label: 'Terras Indígenas', unitLabel: 'Terra Indígena', recorteId: 'terras_indigenas',
     image: '/images/territorios/terra-indigena.jpg', plural: 'terras indígenas', searchQuestion: 'Qual terra indígena?',
   },
   {
-    id: 'territorio_quilombola', label: 'Territórios Quilombolas', unitLabel: 'Território Quilombola', recorteId: 'quilombolas', enabled: true,
+    id: 'territorio_quilombola', label: 'Territórios Quilombolas', unitLabel: 'Território Quilombola', recorteId: 'quilombolas',
     image: '/images/territorios/territorio-quilombola.jpg', plural: 'territórios quilombolas', searchQuestion: 'Qual território quilombola?',
   },
   {
-    id: 'assentamento', label: 'Assentamentos', unitLabel: 'Assentamento', recorteId: 'assentamentos', enabled: true,
+    id: 'assentamento', label: 'Assentamentos', unitLabel: 'Assentamento', recorteId: 'assentamentos',
     image: '/images/territorios/assentamento.jpg', plural: 'assentamentos', searchQuestion: 'Qual assentamento?',
-  },
-  {
-    id: 'propriedade_rural', label: 'Propriedades Rurais', unitLabel: 'Propriedade Rural', recorteId: null, enabled: false,
-    image: '/images/territorios/propriedade-rural.jpg', plural: null, searchQuestion: null,
-  },
-  {
-    id: 'unidade_conservacao', label: 'Unidades de Conservação', unitLabel: 'Unidade de Conservação', recorteId: null, enabled: false,
-    image: '/images/territorios/unidade-conservacao.jpg', plural: null, searchQuestion: null,
   },
 ]
 

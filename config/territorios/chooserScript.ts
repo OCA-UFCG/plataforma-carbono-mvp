@@ -11,7 +11,6 @@ export const INTRO = {
   title:   'Que território você quer conhecer?',
   explore:   'Explorar',
   changeType: 'Trocar tipo',
-  soonBadge: 'Em breve',
   /** One line under the title of each open panel. Counts from public/data/vector/*.geojson. */
   descriptions: {
     bioma:                 'A Caatinga inteira, com 862.626 km² em dez estados.',
@@ -20,8 +19,6 @@ export const INTRO = {
     terra_indigena:        'As 50 terras indígenas com área na Caatinga.',
     territorio_quilombola: 'Os 86 territórios quilombolas com área na Caatinga.',
     assentamento:          'Os 1.923 assentamentos da reforma agrária com área na Caatinga.',
-    propriedade_rural:     'Imóveis rurais do Cadastro Ambiental Rural.',
-    unidade_conservacao:   'Unidades de conservação federais, estaduais e municipais.',
   } satisfies Record<TerritoryTypeId, string>,
 }
 

@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
@@ -59,8 +61,8 @@ describe('STORY_THEMES', () => {
 
 describe('STATE_LOCATIVE', () => {
   it('places every state a territory of an enabled type names', () => {
-    for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
-      for (const feature of listFeicoes(type.recorteId!)) {
+    for (const type of TERRITORY_TYPES.filter((t) => t.id !== 'bioma')) {
+      for (const feature of listFeicoes(type.recorteId)) {
         for (const uf of feature.context?.split('/') ?? []) expect(STATE_LOCATIVE[uf], `${type.id} ${uf}`).toBeTruthy()
       }
     }
@@ -74,22 +76,19 @@ describe('STATE_LOCATIVE', () => {
 })
 
 describe('TERRITORY_TYPES', () => {
-  it('points every enabled type at a vector layer', () => {
-    const enabled = TERRITORY_TYPES.filter((t) => t.enabled)
-    expect(enabled.map((t) => t.id)).toEqual([
+  it('points every type at a vector layer', () => {
+    expect(TERRITORY_TYPES.map((t) => t.id)).toEqual([
       'bioma', 'estado', 'municipio', 'terra_indigena', 'territorio_quilombola', 'assentamento',
     ])
-    for (const type of enabled) {
+    for (const type of TERRITORY_TYPES) {
       expect(layers.find((l) => l.id === type.recorteId)?.type).toBe('vector')
     }
   })
 
-  it('leaves the two types with no data yet disabled and without a layer', () => {
-    const disabled = TERRITORY_TYPES.filter((t) => !t.enabled)
-    expect(disabled.map((t) => [t.id, t.recorteId])).toEqual([
-      ['propriedade_rural', null],
-      ['unidade_conservacao', null],
-    ])
+  it('has a photo for every type', () => {
+    for (const type of TERRITORY_TYPES) {
+      expect(existsSync(path.join(process.cwd(), 'public', type.image)), type.id).toBe(true)
+    }
   })
 })
 
@@ -101,7 +100,7 @@ describe('CHOOSER', () => {
   })
 
   it('has a lead for overlapping territories on every type the chooser opens', () => {
-    for (const type of TERRITORY_TYPES.filter((t) => t.enabled && t.id !== 'bioma')) {
+    for (const type of TERRITORY_TYPES.filter((t) => t.id !== 'bioma')) {
       expect(CHOOSER.overlapLead[type.id]).toBeTruthy()
     }
   })

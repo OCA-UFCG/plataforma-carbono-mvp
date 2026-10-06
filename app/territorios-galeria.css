@@ -75,8 +75,7 @@
 }
 
 /* Read from the bottom up, as on a book's spine. */
-.territorios-painel-rotulo,
-.territorios-painel-rotulo-embreve {
+.territorios-painel-rotulo {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
@@ -88,15 +87,6 @@
   font-weight: 700;
   line-height: 24px;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.territorios-painel-rotulo-embreve,
-.territorios-painel-embreve {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -162,12 +152,6 @@
 .territorios-painel-botao:focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 3px;
-}
-
-.territorios-painel-embreve {
-  padding: 8px 16px;
-  border: 1px solid #ffffff;
-  border-radius: var(--radius-interno);
 }
 
 /* The chosen type, folded into a band above the chooser and the story. */
@@ -287,8 +271,7 @@
     padding: 0 20px;
   }
 
-  .territorios-painel-rotulo,
-  .territorios-painel-rotulo-embreve {
+  .territorios-painel-rotulo {
     writing-mode: horizontal-tb;
     transform: none;
   }

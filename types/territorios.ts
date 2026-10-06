@@ -31,8 +31,6 @@ export type TerritoryTypeId =
   | 'terra_indigena'
   | 'territorio_quilombola'
   | 'assentamento'
-  | 'propriedade_rural'
-  | 'unidade_conservacao'
 
 type Geometry = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
 
