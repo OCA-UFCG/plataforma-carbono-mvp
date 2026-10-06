@@ -24,6 +24,7 @@ vi.mock('@/lib/territorios/themeService', async (importOriginal) => ({
 import { GET as getTema } from '@/app/api/territorios/tema/route'
 import { GET as getTerritorio } from '@/app/api/territorios/territorio/route'
 import { TerritoryNotFoundError } from '@/lib/territorios/themeService'
+import { listFeicoes } from '@/lib/mapa/recorteRegistry'
 
 function req(path: string, query: Record<string, string>) {
   const url = new URL(`http://localhost${path}`)
@@ -87,6 +88,10 @@ describe('GET /api/territorios/territorio', () => {
     expect(Object.keys(body.biome.nativeSharePct)).toEqual(['1985', '2024'])
     expect(Object.keys(body.biome.fireRecurrenceSharesPct)).toEqual(['never', 'once', 'twoToFour', 'fivePlus'])
     expect(body.biome.fireAnnualMeanSharePct).toBeGreaterThan(0)
+    // Its place by area among the municipalities, as the territory tab prints it.
+    expect(body.areaRank.total).toBe(listFeicoes('municipios').length)
+    expect(body.areaRank.position).toBeGreaterThanOrEqual(1)
+    expect(body.areaRank.position).toBeLessThanOrEqual(body.areaRank.total)
   })
 
   it('rejects malformed parameters with 400', async () => {

@@ -20,7 +20,7 @@ import {
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
 } from '@/config/territorios/story'
-import type { RainYearKind, Reading, StepId, ThemeId } from '@/types/territorios'
+import type { RainYearKind, Reading, StepId, TerritoryTypeId, ThemeId } from '@/types/territorios'
 
 export const UI = {
   loading:       'Carregando os dados',
@@ -63,7 +63,16 @@ export const MAP_LOCALE = {
 export const TERRITORY_SCRIPT = {
   /** `context` is the state; left out for a state, whose name already is one. */
   title: (name: string, context?: string) => (context ? `${displayName(name)} (${context})` : displayName(name)),
+  /** The territory's share of the biome, under its area (Figma 19254:37460). */
+  biomeShare: 'da área da Caatinga',
+  /** Its place by area among the territories of its type (19254:37461). */
+  rankValue: (position: number, feminine: boolean) => `${numero(position, 0)}${feminine ? 'ª' : 'º'}`,
+  rankText:  (total: number, plural: string, feminine: boolean) =>
+    `maior entre ${feminine ? 'as' : 'os'} ${numero(total, 0)} ${plural}`,
 }
+
+/** Types whose unit is feminine in Portuguese: "a 3ª maior terra indígena". */
+export const FEMININE_TYPES: ReadonlySet<TerritoryTypeId> = new Set<TerritoryTypeId>(['terra_indigena'])
 
 const [LAND_USE_FIRST, LAND_USE_LAST] = LAND_USE_YEARS
 

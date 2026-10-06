@@ -5,6 +5,7 @@ import {
   aboutItems,
   readingTone,
   stepAnswer,
+  territoryIndicators,
   summaryRows,
   type SummaryInput,
 } from '@/lib/territorios/storyText'
@@ -55,6 +56,7 @@ function payload(over: Partial<TerritoryPayload>): TerritoryPayload {
     bbox: [-36.12386, -7.38712, -35.70432, -7.15422], boundary: 'full',
     geometry: { type: 'Polygon', coordinates: [] },
     biome: BIOME,
+    areaRank: null,
     ...over,
   }
 }
@@ -480,5 +482,30 @@ describe('readingTone', () => {
 
   it('has no tone without a reading', () => {
     expect(readingTone(null, true)).toBeNull()
+  })
+})
+
+describe('territoryIndicators', () => {
+  const JUAZEIRO = payload({
+    featureName: 'Juazeiro', context: 'BA', areaHa: 672_000, biomaAreaHa: 86_000_000,
+    areaRank: { position: 40, total: 1210 },
+  })
+
+  it('gives a municipality its share of the biome and its rank by area (Figma 19254:37459)', () => {
+    expect(territoryIndicators({ territory: JUAZEIRO, type: municipio })).toEqual([
+      { value: '0,8%', text: 'da área da Caatinga' },
+      { value: '40º', text: 'maior entre os 1.210 municípios' },
+    ])
+  })
+
+  it('agrees the rank with a feminine type', () => {
+    const ti = payload({ areaRank: { position: 3, total: 50 } })
+    expect(territoryIndicators({ territory: ti, type: typeOf('terra_indigena') })[1])
+      .toEqual({ value: '3ª', text: 'maior entre as 50 terras indígenas' })
+  })
+
+  it('gives the biome no card, and a territory without a rank only its share', () => {
+    expect(territoryIndicators({ territory: CG, type: bioma })).toEqual([])
+    expect(territoryIndicators({ territory: CG, type: municipio })).toHaveLength(1)
   })
 })

@@ -10,7 +10,7 @@ import { STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { UI } from '@/config/territorios/storyScript'
 import { nextStep, sectionId } from '@/lib/territorios/storyTabs'
-import { stepAnswer } from '@/lib/territorios/storyText'
+import { stepAnswer, territoryIndicators } from '@/lib/territorios/storyText'
 import type { StepId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
 
 /** Where one theme's request stands, as the report's panels read it. */
@@ -82,6 +82,16 @@ export default function ThemeStep({
           {answer.headline && <StepFigure value={answer.headline.value} unit={answer.headline.unit} color={color} />}
           {answer.sentence && <p className="territorios-resposta-frase">{answer.sentence}</p>}
         </div>
+        {step === 'territorio' && (
+          <ul className="territorios-indicadores">
+            {territoryIndicators({ territory, type }).map((item) => (
+              <li key={item.text} className="territorios-indicador">
+                <p className="territorios-indicador-valor">{item.value}</p>
+                <p className="territorios-indicador-texto">{item.text}</p>
+              </li>
+            ))}
+          </ul>
+        )}
         {step !== 'territorio' && response && (
           <StepChart theme={step} response={response} territory={territory} type={type} />
         )}

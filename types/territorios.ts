@@ -159,6 +159,19 @@ export interface AboutItem {
   text:  string
 }
 
+/** Where a territory stands among those of its type by area. */
+export interface AreaRank {
+  /** 1 for the largest; ties share the better place. */
+  position: number
+  total:    number
+}
+
+/** A card under the territory's area: a figure and the words after it. */
+export interface Indicator {
+  value: string
+  text:  string
+}
+
 /** GET /api/territorios/territorio?recorte=&feicao= */
 export interface TerritoryPayload {
   recorteId:   string
@@ -170,6 +183,8 @@ export interface TerritoryPayload {
   /** Geodesic area inside the biome boundary, in hectares. */
   areaHa:      number
   biomaAreaHa: number
+  /** Its place among the territories of its type by area; null for the biome. */
+  areaRank:    AreaRank | null
   bbox:        [number, number, number, number]
   boundary:    'full' | 'simplified'
   geometry:    Geometry

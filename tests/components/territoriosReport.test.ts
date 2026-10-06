@@ -155,6 +155,7 @@ const JUAZEIRO: TerritoryPayload = {
   bbox: [-40.9, -10.0, -39.9, -9.2], boundary: 'full',
   geometry: { type: 'Polygon', coordinates: [] },
   biome: NO_BIOME,
+  areaRank: { position: 40, total: 1210 },
 }
 
 const STEP = {
@@ -170,6 +171,8 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Onde fica e qual é o tamanho?')
     expect(markup).toContain('>6.720<')
     expect(markup).toContain('Área dentro da Caatinga, na Bahia.')
+    expect(markup).toContain('<ul class="territorios-indicadores">')
+    expect(markup).toContain('maior entre os 1.210 municípios')
     expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Estoque'])
   })
 

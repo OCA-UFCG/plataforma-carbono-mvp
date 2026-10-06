@@ -11,9 +11,11 @@ import { STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
 import {
   ABOUT_SCRIPT,
   ANSWER_SCRIPT,
+  FEMININE_TYPES,
   STATE_LOCATIVE,
   STEP_QUESTIONS,
   SUMMARY_ROW_SCRIPT,
+  TERRITORY_SCRIPT,
 } from '@/config/territorios/storyScript'
 import {
   areaParts,
@@ -38,6 +40,7 @@ import {
 } from '@/lib/territorios/storyValues'
 import type {
   AboutItem,
+  Indicator,
   Reading,
   StepAnswer,
   StepId,
@@ -116,6 +119,23 @@ function territoryAnswer({ territory, type }: StepInput): Answer {
     sentence = where ? s.located(where) : s.plain
   }
   return { headline: areaParts(territory.areaHa), sentence }
+}
+
+/**
+ * The cards under the territory's area (Figma 19254:37459): its share of the
+ * biome, and its rank by area among the territories of its type. None for the
+ * biome, which is the whole.
+ */
+export function territoryIndicators({ territory, type }: { territory: TerritoryPayload; type: TerritoryType }): Indicator[] {
+  if (isBioma(type)) return []
+  const s = TERRITORY_SCRIPT
+  const items: Indicator[] = [{ value: formatPercent(biomeAreaSharePct(territory)), text: s.biomeShare }]
+  const rank = territory.areaRank
+  if (rank && type.plural) {
+    const feminine = FEMININE_TYPES.has(type.id)
+    items.push({ value: s.rankValue(rank.position, feminine), text: s.rankText(rank.total, type.plural, feminine) })
+  }
+  return items
 }
 
 function stockAnswer({ response, territory, type }: StepInput): Answer {
