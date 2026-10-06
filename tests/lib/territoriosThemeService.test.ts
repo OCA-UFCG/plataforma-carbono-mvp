@@ -17,7 +17,7 @@ vi.mock('@/lib/territorios/computeTheme', () => ({
 import precomputedJson from '@/config/territorios/precomputed.json'
 import { BIOMA_FEATURE_ID, BIOMA_RECORTE_ID } from '@/config/territorios/story'
 import {
-  degradationChart,
+  fireChart,
   fluxChart,
   landUseChart,
   rainChart,
@@ -42,10 +42,10 @@ beforeEach(() => {
 
 describe('getTheme', () => {
   it('serves a precomputed biome theme without Earth Engine', async () => {
-    const res = await getTheme(BIOMA_RECORTE_ID, BIOMA_FEATURE_ID, 'degradacao')
+    const res = await getTheme(BIOMA_RECORTE_ID, BIOMA_FEATURE_ID, 'fogo')
 
-    expect(res).toMatchObject({ status: 'available', origin: 'precomputed' })
-    expect(res.data?.theme).toBe('degradacao')
+    expect(res).toMatchObject({ status: 'available', origin: 'precomputed', coarseScaleM: 100 })
+    expect(res.data?.theme).toBe('fogo')
     expect(mocks.computeTheme).not.toHaveBeenCalled()
     expect(mocks.initGee).not.toHaveBeenCalled()
   })
@@ -99,9 +99,10 @@ describe('biome reference', () => {
     expect(biome.fluxPerForestHaMg).toBeCloseTo(-68.13, 2)
     expect(biome.nativeSharePct?.['1985']).toBeCloseTo(70.68, 2)
     expect(biome.nativeSharePct?.['2024']).toBeCloseTo(60.08, 2)
-    expect(biome.degradedSharePct).toBeCloseTo(20.94, 2)
-    expect(biome.degradationSharesPct?.[0]).toBeCloseTo(1.92, 2)
-    expect(Object.values(biome.degradationSharesPct ?? {}).reduce((a, b) => a + b, 0)).toBeCloseTo(100)
+    expect(biome.fireBurnedSharePct).toBeCloseTo(12.04, 2)
+    expect(biome.fireRecurrenceSharesPct?.never).toBeCloseTo(87.96, 2)
+    expect(Object.values(biome.fireRecurrenceSharesPct ?? {}).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10)
+    expect(biome.fireAnnualMeanSharePct).toBeCloseTo(0.559, 3)
     expect(biome.rainMeanMm).toBeCloseTo(701.2, 1)
   })
 
@@ -118,8 +119,10 @@ describe('biome reference', () => {
     const landUse = landUseChart(biomeData('uso'), caatinga)!
     expect(landUse.here).toEqual(landUse.reference)
 
-    const degradation = degradationChart(biomeData('degradacao'), caatinga)!
-    expect(degradation.here).toEqual(degradation.reference)
+    const fire = fireChart(biomeData('fogo'), caatinga)!
+    expect(fire.burnedShare.here).toBe(fire.burnedShare.reference)
+    expect(fire.recurrence.here).toEqual(fire.recurrence.reference)
+    expect(fire.years.reduce((total, y) => total + y.sharePct, 0) / fire.years.length).toBeCloseTo(fire.referenceMeanPct!, 12)
 
     const rain = rainChart(biomeData('chuva').series, caatinga)!
     expect(rain.mean.here).toBe(rain.mean.reference)

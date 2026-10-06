@@ -79,13 +79,14 @@ describe('GET /api/territorios/territorio', () => {
     })
     expect(body.biomaAreaHa).toBeGreaterThan(body.areaHa)
     expect(body.biome.stockTotalTc).toBeGreaterThan(0)
-    expect(body.biome.degradedSharePct).toBeGreaterThan(0)
-    expect(body.biome.degradedSharePct).toBeLessThan(100)
+    expect(body.biome.fireBurnedSharePct).toBeGreaterThan(0)
+    expect(body.biome.fireBurnedSharePct).toBeLessThan(100)
     // Every comparison of the story has its Caatinga value in the payload.
     for (const key of ['stockDensityTcHa', 'forestSharePct', 'rainMeanMm']) expect(body.biome[key], key).toBeGreaterThan(0)
     expect(body.biome.fluxPerForestHaMg).toBeLessThan(0)
     expect(Object.keys(body.biome.nativeSharePct)).toEqual(['1985', '2024'])
-    expect(Object.keys(body.biome.degradationSharesPct).sort()).toEqual(['0', '1', '2', '3', '4', '5', '6'])
+    expect(Object.keys(body.biome.fireRecurrenceSharesPct)).toEqual(['never', 'once', 'twoToFour', 'fivePlus'])
+    expect(body.biome.fireAnnualMeanSharePct).toBeGreaterThan(0)
   })
 
   it('rejects malformed parameters with 400', async () => {

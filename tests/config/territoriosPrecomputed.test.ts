@@ -3,6 +3,8 @@ import precomputedJson from '@/config/territorios/precomputed.json'
 import {
   BIOMA_FEATURE_ID,
   BIOMA_RECORTE_ID,
+  FIRE_FIRST_YEAR,
+  FIRE_LAST_YEAR,
   LAND_USE_YEARS,
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
@@ -24,24 +26,24 @@ describe('config/territorios/precomputed.json', () => {
     }
   })
 
-  it('has all five themes of the biome available', () => {
+  it('has all five themes of the biome available, and no other', () => {
     const themes = precomputed.entries[`${BIOMA_RECORTE_ID}|${BIOMA_FEATURE_ID}`]?.themes ?? {}
 
     for (const { id } of STORY_THEMES) {
       expect(themes[id]?.status, id).toBe('available')
       expect(themes[id]?.data?.theme, id).toBe(id)
     }
+    expect(Object.keys(themes).sort()).toEqual(STORY_THEMES.map((t) => t.id).sort())
   })
 
   it('carries the region areas every share of the biome divides by', () => {
-    // A file written before these fields existed would print "cobre 0,0%" and
-    // take the degradation shares over the area with data only.
+    // A file written before these fields existed would print "cobre 0,0%".
     const themes = precomputed.entries[`${BIOMA_RECORTE_ID}|${BIOMA_FEATURE_ID}`]?.themes ?? {}
     const flux = themes.fluxo?.data
-    const degradation = themes.degradacao?.data
+    const fire = themes.fogo?.data
 
     expect(flux?.theme === 'fluxo' && flux.regionAreaHa > 0).toBe(true)
-    expect(degradation?.theme === 'degradacao' && (degradation.regionAreaM2 ?? 0) > 0).toBe(true)
+    expect(fire?.theme === 'fogo' && fire.regionAreaHa > 0).toBe(true)
   })
 
   it('carries the rest of what the biome reference reads', () => {
@@ -58,5 +60,10 @@ describe('config/territorios/precomputed.json', () => {
     const years = rain?.theme === 'chuva' ? rain.series.filter((p) => p.value !== null).map((p) => Number(p.date.slice(0, 4))) : []
     expect(Math.min(...years)).toBe(RAIN_FIRST_YEAR)
     expect(Math.max(...years)).toBe(RAIN_LAST_YEAR)
+
+    // Every year of the fire period, so the biome's yearly mean divides by the same count as a territory's.
+    const fire = themes.fogo?.data
+    const fireYears = fire?.theme === 'fogo' ? fire.annual.map((a) => a.year) : []
+    expect(fireYears).toEqual(Array.from({ length: FIRE_LAST_YEAR - FIRE_FIRST_YEAR + 1 }, (_, i) => FIRE_FIRST_YEAR + i))
   })
 })

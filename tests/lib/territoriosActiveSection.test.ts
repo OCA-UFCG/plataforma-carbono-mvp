@@ -42,7 +42,7 @@ describe('wantedThemes', () => {
   })
 
   it('asks for a theme section and the one after it, in reading order', () => {
-    expect(wantedThemes('uso')).toEqual(['uso', 'degradacao'])
+    expect(wantedThemes('uso')).toEqual(['uso', 'fogo'])
   })
 
   it('asks only for the rain theme before the summary', () => {
@@ -50,6 +50,6 @@ describe('wantedThemes', () => {
   })
 
   it('asks for every theme on the summary', () => {
-    expect(wantedThemes('resumo')).toEqual(['estoque', 'fluxo', 'uso', 'degradacao', 'chuva'])
+    expect(wantedThemes('resumo')).toEqual(['estoque', 'fluxo', 'uso', 'fogo', 'chuva'])
   })
 })

@@ -29,8 +29,8 @@ const assentamento = typeOf('assentamento')
 const bioma = typeOf('bioma')
 
 // Over answers of the real API
-// (2026-09-27) for Campina Grande and the PA Serra do Monte, and the biome
-// reference of config/territorios/precomputed.json.
+// (2026-09-27; fire on 2026-10-05) for Campina Grande and the PA Serra do
+// Monte, and the biome reference of config/territorios/precomputed.json.
 
 const BIOME: BiomeReference = {
   stockTotalTc:      4_160_240_473.1142607,
@@ -38,11 +38,11 @@ const BIOME: BiomeReference = {
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
   nativeSharePct:    { '1985': 70.68324143590091, '2024': 60.083306882513774 },
-  degradedSharePct:  20.93553204222783,
-  degradationSharesPct: {
-    0: 1.9221535752808458, 1: 0.4299090590046468, 2: 11.02083142951937, 3: 7.908799886438091,
-    4: 1.5424942847989411, 5: 0.03349738246678227, 6: 77.14231438249132,
+  fireBurnedSharePct: 12.037964993028348,
+  fireRecurrenceSharesPct: {
+    never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
   },
+  fireAnnualMeanSharePct: 0.558980579062026,
   rainMeanMm: 701.2012922878521,
 }
 
@@ -79,6 +79,10 @@ function annual(values: number[]): { date: string; value: number }[] {
 
 const pool = (band: string, label: string, tc: number) => ({ band, label, tc })
 
+function burned(values: number[]): { year: number; burnedHa: number }[] {
+  return values.map((burnedHa, i) => ({ year: 1985 + i, burnedHa }))
+}
+
 const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
   estoque: answer({
     theme: 'estoque',
@@ -103,11 +107,14 @@ const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
       '2024': { '3': 6_331_473, '4': 155_538_012, '15': 277_382_456, '20': 560_964, '21': 73_281_012, '24': 77_141_617, '25': 211_536, '29': 7_097, '33': 2_532_609 },
     },
   }),
-  degradacao: answer({
-    theme: 'degradacao',
-    areas: { '2': 217_621_921.51403198, '3': 53_567_726.09822305, '4': 3_298_705.0007965686, '6': 234_524_137.29264715 },
-    regionAreaM2: 592_948_094.8050854,
-    pointCode: null,
+  fogo: answer({
+    theme: 'fogo',
+    regionAreaHa: 59_298.68, burnedOnceHa: 1_863.17,
+    recurrenceHa: { once: 1_455.74, twoToFour: 357.68, fivePlus: 49.75 },
+    annual: burned([
+      20, 3, 85, 64, 16, 50, 166, 9, 60, 49, 70, 162, 47, 27, 330, 97, 174, 51, 31, 232,
+      136, 47, 11, 307, 135, 20, 7, 57, 9, 4, 16, 15, 11, 5, 0, 6, 22, 78, 48,
+    ]),
   }),
   chuva: answer({
     theme: 'chuva',
@@ -136,11 +143,14 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
       '2024': { '3': 24, '4': 40_043_147, '15': 7_512_563, '21': 4_184_236, '29': 7_094, '33': 81_580 },
     },
   }),
-  degradacao: answer({
-    theme: 'degradacao',
-    areas: { '2': 22_214.471078431372, '3': 1_290_505.4708333334, '6': 50_496_201.45012252 },
-    regionAreaM2: 51_808_921.392034285,
-    pointCode: null,
+  fogo: answer({
+    theme: 'fogo',
+    regionAreaHa: 5_182.86, burnedOnceHa: 90.76,
+    recurrenceHa: { once: 73.33, twoToFour: 17.43, fivePlus: 0 },
+    annual: burned([
+      0, 0, 0, 0, 0, 0.52, 2.13, 0, 0, 0, 18.93, 16.75, 0, 2.13, 29.14, 0, 6.74, 0, 0, 12.24,
+      1.42, 4.17, 0, 9.22, 2.84, 0.02, 0, 0, 0, 0, 1.77, 1.42, 0, 0, 0, 0, 0, 0, 0,
+    ]),
   }),
   chuva: answer({
     theme: 'chuva',
@@ -152,7 +162,7 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
   }),
 }
 
-const STEPS = ['territorio', 'estoque', 'fluxo', 'uso', 'degradacao', 'chuva'] as const
+const STEPS = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva'] as const
 type Step = typeof STEPS[number]
 
 const answers: StepAnswer[] = []
@@ -206,10 +216,10 @@ describe('stepAnswer', () => {
         headline: { value: '27%', unit: 'de vegetação nativa em 2024' },
         sentence: 'Eram 34% em 1985. A Caatinga tem 60%; aqui fica abaixo.',
       },
-      degradacao: {
-        question: 'Quanto da terra está degradada aqui?',
-        headline: { value: '46%', unit: 'da área com degradação' },
-        sentence: 'Acima dos 21% da Caatinga. Os níveis mais graves, 4 e 5, somam 37%.',
+      fogo: {
+        question: 'Quanto daqui já queimou desde 1985?',
+        headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
+        sentence: 'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
       },
       chuva: {
         question: '2024 foi um ano seco ou chuvoso aqui?',
@@ -219,18 +229,18 @@ describe('stepAnswer', () => {
     })
   })
 
-  it('tells the story of a settlement, where the conserved share replaces the severe levels', () => {
+  it('tells the story of a settlement', () => {
     const out = story(PA, assentamento, PA_ANSWERS)
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
       territorio: 'Área dentro da Caatinga, na Paraíba.',
       estoque:    'Abaixo da Caatinga (55 t por hectare). No total, 211 mil t.',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 30% da área, acima dos 27% da Caatinga.',
       uso:        'Eram 88% em 1985. A Caatinga tem 60%; aqui fica acima.',
-      degradacao: 'Abaixo dos 21% da Caatinga. A área conservada soma 97%.',
+      fogo:       'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
       chuva:      'Chuvoso, 38% acima da média daqui (387 mm). Essa média fica abaixo da Caatinga (701 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '52', unit: 'km²' })
-    expect(out.degradacao.headline).toEqual({ value: '2,5%', unit: 'da área com degradação' })
+    expect(out.fogo.headline).toEqual({ value: '1,8%', unit: 'da área queimou ao menos uma vez' })
   })
 
   it('never compares the Caatinga with itself', () => {
@@ -247,18 +257,20 @@ describe('stepAnswer', () => {
       estoque:    'No total, 4,2 bilhões de t.',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
-      degradacao: 'Os níveis mais graves, 4 e 5, somam 11%.',
+      fogo:       'O ano com mais fogo aqui foi 2021.',
       chuva:      'Perto da média daqui (701 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
+    expect(out.fogo.headline).toEqual({ value: '12%', unit: 'da área queimou ao menos uma vez' })
     expect(sheet({ responses, territory: caatingaItself, type: bioma }).map((r) => r.reading)).toEqual([null, null, null, null, null])
 
     const items = about({ responses, territory: caatingaItself, type: bioma })
     expect(items.map((i) => i.title)).not.toContain('Comparação com a Caatinga')
-    // The biome's flux and land use were reduced at 100 m.
-    expect(items.find((i) => i.title === 'Fluxo')?.text).toMatch(/Aqui, calculado a 100 m\.$/)
-    expect(items.find((i) => i.title === 'Degradação')?.text).toMatch(/, 1,9% aqui\.$/)
+    // The biome's flux, land use and fire were reduced at 100 m.
+    for (const title of ['Fluxo', 'Uso da terra', 'Fogo']) {
+      expect(items.find((i) => i.title === title)?.text, title).toMatch(/Aqui, calculado a 100 m\.$/)
+    }
     // The inventory has pixels over 87% of the biome (75,5 of 86,6 Mha).
     expect(items.find((i) => i.title === 'Estoque')?.text).toMatch(/O inventário cobre 87% desta área; o total vale só para essa parte\.$/)
   })
@@ -273,7 +285,7 @@ describe('stepAnswer', () => {
   })
 
   it('says "sem dado" for each theme with nothing over the territory, never a zero', () => {
-    const sentences = (['estoque', 'fluxo', 'uso', 'degradacao', 'chuva'] as const).map((theme) => {
+    const sentences = (['estoque', 'fluxo', 'uso', 'fogo', 'chuva'] as const).map((theme) => {
       const out = step(theme, CG, municipio, answer(null, { theme }))
       expect(out.headline).toBeNull()
       return out.sentence
@@ -282,7 +294,7 @@ describe('stepAnswer', () => {
       'Sem dado de carbono para esta área.',
       'Não há áreas com árvores mapeadas aqui.',
       'Sem dado de uso da terra aqui.',
-      'Sem dado de degradação aqui.',
+      'Sem dado de fogo aqui.',
       'Sem dado de chuva aqui.',
     ])
   })
@@ -307,13 +319,23 @@ describe('stepAnswer', () => {
     expect(stockText(CG)).not.toContain('O inventário cobre')
   })
 
-  it('reads the point under a small territory as a class, without a figure', () => {
-    const point = (pointCode: number | null) =>
-      step('degradacao', CG, assentamento, answer({ theme: 'degradacao', areas: null, regionAreaM2: null, pointCode }, { origin: 'point' }))
-
-    expect(point(2)).toMatchObject({ headline: null, sentence: 'A terra aqui está no nível 4 de degradação; o 5 é o mais grave.' })
-    expect(point(6)).toMatchObject({ headline: null, sentence: 'A terra aqui está conservada.' })
-    expect(point(null).sentence).toBe('Sem dado de degradação aqui.')
+  it('answers 0% for a territory where nothing burned, without a comparison', () => {
+    const none = answer({
+      theme: 'fogo', regionAreaHa: 13, burnedOnceHa: 0,
+      recurrenceHa: { once: 0, twoToFour: 0, fivePlus: 0 },
+      annual: burned(Array.from({ length: 39 }, () => 0)),
+    })
+    expect(step('fogo', PA, assentamento, none)).toMatchObject({
+      headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
+      sentence: 'Nenhuma área queimada registrada de 1985 a 2023.',
+    })
+    const row = sheet({ responses: { fogo: none }, territory: PA, type: assentamento })[3]
+    expect(row).toEqual({
+      theme: 'fogo', title: 'Área que já queimou',
+      headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
+      sentence: 'Na Caatinga, 12%. Nenhum fogo de 1985 a 2023.',
+      reading: 'abaixo',
+    })
   })
 
   it('states an equilibrium without a figure, and an emission against a Caatinga that removed', () => {
@@ -338,16 +360,6 @@ describe('stepAnswer', () => {
       headline: { value: '12', unit: 't de CO₂e por hectare com árvores' },
       sentence: 'No saldo, as áreas com árvores lançaram no ar 1,2 mil t de CO₂e. Na Caatinga, tiraram mais do que lançaram.',
       reading: null,
-    })
-  })
-
-  it('reads a negligible degraded share as the conserved area it leaves', () => {
-    const out = step('degradacao', CG, municipio, answer({
-      theme: 'degradacao', areas: { '3': 0.3, '6': 999.7 }, regionAreaM2: 1_000, pointCode: null,
-    }))
-    expect(out).toMatchObject({
-      headline: { value: 'menos de 0,1%', unit: 'da área com degradação' },
-      sentence: 'Abaixo dos 21% da Caatinga. A área conservada soma 100%.',
     })
   })
 
@@ -386,10 +398,10 @@ describe('summaryRows', () => {
         reading: 'abaixo',
       },
       {
-        theme: 'degradacao', title: 'Terra degradada',
-        headline: { value: '46%', unit: 'da área' },
-        sentence: 'Na Caatinga, 21%. A área conservada soma 40%.',
-        reading: 'acima',
+        theme: 'fogo', title: 'Área que já queimou',
+        headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
+        sentence: 'Na Caatinga, 12%. Mais fogo em 1999.',
+        reading: 'abaixo',
       },
       {
         theme: 'chuva', title: 'Chuva',
@@ -407,28 +419,27 @@ describe('summaryRows', () => {
 })
 
 describe('aboutItems', () => {
-  it('names the share without degradation data in Campina Grande', () => {
+  it('lists the sources of Campina Grande in the order of the story', () => {
     const items = about({ responses: CG_ANSWERS, territory: CG, type: municipio })
     expect(items.map((i) => i.title)).toEqual([
-      'Território', 'Estoque', 'Fluxo', 'Uso da terra', 'Degradação', 'Chuva', 'Unidades', 'Comparação com a Caatinga',
+      'Território', 'Estoque', 'Fluxo', 'Uso da terra', 'Fogo', 'Chuva', 'Unidades', 'Comparação com a Caatinga',
     ])
-    expect(items.find((i) => i.title === 'Degradação')?.text).toMatch(/não cobre, 14% aqui\.$/)
+    expect(items.find((i) => i.title === 'Fogo')?.text).toBe(
+      'MapBiomas Fogo, coleção 3, 30 m, 1985 a 2023. Frequência: número de anos com cicatriz de fogo. Área queimada anual: área com cicatriz de fogo no ano.',
+    )
   })
 
   it('stays within 250 words with every conditional sentence in', () => {
     const pointRain = answer({ theme: 'chuva', series: annual([500, 600]) }, { origin: 'point' })
-    const pointDegradation = answer({ theme: 'degradacao', areas: null, regionAreaM2: null, pointCode: 3 }, { origin: 'point' })
-    const coarseFlux = { ...CG_ANSWERS.fluxo, coarseScaleM: 100 }
-    const coarseUse = { ...CG_ANSWERS.uso, coarseScaleM: 100 }
+    const coarse = (r: ThemeResponse) => ({ ...r, coarseScaleM: 100 })
     const west = payload({ areaHa: 100_000 })
-
-    for (const responses of [
-      { ...CG_ANSWERS, chuva: pointRain, degradacao: pointDegradation, fluxo: coarseFlux, uso: coarseUse },
-      { ...CG_ANSWERS, chuva: pointRain, fluxo: coarseFlux, uso: coarseUse },
-    ]) {
-      const items = about({ responses, territory: west, type: municipio })
-      expect(words(items.map((i) => `${i.title} ${i.text}`).join(' '))).toBeLessThanOrEqual(250)
+    const responses = {
+      ...CG_ANSWERS, chuva: pointRain, fluxo: coarse(CG_ANSWERS.fluxo), uso: coarse(CG_ANSWERS.uso), fogo: coarse(CG_ANSWERS.fogo),
     }
+
+    const items = about({ responses, territory: west, type: municipio })
+    expect(items.find((i) => i.title === 'Fogo')?.text).toMatch(/Aqui, calculado a 100 m\.$/)
+    expect(words(items.map((i) => `${i.title} ${i.text}`).join(' '))).toBeLessThanOrEqual(250)
   })
 })
 

@@ -30,8 +30,8 @@ export function outlineOf(fill: string): string | undefined {
 
 /**
  * Text over a fill: the page ink or white, whichever reads better, or pure
- * black when neither reaches 4.5:1. Nível 3 (#b85d4b) gives white 4.46:1 and
- * the ink 3.90:1, where black reaches 4.71:1.
+ * black when neither reaches 4.5:1. "2 a 4 vezes" (#c0612b) gives white 4.21:1
+ * and the ink 4.14:1, where black reaches 4.99:1.
  */
 export function inkOn(fill: string): string {
   const onInk = contrast(INK, fill)

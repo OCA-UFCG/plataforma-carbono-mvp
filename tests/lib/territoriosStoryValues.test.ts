@@ -4,10 +4,11 @@ import { LAND_USE_GROUPS, landUseGroupOf } from '@/config/territorios/landUseGro
 import { LAND_USE_COLORS } from '@/config/territorios/palette'
 import {
   chartMax,
-  degradationChart,
-  degradationLevel,
-  degradationSharesPct,
-  degradedShareOf,
+  fireAnnualMeanSharePct,
+  fireBurnedSharePct,
+  fireChart,
+  firePeakYear,
+  fireRecurrenceSharesPct,
   fluxChart,
   fluxMetrics,
   formatArea,
@@ -18,16 +19,16 @@ import {
   rainChart,
   rainComparison,
   readingOf,
-  severeShareOf,
   stockChart,
   tonnesParts,
 } from '@/lib/territorios/storyValues'
 import type { RasterLayerConfig } from '@/types/mapa'
-import type { BiomeReference, DegradationThemeData, TerritoryPayload } from '@/types/territorios'
+import type { BiomeReference, FireThemeData, TerritoryPayload } from '@/types/territorios'
 
 const NO_BIOME: BiomeReference = {
   stockTotalTc: 4_160_240_473, stockDensityTcHa: null, forestSharePct: null, fluxPerForestHaMg: null,
-  nativeSharePct: null, degradedSharePct: 21.4, degradationSharesPct: null, rainMeanMm: null,
+  nativeSharePct: null, fireBurnedSharePct: 12, fireRecurrenceSharesPct: null, fireAnnualMeanSharePct: null,
+  rainMeanMm: null,
 }
 
 const territory: TerritoryPayload = {
@@ -39,18 +40,18 @@ const territory: TerritoryPayload = {
   biome: NO_BIOME,
 }
 
-/** The biome reference as precomputed.json gives it on 2026-09-16. */
+/** The biome reference as precomputed.json gives it on 2026-09-16 (fire on 2026-10-05). */
 const BIOME: BiomeReference = {
   stockTotalTc:      4_160_240_473.1142607,
   stockDensityTcHa:  55.098642014364884,
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
   nativeSharePct:    { '1985': 70.68324143590091, '2024': 60.083306882513774 },
-  degradedSharePct:  20.93553204222783,
-  degradationSharesPct: {
-    0: 1.9221535752808458, 1: 0.4299090590046468, 2: 11.02083142951937, 3: 7.908799886438091,
-    4: 1.5424942847989411, 5: 0.03349738246678227, 6: 77.14231438249132,
+  fireBurnedSharePct: 12.037964993028348,
+  fireRecurrenceSharesPct: {
+    never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
   },
+  fireAnnualMeanSharePct: 0.558980579062026,
   rainMeanMm: 701.2012922878521,
 }
 
@@ -124,24 +125,63 @@ describe('land use groups', () => {
 
 })
 
-describe('degradation', () => {
-  it('turns code 1 into level 5 and code 5 into level 1', () => {
-    expect(degradationLevel(1)).toBe(5)
-    expect(degradationLevel(5)).toBe(1)
-    expect(degradationLevel(6)).toBeNull()
+// MapBiomas Fogo over Campina Grande at 30 m, measured on Earth Engine on 2026-10-05.
+const CG_FIRE_HA = [
+  20, 3, 85, 64, 16, 50, 166, 9, 60, 49, 70, 162, 47, 27, 330, 97, 174, 51, 31, 232,
+  136, 47, 11, 307, 135, 20, 7, 57, 9, 4, 16, 15, 11, 5, 0, 6, 22, 78, 48,
+]
+const CG_FIRE: FireThemeData = {
+  theme: 'fogo',
+  regionAreaHa: 59_298.68,
+  burnedOnceHa: 1_863.17,
+  recurrenceHa: { once: 1_455.74, twoToFour: 357.68, fivePlus: 49.75 },
+  annual: CG_FIRE_HA.map((burnedHa, i) => ({ year: 1985 + i, burnedHa })),
+}
+
+describe('fire', () => {
+  it('gives Campina Grande 3,1% burned at least once, most of it once, and 1999 as the year of most fire', () => {
+    expect(fireBurnedSharePct(CG_FIRE)).toBeCloseTo(3.142, 3)
+    expect(formatPercent(fireBurnedSharePct(CG_FIRE)!)).toBe('3,1%')
+    const shares = fireRecurrenceSharesPct(CG_FIRE)!
+    expect(shares.once).toBeCloseTo(2.455, 3)
+    expect(shares.twoToFour).toBeCloseTo(0.603, 3)
+    expect(shares.fivePlus).toBeCloseTo(0.084, 3)
+    expect(shares.never).toBeCloseTo(96.858, 3)
+    expect(shares.never + shares.once + shares.twoToFour + shares.fivePlus).toBeCloseTo(100, 10)
+    expect(firePeakYear(CG_FIRE)).toBe(1999)
+    expect(fireAnnualMeanSharePct(CG_FIRE)).toBeCloseTo((2_677 / 39 / 59_298.68) * 100, 6)
   })
 
-  it('counts codes 1 and 2 as the severe levels, and codes 1 to 5 as degraded', () => {
-    const data: DegradationThemeData = {
-      theme: 'degradacao', areas: { '1': 10, '2': 20, '3': 40, '6': 880 }, regionAreaM2: 1_000, pointCode: null,
+  it('takes the earliest of two years with the same burned area', () => {
+    const tie = { ...CG_FIRE, annual: CG_FIRE.annual.map((a) => (a.year === 2008 ? { ...a, burnedHa: 330 } : a)) }
+    expect(firePeakYear(tie)).toBe(1999)
+  })
+
+  it('reads a territory where nothing burned as all "never", with no peak year', () => {
+    const none: FireThemeData = {
+      theme: 'fogo', regionAreaHa: 120, burnedOnceHa: 0,
+      recurrenceHa: { once: 0, twoToFour: 0, fivePlus: 0 },
+      annual: CG_FIRE.annual.map((a) => ({ ...a, burnedHa: 0 })),
     }
-    const shares = degradationSharesPct(data)!
-    expect(severeShareOf(shares)).toBeCloseTo(3)
-    expect(degradedShareOf(shares)).toBeCloseTo(7)
-    expect(shares[6]).toBeCloseTo(88)
-    expect(shares[0]).toBeCloseTo(5)
+    expect(fireBurnedSharePct(none)).toBe(0)
+    expect(fireRecurrenceSharesPct(none)).toEqual({ never: 100, once: 0, twoToFour: 0, fivePlus: 0 })
+    expect(firePeakYear(none)).toBeNull()
+    const chart = fireChart(none, withBiome)!
+    expect(chart.peakYear).toBeNull()
+    expect(chart.years).toHaveLength(39)
+    expect(chart.years.every((y) => y.sharePct === 0)).toBe(true)
   })
 
+  it('fills the 39 years and sets each value beside the Caatinga', () => {
+    const chart = fireChart({ ...CG_FIRE, annual: CG_FIRE.annual.filter((a) => a.year !== 2019) }, withBiome)!
+    expect(chart.years.map((y) => y.year)).toEqual(Array.from({ length: 39 }, (_, i) => 1985 + i))
+    expect(chart.years.find((y) => y.year === 1999)?.sharePct).toBeCloseTo(0.5565, 4)
+    expect(chart.burnedShare.reference).toBe(BIOME.fireBurnedSharePct)
+    expect(chart.referenceMeanPct).toBe(BIOME.fireAnnualMeanSharePct)
+    expect(chart.recurrence.reference).toBe(BIOME.fireRecurrenceSharesPct)
+    expect(readingOf(chart.burnedShare.here, chart.burnedShare.reference)).toBe('abaixo')
+    expect(fireChart({ ...CG_FIRE, regionAreaHa: 0 }, withBiome)).toBeNull()
+  })
 })
 
 describe('rain', () => {
@@ -239,31 +279,6 @@ describe('comparison with the Caatinga', () => {
     expect(chart.here).toEqual({ from: 70, to: 60 })
     expect(chart.reference).toEqual({ from: BIOME.nativeSharePct!['1985'], to: BIOME.nativeSharePct!['2024'] })
     expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2024': { '4': 1 } } }, withBiome)).toBeNull()
-  })
-
-  it('takes code 0 as the region minus the classes, and draws it only above 0,05%', () => {
-    const campinaGrande: DegradationThemeData = {
-      theme: 'degradacao',
-      areas: { '2': 217_621_921.5, '3': 53_567_726.1, '4': 3_298_705.0, '6': 234_524_137.3 },
-      regionAreaM2: 592_948_094.8,
-      pointCode: null,
-    }
-    const shares = degradationSharesPct(campinaGrande)!
-    expect(shares[0]).toBeCloseTo(14.16, 2)
-    expect(Object.values(shares).reduce((a, b) => a + b, 0)).toBeCloseTo(100)
-
-    const chart = degradationChart(campinaGrande, withBiome)!
-    expect(chart.here.map((s) => s.code)).toEqual([6, 5, 4, 3, 2, 1, 0])
-    expect(chart.here.find((s) => s.code === 2)?.pct).toBeCloseTo(36.7, 1)
-    expect(chart.reference?.at(-1)).toEqual({ code: 0, pct: BIOME.degradationSharesPct![0] })
-
-    // The classes add up to 509,01 km²: 0,04% and 0,06% of these regions are masked.
-    const below = degradationChart({ ...campinaGrande, regionAreaM2: 509_200_000 }, withBiome)!
-    expect(below.here.map((s) => s.code)).toEqual([6, 5, 4, 3, 2, 1])
-    const above = degradationChart({ ...campinaGrande, regionAreaM2: 509_320_000 }, withBiome)!
-    expect(above.here.at(-1)?.code).toBe(0)
-
-    expect(degradationChart({ theme: 'degradacao', areas: null, regionAreaM2: null, pointCode: 2 }, withBiome)).toBeNull()
   })
 
   it('lists every year from 1985 to 2024, classes each against the own mean and leaves a missing year unclassed', () => {

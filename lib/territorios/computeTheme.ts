@@ -10,7 +10,9 @@
 
 import appConfig from '@/config/mapa/layers.json'
 import {
-  DEGRADATION_YEAR,
+  FIRE_ANNUAL_ASSET,
+  FIRE_FIRST_YEAR,
+  FIRE_LAST_YEAR,
   FLUX_COARSE_ABOVE_HA,
   FLUX_COARSE_SCALE_M,
   LAND_USE_YEARS,
@@ -140,59 +142,62 @@ async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined):
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function degradation(ee: any, geometry: Geometry): Promise<ThemeComputation> {
-  const asset = assetOf('degradacao')
-  // The index masks part of the land, so the class areas alone do not add up
-  // to the territory. Same scale and grid as computeZonalStats' reduction, and
-  // side by side with it so the step waits for the slower of the two only.
-  // Settled rather than all: the region area only matters when the classes
-  // came back, and its failure must not take the point fallback down with it.
-  const [zonal, region] = await Promise.allSettled([
-    computeZonalStats(ee, { asset, geometry, colorType: 'categorical' }),
-    evaluate<{ area?: number | null }>(ee.Image.pixelArea().reduceRegion({
+async function fire(ee: any, geometry: Geometry, areaHa: number): Promise<ThemeComputation> {
+  const asset = assetOf('fogo')
+  const coarse = areaHa > FLUX_COARSE_ABOVE_HA
+  const coarseScaleM = coarse ? FLUX_COARSE_SCALE_M : null
+  const years = Array.from({ length: FIRE_LAST_YEAR - FIRE_FIRST_YEAR + 1 }, (_, i) => FIRE_FIRST_YEAR + i)
+
+  // Both assets are masked where nothing burned, so inside the territory a
+  // masked pixel is "never burned" and the region band is the base of every
+  // share. Each burned band weights the pixel area by the mask rather than
+  // masking it: at the coarse scale Earth Engine reads a mean pyramid, where
+  // the mask is the burned fraction of the pixel and the frequency a mean of
+  // whole years, hence the class bounds at half years.
+  const ha = ee.Image.pixelArea().divide(1e4)
+  const frequency = buildEeImage(ee, asset)
+  const burned = ha.multiply(frequency.mask())
+  const count = frequency.unmask(0)
+  const annual = ee.Image(FIRE_ANNUAL_ASSET).select(years.map((y) => `burned_area_${y}`))
+
+  const sums = await evaluate<Record<string, number | null | undefined>>(
+    ee.Image.cat(
+      ha.rename('region'),
+      burned.multiply(count.lt(1.5)).rename('once'),
+      burned.multiply(count.gte(1.5).and(count.lt(4.5))).rename('twoToFour'),
+      burned.multiply(count.gte(4.5)).rename('fivePlus'),
+      annual.mask().multiply(ha).rename(years.map((y) => `y${y}`)),
+    ).reduceRegion({
       reducer:    ee.Reducer.sum(),
       geometry:   ee.Geometry(geometry),
-      scale:      asset.scale,
-      maxPixels:  1e9,
+      scale:      coarse ? FLUX_COARSE_SCALE_M : asset.scale,
+      maxPixels:  1e10,
       bestEffort: true,
-    })),
-  ])
-  if (zonal.status === 'rejected') throw zonal.reason
-  const outcome = zonal.value
+      tileScale:  4,
+    }),
+  )
 
-  if (outcome.ok) {
-    if (outcome.result.kind !== 'categorical') {
-      throw new Error(`degradacao: unexpected ${outcome.result.kind} result`)
-    }
-    if (region.status === 'rejected') throw region.reason
-    const regionAreaM2 = region.value?.area
-    if (typeof regionAreaM2 !== 'number' || !(regionAreaM2 > 0)) {
-      throw new Error('degradacao: class areas without a region area')
-    }
-    return {
-      status: 'available',
-      origin: 'zonal',
-      coarseScaleM: null,
-      data: { theme: 'degradacao', areas: outcome.result.areas, regionAreaM2, pointCode: null },
-    }
+  const regionAreaHa = sums?.region
+  if (typeof regionAreaHa !== 'number' || !(regionAreaHa > 0)) throw new Error('fogo: no region area')
+  // A sum over no burned pixel can come back null; there it is 0 ha.
+  const haOf = (key: string) => {
+    const v = sums?.[key]
+    return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, v) : 0
   }
-  if (outcome.status !== 422) throw failure('degradacao', outcome)
+  const recurrenceHa = { once: haOf('once'), twoToFour: haOf('twoToFour'), fivePlus: haOf('fivePlus') }
 
-  // Phase 0 never saw a 422 here, even at 0.19 ha, but the categorical
-  // reduction can still return no group at all over a sliver.
-  const { lon, lat } = interiorPoint(geometry)
-  const [point] = await computeSeries(ee, {
-    asset,
-    anos:   [DEGRADATION_YEAR],
-    region: { kind: 'point', lon, lat },
-  })
-  if (typeof point?.value !== 'number' || !Number.isFinite(point.value)) return noPixels('point')
-
+  // Nothing burned is a settled answer too, never no_pixels.
   return {
     status: 'available',
-    origin: 'point',
-    coarseScaleM: null,
-    data: { theme: 'degradacao', areas: null, regionAreaM2: null, pointCode: Math.round(point.value) },
+    origin: 'zonal',
+    coarseScaleM,
+    data: {
+      theme: 'fogo',
+      regionAreaHa,
+      burnedOnceHa: recurrenceHa.once + recurrenceHa.twoToFour + recurrenceHa.fivePlus,
+      recurrenceHa,
+      annual: years.map((year) => ({ year, burnedHa: haOf(`y${year}`) })),
+    },
   }
 }
 
@@ -244,7 +249,7 @@ export async function computeTheme(
     case 'estoque':    return stock(ee, geometry)
     case 'fluxo':      return flux(ee, geometry, areaHa)
     case 'uso':        return landUse(ee, geometry, input.landUseScaleM)
-    case 'degradacao': return degradation(ee, geometry)
+    case 'fogo':       return fire(ee, geometry, areaHa)
     case 'chuva':      return rain(ee, geometry, areaHa)
   }
 }

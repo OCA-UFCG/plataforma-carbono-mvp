@@ -3,9 +3,8 @@
 // whole Caatinga.
 //
 // Pure on purpose, like lib/mapa/reportNarrative.ts: no Earth Engine and no
-// clock, so every rule a sentence rests on (which degradation levels are the
-// severe ones, how a rain year is classed, where "perto" ends) is under a unit
-// test.
+// clock, so every rule a sentence rests on (which year had the most fire, how a
+// rain year is classed, where "perto" ends) is under a unit test.
 //
 // Only shares are read from the m² a reduction returns: Earth Engine weights
 // the pixels on a polygon's edge, and on small territories measured on
@@ -17,6 +16,8 @@ import {
   landUseGroupOf,
 } from '@/config/territorios/landUseGroups'
 import {
+  FIRE_FIRST_YEAR,
+  FIRE_LAST_YEAR,
   LAND_USE_YEARS,
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
@@ -25,9 +26,9 @@ import { describeFlux } from '@/lib/mapa/carbonFlux'
 import { numero } from '@/lib/mapa/format'
 import type { StockReport, TimeSeriesPoint } from '@/types/mapa'
 import type {
-  DegradationChart,
-  DegradationShare,
-  DegradationThemeData,
+  FireChart,
+  FireRecurrenceShares,
+  FireThemeData,
   FluxChart,
   FluxThemeData,
   LandUseChart,
@@ -39,8 +40,6 @@ import type {
   TerritoryPayload,
 } from '@/types/territorios'
 
-/** Below this degraded share, the territory reads as all conserved. */
-export const DEGRADED_NEGLIGIBLE_PCT = 0.05
 /** Within this distance from the mean, the year reads as "perto da média". */
 export const RAIN_NEAR_MEAN_PCT = 10
 
@@ -193,20 +192,26 @@ export function landUseGroupShares(areas: Record<string, number>): GroupShare[] 
 
 const NATIVE_GROUP_IDS = new Set(LAND_USE_GROUPS.filter((g) => g.native).map((g) => g.id))
 
-// Degradation
+// Fire
 
-// Ascending code is descending severity: code 1 is level 5, the worst.
-const DEGRADED_CODES = [1, 2, 3, 4, 5]
-const SEVERE_CODES = [1, 2]
-export const CONSERVED_CODE = 6
-
-/** Level 1 (lightest) to 5 (worst) of a degraded class code; null otherwise. */
-export function degradationLevel(code: number): number | null {
-  return DEGRADED_CODES.includes(code) ? 6 - code : null
+/** Burned area of each year of the fire period; a year missing from the answer is 0 ha. */
+function fireYears(data: FireThemeData): { year: number; burnedHa: number }[] {
+  const byYear = new Map(data.annual.map((a) => [a.year, a.burnedHa]))
+  const out: { year: number; burnedHa: number }[] = []
+  for (let year = FIRE_FIRST_YEAR; year <= FIRE_LAST_YEAR; year++) {
+    const ha = byYear.get(year)
+    out.push({ year, burnedHa: typeof ha === 'number' && ha > 0 ? ha : 0 })
+  }
+  return out
 }
 
-export function isConservedCode(code: number): boolean {
-  return code === CONSERVED_CODE
+/** Year with the largest burned area, the earliest on a tie; null when nothing burned. */
+export function firePeakYear(data: FireThemeData): number | null {
+  let peak: { year: number; burnedHa: number } | null = null
+  for (const y of fireYears(data)) {
+    if (y.burnedHa > 0 && (peak === null || y.burnedHa > peak.burnedHa)) peak = y
+  }
+  return peak?.year ?? null
 }
 
 // Rain
@@ -254,38 +259,37 @@ export function nativeSharePct(areas: Record<string, number> | undefined): numbe
   return shares.filter((g) => NATIVE_GROUP_IDS.has(g.id)).reduce((sum, g) => sum + g.sharePct, 0)
 }
 
-/** Codes of the degradation chart, Conservado first and level 5 last; 0 is the masked area. */
-export const DEGRADATION_CHART_CODES = [6, 5, 4, 3, 2, 1, 0]
+const pctOf = (ha: number, regionHa: number) => Math.min(100, Math.max(0, (ha / regionHa) * 100))
 
-/**
- * Share (0..100) of the region per degradation code 1..6, and code 0 for the
- * region minus the classes, the part the index masks. Null for the point
- * fallback and when the index has no pixel.
- */
-export function degradationSharesPct(data: DegradationThemeData): Record<number, number> | null {
-  const { areas } = data
-  if (!areas) return null
-  const codes = [...DEGRADED_CODES, CONSERVED_CODE]
-  const m2 = (code: number) => Math.max(0, areas[String(code)] ?? 0)
-  const classesM2 = codes.reduce((total, code) => total + m2(code), 0)
-  if (!(classesM2 > 0)) return null
-  // The same floor as degradationMetrics: never a region smaller than its classes.
-  const regionM2 = Math.max(data.regionAreaM2 ?? 0, classesM2)
-
-  const shares: Record<number, number> = {}
-  for (const code of codes) shares[code] = (m2(code) / regionM2) * 100
-  shares[0] = ((regionM2 - classesM2) / regionM2) * 100
-  return shares
+/** Percent (0..100) of the region that burned at least once; null without a region area. */
+export function fireBurnedSharePct(data: FireThemeData): number | null {
+  if (!(data.regionAreaHa > 0)) return null
+  return pctOf(data.burnedOnceHa, data.regionAreaHa)
 }
 
-/** Percent (0..100) of the region with degradation, levels 1 to 5. */
-export function degradedShareOf(shares: Record<number, number>): number {
-  return DEGRADED_CODES.reduce((total, code) => total + (shares[code] ?? 0), 0)
+/** Percent (0..100) of the region per number of years with fire, "never" being the rest. */
+export function fireRecurrenceSharesPct(data: FireThemeData): FireRecurrenceShares | null {
+  if (!(data.regionAreaHa > 0)) return null
+  const { once, twoToFour, fivePlus } = data.recurrenceHa
+  const shares = {
+    once:      pctOf(once, data.regionAreaHa),
+    twoToFour: pctOf(twoToFour, data.regionAreaHa),
+    fivePlus:  pctOf(fivePlus, data.regionAreaHa),
+  }
+  return { never: Math.max(0, 100 - shares.once - shares.twoToFour - shares.fivePlus), ...shares }
 }
 
-/** Percent (0..100) of the region in levels 4 and 5. */
-export function severeShareOf(shares: Record<number, number>): number {
-  return SEVERE_CODES.reduce((total, code) => total + (shares[code] ?? 0), 0)
+/** Burned share (0..100) of the region, every year of the fire period; null without a region area. */
+export function fireAnnualSharesPct(data: FireThemeData): { year: number; sharePct: number }[] | null {
+  if (!(data.regionAreaHa > 0)) return null
+  return fireYears(data).map((y) => ({ year: y.year, sharePct: pctOf(y.burnedHa, data.regionAreaHa) }))
+}
+
+/** Mean of the yearly burned shares (0..100) over the fire period; null without a region area. */
+export function fireAnnualMeanSharePct(data: FireThemeData): number | null {
+  const years = fireAnnualSharesPct(data)
+  if (!years) return null
+  return years.reduce((total, y) => total + y.sharePct, 0) / years.length
 }
 
 function rainYear(point: TimeSeriesPoint): number {
@@ -369,21 +373,19 @@ export function landUseChart(data: LandUseThemeData, territory: TerritoryPayload
   }
 }
 
-function degradationList(shares: Record<number, number>): DegradationShare[] {
-  return DEGRADATION_CHART_CODES
-    // Below this the masked area is a remainder of two reductions, not a band to draw.
-    .filter((code) => code !== 0 || (shares[0] ?? 0) > DEGRADED_NEGLIGIBLE_PCT)
-    .map((code) => ({ code, pct: shares[code] ?? 0 }))
-}
-
-/** Null for the point fallback, and when the index has no pixel over the territory. */
-export function degradationChart(data: DegradationThemeData, territory: TerritoryPayload): DegradationChart | null {
-  const shares = degradationSharesPct(data)
-  if (!shares) return null
-  const ref = territory.biome.degradationSharesPct
+/** Null without a region area to divide by; a territory where nothing burned still has a chart. */
+export function fireChart(data: FireThemeData, territory: TerritoryPayload): FireChart | null {
+  const share = fireBurnedSharePct(data)
+  const recurrence = fireRecurrenceSharesPct(data)
+  const years = fireAnnualSharesPct(data)
+  if (share === null || !recurrence || !years) return null
+  const { biome } = territory
   return {
-    here:      degradationList(shares),
-    reference: ref ? degradationList(ref) : null,
+    burnedShare:      { here: share, reference: biome.fireBurnedSharePct },
+    years,
+    peakYear:         firePeakYear(data),
+    referenceMeanPct: biome.fireAnnualMeanSharePct,
+    recurrence:       { here: recurrence, reference: biome.fireRecurrenceSharesPct },
   }
 }
 
