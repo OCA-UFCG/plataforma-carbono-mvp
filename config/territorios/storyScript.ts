@@ -23,8 +23,6 @@ import {
 import type { RainYearKind, Reading, StepId, ThemeId } from '@/types/territorios'
 
 export const UI = {
-  pageTitle:    'Territórios',
-
   loading:       'Carregando os dados',
   unavailable:    'Não foi possível carregar estes dados.',
   territoryUnavailable: 'Não foi possível carregar os dados deste território.',
@@ -34,16 +32,10 @@ export const UI = {
   signIn:         'Entrar novamente',
 
   stepsLabel:       'Etapas',
-  next:            'Próxima',
   changeTerritory:  'Trocar território',
-  showMap:          'Ver no mapa',
-  closeMap:         'Fechar mapa',
-  mapDialog:        (step: string) => `Mapa: ${step}`,
   mapYear:          'Ano do mapa',
 
-  summaryTitle:     'Resumo',
   summaryUnavailable: 'Indisponível no momento.',
-  print:            'Imprimir resumo',
   share:            'Compartilhar',
   linkCopied:       'Link copiado',
   copyFailed:       'Não foi possível copiar o link.',

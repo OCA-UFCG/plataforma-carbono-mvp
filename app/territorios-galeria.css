@@ -154,72 +154,6 @@
   outline-offset: 3px;
 }
 
-/* The chosen type, folded into a band above the chooser and the story. */
-.territorios-tipo-faixa {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 96px;
-  margin-bottom: 32px;
-  padding: 0 24px;
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--am-200);
-  color: #ffffff;
-}
-
-.territorios-tipo-faixa .territorios-painel-arte {
-  object-position: center 40%;
-}
-
-.territorios-tipo-faixa::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, rgb(0 15 21 / 0.88), rgb(0 15 21 / 0.4));
-  pointer-events: none;
-}
-
-.territorios-tipo-faixa-nome,
-.territorios-tipo-faixa-botao {
-  position: relative;
-  z-index: 1;
-}
-
-.territorios-tipo-faixa-nome {
-  font-family: var(--font-titulo);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 32px;
-  text-transform: uppercase;
-}
-
-.territorios-tipo-faixa-botao {
-  flex: none;
-  min-height: 44px;
-  padding: 0 20px;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  color: #ffffff;
-  background: rgb(0 15 21 / 0.35);
-  border: 2px solid #ffffff;
-  border-radius: var(--radius-interno);
-  cursor: pointer;
-  transition: background-color 0.18s ease;
-}
-
-.territorios-tipo-faixa-botao:hover {
-  background: rgb(0 15 21 / 0.6);
-}
-
-.territorios-tipo-faixa-botao:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 3px;
-}
-
 @media (min-width: 768px) and (max-width: 1023px) {
   .territorios-galeria {
     gap: 8px;
@@ -293,17 +227,6 @@
 
   .territorios-painel-texto {
     font-size: 16px;
-    line-height: 24px;
-  }
-
-  .territorios-tipo-faixa {
-    min-height: 72px;
-    margin-bottom: 24px;
-    padding: 0 16px;
-  }
-
-  .territorios-tipo-faixa-nome {
-    font-size: 20px;
     line-height: 24px;
   }
 }

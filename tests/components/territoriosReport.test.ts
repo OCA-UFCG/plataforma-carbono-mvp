@@ -6,8 +6,9 @@ import ReportActions, { type ReportActionsProps } from '@/components/territorios
 import ReportBand from '@/components/territorios/ReportBand'
 import ReportTabs from '@/components/territorios/ReportTabs'
 import StepIcon from '@/components/territorios/StepIcon'
+import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
-import type { TerritoryTypeId } from '@/types/territorios'
+import type { BiomeReference, TerritoryPayload, TerritoryTypeId } from '@/types/territorios'
 
 const html = <P extends object>(component: ComponentType<P>, props: P) =>
   renderToStaticMarkup(createElement(component, props))
@@ -135,5 +136,44 @@ describe('StepIcon', () => {
     const markup = html(StepIcon, { step: 'fluxo' })
     expect(markup).toContain('src="/images/territorios/icones/fluxo.svg"')
     expect(markup).toContain('width="20" height="17" style="top:3px;left:2px"')
+  })
+})
+
+const NO_BIOME: BiomeReference = {
+  stockTotalTc: null, stockDensityTcHa: null, forestSharePct: null, fluxPerForestHaMg: null,
+  nativeSharePct: null, fireBurnedSharePct: null, fireRecurrenceSharesPct: null,
+  fireAnnualMeanSharePct: null, rainMeanMm: null,
+}
+
+/** Juazeiro (BA), the territory of the Figma frames; 6.720 km² as Figma 19254:37456 prints it. */
+const JUAZEIRO: TerritoryPayload = {
+  recorteId: 'municipios', recorteName: 'Municípios',
+  featureId: 'juazeiro', featureName: 'Juazeiro', context: 'BA',
+  areaHa: 672_000, biomaAreaHa: 86_000_000,
+  bbox: [-40.9, -10.0, -39.9, -9.2], boundary: 'full',
+  geometry: { type: 'Polygon', coordinates: [] },
+  biome: NO_BIOME,
+}
+
+const STEP = {
+  territory: JUAZEIRO, type: typeOf('municipio'), load: { kind: 'loading' } as const,
+  expired: false, onRetry: noop, onBack: noop, onNext: noop,
+}
+
+describe('ThemeStep', () => {
+  it('lays out the territory tab of Figma 19254:37447', () => {
+    const markup = html(ThemeStep, { ...STEP, step: 'territorio' })
+    expect(markup).toContain('<h3 id="etapa-territorio-titulo" class="territorios-etapa-titulo" style="color:#587c22" tabindex="-1">')
+    expect(markup).toContain('/images/territorios/icones/territorio.svg')
+    expect(markup).toContain('Onde fica e qual é o tamanho?')
+    expect(markup).toContain('>6.720<')
+    expect(markup).toContain('Área dentro da Caatinga, na Bahia.')
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Estoque'])
+  })
+
+  it('names the summary on the last theme\'s button, and waits for its data', () => {
+    const markup = html(ThemeStep, { ...STEP, step: 'chuva' })
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Resumo'])
+    expect(markup).toContain('Carregando os dados')
   })
 })

@@ -1,17 +1,19 @@
 'use client'
 
 import { useLayoutEffect, useRef } from 'react'
+import PanelNav from './PanelNav'
 import StepChart from './StepChart'
+import StepIcon from './StepIcon'
 import type { LandUseYear } from './StoryMap'
 import StepFigure from './charts/StepFigure'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { UI } from '@/config/territorios/storyScript'
-import { sectionId } from '@/lib/territorios/activeSection'
+import { nextStep, sectionId } from '@/lib/territorios/storyTabs'
 import { stepAnswer } from '@/lib/territorios/storyText'
 import type { StepId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
 
-/** Where one theme's request stands, as the story screens read it. */
+/** Where one theme's request stands, as the report's panels read it. */
 export type ThemeLoad =
   | { kind: 'loading' }
   | { kind: 'ready'; response: ThemeResponse }
@@ -26,27 +28,28 @@ export interface ThemeStepProps {
   /** The session is gone: a retry would only fail again, and the banner says what to do. */
   expired:   boolean
   onRetry:   () => void
-  /** Scrolls to the next section. */
-  onNext:    () => void
-  /** Opens the map sheet on a phone; the button only shows there. */
-  onShowMap: (opener: HTMLButtonElement) => void
-  /** The map sheet is open on this step. */
-  mapOpen:   boolean
-  /**
-   * The land use map's year switch, on the land use step of a computer: there
-   * the map comes after every step in the tab order.
-   */
+  /** "Recorte": back to the gallery of types. */
+  onBack:    () => void
+  /** Opens the tab this panel's second button names. */
+  onNext:    (step: StepId) => void
+  /** The land use map's year switch; the map beside the panel follows it. */
   landUseYear?: { year: LandUseYear; onChange: (year: LandUseYear) => void }
 }
 
+/**
+ * One tab of the report, beside the map (Figma 19254:37447): the title with
+ * its icon, the question, the answer and its chart; at the foot, the way back
+ * to the types and on to the next tab.
+ */
 export default function ThemeStep({
-  step, territory, type, load, expired, onRetry, onNext, onShowMap, mapOpen, landUseYear,
+  step, territory, type, load, expired, onRetry, onBack, onNext, landUseYear,
 }: ThemeStepProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
   const color = STEP_COLORS[step]
   const theme = step === 'territorio' ? null : load
   const response = theme?.kind === 'ready' ? theme.response : undefined
   const answer = stepAnswer(step, { territory, type, response })
+  const next = nextStep(step)
 
   // The chart that replaces "Carregando" pushes the buttons down, and a focused
   // one can leave the screen with its focus ring.
@@ -89,36 +92,29 @@ export default function ThemeStep({
   const id = sectionId(step)
 
   return (
-    <section ref={sectionRef} id={id} data-step={step} className="territorios-passo" aria-labelledby={`${id}-titulo`}>
-      <h4 id={`${id}-titulo`} className="territorios-faixa" style={{ background: color }} tabIndex={-1}>
-        {STEP_LABELS[step]}
-      </h4>
-      <h5 className="territorios-pergunta">{answer.question}</h5>
-      <div className="territorios-passo-texto">{body}</div>
-      {landUseYear && (
-        <div className="territorios-passo-anos" role="group" aria-labelledby={`${id}-anos`}>
-          <span id={`${id}-anos`}>{UI.mapYear}</span>
-          {LAND_USE_YEARS.map((y) => (
-            <button key={y} type="button" aria-pressed={y === landUseYear.year} onClick={() => landUseYear.onChange(y)}>
-              {y}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="territorios-navegacao">
-        <button
-          type="button"
-          className="territorios-btn territorios-btn--contorno territorios-ver-mapa"
-          aria-haspopup="dialog"
-          aria-expanded={mapOpen}
-          onClick={(event) => onShowMap(event.currentTarget)}
-        >
-          {UI.showMap}
-        </button>
-        <button type="button" className="territorios-btn territorios-btn--primario" onClick={onNext}>
-          {UI.next}
-        </button>
+    <section ref={sectionRef} id={id} data-step={step} className="territorios-etapa-painel" aria-labelledby={`${id}-titulo`}>
+      <div className="territorios-etapa-corpo">
+        <h3 id={`${id}-titulo`} className="territorios-etapa-titulo" style={{ color }} tabIndex={-1}>
+          <StepIcon step={step} />
+          {STEP_LABELS[step]}
+        </h3>
+        <h4 className="territorios-etapa-pergunta">{answer.question}</h4>
+        <div className="territorios-passo-texto">{body}</div>
+        {landUseYear && (
+          <div className="territorios-passo-anos" role="group" aria-labelledby={`${id}-anos`}>
+            <span id={`${id}-anos`}>{UI.mapYear}</span>
+            {LAND_USE_YEARS.map((y) => (
+              <button key={y} type="button" aria-pressed={y === landUseYear.year} onClick={() => landUseYear.onChange(y)}>
+                {y}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+      <PanelNav
+        onBack={onBack}
+        next={next ? { label: STEP_LABELS[next], onClick: () => onNext(next) } : undefined}
+      />
     </section>
   )
 }

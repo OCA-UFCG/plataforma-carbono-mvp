@@ -109,24 +109,25 @@
   margin-top: 4px;
 }
 
-/* Answer figure */
+/* Answer figure: D-DIN Bold 40 (Figma 19254:37456), the unit beside it in the
+   body face (19254:37457). */
 
 .tg-step-figure {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 8px;
+  gap: 0 4px;
   margin: 0;
   color: var(--bg-texto-primario, #001d27);
 }
 
 .tg-step-figure-value {
   min-width: 0;
-  font-family: var(--font-display, 'Archivo Narrow'), 'Arial Narrow', sans-serif;
+  font-family: var(--font-figures, var(--font-display, 'Archivo Narrow')), 'Arial Narrow', sans-serif;
   font-weight: 700;
-  font-size: clamp(48px, 13vw, 64px);
-  line-height: 1.0733;
-  letter-spacing: -0.01em;
+  font-size: 40px;
+  line-height: 40px;
+  letter-spacing: -0.6px;
   /* Proportional figures at display size; the old layout sets tnum on body. */
   font-feature-settings: normal;
   font-variant-numeric: lining-nums proportional-nums;
@@ -134,10 +135,10 @@
 }
 
 .tg-step-figure-unit {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-  color: var(--am-400, #526f78);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--foreground, #292829);
 }
 
 /* ComparisonBar */

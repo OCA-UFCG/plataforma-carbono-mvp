@@ -73,11 +73,6 @@ export const CHOOSER = {
   chooseAnother: 'Escolher outro',
 }
 
-export const RAIL = {
-  /** Position among the six theme steps; the summary shows its name alone. */
-  position:  (n: number, total: number) => `${n} de ${total}`,
-}
-
 /** Labels of the report's title band, tabs and panel buttons (Figma 19254:37412). */
 export const REPORT = {
   /** The type badge, "Recorte: município", and the way back to the types. */

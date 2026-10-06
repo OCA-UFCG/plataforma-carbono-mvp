@@ -2,27 +2,25 @@
 
 import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import StepRail from './StepRail'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import ReportActions, { type LocationBadge } from './ReportActions'
+import ReportBand from './ReportBand'
+import ReportTabs from './ReportTabs'
 import StorySummary from './StorySummary'
 import type { LandUseYear } from './StoryMap'
 import ThemeStep, { type ThemeLoad } from './ThemeStep'
 import TypeCards from './TypeCards'
-import TypeStrip from './TypeStrip'
-import { useActiveSection } from './useActiveSection'
 import {
   BIOMA_FEATURE_ID,
   BIOMA_RECORTE_ID,
   LAND_USE_YEARS,
-  STEPS,
-  STEP_LABELS,
   STORY_THEMES,
   territoryTypeByRecorte,
   type TerritoryType,
 } from '@/config/territorios/story'
-import { CHOOSER, INTRO } from '@/config/territorios/chooserScript'
+import { CHOOSER, INTRO, REPORT } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
-import { wantedThemes } from '@/lib/territorios/activeSection'
+import { readyToPrint, sectionId, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
 // MapLibre needs WebGL and window.
@@ -46,7 +44,7 @@ export interface TerritoriosAppProps {
 /**
  * Theme requests in flight at once. Two, for the reason ReportClient gives:
  * each one can be a live Earth Engine reduction, and the per-IP rate limiter is
- * shared with the tile requests of the same story.
+ * shared with the tile requests of the same report.
  */
 const CONCURRENCY = 2
 
@@ -59,7 +57,7 @@ type SettledLoad = Exclude<ThemeLoad, { kind: 'loading' }>
 interface ThemeLoads {
   key:      string | null
   entries:  Partial<Record<ThemeId, SettledLoad>>
-  /** Themes whose retry button cleared the entry; requested whichever section is settled. */
+  /** Themes whose retry button cleared the entry; requested whichever tab is open. */
   retrying: ThemeId[]
 }
 
@@ -70,16 +68,8 @@ interface Scheduler {
   inFlight:   Set<ThemeId>
 }
 
-/** The phone layout of territorios.css, where the map opens as a sheet. */
-const PHONE_QUERY = '(max-width: 767px)'
-
-function subscribePhone(onChange: () => void) {
-  const query = window.matchMedia(PHONE_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-const isPhone = () => window.matchMedia(PHONE_QUERY).matches
+/** The steps the map draws; the summary has no map of its own. */
+type MapStep = Exclude<StepId, 'resumo'>
 
 const THEME_IDS = STORY_THEMES.map((t) => t.id)
 const LOADING: ThemeLoad = { kind: 'loading' }
@@ -89,32 +79,8 @@ function typeOf(recorteId: string): TerritoryType | null {
   return territoryTypeByRecorte(recorteId) ?? null
 }
 
-function isStep(value: string): value is StepId {
-  return (STEPS as string[]).includes(value)
-}
-
 function isTheme(step: StepId): step is ThemeId {
   return (THEME_IDS as string[]).includes(step)
-}
-
-function initialStep(etapa: string): StepId {
-  return isStep(etapa) ? etapa : 'territorio'
-}
-
-/**
- * Address of a screen of the section. The query, not the path, holds the state,
- * so the same links work wherever the section is placed: /territorios today, a
- * section of the home later.
- */
-function storyPath(pathname: string, type: TerritoryType | null, featureId: string, step: StepId): string {
-  const params = new URLSearchParams()
-  if (type?.recorteId) params.set('recorte', type.recorteId)
-  if (type?.recorteId && featureId) {
-    params.set('feicao', featureId)
-    params.set('etapa', step)
-  }
-  const query = params.toString()
-  return query ? `${pathname}?${query}` : pathname
 }
 
 /** Type and territory an address names; the bioma has a single feature. */
@@ -125,9 +91,10 @@ function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; 
 }
 
 /**
- * The whole Territórios tool as one section of a page: its title band stays, and
- * only the body below it changes, from the gallery of types to the chooser and
- * the story. Each change of screen is an entry in the browser's history.
+ * The whole Territórios tool as one section of a page: its title band stays,
+ * and the body below it changes, from the gallery of types to the chooser and
+ * the report (Figma 19254:37325). Each change of screen is an entry in the
+ * browser's history; a change of tab replaces the current one.
  */
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
   const pathname = usePathname()
@@ -137,29 +104,36 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     if (restored?.recorteId === BIOMA_RECORTE_ID) return BIOMA_FEATURE_ID
     return restored ? initialFeicao : ''
   })
+  const [tab, setTab] = useState<StepId>(() => stepFromQuery(initialEtapa))
+  /**
+   * The step the map draws: the open tab's, kept through the summary so the map
+   * is where the visitor left it on the way back.
+   */
+  const [mapStep, setMapStep] = useState<MapStep>(() => {
+    const step = stepFromQuery(initialEtapa)
+    return step === 'resumo' ? 'territorio' : step
+  })
+  if (tab !== 'resumo' && tab !== mapStep) setMapStep(tab)
   const [expired, setExpired] = useState(false)
+  const [landUseYear, setLandUseYear] = useState<LandUseYear>(LAND_USE_YEARS[LAND_USE_YEARS.length - 1])
 
   const [territoryLoad, setTerritoryLoad] = useState<TerritoryLoad | null>(null)
   const [territoryAttempt, setTerritoryAttempt] = useState(0)
   const [themeLoads, setThemeLoads] = useState<ThemeLoads>({ key: null, entries: {}, retrying: [] })
-  /** The territory printed from a section other than the summary, which then wants every theme. */
+  /** The territory printed with the browser's own command, which then wants every theme. */
   const [printedKey, setPrintedKey] = useState<string | null>(null)
+  /** The territory whose summary "Baixar" prints once its last theme settles. */
+  const [printKey, setPrintKey] = useState<string | null>(null)
+  /** Counts the prints "Baixar" set off; each one prints after its commit. */
+  const [printRun, setPrintRun] = useState(0)
 
   const sectionRef = useRef<HTMLElement | null>(null)
-  const introHeadingRef = useRef<HTMLHeadingElement | null>(null)
-  const storyHeadingRef = useRef<HTMLHeadingElement | null>(null)
-  const bodyRef = useRef<HTMLDivElement | null>(null)
-  const mapColumnRef = useRef<HTMLDivElement | null>(null)
-  /** Stands for the map column on a phone, where the map never sits over the text. */
-  const noMapRef = useRef<HTMLDivElement | null>(null)
-  const closeMapRef = useRef<HTMLButtonElement | null>(null)
-  /** The "Ver no mapa" button that opened the sheet, which gets the focus back. */
-  const mapOpenerRef = useRef<HTMLButtonElement | null>(null)
+  const bandHeadingRef = useRef<HTMLHeadingElement | null>(null)
   const schedulerRef = useRef<Scheduler | null>(null)
-  /** The step from the address, scrolled to once the first territory is laid out. */
-  const restoreRef = useRef<StepId | null>(initialStep(initialEtapa))
   /** Set when the visitor changes screen, since the control they used unmounts with the old one. */
   const moveFocusRef = useRef(false)
+  /** Set by a panel's own button, which unmounts with the panel. */
+  const focusPanelRef = useRef(false)
 
   const recorteId = type?.recorteId ?? null
   const territoryKey = recorteId && featureId ? `${recorteId}|${featureId}` : null
@@ -174,92 +148,39 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   const retrying = themeLoads.key === territoryKey ? themeLoads.retrying : NO_RETRIES
   const screen = !type ? 'intro' : !featureId ? 'search' : 'story'
 
-  const phone = useSyncExternalStore(subscribePhone, isPhone, () => false)
-  /** The step the phone's map sheet shows; null while it is closed. */
-  const [sheetStep, setSheetStep] = useState<StepId | null>(null)
-  const sheetOpen = phone && sheetStep !== null
-  const [landUseYear, setLandUseYear] = useState<LandUseYear>(LAND_USE_YEARS[LAND_USE_YEARS.length - 1])
-  /**
-   * The phone mounts the map on the first "Ver no mapa" and keeps it, so the
-   * story costs no tile until the visitor asks for the map. One instance, moved
-   * between the column and the sheet by CSS alone.
-   */
-  const [mapMounted, setMapMounted] = useState(false)
-  /** The step the sheet was last opened on, which the map keeps while closed. */
-  const [lastSheetStep, setLastSheetStep] = useState<StepId | null>(null)
-  if (!phone && !mapMounted) setMapMounted(true)
-
-  const { active, settled, scrollToStep, resetTo } = useActiveSection({
-    steps:   STEPS,
-    initial: initialStep(initialEtapa),
-    bodyRef,
-    mapRef:  phone ? noMapRef : mapColumnRef,
-    enabled: payload !== null,
-  })
-
-  // On a computer the map follows the section; on a phone it keeps the step it
-  // was opened on, and a closed sheet asks for nothing.
-  const mapStep = phone ? lastSheetStep ?? settled : settled
-
-  const openMap = useCallback((step: StepId, opener: HTMLButtonElement) => {
-    mapOpenerRef.current = opener
-    setMapMounted(true)
-    setLastSheetStep(step)
-    setSheetStep(step)
-  }, [])
-
-  const closeMap = useCallback(() => setSheetStep(null), [])
+  // Derived during render, as mapStep is: the print itself waits for the
+  // effect below, once the summary holds the last answer.
+  if (readyToPrint(printKey, territoryKey, expired, entries)) {
+    setPrintKey(null)
+    setPrintRun((n) => n + 1)
+  }
 
   useEffect(() => {
-    if (!sheetOpen) return
-    closeMapRef.current?.focus({ preventScroll: true })
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeMap()
-    }
-    // The page behind the sheet stays where the visitor left it.
-    const root = document.documentElement
-    const overflow = root.style.overflow
-    root.style.overflow = 'hidden'
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      root.style.overflow = overflow
-      // Here and not in closeMap: until this render commits, the button still
-      // sits in an inert subtree and refuses the focus.
-      if (mapOpenerRef.current?.isConnected) mapOpenerRef.current.focus({ preventScroll: true })
-      mapOpenerRef.current = null
-    }
-  }, [sheetOpen, closeMap])
+    if (printRun > 0) window.print()
+  }, [printRun])
 
   const onUnauthorized = useCallback(() => setExpired(true), [])
 
-  // The page restores its own step from the address; the browser's restored
-  // offset would land on another section once the charts change the heights.
+  // Tabs replace the entry; screens push one (see goTo).
   useEffect(() => {
-    window.history.scrollRestoration = 'manual'
-  }, [])
+    window.history.replaceState(null, '', storyPath(pathname, recorteId, featureId, tab))
+  }, [pathname, recorteId, featureId, tab])
 
-  // Steps replace the entry; screens push one (see goTo).
-  useEffect(() => {
-    window.history.replaceState(null, '', storyPath(pathname, type, featureId, settled))
-  }, [pathname, type, featureId, settled])
-
+  // After a change of screen the band's title takes the focus; the chooser
+  // puts it on its own question, and the report waits for its territory.
   useEffect(() => {
     if (!moveFocusRef.current) return
-    const target = screen === 'intro' ? introHeadingRef.current
-      : screen === 'story' && payload ? storyHeadingRef.current
-        : null
-    if (!target) return
+    if (screen === 'search' || (screen === 'story' && !payload)) return
     moveFocusRef.current = false
-    target.focus({ preventScroll: true })
+    bandHeadingRef.current?.focus({ preventScroll: true })
   }, [screen, payload])
 
+  // A panel's own buttons unmount with it; the new panel's title takes the focus.
   useEffect(() => {
-    if (!payload || !restoreRef.current) return
-    const step = restoreRef.current
-    restoreRef.current = null
-    if (step !== STEPS[0]) scrollToStep(step, 'instant')
-  }, [payload, screen, scrollToStep])
+    if (!focusPanelRef.current) return
+    focusPanelRef.current = false
+    document.getElementById(`${sectionId(tab)}-titulo`)?.focus({ preventScroll: true })
+  }, [tab])
 
   useEffect(() => {
     if (!recorteId || !featureId) return
@@ -342,7 +263,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
       }
     }
 
-    // A theme queued for a section the visitor has already left would hold back
+    // A theme queued for a tab the visitor has already left would hold back
     // the ones now wanted; the requests in flight finish.
     scheduler.queue = scheduler.queue.filter((theme) => themes.includes(theme))
     for (const theme of themes) {
@@ -351,8 +272,9 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     pump()
   }, [])
 
-  // Printing from any section outputs the summary, whose cards still loading
-  // stay off the sheet; every theme is then requested for the next print.
+  // The browser's own print command, from any tab, outputs the summary, whose
+  // cards still loading stay off the sheet; every theme is then requested for
+  // the next print.
   useEffect(() => {
     if (!territoryKey) return
     const onBeforePrint = () => setPrintedKey(territoryKey)
@@ -360,14 +282,15 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     return () => window.removeEventListener('beforeprint', onBeforePrint)
   }, [territoryKey])
 
-  // Follows the settled section, not the active one, so scrolling past a
-  // section asks for nothing. Failures stay until their retry button clears them.
+  // Follows the open tab; "Baixar" and a print want every theme. Failures stay
+  // until their retry button clears them.
   const missingThemes = useMemo(() => {
     if (!payload || expired) return []
-    const sectionThemes = printedKey === territoryKey ? THEME_IDS : wantedThemes(settled)
-    const wanted = new Set([...sectionThemes, ...retrying])
+    const everyTheme = territoryKey !== null && (printedKey === territoryKey || printKey === territoryKey)
+    const tabThemes = everyTheme ? THEME_IDS : wantedThemes(tab)
+    const wanted = new Set([...tabThemes, ...retrying])
     return [...wanted].filter((theme) => !entries[theme])
-  }, [payload, expired, printedKey, territoryKey, settled, retrying, entries])
+  }, [payload, expired, printedKey, printKey, territoryKey, tab, retrying, entries])
 
   // Called with an empty list too, which drops what is still queued.
   useEffect(() => {
@@ -389,7 +312,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     })
   }, [expired])
 
-  /** A new screen starts at the top of the section, not where the previous, longer one left the page. */
+  /** A new screen or tab starts at the top of the section, not where the previous one left the page. */
   const scrollToSection = useCallback(() => {
     const section = sectionRef.current
     if (section && section.getBoundingClientRect().top < 0) section.scrollIntoView({ block: 'start', behavior: 'instant' })
@@ -397,29 +320,25 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
   /** Shows a screen of the section, without touching the history. */
   const show = useCallback((nextType: TerritoryType | null, nextFeature: string, step: StepId) => {
-    setSheetStep(null)
     moveFocusRef.current = true
     setType(nextType)
     setFeatureId(nextFeature)
-    resetTo(step)
+    setTab(step)
     scrollToSection()
-  }, [resetTo, scrollToSection])
+  }, [scrollToSection])
 
   function goTo(nextType: TerritoryType | null, nextFeature: string) {
-    restoreRef.current = null
-    window.history.pushState(null, '', storyPath(pathname, nextType, nextFeature, STEPS[0]))
-    show(nextType, nextFeature, STEPS[0])
+    window.history.pushState(null, '', storyPath(pathname, nextType?.recorteId ?? null, nextFeature, 'territorio'))
+    show(nextType, nextFeature, 'territorio')
   }
 
-  // The browser's back and forward walk the same screens, and a story entry
-  // reopens on the step it was left at.
+  // The browser's back and forward walk the same screens, and a report entry
+  // reopens on the tab it was left at.
   useEffect(() => {
     const onPopState = () => {
       const params = new URLSearchParams(window.location.search)
       const next = stateFromQuery(params)
-      const step = initialStep(params.get('etapa') ?? '')
-      restoreRef.current = next.featureId ? step : null
-      show(next.type, next.featureId, step)
+      show(next.type, next.featureId, stepFromQuery(params.get('etapa') ?? ''))
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
@@ -436,48 +355,67 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   // The bioma has no chooser, so another one means another type.
   const changeTerritory = () => (type?.recorteId === BIOMA_RECORTE_ID ? changeType() : goTo(type, ''))
 
+  /** A panel's own "next" button, which unmounts with the panel. */
+  function openTab(step: StepId) {
+    focusPanelRef.current = true
+    setTab(step)
+    scrollToSection()
+  }
+
+  /** "Baixar": asks for every theme, and prints once they have all settled. */
+  function download() {
+    if (territoryKey) setPrintKey(territoryKey)
+  }
+
   const loads = Object.fromEntries(
     THEME_IDS.map((theme) => [theme, entries[theme] ?? LOADING]),
   ) as Record<ThemeId, ThemeLoad>
 
-  const storyStep = (step: Exclude<StepId, 'resumo'>, i: number) => (
-    <ThemeStep
-      key={step}
-      step={step}
-      territory={payload!}
-      type={type!}
-      load={isTheme(step) ? loads[step] : LOADING}
-      expired={expired}
-      onRetry={() => { if (isTheme(step)) retryTheme(step) }}
-      onNext={() => scrollToStep(STEPS[i + 1])}
-      onShowMap={(opener) => openMap(step, opener)}
-      mapOpen={sheetOpen && sheetStep === step}
-      landUseYear={step === 'uso' && !phone ? { year: landUseYear, onChange: setLandUseYear } : undefined}
-    />
-  )
+  const isBioma = type?.recorteId === BIOMA_RECORTE_ID
+  const territoryTitle = payload && type
+    ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context)
+    : null
+  // The report names its territory; the gallery and the chooser keep the section's question.
+  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : INTRO.title
+  const location: LocationBadge | null | undefined =
+    screen === 'search' ? null
+      : isBioma ? { value: REPORT.biomeLocation, onEdit: null }
+        : territoryTitle ? { value: territoryTitle, onEdit: changeTerritory }
+          : undefined
 
   return (
     <section ref={sectionRef} className="territorios-secao" aria-labelledby="territorios-secao-titulo">
-      <div className="territorios-secao-faixa territorios-no-print">
-        <div className="container territorios-secao-faixa-conteudo">
-          <p className="territorios-secao-sobretitulo text-subtle-medium">{INTRO.eyebrow}</p>
-          <h2 id="territorios-secao-titulo" ref={introHeadingRef} tabIndex={-1} className="territorios-secao-titulo text-h2">
-            {INTRO.title}
-          </h2>
-        </div>
-      </div>
+      <ReportBand eyebrow={INTRO.eyebrow} title={bandTitle} headingRef={bandHeadingRef}>
+        {screen !== 'intro' && type && (
+          <ReportActions
+            type={type}
+            onChangeType={changeType}
+            location={location}
+            shareTitle={screen === 'story' ? territoryTitle : null}
+            onDownload={screen === 'story' && payload ? download : null}
+            downloading={printKey !== null && printKey === territoryKey}
+          />
+        )}
+      </ReportBand>
+
+      {screen !== 'intro' && (
+        <ReportTabs
+          current={screen === 'search' ? 'localizacao' : tab}
+          stepsEnabled={payload !== null}
+          onLocation={screen === 'story' && !isBioma ? changeTerritory : null}
+          onSelect={setTab}
+        />
+      )}
 
       {expired && (
         <p className="territorios-aviso territorios-no-print" role="alert">
           {UI.sessionExpired}{' '}
-          <a href={`/login?redirect=${encodeURIComponent(storyPath(pathname, type, featureId, settled))}`}>{UI.signIn}</a>
+          <a href={`/login?redirect=${encodeURIComponent(storyPath(pathname, recorteId, featureId, tab))}`}>{UI.signIn}</a>
         </p>
       )}
 
-      <div className={screen === 'story' ? 'container territorios territorios--historia' : 'container territorios'}>
+      <div className="container territorios">
         {screen === 'intro' && <TypeCards onSelect={chooseType} />}
-
-        {screen !== 'intro' && type && <TypeStrip type={type} onChange={changeType} />}
 
         {screen === 'search' && type && (
           <TerritoryChooser
@@ -490,25 +428,10 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
         {screen === 'story' && type && (
           <>
-            <StepRail current={active} onSelect={scrollToStep} inert={sheetOpen} />
-
-            <header className="territorios-cabecalho territorios-no-print" inert={sheetOpen}>
-              <div>
-                <h3 ref={storyHeadingRef} tabIndex={-1} className="territorios-nome">
-                  {payload ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context) : UI.pageTitle}
-                </h3>
-              </div>
-              <button type="button" className="territorios-btn territorios-btn--contorno" onClick={changeTerritory}>
-                {UI.changeTerritory}
-              </button>
-            </header>
-
-            {!territory && (
-              <p className="territorios-estado" role="status" style={{ marginTop: 28 }}>{UI.loading}</p>
-            )}
+            {!territory && <p className="territorios-estado" role="status">{UI.loading}</p>}
 
             {territory?.kind === 'failed' && (
-              <div className="territorios-estado" role="status" style={{ marginTop: 28 }}>
+              <div className="territorios-estado" role="status">
                 <p>{territory.rateLimited ? UI.rateLimited : UI.territoryUnavailable}</p>
                 {!expired && (
                   <button
@@ -523,64 +446,45 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
             )}
 
             {payload && (
-              <div ref={bodyRef}>
-                <div className="territorios-historia">
-                  <div className="territorios-secoes" inert={sheetOpen}>
-                    {STEPS.map((step, i) => step === 'resumo' ? null : storyStep(step, i))}
-                  </div>
-
-                  {sheetOpen && <div className="territorios-folha-fundo" aria-hidden="true" onClick={closeMap} />}
-
-                  {/* The one MapLibre instance of the whole story: a column on a
-                      computer, a sheet over the page on a phone. */}
-                  <div
-                    ref={mapColumnRef}
-                    className="territorios-historia-mapa territorios-no-print"
-                    data-aberta={sheetOpen || undefined}
-                    {...(sheetOpen ? {
-                      role: 'dialog',
-                      'aria-modal': true,
-                      'aria-label': UI.mapDialog(STEP_LABELS[mapStep]),
-                    } : {})}
-                  >
-                    {sheetOpen && (
-                      <div className="territorios-folha-topo">
-                        <p className="territorios-folha-titulo">{STEP_LABELS[mapStep]}</p>
-                        <button
-                          ref={closeMapRef}
-                          type="button"
-                          className="territorios-btn territorios-btn--contorno"
-                          onClick={closeMap}
-                        >
-                          {UI.closeMap}
-                        </button>
-                      </div>
-                    )}
-                    {mapMounted && (
-                      <StoryMap
-                        territory={payload}
-                        step={mapStep}
-                        landUseYear={landUseYear}
-                        onLandUseYear={setLandUseYear}
-                        yearSwitch={phone}
-                        cooperative={!phone}
-                        onUnauthorized={onUnauthorized}
-                      />
-                    )}
+              <>
+                <div className="territorios-relatorio" hidden={tab === 'resumo'}>
+                  {tab !== 'resumo' && (
+                    <ThemeStep
+                      key={tab}
+                      step={tab}
+                      territory={payload}
+                      type={type}
+                      load={isTheme(tab) ? loads[tab] : LOADING}
+                      expired={expired}
+                      onRetry={() => { if (isTheme(tab)) retryTheme(tab) }}
+                      onBack={changeType}
+                      onNext={openTab}
+                      landUseYear={tab === 'uso' ? { year: landUseYear, onChange: setLandUseYear } : undefined}
+                    />
+                  )}
+                  {/* The one MapLibre instance of the report, kept mounted across
+                      the tabs; on the summary its column is hidden. */}
+                  <div className="territorios-relatorio-mapa territorios-no-print">
+                    <StoryMap
+                      territory={payload}
+                      step={mapStep}
+                      landUseYear={landUseYear}
+                      onLandUseYear={setLandUseYear}
+                      onUnauthorized={onUnauthorized}
+                    />
                   </div>
                 </div>
 
-                <div inert={sheetOpen}>
-                  <StorySummary
-                    territory={payload}
-                    type={type}
-                    loads={loads}
-                    expired={expired}
-                    onRetry={retryTheme}
-                    onAnotherTerritory={changeTerritory}
-                  />
-                </div>
-              </div>
+                <StorySummary
+                  hidden={tab !== 'resumo'}
+                  territory={payload}
+                  type={type}
+                  loads={loads}
+                  expired={expired}
+                  onRetry={retryTheme}
+                  onBack={changeType}
+                />
+              </>
             )}
           </>
         )}

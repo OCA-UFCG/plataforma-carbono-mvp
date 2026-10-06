@@ -14,8 +14,7 @@ import styles from "./SiteFooter.module.css";
 // alpha (5-10 KB each).
 //
 // The colour PNGs in public/logos/ are not orphaned by this: logo_oca.png
-// still serves the brand mark below, every layout's favicon and the
-// Territórios step rail (components/territorios/StepRail.tsx), while
+// still serves the brand mark below and every layout's favicon, while
 // logo_ufcg.png, logo_sudene.png and logo_insa.png are kept alive solely by
 // components/mapa/Welcome.tsx. Do not delete them as unused.
 //

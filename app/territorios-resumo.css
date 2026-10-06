@@ -1,0 +1,196 @@
+/*
+ * The report's summary tab (Figma 19254:37467), imported by
+ * components/territorios/StorySummary.tsx. It stays in the page, hidden, while
+ * another tab is open, so "Baixar" can print it from any tab; only it prints.
+ */
+
+.territorios-resumo {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+/* The attribute alone loses to the display above. */
+.territorios-resumo[hidden] {
+  display: none;
+}
+
+.territorios-ficha-cabecalho {
+  display: grid;
+  gap: 4px;
+}
+
+.territorios-ficha-nome {
+  font-family: var(--font-titulo);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.08;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-detalhe {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-ficha {
+  display: grid;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--am-100);
+}
+
+/* One line per theme: figure and reading, the sentence, the bar. --tema-cor
+   comes inline from STEP_COLORS. */
+.territorios-ficha-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr) minmax(0, 300px);
+  grid-template-areas:
+    'titulo titulo titulo'
+    'valor frase grafico';
+  gap: 8px 32px;
+  align-items: start;
+  padding: 16px 0 24px 16px;
+  border-bottom: 1px solid var(--am-100);
+  border-left: 4px solid var(--tema-cor, var(--am-400));
+  break-inside: avoid;
+}
+
+.territorios-ficha-titulo {
+  grid-area: titulo;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-ficha-valor {
+  grid-area: valor;
+  display: grid;
+  gap: 4px;
+}
+
+.territorios-ficha-grafico {
+  grid-area: grafico;
+}
+
+.territorios-ficha-leitura {
+  justify-self: start;
+  padding: 2px 8px;
+  border: 1px solid var(--am-200);
+  border-radius: var(--radius-interno);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-frase {
+  grid-area: frase;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-ficha-estado {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-sobre {
+  border-top: 1px solid var(--am-100);
+  border-bottom: 1px solid var(--am-100);
+}
+
+.territorios-sobre summary {
+  min-height: 44px;
+  padding: 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.territorios-sobre summary:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+.territorios-sobre dl {
+  display: grid;
+  gap: 12px;
+  max-width: 72ch;
+  padding-bottom: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.territorios-sobre dt {
+  font-weight: 600;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-sobre dd {
+  margin: 0;
+  color: var(--am-400);
+}
+
+.territorios-sobre-data {
+  padding-bottom: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+@media (max-width: 1023px) {
+  .territorios-ficha-linha {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'titulo titulo'
+      'valor frase'
+      'grafico grafico';
+  }
+}
+
+@media print {
+  .territorios-resumo,
+  .territorios-resumo[hidden] {
+    display: grid !important;
+  }
+
+  .territorios-ficha-linha {
+    grid-template-columns: 50mm minmax(0, 1fr) 55mm;
+    grid-template-areas:
+      'titulo titulo titulo'
+      'valor frase grafico';
+    gap: 4px 6mm;
+    padding: 8px 0 10px 10px;
+  }
+
+  .territorios-ficha-valor .tg-step-figure-value {
+    font-size: 30px;
+    line-height: 30px;
+  }
+
+  .territorios-sobre summary {
+    min-height: 0;
+    list-style: none;
+  }
+
+  .territorios-sobre summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Browsers drop background colors and some borders by default when printing. */
+  .territorios-ficha-linha,
+  .tg-chart {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
