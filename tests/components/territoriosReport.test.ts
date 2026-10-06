@@ -7,6 +7,7 @@ import ReportBand from '@/components/territorios/ReportBand'
 import ReportTabs from '@/components/territorios/ReportTabs'
 import StepIcon from '@/components/territorios/StepIcon'
 import StorySummary from '@/components/territorios/StorySummary'
+import TerritoryChooser from '@/components/territorios/TerritoryChooser'
 import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 import type { BiomeReference, TerritoryPayload, TerritoryTypeId } from '@/types/territorios'
@@ -210,5 +211,21 @@ describe('StorySummary', () => {
       ...SUMMARY, hidden: false, loads: { ...LOADING_ALL, fogo: { kind: 'failed', rateLimited: false } },
     })
     expect(markup).toContain('aria-label="Tentar novamente: Fogo"')
+  })
+})
+
+describe('TerritoryChooser', () => {
+  it('ends its column with the way back and "Ver relatório", disabled until a territory is proposed', () => {
+    const markup = html(TerritoryChooser, {
+      type: typeOf('municipio'), onChoose: noop, onBack: noop, onUnauthorized: noop,
+    })
+    expect(markup).toContain('Qual município?')
+    expect(buttons(markup).slice(-2)).toEqual([
+      { text: 'Recorte', disabled: false },
+      { text: 'Ver relatório', disabled: true },
+    ])
+    // The locate button carries the design's pin; the privacy note stays.
+    expect(markup).toContain('/images/territorios/icones/localizacao.svg')
+    expect(markup).toContain('Sua localização não é enviada nem guardada.')
   })
 })

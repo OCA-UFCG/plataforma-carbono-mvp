@@ -422,6 +422,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
             key={type.id}
             type={type}
             onChoose={chooseTerritory}
+            onBack={changeType}
             onUnauthorized={onUnauthorized}
           />
         )}
