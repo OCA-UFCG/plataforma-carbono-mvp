@@ -135,6 +135,13 @@ export interface StepAnswer {
 /** Where the territory stands against the Caatinga, in words that judge nothing. */
 export type Reading = 'acima' | 'abaixo' | 'perto'
 
+/**
+ * Whether a reading is good news for the territory: more carbon held, more
+ * taken from the air, more native vegetation, less fire. The words of the
+ * reading judge nothing; only the color of its badge does.
+ */
+export type Tone = 'good' | 'bad' | 'neutral'
+
 /** One line of the final sheet. */
 export interface SummaryRow {
   theme:    ThemeId
@@ -142,6 +149,8 @@ export interface SummaryRow {
   headline: { value: string; unit: string } | null
   sentence: string
   reading:  Reading | null
+  /** Color of the reading's badge; null with no reading. */
+  tone:     Tone | null
 }
 
 /** One item of the "Sobre os dados" block at the end. */

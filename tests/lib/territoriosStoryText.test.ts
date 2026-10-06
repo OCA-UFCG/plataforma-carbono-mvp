@@ -3,6 +3,7 @@ import precomputedJson from '@/config/territorios/precomputed.json'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 import {
   aboutItems,
+  readingTone,
   stepAnswer,
   summaryRows,
   type SummaryInput,
@@ -334,7 +335,8 @@ describe('stepAnswer', () => {
       theme: 'fogo', title: 'Área que já queimou',
       headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
       sentence: 'Na Caatinga, 12%. Nenhum fogo de 1985 a 2023.',
-      reading: 'abaixo',
+      // Less fire than the Caatinga is good news.
+      reading: 'abaixo', tone: 'good',
     })
   })
 
@@ -359,7 +361,7 @@ describe('stepAnswer', () => {
       theme: 'fluxo', title: 'Carbono trocado com o ar',
       headline: { value: '12', unit: 't de CO₂e por hectare com árvores' },
       sentence: 'No saldo, as áreas com árvores lançaram no ar 1,2 mil t de CO₂e. Na Caatinga, tiraram mais do que lançaram.',
-      reading: null,
+      reading: null, tone: null,
     })
   })
 
@@ -383,31 +385,31 @@ describe('summaryRows', () => {
         theme: 'estoque', title: 'Carbono da vegetação original',
         headline: { value: '46', unit: 't C por hectare' },
         sentence: 'No total, 2,7 milhões de t C. Na Caatinga, 55 t C por hectare.',
-        reading: 'abaixo',
+        reading: 'abaixo', tone: 'bad',
       },
       {
         theme: 'fluxo', title: 'Carbono trocado com o ar',
         headline: { value: '58', unit: 't de CO₂e por hectare com árvores' },
         sentence: 'No saldo, as áreas com árvores tiraram do ar 462 mil t de CO₂e. Na Caatinga, 68 t por hectare com árvores.',
-        reading: 'abaixo',
+        reading: 'abaixo', tone: 'bad',
       },
       {
         theme: 'uso', title: 'Vegetação nativa',
         headline: { value: '27%', unit: 'da área em 2024' },
         sentence: 'Eram 34% em 1985. Na Caatinga, de 71% para 60%.',
-        reading: 'abaixo',
+        reading: 'abaixo', tone: 'bad',
       },
       {
         theme: 'fogo', title: 'Área que já queimou',
         headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
         sentence: 'Na Caatinga, 12%. Mais fogo em 1999.',
-        reading: 'abaixo',
+        reading: 'abaixo', tone: 'good',
       },
       {
         theme: 'chuva', title: 'Chuva',
         headline: { value: '575', unit: 'mm por ano, em média' },
         sentence: 'Na Caatinga, 701 mm. 2024 foi chuvoso, com 751 mm.',
-        reading: 'abaixo',
+        reading: 'abaixo', tone: 'neutral',
       },
     ])
   })
@@ -460,5 +462,23 @@ describe('every answer, line and item', () => {
       ...abouts.flat().flatMap((i) => [i.title, i.text]),
     ]
     for (const line of lines) expect(line).not.toMatch(/[{}]|undefined|NaN/)
+  })
+})
+
+describe('readingTone', () => {
+  it('colors a reading by whether it is good news for the territory', () => {
+    expect(readingTone('acima', true)).toBe('good')
+    expect(readingTone('abaixo', true)).toBe('bad')
+    expect(readingTone('acima', false)).toBe('bad')
+    expect(readingTone('abaixo', false)).toBe('good')
+  })
+
+  it('stays neutral close to the Caatinga and for a theme that judges nothing', () => {
+    expect(readingTone('perto', true)).toBe('neutral')
+    expect(readingTone('acima', null)).toBe('neutral')
+  })
+
+  it('has no tone without a reading', () => {
+    expect(readingTone(null, true)).toBeNull()
   })
 })
