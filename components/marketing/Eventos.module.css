@@ -1,0 +1,35 @@
+/* Eventos, Figma node 19254:16068: the Publicacoes panel's frame (40px of
+ * block padding, the heading 24px above the content), with the cards 24px
+ * apart. */
+.eventos {
+  background: var(--bg-fundo);
+}
+
+.inner {
+  padding-block: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Rubik Bold 16 in capitals, 1.5px apart (19254:16069), the same label as
+ * the Conteúdo panel's (Publicacoes.module.css). */
+.heading {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+  margin: 0;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
