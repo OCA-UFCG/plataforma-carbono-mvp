@@ -14,7 +14,7 @@
  * button row is 8 + 40px (the secondary button's border is 1px, so both
  * buttons are 40 tall) and the dot row is 13px (.dots). At 1276px the tallest
  * card, the third as shipped (3 title lines + 3 lead lines), stays under it:
- *   82 + 254.6 + 21 + 48 + 40 + 13 + 29 = 487.6. */
+ *   82 + 254.6 + 24 + 48 + 34 + 13 + 29 = 484.6. */
 .hero {
   position: relative;
   min-height: 495px;
@@ -78,11 +78,14 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  /* 82 above the text and 40 below the button row, both from Figma node
-   * 18862:8516: the text (then an eyebrow) starts at y=82, the button row ends
-   * at y=413 and the dot row begins at y=453. The dots are in flow below this,
-   * so their own height and 29px tail complete the section (see .hero). */
-  padding-block: 82px 40px;
+  /* 82 above the text and 34 below the button row, both from the hero of the
+   * 2026-10-06 Figma home (node 19253:14747, working copy
+   * QP5obFCTTfjCSMVO8VgOc7): the text (then an eyebrow) starts at y=82, the
+   * button row ends at y=419 and the dot row begins at y=453. The update moved
+   * the text and the buttons 6px down and left the dots where they were, so
+   * this was 40. The dots are in flow below this, so their own height and
+   * 29px tail complete the section (see .hero). */
+  padding-block: 82px 34px;
 }
 
 /* The photos' cards share one grid cell, so the hero is as tall as the
@@ -101,7 +104,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 21px;
+  /* Text to button row, 24px in 19253:14755 -> 19253:14758 (21 before the
+   * 2026-10-06 update). */
+  gap: 24px;
   opacity: 0;
   visibility: hidden;
   transition:
