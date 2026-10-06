@@ -15,8 +15,9 @@ import { getFeicao, type FeicaoResolvida } from '@/lib/mapa/recorteRegistry'
 import { computeTheme } from '@/lib/territorios/computeTheme'
 import { ellipsoidAreaHa } from '@/lib/territorios/ellipsoidArea'
 import {
-  degradationSharesPct,
-  degradedShareOf,
+  fireAnnualMeanSharePct,
+  fireBurnedSharePct,
+  fireRecurrenceSharesPct,
   fluxPerForestHa,
   forestSharePct,
   nativeSharePct,
@@ -93,22 +94,22 @@ function getBiomeReference(): BiomeReference {
   const stock = dataOf('estoque')
   const flux = dataOf('fluxo')
   const landUse = dataOf('uso')
-  const degradation = dataOf('degradacao')
+  const fire = dataOf('fogo')
   const rain = dataOf('chuva')
 
   const native1985 = landUse ? nativeSharePct(landUse.areas['1985']) : null
   const native2024 = landUse ? nativeSharePct(landUse.areas['2024']) : null
-  const degradationShares = degradation ? degradationSharesPct(degradation) : null
 
   biomeReference = {
-    stockTotalTc:         stock && stock.report.totalTc > 0 ? stock.report.totalTc : null,
-    stockDensityTcHa:     stock ? stockDensity(stock.report) : null,
-    forestSharePct:       flux ? forestSharePct(flux) : null,
-    fluxPerForestHaMg:    flux ? fluxPerForestHa(flux) : null,
-    nativeSharePct:       native1985 !== null && native2024 !== null ? { '1985': native1985, '2024': native2024 } : null,
-    degradedSharePct:     degradationShares ? degradedShareOf(degradationShares) : null,
-    degradationSharesPct: degradationShares,
-    rainMeanMm:           rain ? rainMeanMm(rain.series) : null,
+    stockTotalTc:            stock && stock.report.totalTc > 0 ? stock.report.totalTc : null,
+    stockDensityTcHa:        stock ? stockDensity(stock.report) : null,
+    forestSharePct:          flux ? forestSharePct(flux) : null,
+    fluxPerForestHaMg:       flux ? fluxPerForestHa(flux) : null,
+    nativeSharePct:          native1985 !== null && native2024 !== null ? { '1985': native1985, '2024': native2024 } : null,
+    fireBurnedSharePct:      fire ? fireBurnedSharePct(fire) : null,
+    fireRecurrenceSharesPct: fire ? fireRecurrenceSharesPct(fire) : null,
+    fireAnnualMeanSharePct:  fire ? fireAnnualMeanSharePct(fire) : null,
+    rainMeanMm:              rain ? rainMeanMm(rain.series) : null,
   }
   return biomeReference
 }

@@ -6,7 +6,7 @@
 
 import type { StockReport, TimeSeriesPoint } from '@/types/mapa'
 
-export type ThemeId = 'estoque' | 'fluxo' | 'uso' | 'degradacao' | 'chuva'
+export type ThemeId = 'estoque' | 'fluxo' | 'uso' | 'fogo' | 'chuva'
 
 export type StepId = 'territorio' | ThemeId | 'resumo'
 
@@ -52,10 +52,12 @@ export interface BiomeReference {
   fluxPerForestHaMg: number | null
   /** Percent (0..100) of native vegetation, per year. */
   nativeSharePct: { '1985': number; '2024': number } | null
-  /** Percent (0..100) of the biome area with degradation codes 1 to 5. */
-  degradedSharePct: number | null
-  /** Percent (0..100) of the region per degradation code 1..6, and 0 for the masked area. */
-  degradationSharesPct: Record<number, number> | null
+  /** Percent (0..100) of the region that burned at least once in the fire period. */
+  fireBurnedSharePct: number | null
+  /** Percent (0..100) of the region per number of years with fire. */
+  fireRecurrenceSharesPct: FireRecurrenceShares | null
+  /** Mean over the fire period of the region's yearly burned share, percent (0..100). */
+  fireAnnualMeanSharePct: number | null
   /** Mean annual rainfall 1985-2024, in mm. */
   rainMeanMm: number | null
 }
@@ -92,15 +94,24 @@ export interface LandUseChart {
   reference: { from: number; to: number } | null
 }
 
-/** Share (0..100) of the region per degradation code; code 0 is the masked area. */
-export interface DegradationShare {
-  code: number
-  pct:  number
+/** Share (0..100) of the region per number of years with fire; adds up to 100. */
+export interface FireRecurrenceShares {
+  never:     number
+  once:      number
+  twoToFour: number
+  fivePlus:  number
 }
 
-export interface DegradationChart {
-  here:      DegradationShare[]
-  reference: DegradationShare[] | null
+export interface FireChart {
+  /** Percent (0..100) of the region that burned at least once. */
+  burnedShare: Comparison
+  /** Burned share (0..100) of the region, every year of the fire period. */
+  years: { year: number; sharePct: number }[]
+  /** Year with the largest burned area, the earliest on a tie; null when nothing burned. */
+  peakYear: number | null
+  /** Mean yearly burned share of the Caatinga; null without a reference. */
+  referenceMeanPct: number | null
+  recurrence: { here: FireRecurrenceShares; reference: FireRecurrenceShares | null }
 }
 
 export type RainYearKind = 'seco' | 'normal' | 'chuvoso'
@@ -184,20 +195,16 @@ export interface LandUseThemeData {
   areas: { '1985': Record<string, number>; '2024': Record<string, number> }
 }
 
-export interface DegradationThemeData {
-  theme: 'degradacao'
-  /** Area in m² per class code (1..6). null when the point fallback was used. */
-  areas:     Record<string, number> | null
-  /**
-   * Area of the whole territory weighted by a pixelArea reduction at the index
-   * scale, in m², masked pixels included. Every share divides by this, because
-   * the index masks part of the land (1.9% of the biome) and a share of the
-   * classes alone would describe the area with data as if it were the territory.
-   * null when the point fallback was used.
-   */
-  regionAreaM2: number | null
-  /** Class code of the pixel under the interior point. null unless origin is 'point'. */
-  pointCode: number | null
+export interface FireThemeData {
+  theme: 'fogo'
+  /** Area of the whole territory weighted by the same reduction, in hectares; every share divides by it. */
+  regionAreaHa: number
+  /** Area that burned in at least one year of the fire period, in hectares. */
+  burnedOnceHa: number
+  /** Burned area by number of years with fire, in hectares; the three add up to burnedOnceHa. */
+  recurrenceHa: { once: number; twoToFour: number; fivePlus: number }
+  /** Burned area of each year of the fire period, in hectares. */
+  annual: { year: number; burnedHa: number }[]
 }
 
 export interface RainThemeData {
@@ -210,7 +217,7 @@ export type ThemeData =
   | StockThemeData
   | FluxThemeData
   | LandUseThemeData
-  | DegradationThemeData
+  | FireThemeData
   | RainThemeData
 
 /** GET /api/territorios/tema?recorte=&feicao=&tema= */

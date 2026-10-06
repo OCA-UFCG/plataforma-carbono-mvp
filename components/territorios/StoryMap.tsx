@@ -511,7 +511,7 @@ export default function StoryMap({
       tileLoadedRef.current = false
       // A new source rather than setTiles: setTiles keeps the previous theme's
       // tiles wherever a new tile fails (a 429 from Earth Engine), so the rain
-      // map showed patches of the degradation map.
+      // map showed patches of the previous step's map.
       if (map.getLayer(THEME_LAYER)) map.removeLayer(THEME_LAYER)
       if (map.getSource(THEME_SOURCE)) map.removeSource(THEME_SOURCE)
       map.addSource(THEME_SOURCE, { type: 'raster', tiles: [result], tileSize: 256 })

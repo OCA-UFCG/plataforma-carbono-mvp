@@ -78,18 +78,18 @@ export const STORY_THEMES: StoryTheme[] = [
   { id: 'estoque',    layerId: 'estoque_carbono',  railLabel: 'Estoque',      color: STEP_COLORS.estoque,    mapYear: null },
   { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        color: STEP_COLORS.fluxo,      mapYear: null },
   { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', color: STEP_COLORS.uso,        mapYear: '2024' },
-  { id: 'degradacao', layerId: 'degradacao_terra', railLabel: 'Degradação',   color: STEP_COLORS.degradacao, mapYear: null },
+  { id: 'fogo',       layerId: 'fogo_frequencia',  railLabel: 'Fogo',         color: STEP_COLORS.fogo,       mapYear: '2023' },
   { id: 'chuva',      layerId: 'chirps_precip',    railLabel: 'Chuva',        color: STEP_COLORS.chuva,      mapYear: '2024' },
 ]
 
-export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'degradacao', 'chuva', 'resumo']
+export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva', 'resumo']
 
 export const STEP_LABELS: Record<StepId, string> = {
   territorio: 'Território',
   estoque:    'Estoque',
   fluxo:      'Fluxo',
   uso:        'Uso da terra',
-  degradacao: 'Degradação',
+  fogo:       'Fogo',
   chuva:      'Chuva',
   resumo:     'Resumo',
 }
@@ -123,4 +123,14 @@ export const RAIN_POINT_BELOW_HA = 3_100
 export const LAND_USE_YEARS = ['1985', '2024'] as const
 export const RAIN_FIRST_YEAR = 1985
 export const RAIN_LAST_YEAR = 2024
-export const DEGRADATION_YEAR = 2021
+
+/** MapBiomas Fogo collection 3: frequency and annual burned area, 1985 to 2023. */
+export const FIRE_FIRST_YEAR = 1985
+export const FIRE_LAST_YEAR = 2023
+/**
+ * Annual burned area, one band per year (burned_area_YYYY), 1 where the pixel
+ * burned that year and masked elsewhere. Not a layer of the WebSIG: only
+ * computeTheme reads it, on the server, so it needs no allowlist entry.
+ */
+export const FIRE_ANNUAL_ASSET =
+  'projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_annual_burned_v1'

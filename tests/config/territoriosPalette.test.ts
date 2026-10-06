@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { contrast, hexToRgb, rgbToHex } from '@/lib/color'
 import {
-  DEGRADATION_COLORS,
+  FIRE_COLORS,
   FLUX_COLORS,
   LAND_USE_COLORS,
   MARK_OUTLINE_COLOR,
@@ -18,11 +18,11 @@ import {
 //
 // Thresholds, in CIEDE2000 units (about 1 is a just noticeable difference
 // side by side, about 2 between separate patches):
-// - 15 between classes with no order (rain, land use, flux, Conservado against
-//   Nível 1), in every vision: each has to be named from a small patch on the
-//   map or in a legend, far from its neighbor.
-// - 8 between neighboring degradation levels in normal vision and 7 under
-//   color vision deficiency: the levels also step down in lightness, which the
+// - 15 between classes with no order (rain, land use, flux, never burned
+//   against one fire), in every vision: each has to be named from a small
+//   patch on the map or in a legend, far from its neighbor.
+// - 8 between neighboring fire classes in normal vision and 7 under color
+//   vision deficiency: the classes also step down in lightness, which the
 //   simulations keep, and every share is written in the legend.
 
 const WHITE = '#ffffff'
@@ -114,21 +114,23 @@ function allPairs(set: Record<string, string>): [string, string, string, string]
   return keys.flatMap((a, i) => keys.slice(i + 1).map((b): [string, string, string, string] => [a, set[a], b, set[b]]))
 }
 
-// Degradation codes from Conservado to Nível 5; code 0 (no data) is hatched and
-// never sits in the ramp.
-const LEVEL_ORDER = [6, 5, 4, 3, 2, 1]
+// Fire classes that burned, from one year to five or more; "never" is grey and
+// sits outside the ramp.
+const FIRE_RAMP = [FIRE_COLORS.once, FIRE_COLORS.twoToFour, FIRE_COLORS.fivePlus]
+const FIRE_NAMES = ['1 vez', '2 a 4 vezes', '5 vezes ou mais']
 
 // Fills below 3:1 on the surface, drawn with MARK_OUTLINE_COLOR around them.
 // Listed by hand so that a new color falling below 3:1 fails here.
-const OUTLINED = new Set([
-  DEGRADATION_COLORS[5],
-  DEGRADATION_COLORS[0],
+const OUTLINED = new Set<string>([
+  FIRE_COLORS.never,
+  FIRE_COLORS.once,
   RAIN_COLORS.normal,
   LAND_USE_COLORS.outros,
 ])
 
 describe('Territórios palette', () => {
   it('carries white text on each step color, and each reads on the surface, at 4.5:1', () => {
+    expect(STEP_COLORS.fogo).toBe('#8f3a32')
     for (const [step, color] of Object.entries(STEP_COLORS)) {
       expect(contrast(WHITE, color), `white on ${step}`).toBeGreaterThanOrEqual(4.5)
       expect(contrast(color, SURFACE_COLOR), `${step} on the surface`).toBeGreaterThanOrEqual(4.5)
@@ -140,7 +142,7 @@ describe('Territórios palette', () => {
   })
 
   it('keeps every chart mark at 3:1 on the surface, or outlines it at 3:1', () => {
-    const marks = { ...DEGRADATION_COLORS, ...FLUX_COLORS, ...LAND_USE_COLORS, ...RAIN_COLORS }
+    const marks = { ...FIRE_COLORS, ...FLUX_COLORS, ...LAND_USE_COLORS, ...RAIN_COLORS }
     for (const [name, color] of Object.entries(marks)) {
       const ratio = contrast(color, SURFACE_COLOR)
       if (OUTLINED.has(color)) expect(ratio, `${name} ${color} is listed as outlined`).toBeLessThan(3)
@@ -149,25 +151,19 @@ describe('Territórios palette', () => {
     expect(contrast(MARK_OUTLINE_COLOR, SURFACE_COLOR)).toBeGreaterThanOrEqual(3)
   })
 
-  it('darkens the degradation ramp from Nível 1 to Nível 5', () => {
-    const lightness = LEVEL_ORDER.slice(1).map((code) => lab(DEGRADATION_COLORS[code])[0])
+  it('darkens the fire ramp from one year to five or more', () => {
+    const lightness = FIRE_RAMP.map((color) => lab(color)[0])
     for (let i = 1; i < lightness.length; i++) expect(lightness[i]).toBeLessThan(lightness[i - 1])
   })
 
-  it('separates neighboring degradation levels', () => {
-    const neighbors = LEVEL_ORDER.slice(1, -1).map((code, i): [string, string, string, string] => {
-      const next = LEVEL_ORDER[i + 2]
-      return [`código ${code}`, DEGRADATION_COLORS[code], `código ${next}`, DEGRADATION_COLORS[next]]
-    })
+  it('separates neighboring fire classes', () => {
+    const neighbors = FIRE_RAMP.slice(0, -1).map((color, i): [string, string, string, string] =>
+      [FIRE_NAMES[i], color, FIRE_NAMES[i + 1], FIRE_RAMP[i + 1]])
     expect(closePairs(neighbors, (v) => (v === 'normal' ? 8 : 7))).toEqual([])
   })
 
-  it('separates Conservado from Nível 1 and the hatched no-data area from Nível 5', () => {
-    const pairs: [string, string, string, string][] = [
-      ['Conservado', DEGRADATION_COLORS[6], 'Nível 1', DEGRADATION_COLORS[5]],
-      ['Nível 5', DEGRADATION_COLORS[1], 'sem dado', DEGRADATION_COLORS[0]],
-    ]
-    expect(closePairs(pairs, () => 15)).toEqual([])
+  it('separates the never-burned area from one fire', () => {
+    expect(closePairs([['nunca', FIRE_COLORS.never, '1 vez', FIRE_COLORS.once]], () => 15)).toEqual([])
   })
 
   it('separates every pair of rain, land use and flux classes', () => {

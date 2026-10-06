@@ -12,7 +12,8 @@
 import { numero } from '@/lib/mapa/format'
 import { displayName } from '@/lib/territorios/featureIds'
 import {
-  DEGRADATION_YEAR,
+  FIRE_FIRST_YEAR,
+  FIRE_LAST_YEAR,
   FLUX_FIRST_YEAR,
   FLUX_LAST_YEAR,
   LAND_USE_YEARS,
@@ -97,7 +98,7 @@ export const STEP_QUESTIONS: Record<Exclude<StepId, 'resumo'>, string> = {
   estoque:    'Quanto carbono a vegetação original guardaria aqui?',
   fluxo:      'As áreas com árvores tiraram ou lançaram carbono do ar?',
   uso:        `Como mudou a vegetação nativa desde ${LAND_USE_FIRST}?`,
-  degradacao: 'Quanto da terra está degradada aqui?',
+  fogo:       `Quanto daqui já queimou desde ${FIRE_FIRST_YEAR}?`,
   chuva:      `${RAIN_LAST_YEAR} foi um ano seco ou chuvoso aqui?`,
 }
 
@@ -157,14 +158,12 @@ export const ANSWER_SCRIPT = {
     compare: (biome: string, reading: Reading) => `A Caatinga tem ${biome}; aqui fica ${reading}.`,
     noData:  'Sem dado de uso da terra aqui.',
   },
-  degradacao: {
-    unit:           'da área com degradação',
-    compare:        (biome: string, reading: Reading) => `${READING_OPENING[reading]} dos ${biome} da Caatinga.`,
-    severe:         (pct: string) => `Os níveis mais graves, 4 e 5, somam ${pct}.`,
-    conserved:      (pct: string) => `A área conservada soma ${pct}.`,
-    pointConserved: 'A terra aqui está conservada.',
-    pointLevel:     (level: number) => `A terra aqui está no nível ${level} de degradação; o 5 é o mais grave.`,
-    noData:         'Sem dado de degradação aqui.',
+  fogo: {
+    unit:    'da área queimou ao menos uma vez',
+    compare: (biome: string) => `Na Caatinga, ${biome}.`,
+    peak:    (year: number) => `O ano com mais fogo aqui foi ${year}.`,
+    none:    `Nenhuma área queimada registrada de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
+    noData:  'Sem dado de fogo aqui.',
   },
   chuva: {
     unit:     `mm em ${RAIN_LAST_YEAR}`,
@@ -184,7 +183,7 @@ export const SUMMARY_ROW_SCRIPT = {
     estoque:    'Carbono da vegetação original',
     fluxo:      'Carbono trocado com o ar',
     uso:        'Vegetação nativa',
-    degradacao: 'Terra degradada',
+    fogo:       'Área que já queimou',
     chuva:      'Chuva',
   } satisfies Record<ThemeId, string>,
   estoque: {
@@ -218,10 +217,11 @@ export const SUMMARY_ROW_SCRIPT = {
     before: (pct: string) => `Eram ${pct} em ${LAND_USE_FIRST}.`,
     biome:  (from: string, to: string) => `Na Caatinga, de ${from} para ${to}.`,
   },
-  degradacao: {
-    unit:      'da área',
-    biome:     (biome: string) => `Na Caatinga, ${biome}.`,
-    conserved: (pct: string) => `A área conservada soma ${pct}.`,
+  fogo: {
+    unit:  'da área queimou ao menos uma vez',
+    biome: (biome: string) => `Na Caatinga, ${biome}.`,
+    peak:  (year: number) => `Mais fogo em ${year}.`,
+    none:  `Nenhum fogo de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
   },
   chuva: {
     unit:  'mm por ano, em média',
@@ -259,11 +259,9 @@ export const ABOUT_SCRIPT = {
     title: 'Uso da terra',
     text:  `MapBiomas, coleção 10.1, 30 m, ${LAND_USE_FIRST} e ${LAND_USE_LAST}. Vegetação nativa: formações florestal, savânica e campestre, mangue, floresta alagável, restingas, campo alagado e apicum. Agropecuária inclui áreas de lavoura e pasto misturados.`,
   },
-  degradacao: {
-    title:  'Degradação',
-    text:   `Índice OCA v4, de ${DEGRADATION_YEAR}, 500 m, em cinco níveis; o 5 é o mais grave. "Sem dado" é a parte que o índice não cobre`,
-    /** Closes `text`: the share without data here, or just the period. */
-    noData: (pct: string | null) => (pct ? `, ${pct} aqui.` : '.'),
+  fogo: {
+    title: 'Fogo',
+    text:  `MapBiomas Fogo, coleção 3, 30 m, ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}. Frequência: número de anos com cicatriz de fogo. Área queimada anual: área com cicatriz de fogo no ano.`,
   },
   chuva: {
     title: 'Chuva',
@@ -275,12 +273,16 @@ export const ABOUT_SCRIPT = {
   },
   comparison: {
     title: 'Comparação com a Caatinga',
-    text:  'Mesmas fontes e mesmo cálculo; no bioma, fluxo e uso da terra a 100 m. Perto: diferença menor que 10%.',
+    text:  'Mesmas fontes e mesmo cálculo; no bioma, fluxo, uso da terra e fogo a 100 m. Perto: diferença menor que 10%.',
   },
   /** Appended to a theme computed at the pixel under an interior point. */
   point:  'Aqui, valor de um ponto do território.',
   /** Appended to a theme reduced coarser than the layer's own scale. */
   coarse: (m: number) => `Aqui, calculado a ${numero(m, 0)} m.`,
+}
+
+function joinNonEmpty(...parts: (string | null)[]): string {
+  return parts.filter(Boolean).join(' ')
 }
 
 /**
@@ -300,20 +302,22 @@ export const CHART_SCRIPT = {
     row:         (name: string, from: string, to: string) => `${name}: de ${from} para ${to}.`,
     share:       `Vegetação nativa em ${LAND_USE_LAST}`,
   },
-  degradacao: {
-    description: (rows: string) => `Parte da área em cada nível de degradação. ${rows}`,
-    row:         (name: string, parts: string) => `${name}: ${parts}.`,
-    share:       'Área com degradação',
-    /** By class code; code 6 is Conservado and code 1 is Nível 5. */
+  fogo: {
+    share:   'Área que já queimou',
+    years:   (peak: string | null, biome: string | null) => joinNonEmpty(
+      `Parte da área queimada em cada ano, de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
+      peak ?? 'Nenhum ano com fogo.',
+      biome && `Média anual da Caatinga: ${biome}.`,
+    ),
+    peak:    (year: number, pct: string) => `Mais fogo em ${year}: ${pct}.`,
+    recurrence: (rows: string) => `Parte da área por número de anos com fogo, de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}. ${rows}`,
+    row:     (name: string, parts: string) => `${name}: ${parts}.`,
     levels: {
-      6: 'conservado',
-      5: 'nível 1',
-      4: 'nível 2',
-      3: 'nível 3',
-      2: 'nível 4',
-      1: 'nível 5',
-      0: 'sem dado',
-    } as Record<number, string>,
+      never:     'Nunca queimou',
+      once:      '1 vez',
+      twoToFour: '2 a 4 vezes',
+      fivePlus:  '5 vezes ou mais',
+    },
   },
   chuva: {
     strip: (seco: number, normal: number, chuvoso: number) =>

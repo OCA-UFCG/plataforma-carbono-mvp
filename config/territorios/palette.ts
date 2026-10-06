@@ -12,7 +12,8 @@ export const STEP_COLORS: Record<Exclude<StepId, 'resumo'>, string> = {
   estoque:    '#47651b',
   fluxo:      '#002b39',
   uso:        '#9a5a2a',
-  degradacao: '#526f78',
+  // --role-alerta-risco-hover of the home.
+  fogo:       '#8f3a32',
   chuva:      '#2a5964',
 }
 
@@ -23,9 +24,9 @@ export const REFERENCE_COLOR = '#001d27'
 export const SURFACE_COLOR = '#fefefb'
 
 /**
- * 1 px outline of a mark whose fill sits below 3:1 on the surface (Nível 1,
- * "Sem dado", the normal rain year, "outros"), so its edge still reads; it is
- * --bg-borda.
+ * 1 px outline of a mark whose fill sits below 3:1 on the surface (never
+ * burned, one fire, the normal rain year, "outros"), so its edge still reads;
+ * it is --bg-borda.
  */
 export const MARK_OUTLINE_COLOR = '#526f78'
 
@@ -38,19 +39,16 @@ export const LAND_USE_COLORS = {
 } as const
 
 /**
- * Degradation index, Conservado then Nível 1 (lightest) to Nível 5 (darkest),
- * keyed by class code: code 6 is Conservado, code 1 is Nível 5. Code 0 is the
- * masked area, drawn hatched, never as a class of the index.
+ * Years with fire 1985-2023, lightest to darkest, in the recurrence chart and
+ * on the map. The map leaves "never" transparent: the frequency is masked
+ * where nothing ever burned.
  */
-export const DEGRADATION_COLORS: Record<number, string> = {
-  6: '#587c22',
-  5: '#d49a8b',
-  4: '#c67a68',
-  3: '#b85d4b',
-  2: '#a0443a',
-  1: '#6e2a23',
-  0: '#bfcace',
-}
+export const FIRE_COLORS = {
+  never:     '#bfcace',
+  once:      '#e0a46b',
+  twoToFour: '#c0612b',
+  fivePlus:  '#7a2e12',
+} as const
 
 /** GFW net flux, two classes on the map. */
 export const FLUX_COLORS = {

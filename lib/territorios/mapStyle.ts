@@ -1,14 +1,14 @@
 // What the Territórios story map draws: the tile request of each theme, its
 // legend and the framing of each step.
 //
-// Land use, degradation and flux take the story's own palette
+// Land use, fire and flux take the story's own palette
 // (config/territorios/palette.ts), so the raster paints the classes of the chart
 // beside it in the chart's colors; stock and rain keep the layer's visParams.
 // The WebSIG reads config/mapa/layers.json directly and never sees these.
 
 import appConfig from '@/config/mapa/layers.json'
 import { LAND_USE_GROUPS, landUseGroupOf } from '@/config/territorios/landUseGroups'
-import { DEGRADATION_COLORS, FLUX_COLORS, SURFACE_COLOR } from '@/config/territorios/palette'
+import { FIRE_COLORS, FLUX_COLORS, SURFACE_COLOR } from '@/config/territorios/palette'
 import { storyTheme } from '@/config/territorios/story'
 import { contrast } from '@/lib/color'
 import type { GeeAssetConfig } from '@/lib/mapa/geeImage'
@@ -62,7 +62,19 @@ export function landUsePalette(maxCode: number): string[] {
   return Array.from({ length: maxCode + 1 }, (_, code) => landUseGroupOf(code).color)
 }
 
-const DEGRADATION_CODES = [0, 1, 2, 3, 4, 5, 6]
+/** Highest number of years with fire, 1985 to 2023. */
+const FIRE_MAX_YEARS = 39
+
+/**
+ * One color per number of years with fire, 1 to FIRE_MAX_YEARS: the class of
+ * the recurrence chart. With min 1 and max 39, value n paints entry n - 1.
+ */
+export function firePalette(): string[] {
+  return Array.from({ length: FIRE_MAX_YEARS }, (_, i) => {
+    const years = i + 1
+    return years === 1 ? FIRE_COLORS.once : years <= 4 ? FIRE_COLORS.twoToFour : FIRE_COLORS.fivePlus
+  })
+}
 
 /**
  * Half-width of the band around zero where the two flux colors blend. The
@@ -76,8 +88,8 @@ function themeVisParams(themeId: ThemeId, layer: RasterLayerConfig): VisParams {
       const maxCode = layer.gee?.visParams?.max ?? 0
       return { min: 0, max: maxCode, palette: landUsePalette(maxCode) }
     }
-    case 'degradacao':
-      return { min: 0, max: 6, palette: DEGRADATION_CODES.map((code) => DEGRADATION_COLORS[code]) }
+    case 'fogo':
+      return { min: 1, max: FIRE_MAX_YEARS, palette: firePalette() }
     case 'fluxo':
       return { min: -FLUX_SPLIT, max: FLUX_SPLIT, palette: [FLUX_COLORS.removal, FLUX_COLORS.emission] }
     default: {
@@ -87,7 +99,7 @@ function themeVisParams(themeId: ThemeId, layer: RasterLayerConfig): VisParams {
   }
 }
 
-const CLASS_MAPS: ThemeId[] = ['uso', 'degradacao', 'fluxo']
+const CLASS_MAPS: ThemeId[] = ['uso', 'fogo', 'fluxo']
 
 /**
  * The tile request of a theme. `year` overrides the step's map year (land use
@@ -103,9 +115,6 @@ export function themeRaster(themeId: ThemeId, year?: string): ThemeRaster {
   const mapYear = year ?? storyTheme(themeId).mapYear
   const classMap = CLASS_MAPS.includes(themeId)
   const asset: GeeAssetConfig = { ...layer.gee!.asset }
-  // The index masks the pixels it has no value for; filled with code 0 they
-  // paint the "Sem dado" share of the chart instead of vanishing.
-  if (themeId === 'degradacao') asset.unmaskValue = 0
 
   return {
     request: {
@@ -129,15 +138,6 @@ export function tileRequestKey(request: TileRequest): string {
 
 const outlined = (color: string) => contrast(color, SURFACE_COLOR) < 3
 
-const DEGRADATION_LEGEND: { code: number; label: string }[] = [
-  { code: 6, label: 'Conservado' },
-  { code: 5, label: 'Nível 1 (leve)' },
-  { code: 4, label: 'Nível 2' },
-  { code: 3, label: 'Nível 3' },
-  { code: 2, label: 'Nível 4' },
-  { code: 1, label: 'Nível 5 (grave)' },
-  { code: 0, label: 'Sem dado' },
-]
 
 const RAMP_TITLE: Partial<Record<ThemeId, (year: string | null) => string>> = {
   estoque: () => 't de carbono por hectare',
@@ -159,11 +159,15 @@ export function themeLegend(themeId: ThemeId): Legend {
         items: LAND_USE_GROUPS.filter((g) => painted.has(g.id)).map((g) => item(g.label, g.color)),
       }
     }
-    case 'degradacao':
+    case 'fogo':
+      // "Nunca queimou" is left out: the map does not paint it.
       return {
         kind:  'classes',
-        // Code 0 flat, as the raster paints it; only the chart hatches it.
-        items: DEGRADATION_LEGEND.map(({ code, label }) => item(label, DEGRADATION_COLORS[code])),
+        items: [
+          item('1 vez', FIRE_COLORS.once),
+          item('2 a 4 vezes', FIRE_COLORS.twoToFour),
+          item('5 vezes ou mais', FIRE_COLORS.fivePlus),
+        ],
       }
     case 'fluxo':
       return {

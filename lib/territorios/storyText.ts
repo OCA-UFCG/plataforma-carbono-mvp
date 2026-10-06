@@ -16,28 +16,23 @@ import {
   SUMMARY_ROW_SCRIPT,
 } from '@/config/territorios/storyScript'
 import {
-  CONSERVED_CODE,
-  DEGRADED_NEGLIGIBLE_PCT,
   areaParts,
   biomeAreaSharePct,
   biomeFluxDirection,
-  degradationLevel,
-  degradationSharesPct,
-  degradedShareOf,
+  fireBurnedSharePct,
+  firePeakYear,
   fluxChart,
   fluxMetrics,
   forestSharePct,
   formatNumber,
   formatPercent,
   formatTonnes,
-  isConservedCode,
   landUseChart,
   rainChart,
   rainComparison,
   rainKind,
   rainLastYearMm,
   readingOf,
-  severeShareOf,
   stockChart,
   tonnesParts,
 } from '@/lib/territorios/storyValues'
@@ -87,9 +82,6 @@ type Row = Omit<SummaryRow, 'theme' | 'title'>
  * report's are measured apart, so a full cover lands a little off 1.
  */
 const STOCK_FULL_COVERAGE = 0.95
-
-/** Below this share of levels 4 and 5, the degradation answer gives the conserved share instead. */
-const SEVERE_MENTION_PCT = 1
 
 function joinSentences(...parts: (string | null | false)[]): string {
   return parts.filter(Boolean).join(' ')
@@ -180,38 +172,19 @@ function landUseAnswer({ response, territory, type }: StepInput): Answer {
   }
 }
 
-function degradationPointSentence(code: number | null): string | null {
-  const s = ANSWER_SCRIPT.degradacao
-  if (code === null) return null
-  if (isConservedCode(code)) return s.pointConserved
-  const level = degradationLevel(code)
-  return level === null ? null : s.pointLevel(level)
-}
+function fireAnswer({ response, territory, type }: StepInput): Answer {
+  const s = ANSWER_SCRIPT.fogo
+  const data = availableData(response, 'fogo')
+  const share = data && fireBurnedSharePct(data)
+  if (!data || share === null) return { headline: null, sentence: s.noData }
 
-function degradationAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.degradacao
-  const noData = { headline: null, sentence: s.noData }
-  const data = availableData(response, 'degradacao')
-  if (!data) return noData
-  // A class is not an amount, so the point fallback has no big figure.
-  if (response?.origin === 'point') {
-    const sentence = degradationPointSentence(data.pointCode)
-    return sentence ? { headline: null, sentence } : noData
-  }
-  const shares = degradationSharesPct(data)
-  if (!shares) return noData
-
-  const degraded = degradedShareOf(shares)
-  const severe = severeShareOf(shares)
-  const cmp = against(degraded, territory.biome.degradedSharePct, type)
+  const peak = firePeakYear(data)
+  // Nothing burned is an answer too, and the comparison would only restate it.
+  if (peak === null) return { headline: { value: formatPercent(share), unit: s.unit }, sentence: s.none }
+  const cmp = against(share, territory.biome.fireBurnedSharePct, type)
   return {
-    headline: { value: formatPercent(degraded), unit: s.unit },
-    sentence: joinSentences(
-      cmp && s.compare(formatPercent(cmp.reference), cmp.reading),
-      // A negligible degraded share lands here too, and reads as the
-      // conserved share it leaves.
-      severe >= SEVERE_MENTION_PCT ? s.severe(formatPercent(severe)) : s.conserved(formatPercent(shares[CONSERVED_CODE])),
-    ),
+    headline: { value: formatPercent(share), unit: s.unit },
+    sentence: joinSentences(cmp && s.compare(formatPercent(cmp.reference)), s.peak(peak)),
   }
 }
 
@@ -263,7 +236,7 @@ export function stepAnswer(step: Exclude<StepId, 'resumo'>, input: StepInput): S
     case 'estoque':    return { question, ...stockAnswer(input) }
     case 'fluxo':      return { question, ...fluxAnswer(input) }
     case 'uso':        return { question, ...landUseAnswer(input) }
-    case 'degradacao': return { question, ...degradationAnswer(input) }
+    case 'fogo':       return { question, ...fireAnswer(input) }
     case 'chuva':      return { question, ...rainAnswer(input) }
   }
 }
@@ -325,23 +298,17 @@ function landUseRow({ response, territory, type }: StepInput): Row {
   }
 }
 
-function degradationRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.degradacao
-  const noData: Row = { headline: null, sentence: ANSWER_SCRIPT.degradacao.noData, reading: null }
-  const data = availableData(response, 'degradacao')
-  if (!data) return noData
-  if (response?.origin === 'point') {
-    const sentence = degradationPointSentence(data.pointCode)
-    return sentence ? { headline: null, sentence, reading: null } : noData
-  }
-  const shares = degradationSharesPct(data)
-  if (!shares) return noData
+function fireRow({ response, territory, type }: StepInput): Row {
+  const s = SUMMARY_ROW_SCRIPT.fogo
+  const data = availableData(response, 'fogo')
+  const share = data && fireBurnedSharePct(data)
+  if (!data || share === null) return { headline: null, sentence: ANSWER_SCRIPT.fogo.noData, reading: null }
 
-  const degraded = degradedShareOf(shares)
-  const cmp = against(degraded, territory.biome.degradedSharePct, type)
+  const peak = firePeakYear(data)
+  const cmp = against(share, territory.biome.fireBurnedSharePct, type)
   return {
-    headline: { value: formatPercent(degraded), unit: s.unit },
-    sentence: joinSentences(cmp && s.biome(formatPercent(cmp.reference)), s.conserved(formatPercent(shares[CONSERVED_CODE]))),
+    headline: { value: formatPercent(share), unit: s.unit },
+    sentence: joinSentences(cmp && s.biome(formatPercent(cmp.reference)), peak === null ? s.none : s.peak(peak)),
     reading:  cmp?.reading ?? null,
   }
 }
@@ -380,7 +347,7 @@ export function summaryRows(input: SummaryInput): SummaryRow[] {
       case 'estoque':    return { ...head, ...stockRow(row) }
       case 'fluxo':      return { ...head, ...fluxRow(row) }
       case 'uso':        return { ...head, ...landUseRow(row) }
-      case 'degradacao': return { ...head, ...degradationRow(row) }
+      case 'fogo':       return { ...head, ...fireRow(row) }
       case 'chuva':      return { ...head, ...rainRow(row) }
     }
   })
@@ -389,7 +356,7 @@ export function summaryRows(input: SummaryInput): SummaryRow[] {
 /**
  * "Sobre os dados". A sentence that holds only for this territory joins the
  * theme it qualifies: the part the inventory covers, a value from the point
- * fallback, a coarser calculation, the share without degradation data.
+ * fallback, a coarser calculation.
  */
 export function aboutItems(input: SummaryInput): AboutItem[] {
   const a = ABOUT_SCRIPT
@@ -405,11 +372,6 @@ export function aboutItems(input: SummaryInput): AboutItem[] {
     )
   }
 
-  const degradation = availableData(responses.degradacao, 'degradacao')
-  const shares = degradation && responses.degradacao?.origin !== 'point' ? degradationSharesPct(degradation) : null
-  // The same threshold as the chart's hatched band, so the text names the gap
-  // exactly when the chart draws it.
-  const noDataPct = shares && shares[0] > DEGRADED_NEGLIGIBLE_PCT ? formatPercent(shares[0]) : null
   const stock = availableData(responses.estoque, 'estoque')
   const coverage = stock && territory.areaHa > 0 ? stock.report.areaHa / territory.areaHa : null
   const stockGap = coverage !== null && coverage < STOCK_FULL_COVERAGE ? formatPercent(coverage * 100) : null
@@ -419,7 +381,7 @@ export function aboutItems(input: SummaryInput): AboutItem[] {
     { title: a.estoque.title, text: qualified('estoque', joinSentences(a.estoque.text, stockGap && a.estoque.coverage(stockGap))) },
     { title: a.fluxo.title, text: qualified('fluxo', a.fluxo.text) },
     { title: a.uso.title, text: qualified('uso', a.uso.text) },
-    { title: a.degradacao.title, text: qualified('degradacao', a.degradacao.text + a.degradacao.noData(noDataPct)) },
+    { title: a.fogo.title, text: qualified('fogo', a.fogo.text) },
     { title: a.chuva.title, text: qualified('chuva', a.chuva.text) },
     a.units,
   ]

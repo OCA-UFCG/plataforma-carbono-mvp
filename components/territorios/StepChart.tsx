@@ -4,16 +4,15 @@
 
 import ComparisonBar from './charts/ComparisonBar'
 import Dumbbell from './charts/Dumbbell'
-import LevelsBar from './charts/LevelsBar'
+import LevelsBar, { type Level } from './charts/LevelsBar'
+import YearBars from './charts/YearBars'
 import YearStrip from './charts/YearStrip'
-import { FLUX_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { FIRE_COLORS, FLUX_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, type TerritoryType } from '@/config/territorios/story'
 import { CHART_SCRIPT, RAIN_KIND_LABELS } from '@/config/territorios/storyScript'
 import {
   chartMax,
-  degradationChart,
-  degradedShareOf,
-  degradationSharesPct,
+  fireChart,
   fluxChart,
   fluxMetrics,
   formatNumber,
@@ -24,7 +23,7 @@ import {
 } from '@/lib/territorios/storyValues'
 import type {
   Comparison,
-  DegradationShare,
+  FireRecurrenceShares,
   RainChartData,
   TerritoryPayload,
   ThemeData,
@@ -77,9 +76,13 @@ function Bar({ value, label, untitled = false, format, color, max, alone, compac
   )
 }
 
-function levelsText(shares: DegradationShare[]): string {
-  return shares
-    .map((s) => `${CHART_SCRIPT.degradacao.levels[s.code]} ${formatPercent(s.pct)}`)
+const FIRE_LEVELS: Level[] = (['never', 'once', 'twoToFour', 'fivePlus'] as const).map((key) => ({
+  key, name: CHART_SCRIPT.fogo.levels[key], color: FIRE_COLORS[key],
+}))
+
+function recurrenceText(shares: FireRecurrenceShares): string {
+  return FIRE_LEVELS
+    .map((l) => `${l.name.toLowerCase()} ${formatPercent(shares[l.key as keyof FireRecurrenceShares])}`)
     .join(', ')
 }
 
@@ -160,34 +163,41 @@ export default function StepChart({ theme, response, territory, type, compact = 
       )
     }
 
-    case 'degradacao': {
-      const data = dataOf(response, 'degradacao')
-      if (!data || response.origin === 'point') return null
-      if (compact) {
-        const shares = degradationSharesPct(data)
-        if (!shares) return null
-        return (
-          <Bar
-            {...bar}
-            value={{ here: degradedShareOf(shares), reference: territory.biome.degradedSharePct }}
-            label={CHART_SCRIPT.degradacao.share}
-            format={formatPercent}
-            color={STEP_COLORS.degradacao}
-            max={100}
-          />
-        )
-      }
-      const chart = degradationChart(data, territory)
+    case 'fogo': {
+      const data = dataOf(response, 'fogo')
+      const chart = data && fireChart(data, territory)
       if (!chart) return null
-      const rows = [{ label: alone ? CHART_SCRIPT.biome : CHART_SCRIPT.here, shares: chart.here }]
-      if (!alone && chart.reference) rows.push({ label: CHART_SCRIPT.biome, shares: chart.reference })
+      // Fire reaches a few percent of most territories, which a 0-100 track
+      // draws as a sliver; Bar's default scale ends at a round number past both
+      // values, and the printed figures carry the magnitude.
+      const share = <Bar {...bar} value={chart.burnedShare} label={CHART_SCRIPT.fogo.share} format={formatPercent} color={STEP_COLORS.fogo} />
+      if (compact) return share
+
+      const peak = chart.years.find((y) => y.year === chart.peakYear)
+      const reference = alone ? null : chart.referenceMeanPct
+      const rows = [{ label: alone ? CHART_SCRIPT.biome : CHART_SCRIPT.here, shares: chart.recurrence.here }]
+      if (!alone && chart.recurrence.reference) rows.push({ label: CHART_SCRIPT.biome, shares: chart.recurrence.reference })
       return (
-        <LevelsBar
-          rows={rows}
-          description={CHART_SCRIPT.degradacao.description(
-            rows.map((r) => CHART_SCRIPT.degradacao.row(r.label, levelsText(r.shares))).join(' '),
-          )}
-        />
+        <div className="territorios-graficos">
+          {share}
+          <YearBars
+            years={chart.years}
+            peakYear={chart.peakYear}
+            reference={reference}
+            color={STEP_COLORS.fogo}
+            description={CHART_SCRIPT.fogo.years(
+              peak ? CHART_SCRIPT.fogo.peak(peak.year, formatPercent(peak.sharePct)) : null,
+              reference === null ? null : formatPercent(reference),
+            )}
+          />
+          <LevelsBar
+            levels={FIRE_LEVELS}
+            rows={rows.map((r) => ({ label: r.label, shares: { ...r.shares } }))}
+            description={CHART_SCRIPT.fogo.recurrence(
+              rows.map((r) => CHART_SCRIPT.fogo.row(r.label, recurrenceText(r.shares))).join(' '),
+            )}
+          />
+        </div>
       )
     }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { LAND_USE_GROUPS, landUseGroupOf } from '@/config/territorios/landUseGroups'
-import { DEGRADATION_COLORS, FLUX_COLORS } from '@/config/territorios/palette'
+import { FIRE_COLORS, FLUX_COLORS } from '@/config/territorios/palette'
 import { STORY_THEMES } from '@/config/territorios/story'
 import { isValidClassify, isValidVisParams } from '@/lib/mapa/geeValidation'
 import {
@@ -53,28 +53,30 @@ describe('land use raster', () => {
   })
 })
 
-describe('degradation raster', () => {
-  const { request } = themeRaster('degradacao')
+describe('fire raster', () => {
+  const { request } = themeRaster('fogo')
 
-  it('paints each class code in its degradation color', () => {
-    for (const code of [0, 1, 2, 3, 4, 5, 6]) {
-      expect(paintedColor(request.visParams, code), `code ${code}`).toBe(DEGRADATION_COLORS[code])
-    }
+  it('paints each number of years with fire in the color of its recurrence class', () => {
+    expect(request.visParams.palette).toHaveLength(39)
+    expect(paintedColor(request.visParams, 1)).toBe(FIRE_COLORS.once)
+    for (const years of [2, 3, 4]) expect(paintedColor(request.visParams, years), `${years}`).toBe(FIRE_COLORS.twoToFour)
+    for (const years of [5, 20, 39]) expect(paintedColor(request.visParams, years), `${years}`).toBe(FIRE_COLORS.fivePlus)
   })
 
-  it('fills the masked pixels with code 0, the "Sem dado" share of the chart', () => {
-    expect(request.asset.unmaskValue).toBe(0)
+  it('requests the 1985-2023 frequency band and leaves the never-burned pixels masked', () => {
+    expect(request.temporalDate).toBe('2023-01-01')
+    expect(request.asset.bandPattern?.replace('{ano}', '2023')).toBe('fire_frequency_1985_2023')
+    expect(request.asset.unmaskValue).toBeUndefined()
   })
 
-  it('reads Conservado first and "Sem dado" last in the legend', () => {
-    const legend = themeLegend('degradacao')
+  it('lists the three classes the map paints in the legend', () => {
+    const legend = themeLegend('fogo')
     if (legend.kind !== 'classes') throw new Error('expected classes')
-    expect(legend.items.map((i) => i.label)).toEqual([
-      'Conservado', 'Nível 1 (leve)', 'Nível 2', 'Nível 3', 'Nível 4', 'Nível 5 (grave)', 'Sem dado',
+    expect(legend.items.map((i) => [i.label, i.color])).toEqual([
+      ['1 vez', FIRE_COLORS.once],
+      ['2 a 4 vezes', FIRE_COLORS.twoToFour],
+      ['5 vezes ou mais', FIRE_COLORS.fivePlus],
     ])
-    expect(legend.items.map((i) => i.color)).toEqual([6, 5, 4, 3, 2, 1, 0].map((c) => DEGRADATION_COLORS[c]))
-    // Flat, as the raster paints code 0; only the chart hatches it.
-    expect(legend.items.at(-1)).not.toHaveProperty('hatched')
   })
 })
 
@@ -114,7 +116,7 @@ describe('every theme', () => {
 
   it('leaves the WebSIG palette of the class layers untouched', () => {
     // The server caches tile URLs by visParams too, so a different palette is a different map.
-    for (const [theme, id] of [['uso', 'lulc_mapbiomas'], ['degradacao', 'degradacao_terra'], ['fluxo', 'gfw_netflux']] as const) {
+    for (const [theme, id] of [['uso', 'lulc_mapbiomas'], ['fogo', 'fogo_frequencia'], ['fluxo', 'gfw_netflux']] as const) {
       expect(themeRaster(theme).request.visParams).not.toEqual(layer(id).gee!.visParams)
     }
   })

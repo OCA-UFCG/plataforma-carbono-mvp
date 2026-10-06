@@ -3,16 +3,18 @@ import { createElement, type ComponentType } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import ComparisonBar, { type ComparisonBarProps } from '@/components/territorios/charts/ComparisonBar'
 import Dumbbell, { type DumbbellProps } from '@/components/territorios/charts/Dumbbell'
-import LevelsBar, { type LevelsBarProps } from '@/components/territorios/charts/LevelsBar'
+import LevelsBar, { type Level, type LevelsBarProps } from '@/components/territorios/charts/LevelsBar'
 import StepFigure from '@/components/territorios/charts/StepFigure'
+import YearBars, { type YearBarsProps } from '@/components/territorios/charts/YearBars'
 import YearStrip, { type YearStripProps } from '@/components/territorios/charts/YearStrip'
 import { inkOn } from '@/components/territorios/charts/ChartFigure'
-import { DEGRADATION_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { FIRE_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
 import { contrast } from '@/lib/color'
-import type { DegradationShare, RainChartData, RainYearKind } from '@/types/territorios'
+import type { RainChartData, RainYearKind } from '@/types/territorios'
 
 // Values of Campina Grande (PB) and of the whole Caatinga as the API returned
-// them on 2026-09-27 (municipios|campina-grande and bioma|bioma-caatinga).
+// them on 2026-09-27, fire on 2026-10-05 (municipios|campina-grande and
+// bioma|bioma-caatinga).
 
 const html = <P extends object>(component: ComponentType<P>, props: P) =>
   renderToStaticMarkup(createElement(component, props))
@@ -35,21 +37,26 @@ const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const tPerHa = (n: number) => `${nf0.format(n)} t`
 const pct0 = (n: number) => `${nf0.format(n)}%`
 
-/** Shares of the region per class code, the masked rest as code 0. */
-function sharesOf(areasM2: Record<string, number>, regionM2: number): DegradationShare[] {
-  const shares = Object.entries(areasM2).map(([code, m2]) => ({ code: Number(code), pct: (m2 / regionM2) * 100 }))
-  const covered = shares.reduce((sum, s) => sum + s.pct, 0)
-  return [...shares, { code: 0, pct: 100 - covered }]
-}
+const FIRE_LEVELS: Level[] = [
+  { key: 'never', name: 'Nunca queimou', color: FIRE_COLORS.never },
+  { key: 'once', name: '1 vez', color: FIRE_COLORS.once },
+  { key: 'twoToFour', name: '2 a 4 vezes', color: FIRE_COLORS.twoToFour },
+  { key: 'fivePlus', name: '5 vezes ou mais', color: FIRE_COLORS.fivePlus },
+]
 
-const CG_DEGRADATION = sharesOf(
-  { 2: 217621921.51403198, 3: 53567726.09822305, 4: 3298705.0007965686, 6: 234524137.29264715 },
-  592948094.8050854,
-)
-const BIOME_DEGRADATION = sharesOf(
-  { 1: 3708480652.195833, 2: 95067873708.24529, 3: 68222873527.83427, 4: 13305861068.718937, 5: 288955052.6450368, 6: 665444875749.839 },
-  862619797029.1545,
-)
+const CG_REGION_HA = 59_298.68
+const CG_RECURRENCE = {
+  once: (1_455.74 / CG_REGION_HA) * 100,
+  twoToFour: (357.68 / CG_REGION_HA) * 100,
+  fivePlus: (49.75 / CG_REGION_HA) * 100,
+  never: 100 - (1_863.17 / CG_REGION_HA) * 100,
+}
+const BIOME_RECURRENCE = { never: 87.96, once: 7.37, twoToFour: 4.11, fivePlus: 0.55 }
+
+const CG_FIRE_YEARS = [
+  20, 3, 85, 64, 16, 50, 166, 9, 60, 49, 70, 162, 47, 27, 330, 97, 174, 51, 31, 232,
+  136, 47, 11, 307, 135, 20, 7, 57, 9, 4, 16, 15, 11, 5, 0, 6, 22, 78, 48,
+].map((ha, i) => ({ year: 1985 + i, sharePct: (ha / CG_REGION_HA) * 100 }))
 
 const CG_RAIN_MM = [
   883.8, 731.0, 493.4, 686.5, 618.7, 383.9, 479.5, 492.9, 258.9, 533.9,
@@ -138,52 +145,75 @@ describe('ComparisonBar', () => {
 
 describe('LevelsBar', () => {
   const props: LevelsBarProps = {
+    levels: FIRE_LEVELS,
     rows: [
-      { label: 'Aqui', shares: CG_DEGRADATION },
-      { label: 'Caatinga', shares: BIOME_DEGRADATION },
+      { label: 'Aqui', shares: CG_RECURRENCE },
+      { label: 'Caatinga', shares: BIOME_RECURRENCE },
     ],
-    description: 'Terra degradada: aqui 46%, na Caatinga 21%.',
+    description: 'Parte da área por número de anos com fogo.',
   }
 
-  it('stacks the levels in order and lists every level with its share', () => {
+  it('stacks the fire classes in order and lists every class with its share', () => {
     const markup = html(LevelsBar, props)
-    const names = ['Conservado', 'Nível 1 (leve)', 'Nível 2', 'Nível 3', 'Nível 4', 'Nível 5 (grave)', 'Sem dado']
-    const at = names.map((name) => markup.indexOf(`</span>${name}</span>`))
+    const at = FIRE_LEVELS.map((l) => markup.indexOf(`</span>${l.name}</span>`))
     expect(at.every((i) => i > 0)).toBe(true)
     expect([...at].sort((a, b) => a - b)).toEqual(at)
-    // Campina Grande: 39,6% conserved, 36,7% at Nível 4, 14,2% without data.
-    // Rounded as the sentence beside the chart: 37%, never 36,7%.
-    expect(markup).toContain('>40%<')
-    expect(markup).toContain('>37%<')
-    expect(markup).toContain('>14%<')
-    expect(markup).toContain('>9,0%<')
-    // Nível 1 and Nível 5 are absent there: no segment, a zero in the legend.
-    expect(markup.match(/class="tg-seg"/g)).toHaveLength(5 + 7)
-    expect(markup).toContain('>0%<')
-    expect(markup).toContain('repeating-linear-gradient(45deg')
+    // Campina Grande: 96,9% never burned, 2,5% once, 0,6% two to four times, 0,08% five or more.
+    for (const share of ['97%', '2,5%', '0,6%', '&lt; 0,1%', '88%', '7,4%', '4,1%']) expect(markup).toContain(`>${share}<`)
+    expect(markup.match(/class="tg-seg"/g)).toHaveLength(4 + 4)
     expectSound(markup)
   })
 
-  it('leaves the no-data line out of the legend when no row has any', () => {
+  it('outlines the light classes and writes on every class at 4.5:1', () => {
+    const markup = html(LevelsBar, props)
+    expect(markup).toContain(`background:${FIRE_COLORS.never};box-shadow:inset 0 0 0 1px`)
+    for (const l of FIRE_LEVELS) expect(contrast(inkOn(l.color), l.color), l.key).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('draws no segment for a class without area, and an empty bar for a row without shares', () => {
     const markup = html(LevelsBar, {
-      rows: [{ label: 'Aqui', shares: [{ code: 6, pct: 60 }, { code: 2, pct: 40 }] }],
-      description: 'Terra degradada: 40%.',
+      ...props,
+      rows: [{ label: 'Aqui', shares: { never: 100, once: 0, twoToFour: 0, fivePlus: 0 } }, { label: 'Caatinga', shares: {} }],
     })
-    expect(markup).not.toContain('Sem dado')
-    expectSound(markup)
-  })
-
-  it('draws an empty bar for a row without shares', () => {
-    const markup = html(LevelsBar, { rows: [{ label: 'Aqui', shares: [] }], description: 'Sem dado.' })
+    expect(markup.match(/class="tg-seg"/g)).toHaveLength(1)
     expect(markup).toContain('tg-levels-bar--empty')
-    expect(markup).not.toContain('class="tg-seg"')
+    expectSound(markup)
+  })
+})
+
+describe('YearBars', () => {
+  const props: YearBarsProps = {
+    years: CG_FIRE_YEARS,
+    peakYear: 1999,
+    reference: 0.559,
+    color: STEP_COLORS.fogo,
+    description: 'Parte da área queimada em cada ano, de 1985 a 2023.',
+  }
+
+  it('draws one bar per burned year of Campina Grande and labels 1999, 1985 and 2023', () => {
+    const markup = html(YearBars, props)
+    expect(markup.match(/class="tg-yearbars-col"/g)).toHaveLength(39)
+    // 2019 burned nothing: no bar in its column.
+    expect(markup.match(/class="tg-yearbars-bar"/g)).toHaveLength(38)
+    expect(markup).toContain('1999: <b class="tg-num">0,6%</b>')
+    expect(markup).toContain('>1985</span><span>2023<')
+    expect(markup).toContain('>Caatinga</span>')
+    // The peak (0,56%) and the Caatinga mean (0,56%) end a 0,8 scale.
+    expect(markup).toContain('--at:69.88%')
     expectSound(markup)
   })
 
-  it('writes on every level color at 4.5:1', () => {
-    for (const code of [1, 2, 3, 4, 5, 6]) {
-      expect(contrast(inkOn(DEGRADATION_COLORS[code]), DEGRADATION_COLORS[code]), `code ${code}`).toBeGreaterThanOrEqual(4.5)
-    }
+  it('draws a territory where nothing burned with no bar, no callout and no NaN', () => {
+    const markup = html(YearBars, { ...props, years: CG_FIRE_YEARS.map((y) => ({ ...y, sharePct: 0 })), peakYear: null })
+    expect(markup).not.toContain('tg-yearbars-bar"')
+    expect(markup).not.toContain('<b class="tg-num">')
+    expectSound(markup)
+  })
+
+  it('leaves the Caatinga line out on the biome itself', () => {
+    const markup = html(YearBars, { ...props, reference: null })
+    expect(markup).not.toContain('Caatinga')
+    expectSound(markup)
   })
 })
 

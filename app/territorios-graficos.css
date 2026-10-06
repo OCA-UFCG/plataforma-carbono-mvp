@@ -377,3 +377,55 @@
   line-height: 16px;
   color: var(--am-400, #526f78);
 }
+
+/* YearBars */
+
+.tg-yearbars-plot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  margin-top: 4px;
+  border-bottom: 1px solid var(--am-400, #526f78);
+}
+
+.tg-yearbars-col {
+  display: flex;
+  align-items: flex-end;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.tg-yearbars-bar {
+  width: 100%;
+  min-height: 1px;
+  border-radius: 1px 1px 0 0;
+}
+
+.tg-yearbars-ref {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(0px, calc(var(--at) - 1px), calc(100% - 2px));
+  height: 2px;
+  box-shadow: 0 0 0 1px var(--bg-fundo, #fefefb);
+  pointer-events: none;
+}
+
+.tg-yearbars-ref-label {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--bg-texto-primario, #001d27);
+  background: var(--bg-fundo, #fefefb);
+}
+
+.tg-yearbars-ref--high .tg-yearbars-ref-label {
+  bottom: auto;
+  top: 4px;
+}

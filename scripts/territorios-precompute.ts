@@ -2,13 +2,13 @@
 // /api/territorios/tema serves before trying Earth Engine.
 //
 // The biome is answered from this file for an immediate response and stable
-// numbers: live, its reductions take 3 to 17 s each and the flux one only fits
-// the deadline at 100 m.
+// numbers: live, its reductions take 3 to 17 s each and the flux and fire ones
+// only fit the deadline at 100 m.
 //
 // Run from landing/ (needs GOOGLE_APPLICATION_CREDENTIALS in .env.local):
 //   npx tsx --env-file=.env.local --tsconfig scripts/tsconfig.territorios.json scripts/territorios-precompute.ts
 // Theme ids after the script name recompute only those themes and keep the
-// others already in the file:
+// others already in the file; a theme no longer in the story is dropped:
 //   npx tsx --env-file=.env.local --tsconfig scripts/tsconfig.territorios.json scripts/territorios-precompute.ts fluxo chuva
 //
 // The dedicated tsconfig points `server-only` at the test stub, so this script
@@ -53,6 +53,9 @@ async function main(): Promise<number> {
     : { generatedAt: '', entries: {} }
   const entry = file.entries[KEY] ?? { featureName: feicao.name, themes: {} }
   entry.featureName = feicao.name
+  for (const id of Object.keys(entry.themes)) {
+    if (!known.includes(id as ThemeId)) delete entry.themes[id as ThemeId]
+  }
 
   await initGee()
   const ee = getEe()
