@@ -6,6 +6,7 @@ import ReportActions, { type ReportActionsProps } from '@/components/territorios
 import ReportBand from '@/components/territorios/ReportBand'
 import ReportTabs from '@/components/territorios/ReportTabs'
 import StepIcon from '@/components/territorios/StepIcon'
+import StorySummary from '@/components/territorios/StorySummary'
 import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 import type { BiomeReference, TerritoryPayload, TerritoryTypeId } from '@/types/territorios'
@@ -175,5 +176,39 @@ describe('ThemeStep', () => {
     const markup = html(ThemeStep, { ...STEP, step: 'chuva' })
     expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Resumo'])
     expect(markup).toContain('Carregando os dados')
+  })
+})
+
+const LOADING_ALL = {
+  estoque: { kind: 'loading' }, fluxo: { kind: 'loading' }, uso: { kind: 'loading' },
+  fogo: { kind: 'loading' }, chuva: { kind: 'loading' },
+} as const
+
+const SUMMARY = {
+  territory: JUAZEIRO, type: typeOf('municipio'), loads: LOADING_ALL,
+  expired: false, onRetry: noop, onBack: noop,
+}
+
+describe('StorySummary', () => {
+  it('stays in the page, hidden, while another tab is open, for "Baixar"', () => {
+    // Not anchored: React hoists <link rel="preload"> for the icons ahead of the section.
+    expect(html(StorySummary, { ...SUMMARY, hidden: true })).toMatch(/<section id="etapa-resumo"[^>]* hidden=""/)
+  })
+
+  it('lays out a card per theme, the name for paper only, and the way back', () => {
+    const markup = html(StorySummary, { ...SUMMARY, hidden: false })
+    // Cards still loading stay off the printed sheet.
+    expect(markup.match(/<li class="territorios-ficha territorios-no-print"/g)).toHaveLength(5)
+    expect(markup).toContain('<header class="territorios-ficha-cabecalho territorios-so-impressao">')
+    expect(markup).toContain('Juazeiro (BA)')
+    expect(markup).toContain('/images/territorios/icones/abrir.svg')
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte'])
+  })
+
+  it('offers a retry on a failed card, named for its theme', () => {
+    const markup = html(StorySummary, {
+      ...SUMMARY, hidden: false, loads: { ...LOADING_ALL, fogo: { kind: 'failed', rateLimited: false } },
+    })
+    expect(markup).toContain('aria-label="Tentar novamente: Fogo"')
   })
 })

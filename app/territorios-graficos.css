@@ -166,20 +166,35 @@
   box-shadow: 0 0 0 2px var(--bg-fundo, #fefefb);
 }
 
+/* The summary card's bar (Figma 19254:17361): the value above an 11 px track,
+   the Caatinga below it, in 12 px with the figure in medium. #d9d9d9 is the
+   design's track, with no token of its own. */
 .tg-cmp--compact .tg-tag,
 .tg-cmp--compact .tg-chart-title {
   font-size: 12px;
-  line-height: 16px;
+  line-height: 20px;
+}
+
+.tg-cmp--compact .tg-tag b {
+  font-weight: 500;
 }
 
 .tg-cmp--compact .tg-cmp-track {
-  height: 8px;
-  margin: 4px 0;
+  height: 11px;
+  margin: 2px 0;
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.tg-cmp--compact .tg-cmp-fill {
+  border-radius: 4px;
 }
 
 .tg-cmp--compact .tg-cmp-marker {
-  top: -4px;
-  bottom: -4px;
+  top: -2px;
+  bottom: -1px;
+  width: 3px;
+  left: clamp(0px, calc(var(--at) - 1.5px), calc(100% - 3px));
 }
 
 /* LevelsBar */

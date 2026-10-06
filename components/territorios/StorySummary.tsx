@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- fixed-size icons exported from Figma */
 import { useEffect, useRef, useState } from 'react'
 import '@/app/territorios-resumo.css'
 import PanelNav from './PanelNav'
@@ -7,6 +8,7 @@ import StepChart from './StepChart'
 import StepIcon from './StepIcon'
 import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
+import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { ABOUT_SCRIPT, READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
@@ -29,9 +31,13 @@ export interface StorySummaryProps {
   onBack:    () => void
 }
 
-// The summary tab: one row per theme, "Sobre os dados" folded, and the way
-// back. Printing outputs this section alone (territorios.css), with the fold
-// open, whichever tab is on screen.
+/**
+ * The summary tab (Figma 19254:37467): a card per theme, its reading as a
+ * badge colored by whether it is good news, "Sobre os dados" folded, and the
+ * way back. Printing outputs this section alone, with the fold open, whichever
+ * tab is on screen; the band that names the territory does not print, so the
+ * name heads the sheet on paper only.
+ */
 export default function StorySummary({
   hidden, territory, type, loads, expired, onRetry, onBack,
 }: StorySummaryProps) {
@@ -77,7 +83,7 @@ export default function StorySummary({
         {STEP_LABELS.resumo}
       </h3>
 
-      <header className="territorios-ficha-cabecalho">
+      <header className="territorios-ficha-cabecalho territorios-so-impressao">
         <p className="territorios-ficha-nome">{title}</p>
         <p className="territorios-ficha-detalhe">
           {/* The title above already carries the state. */}
@@ -85,17 +91,24 @@ export default function StorySummary({
         </p>
       </header>
 
-      <ul className="territorios-ficha">
+      <ul className="territorios-fichas">
         {rows.map((row) => {
           const load = loads[row.theme]
+          const color = STEP_COLORS[row.theme]
           return (
             <li
               key={row.theme}
               // A print from another tab can come before this theme was ever requested.
-              className={load.kind === 'loading' ? 'territorios-ficha-linha territorios-no-print' : 'territorios-ficha-linha'}
-              style={{ '--tema-cor': STEP_COLORS[row.theme] } as React.CSSProperties}
+              className={load.kind === 'loading' ? 'territorios-ficha territorios-no-print' : 'territorios-ficha'}
             >
-              <h5 className="territorios-ficha-titulo">{row.title}</h5>
+              <div className="territorios-ficha-topo">
+                {row.reading && row.tone && (
+                  <p className="territorios-ficha-leitura" data-tom={row.tone}>
+                    {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
+                  </p>
+                )}
+                <h4 className="territorios-ficha-titulo">{row.title}</h4>
+              </div>
               {load.kind === 'loading' ? (
                 <p className="territorios-ficha-estado">{UI.loading}</p>
               ) : load.kind === 'failed' || load.response.status === 'unavailable' ? (
@@ -115,16 +128,9 @@ export default function StorySummary({
               ) : (
                 <>
                   <div className="territorios-ficha-valor">
-                    {row.headline && (
-                      <StepFigure value={row.headline.value} unit={row.headline.unit} color={STEP_COLORS[row.theme]} />
-                    )}
-                    {row.reading && (
-                      <p className="territorios-ficha-leitura">
-                        {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
-                      </p>
-                    )}
+                    {row.headline && <StepFigure value={row.headline.value} unit={row.headline.unit} color={color} />}
+                    <p className="territorios-ficha-frase">{row.sentence}</p>
                   </div>
-                  <p className="territorios-ficha-frase">{row.sentence}</p>
                   <div className="territorios-ficha-grafico">
                     <StepChart theme={row.theme} response={load.response} territory={territory} type={type} compact />
                   </div>
@@ -136,7 +142,11 @@ export default function StorySummary({
       </ul>
 
       <details ref={aboutRef} className="territorios-sobre">
-        <summary>{ABOUT_SCRIPT.title}</summary>
+        <summary>
+          {ABOUT_SCRIPT.title}
+          <img className="territorios-sobre-abrir" src={UI_ICONS.open} alt="" width={24} height={24} />
+          <img className="territorios-sobre-fechar" src={UI_ICONS.close} alt="" width={24} height={24} />
+        </summary>
         <dl>
           {about.map((item) => (
             <div key={item.title}>
