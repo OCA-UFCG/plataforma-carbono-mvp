@@ -18,7 +18,7 @@ export const SECTION_IDS: readonly string[] = [
   'inicio',
   'destaques',
   'plataforma',
-  'ferramenta',
+  'caminhos',
   'comunicacao',
 ]
 

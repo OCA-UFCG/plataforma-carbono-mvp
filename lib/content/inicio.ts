@@ -1,7 +1,8 @@
-import { defineCopy, line, list, paragraph } from './site/model'
+import { defineCopy, line, paragraph } from './site/model'
 
-// Copy of the landing's hero and Ferramenta band. The Destaques and "Conheça a
-// plataforma" sections have their own modules (destaques.ts, plataforma.ts).
+// Copy of the landing's hero. The Destaques, "Conheça a plataforma" and "Duas
+// formas de explorar os dados" sections have their own modules (destaques.ts,
+// plataforma.ts, caminhos.ts).
 
 // The hero shows four photos, each with its own card (components/marketing/
 // Hero.tsx): the h1 and lead set like Figma nodes 18862:8525 and 18862:8526,
@@ -38,29 +39,5 @@ export const INICIO_HERO = defineCopy({
       'Uma plataforma que reúne dados de carbono, vegetação, solo e clima para diferentes áreas da Caatinga',
     ),
     foto4Botao: line('Foto 4 · Botão (abre a plataforma)', 'Acesse a plataforma'),
-  },
-})
-
-// Ferramenta, Figma node 18862:8547; the list is node 18862:8556.
-export const INICIO_FERRAMENTA = defineCopy({
-  id: 'inicioFerramenta',
-  name: 'Início · Ferramenta',
-  description:
-    'Faixa escura da página inicial que apresenta o mapa. Há uma única entrada deste tipo: edite-a, não crie outra.',
-  fields: {
-    chamada: line('Chamada acima do título', 'A ferramenta central da plataforma'),
-    titulo: line('Título', 'Explore os territórios da Caatinga em detalhes'),
-    texto: paragraph(
-      'Texto',
-      'Consulte informações sobre diferentes áreas da Caatinga. Localize o território de interesse, combine dados no mapa, acompanhe as mudanças ao longo do tempo e gere um relatório com as informações selecionadas.',
-    ),
-    itens: list('Lista', [
-      'Dados sobre carbono, vegetação, clima e uso da terra',
-      'Consulta por municípios e outros territórios da Caatinga',
-      'Comparação entre dados e períodos',
-      'Geração de relatório com os dados do território escolhido',
-    ]),
-    botaoMapa: line('Botão que abre o mapa', 'Explore os dados'),
-    botaoResumo: line('Botão que abre o resumo territorial', 'Ver resumo territorial'),
   },
 })

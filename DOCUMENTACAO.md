@@ -40,7 +40,7 @@ components/marketing/          # landing redesenhada a partir do Figma (ver seç
 ├ Hero.tsx                     # capa com carrossel de fotos
 ├ Destaques.tsx                # cartões de números
 ├ Plataforma.tsx               # abas "Conheça a plataforma"
-├ Ferramenta.tsx               # faixa com a moldura do mapa
+├ Caminhos.tsx                 # "Duas formas de explorar os dados": resumo territorial e plataforma
 ├ Comunicacao.tsx              # cartilhas, caderno temático (conteúdo do Contentful)
 └ SiteFooter.tsx                # rodapé
 components/mapa/
@@ -132,7 +132,7 @@ O servidor sobe em http://localhost:3000. O mapa abre centralizado na Caatinga (
 
 ## A landing redesenhada
 
-A landing foi reconstruída inteira a partir de um handoff no Figma (arquivo `hzQi2FcgZuGSGSP6NaeLdY`), em `components/marketing/`. `app/(marketing)/page.tsx` monta a página com seis seções, nesta ordem: `Hero`, `Destaques`, `Plataforma`, `Ferramenta`, `Comunicacao` e `SiteFooter` (mais o `SiteHeader` fixo). Cada seção é um par `Componente.tsx` + `Componente.module.css`.
+A landing foi reconstruída inteira a partir de um handoff no Figma (arquivo `hzQi2FcgZuGSGSP6NaeLdY`), em `components/marketing/`. `app/(marketing)/page.tsx` monta a página com seis seções, nesta ordem: `Hero`, `Destaques`, `Plataforma`, `Caminhos`, `Comunicacao` e `SiteFooter` (mais o `SiteHeader` fixo). Cada seção é um par `Componente.tsx` + `Componente.module.css`.
 
 ### CSS Modules em vez do estilo global antigo
 
@@ -158,7 +158,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 - **Os cartões de comunicação mostram o título duas vezes**: o Figma mockava fotografias, mas a arte real é a capa da cartilha/caderno com o título já embutido na imagem, e o recorte central de 626×480 corta parte dele. Falta decidir entre fornecer fotografia nova ou tirar o título sobreposto dos itens cuja arte já o traz.
 - **A cor laranja saiu da paleta**: `--laranja #ce8b44` e derivados não têm par no novo design system.
 - **A história da paleta sazonal desapareceu da landing.** `Sazonalidade` explicava que a identidade de cor da plataforma foi medida numa série NDFI de 40 anos, não escolhida; o módulo de mapas ainda deriva o acento mensal exatamente dessa série (ver "A paleta mensal" abaixo), então a plataforma usa hoje uma paleta que não explica mais em lugar nenhum.
-- **A faixa "Ferramenta" está sem a imagem do mapa.** A exportação do Figma não pôde ser buscada (cota da API esgotada) e o único candidato no repositório carregava chrome de UI do módulo de mapas e marca antiga. A faixa renderiza um placeholder neutro controlado por uma única constante anulável, `MAPA_IMAGEM` em `Ferramenta.tsx`; trocar pela exportação real é uma mudança de uma linha.
+- **A faixa "Ferramenta" virou "Duas formas de explorar os dados"** (`Caminhos`, nó `19253:14778` da cópia `QP5obFCTTfjCSMVO8VgOc7`, de 06/10/2026): dois cartões, o resumo territorial e a plataforma de dados, cada um um link inteiro. O Figma repete "Ver Resumo" no botão dos dois; o da plataforma diz "Acessar plataforma". A lista de cada cartão abre ao passar o mouse ou ao focar o cartão pelo teclado (estado de hover `19253:15506`) e fica sempre aberta em telas de toque, que não têm hover. Os textos são o tipo `inicioCaminhos` do Contentful, que substitui `inicioFerramenta`.
 - **`.text-lead` (peso 400) nos títulos dos cartões de comunicação** por falta de um token de título de cartão vinculado no Figma; um título peso regular de 20px lê como legenda, então a escala tipográfica provavelmente está sem esse token.
 - Três valores do design system do Figma não têm par nos tokens reais e foram mapeados manualmente: `var(--card)` #ffffff, `var(--foreground)` #292829 (cinza quente que contrasta com o resto da escala, fria) e `var(--primary-foreground)` #f8f7f8 — defaults do shadcn deixados na biblioteca, não importados.
 - O botão primário do hero amarra o preenchimento de **repouso** ao token de papel `ROLE-MarcaAncora-Hover` (nó `18862:8529`), sem token distinto para o estado de hover; implementado como desenhado, com comentário no código para não ser "corrigido" sem querer.

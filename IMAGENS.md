@@ -108,6 +108,21 @@ A mesma foto aparece em "Conheça a Caatinga", ao lado de "Um bioma de natureza 
 e mostra só a casa, então a página usa um arquivo próprio, `sobre/natureza-pessoas.webp` (ver
 "Páginas Sobre").
 
+## Duas formas de explorar os dados (public/images/caminhos/)
+
+As imagens dos dois cartões da seção que substituiu a faixa "Ferramenta" (nó 19253:14778),
+convertidas de PNG para WebP com Pillow, sem recorte nem redimensionamento:
+`resumo-territorial.webp` (1298×856, 233 KB, qualidade 80) e `plataforma.webp` (918×695, 32 KB,
+qualidade 85). Os PNGs vieram do `get_design_context` do MCP do Figma e não traziam EXIF.
+
+- `resumo-territorial.webp` é a mesma foto de `plataforma/o-que-e.webp`, num enquadramento mais
+  aberto e em resolução maior. O PNG do Figma tem os cantos arredondados transparentes, e o WebP
+  guarda esse canal alfa; no cartão os cantos ficam fora do recorte do `object-fit: cover`.
+  Autoria também não registrada.
+- `plataforma.webp` é o mapa da Caatinga da antiga faixa "Ferramenta"
+  (`ferramenta/mapa-caatinga.webp`, removido), agora sem o degradê escuro que aquela exportação
+  trazia embutido.
+
 ## Faixas das páginas internas (public/images/faixas/)
 
 Fotos de fundo das faixas acima do rodapé nas páginas internas (componente `PhotoBand`):
