@@ -1,8 +1,11 @@
-/* SobreSubnav, Figma node 18988:8635: entries 12px apart horizontally inside
- * 16px/12px padding, 34px between them, over a 1px rule in the disabled-text
- * grey (#94a6ac, --role-neutro-texto-desabilitado: the same value as the
- * design's BG-TextoDesabilitado). Labels are Inter 500 14/20, the global
- * .text-ui-tab applied in SobreSubnav.tsx. */
+/* The strip of "tab item"s under an internal page's intro band: the Sobre
+ * sub-navigation, Figma node 18988:8635 (links, SobreSubnav.tsx), and the
+ * Comunicação tabs, 19254:16031 (buttons, ComunicacaoAbas.tsx), drawn alike.
+ * Entries 12px apart horizontally inside 16px/12px padding, 34px between
+ * them, over a 1px rule in the disabled-text grey (#94a6ac,
+ * --role-neutro-texto-desabilitado: the same value as the design's
+ * BG-TextoDesabilitado). Labels are Inter 500 14/20, the global .text-ui-tab
+ * applied in each component. */
 .subnav {
   background: var(--bg-fundo);
   border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
@@ -23,13 +26,19 @@
  * of the bottom padding: 16px above the label, 14px + 2px below it.
  * At rest the label is #001d27, --ctx-positivo-texto-sobre-container, the
  * variable three of the four frames use (18988:8692, 18988:8794,
- * 18988:8968); the first frame's #002b39 (18988:8637) is the odd one out. */
+ * 18988:8968); the first frame's #002b39 (18988:8637) is the odd one out.
+ * The border, margin, background and cursor lines are for the Comunicação
+ * tabs, which are <button>s. */
 .item {
   flex: none;
   padding: 16px 12px 14px;
+  border: 0;
   border-bottom: 2px solid transparent;
+  margin: 0;
+  background: none;
   color: var(--ctx-positivo-texto-sobre-container);
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .itemCurrent {
