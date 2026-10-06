@@ -1,6 +1,7 @@
 // Icons of the Territórios report, served from public/images/territorios/icones.
 // The Figma exports are used as they come (Figma 19257:5752 for the tabs,
-// 19254:37414 and 19254:37407 for the rest); fogo.svg and baixar.svg are
+// 19254:37414, 19254:37407 and the type cards' arrow, I19254:37356;19175:9994,
+// for the rest); fogo.svg and baixar.svg are
 // Material Symbols "local_fire_department" and "download" (Apache 2.0),
 // filled with the color they sit on: the fire tab's, and white on "Baixar".
 
@@ -44,6 +45,7 @@ export const UI_ICONS = {
   back:          `${DIR}/seta-esquerda.svg`,
   next:          `${DIR}/seta-direita.svg`,
   nextDisabled:  `${DIR}/seta-direita-desabilitada.svg`,
+  forward:       `${DIR}/avancar.svg`,
   open:          `${DIR}/abrir.svg`,
   close:         `${DIR}/fechar.svg`,
 } as const

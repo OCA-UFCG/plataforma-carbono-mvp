@@ -5,7 +5,8 @@
  * that draw them; territorios.css holds the band itself and the panels.
  */
 
-/* Titles and actions on one row, bottom-aligned (19254:37414). */
+/* Titles and actions on one row, bottom-aligned (19254:37414): the band is
+   the design's 110 px, 40 + 14 + 4 + 36 + 16. */
 .territorios-secao-faixa--acoes .territorios-secao-faixa-conteudo {
   flex-direction: row;
   flex-wrap: wrap;
@@ -20,18 +21,6 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-}
-
-/* The eyebrow sets solid, Rubik Medium 14/14 (19254:37416), so the band is
-   the design's 110 px: 40 + 14 + 4 + 36 + 16. */
-.territorios-secao-faixa--acoes .territorios-secao-sobretitulo {
-  line-height: 14px;
-}
-
-/* The report's title takes the design's green (19254:37417), 4.75:1 on
-   --am-100; the gallery keeps the section's olive. */
-.territorios-secao-faixa--acoes .territorios-secao-titulo {
-  color: var(--role-categorica1-padrao);
 }
 
 .territorios-acoes {

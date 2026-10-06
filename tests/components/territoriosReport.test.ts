@@ -8,6 +8,7 @@ import ReportTabs from '@/components/territorios/ReportTabs'
 import StepIcon from '@/components/territorios/StepIcon'
 import StorySummary from '@/components/territorios/StorySummary'
 import TerritoryChooser from '@/components/territorios/TerritoryChooser'
+import TypeCards from '@/components/territorios/TypeCards'
 import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 import type { BiomeReference, TerritoryPayload, TerritoryTypeId, ThemeResponse } from '@/types/territorios'
@@ -258,5 +259,19 @@ describe('TerritoryChooser', () => {
     // The locate button carries the design's pin; the privacy note stays.
     expect(markup).toContain('/images/territorios/icones/localizacao.svg')
     expect(markup).toContain('Sua localização não é enviada nem guardada.')
+  })
+})
+
+describe('TypeCards', () => {
+  it('lays the types out as cards of Figma 19254:37353: photo, name and arrow, the whole card a button', () => {
+    const markup = html(TypeCards, { onSelect: noop })
+    expect(markup).toContain('<h3 id="territorios-recortes-titulo" class="territorios-recortes-titulo">Escolha o recorte</h3>')
+    expect(buttons(markup).map((b) => b.text)).toEqual([
+      'Bioma', 'Estado', 'Município', 'Terra Indígena', 'Território Quilombola', 'Assentamento',
+    ])
+    // <img> tags only: React also hoists a <link rel="preload"> for each image.
+    expect(markup.match(/<img src="\/images\/territorios\/[a-z-]+\.webp"/g)).toHaveLength(6)
+    expect(markup.match(/<img src="\/images\/territorios\/icones\/avancar\.svg"/g)).toHaveLength(6)
+    expect(markup).not.toContain('Explorar')
   })
 })

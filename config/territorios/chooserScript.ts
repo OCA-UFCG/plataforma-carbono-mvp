@@ -9,17 +9,9 @@ import type { TerritoryTypeId } from '@/types/territorios'
 export const INTRO = {
   eyebrow: 'Territórios',
   title:   'Que território você quer conhecer?',
-  explore:   'Explorar',
   changeType: 'Trocar tipo',
-  /** One line under the title of each open panel. Counts from public/data/vector/*.geojson. */
-  descriptions: {
-    bioma:                 'A Caatinga inteira, com 862.626 km² em dez estados.',
-    estado:                'Os dez estados com área na Caatinga.',
-    municipio:             'Os 1.210 municípios com área na Caatinga.',
-    terra_indigena:        'As 50 terras indígenas com área na Caatinga.',
-    territorio_quilombola: 'Os 86 territórios quilombolas com área na Caatinga.',
-    assentamento:          'Os 1.923 assentamentos da reforma agrária com área na Caatinga.',
-  } satisfies Record<TerritoryTypeId, string>,
+  /** Over the gallery of types (Figma 19254:37354). */
+  chooseCut: 'Escolha o recorte',
 }
 
 export const CHOOSER = {
