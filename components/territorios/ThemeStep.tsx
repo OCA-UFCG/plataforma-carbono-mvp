@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef } from 'react'
 import StepChart from './StepChart'
 import type { LandUseYear } from './StoryMap'
 import StepFigure from './charts/StepFigure'
-import { FIGURE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { UI } from '@/config/territorios/storyScript'
 import { sectionId } from '@/lib/territorios/activeSection'
@@ -76,7 +76,7 @@ export default function ThemeStep({
     body = (
       <>
         <div className="territorios-resposta">
-          {answer.headline && <StepFigure value={answer.headline.value} unit={answer.headline.unit} color={FIGURE_COLORS[step]} />}
+          {answer.headline && <StepFigure value={answer.headline.value} unit={answer.headline.unit} color={color} />}
           {answer.sentence && <p className="territorios-resposta-frase">{answer.sentence}</p>}
         </div>
         {step !== 'territorio' && response && (

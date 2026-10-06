@@ -2,7 +2,6 @@
 // cards, the theme steps and the fixed facts every layer of the story shares.
 // The sentences themselves live in storyScript.ts.
 
-import { STEP_COLORS } from '@/config/territorios/palette'
 import type { StepId, TerritoryTypeId, ThemeId } from '@/types/territorios'
 
 export interface TerritoryType {
@@ -59,18 +58,16 @@ export interface StoryTheme {
   /** Raster layer id in config/mapa/layers.json. */
   layerId:   string
   railLabel: string
-  /** Heading bar and summary card border; carries white text, so at least 4.5:1 against white. */
-  color:     string
   /** Year of the map on this step; null for a static layer. */
   mapYear:   string | null
 }
 
 export const STORY_THEMES: StoryTheme[] = [
-  { id: 'estoque',    layerId: 'estoque_carbono',  railLabel: 'Estoque',      color: STEP_COLORS.estoque,    mapYear: null },
-  { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        color: STEP_COLORS.fluxo,      mapYear: null },
-  { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', color: STEP_COLORS.uso,        mapYear: '2024' },
-  { id: 'fogo',       layerId: 'fogo_frequencia',  railLabel: 'Fogo',         color: STEP_COLORS.fogo,       mapYear: '2023' },
-  { id: 'chuva',      layerId: 'chirps_precip',    railLabel: 'Chuva',        color: STEP_COLORS.chuva,      mapYear: '2024' },
+  { id: 'estoque',    layerId: 'estoque_carbono',  railLabel: 'Estoque',      mapYear: null },
+  { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        mapYear: null },
+  { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', mapYear: '2024' },
+  { id: 'fogo',       layerId: 'fogo_frequencia',  railLabel: 'Fogo',         mapYear: '2023' },
+  { id: 'chuva',      layerId: 'chirps_precip',    railLabel: 'Chuva',        mapYear: '2024' },
 ]
 
 export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva', 'resumo']

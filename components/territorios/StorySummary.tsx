@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import StepChart from './StepChart'
 import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
-import { FIGURE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { STEP_COLORS } from '@/config/territorios/palette'
 import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { ABOUT_SCRIPT, READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { sectionId } from '@/lib/territorios/activeSection'
@@ -135,7 +135,7 @@ export default function StorySummary({
                 <>
                   <div className="territorios-ficha-valor">
                     {row.headline && (
-                      <StepFigure value={row.headline.value} unit={row.headline.unit} color={FIGURE_COLORS[row.theme]} />
+                      <StepFigure value={row.headline.value} unit={row.headline.unit} color={STEP_COLORS[row.theme]} />
                     )}
                     {row.reading && (
                       <p className="territorios-ficha-leitura">

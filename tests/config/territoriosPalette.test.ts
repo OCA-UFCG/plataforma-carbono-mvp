@@ -25,8 +25,6 @@ import {
 //   vision deficiency: the classes also step down in lightness, which the
 //   simulations keep, and every share is written in the legend.
 
-const WHITE = '#ffffff'
-
 const linear = (v: number) => {
   const s = v / 255
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
@@ -129,11 +127,26 @@ const OUTLINED = new Set<string>([
 ])
 
 describe('Territórios palette', () => {
-  it('carries white text on each step color, and each reads on the surface, at 4.5:1', () => {
-    expect(STEP_COLORS.fogo).toBe('#8f3a32')
+  it('takes the tab colors of the design, fire in the slot it gave degradation', () => {
+    // Figma 19257:5752: carbon green, land brown, rain blue.
+    expect(STEP_COLORS).toEqual({
+      territorio: '#587c22',
+      estoque:    '#27725b',
+      fluxo:      '#27725b',
+      uso:        '#7f765a',
+      fogo:       '#7f765a',
+      chuva:      '#367483',
+      resumo:     '#587c22',
+    })
+  })
+
+  it('reads each tab color at 3:1 on the page and on a summary card', () => {
+    // Icons, 24 px titles, 40 px figures and chart bars: large text and
+    // graphics, which WCAG holds to 3:1. --bg-superficie, the summary cards.
+    const CARD_SURFACE = '#fefcf7'
     for (const [step, color] of Object.entries(STEP_COLORS)) {
-      expect(contrast(WHITE, color), `white on ${step}`).toBeGreaterThanOrEqual(4.5)
-      expect(contrast(color, SURFACE_COLOR), `${step} on the surface`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(color, SURFACE_COLOR), `${step} on the page`).toBeGreaterThanOrEqual(3)
+      expect(contrast(color, CARD_SURFACE), `${step} on a card`).toBeGreaterThanOrEqual(3)
     }
   })
 

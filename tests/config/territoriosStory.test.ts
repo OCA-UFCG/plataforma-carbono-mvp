@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { CHOOSER } from '@/config/territorios/chooserScript'
-import { STEP_COLORS } from '@/config/territorios/palette'
 import {
   LAND_USE_YEARS,
   RAIN_FIRST_YEAR,
@@ -14,12 +13,9 @@ import {
   storyTheme,
 } from '@/config/territorios/story'
 import { STATE_LOCATIVE } from '@/config/territorios/storyScript'
-import { contrast } from '@/lib/color'
 import { listFeicoes } from '@/lib/mapa/recorteRegistry'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { LayerConfig } from '@/types/mapa'
-
-const MIN_CONTRAST = 4.5
 
 const layers = appConfig.layers as LayerConfig[]
 
@@ -45,17 +41,6 @@ describe('STORY_THEMES', () => {
     const rainYears = yearsOf(storyTheme('chuva').layerId)
     expect(rainYears).toContain(String(RAIN_FIRST_YEAR))
     expect(rainYears).toContain(String(RAIN_LAST_YEAR))
-  })
-
-  it('carries white-legible colors', () => {
-    // The theme heading and the summary card border carry white text.
-    for (const theme of STORY_THEMES) {
-      expect(contrast(theme.color, '#ffffff')).toBeGreaterThanOrEqual(MIN_CONTRAST)
-    }
-  })
-
-  it('takes each color from the palette, so the band and the chart agree', () => {
-    for (const theme of STORY_THEMES) expect(theme.color).toBe(STEP_COLORS[theme.id])
   })
 })
 
