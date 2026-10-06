@@ -1,7 +1,7 @@
 // Every string of the screens around the Territórios story: the section's title
-// band and the gallery of types, the chooser where one territory of a type is picked on the
-// map, by location or by name, and the step rail. The story's own strings live
-// in storyScript.ts.
+// band, its badges and tabs, the gallery of types, and the chooser where one
+// territory of a type is picked on the map, by location or by name. The
+// story's own strings live in storyScript.ts.
 
 import { numero } from '@/lib/mapa/format'
 import type { TerritoryTypeId } from '@/types/territorios'
@@ -76,4 +76,17 @@ export const CHOOSER = {
 export const RAIL = {
   /** Position among the six theme steps; the summary shows its name alone. */
   position:  (n: number, total: number) => `${n} de ${total}`,
+}
+
+/** Labels of the report's title band, tabs and panel buttons (Figma 19254:37412). */
+export const REPORT = {
+  /** The type badge, "Recorte: município", and the way back to the types. */
+  cut:             'Recorte',
+  location:        'Localização',
+  /** The location badge before a territory is chosen (19254:37384). */
+  locationPending: 'escolher',
+  /** The bioma's location: there is nothing else to choose. */
+  biomeLocation:   'Caatinga',
+  download:        'Baixar',
+  seeReport:       'Ver relatório',
 }
