@@ -144,7 +144,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
                 inert={!active}
               >
                 {/* Figma groups the h1 and the lead in their own container
-                    (18862:8524) with a 16px gap, tighter than the card's 21. */}
+                    (19253:14755) with a 16px gap, tighter than the card's 24. */}
                 <div className={styles.copy}>
                   <h1 className={styles.title}>{card.title}</h1>
                   <p className={`${styles.lead} text-lead`}>
