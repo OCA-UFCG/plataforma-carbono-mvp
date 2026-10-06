@@ -14,16 +14,16 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 
 ## Cartilhas (public/images/cartilhas/)
 
-Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", produzida por OCA, UFCG, INSA e SUDENE, usadas na seção Comunicação. Originais em `../cartilhas` (PNG de ~2,4 MB cada), reduzidos e convertidos para JPEG (largura 760 px, ~120 KB) por um passo com Pillow.
+Capas das publicações usadas na seção Comunicação, reduzidas e convertidas para JPEG (760×1075, ~130 KB) por um passo com Pillow.
 
 | Arquivo | Origem | Uso |
 |---|---|---|
-| `vol1.jpg` a `vol4.jpg` | `cartilhas/01.png` a `04.png` | Grade dos 4 volumes |
+| `vol1.jpg` | `CAPA (10).png` (1414×2000), recebida em 06/10/2026 | Capa da cartilha "Mercado de carbono: o que isso tem a ver com a Caatinga?", produzida por OCA, UFCG, INSA e SUDENE |
 | `caderno.jpg` | página 1 do PDF final do caderno (29/09/2026), renderizada com Ghostscript a 150 dpi e reduzida para 760×1075 | Capa do caderno temático |
 
 `colecao_banner.jpg` (recorte de `cartilhas/todas.png`, usado no remate da seção) foi removido junto com o trecho que o usava; o arquivo não existe mais em `public/images/cartilhas/`.
 
-Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
+Em 06/10/2026 a coleção de quatro volumes (`vol1.jpg` a `vol4.jpg`, de `../cartilhas/01.png` a `04.png`) deu lugar a uma única cartilha, a que tem PDF publicado. `vol2.jpg` a `vol4.jpg` foram removidos, e as entries dos volumes 2 a 4 foram despublicadas no Contentful, onde continuam como rascunho. A capa nova substituiu a do Volume 1 nas duas cópias: o asset no Contentful, que a página usa, e o `vol1.jpg`, que só entra no fallback. Com ela saiu também o erro de digitação da arte antiga ("O que é crédito de caborno?").
 
 A capa do caderno vem da versão final da publicação ("Caderno temático… desafios, riscos e perspectivas"), que substituiu a arte antiga ("Boletim temático… Desafios, Ameaças e Perspectivas") em 29/09/2026, junto com o título. A troca foi feita nas duas cópias: o asset da capa no Contentful, que a página usa, e o `caderno.jpg`, que só entra no fallback.
 

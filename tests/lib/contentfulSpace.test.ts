@@ -47,12 +47,7 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
   it('serves the comunicacao content through the application code', async () => {
     const content = await getComunicacaoContent(getContentfulClient())
 
-    expect(content.cartilhas.map((cartilha) => cartilha.volume)).toEqual([
-      'Volume 1',
-      'Volume 2',
-      'Volume 3',
-      'Volume 4',
-    ])
+    expect(content.cartilhas.map((cartilha) => cartilha.volume)).toEqual(['Volume 1'])
     expect(content.caderno.title).toContain('A aproximação do mercado de carbono florestal')
     expect(content.fotosFormacao).toHaveLength(6)
     expect(content.fotosFormacao[0].caption).toBe('Encontro em assentamento da reforma agrária')

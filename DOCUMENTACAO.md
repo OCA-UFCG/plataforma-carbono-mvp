@@ -172,7 +172,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 
 Três blocos da landing vêm do Contentful, quando configurado: a coleção de cartilhas, o caderno temático em destaque e as fotos do carrossel da Formação cidadã (hoje sem consumidor na página — ver acima). O restante da página segue no código, inclusive os cartões de números com as suas fontes e as fotos do hero.
 
-O acesso é server-side (`lib/contentful.ts`, com `import 'server-only'`), pela API GraphQL de entrega, e as credenciais nunca levam o prefixo `NEXT_PUBLIC_`. O repositório `lib/content/comunicacao.ts` traduz as entries para o formato que a página consome e aplica o padrão por seção: se a coleção de cartilhas vier vazia, entram as quatro cartilhas do código; se a requisição falhar, entra o conteúdo padrão inteiro e o erro vai para o log. É o que permite ao `npm run build` do CI rodar sem qualquer variável do Contentful.
+O acesso é server-side (`lib/contentful.ts`, com `import 'server-only'`), pela API GraphQL de entrega, e as credenciais nunca levam o prefixo `NEXT_PUBLIC_`. O repositório `lib/content/comunicacao.ts` traduz as entries para o formato que a página consome e aplica o padrão por seção: se a coleção de cartilhas vier vazia, entra a cartilha do código; se a requisição falhar, entra o conteúdo padrão inteiro e o erro vai para o log. É o que permite ao `npm run build` do CI rodar sem qualquer variável do Contentful.
 
 Modelo de conteúdo, criado por `npm run contentful:provision` (IDs dos campos em inglês, como a query pede; nomes de exibição em português, que é o que o editor lê):
 
