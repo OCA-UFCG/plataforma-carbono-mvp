@@ -10,7 +10,7 @@ import StorySummary from '@/components/territorios/StorySummary'
 import TerritoryChooser from '@/components/territorios/TerritoryChooser'
 import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
-import type { BiomeReference, TerritoryPayload, TerritoryTypeId } from '@/types/territorios'
+import type { BiomeReference, TerritoryPayload, TerritoryTypeId, ThemeResponse } from '@/types/territorios'
 
 const html = <P extends object>(component: ComponentType<P>, props: P) =>
   renderToStaticMarkup(createElement(component, props))
@@ -96,8 +96,17 @@ describe('ReportActions', () => {
     expect(html(ReportActions, { ...ACTIONS, location: undefined })).not.toContain('Localização')
   })
 
-  it('marks "Baixar" busy while the summary waits for its themes', () => {
-    expect(html(ReportActions, { ...ACTIONS, onDownload: noop, downloading: true })).toContain('aria-busy="true"')
+  it('shows and announces the wait while the summary loads its last themes for "Baixar"', () => {
+    const busy = html(ReportActions, { ...ACTIONS, onDownload: noop, downloading: true })
+    expect(busy).toContain('aria-busy="true"')
+    // A turning ring in place of the icon, and the existing "Carregando os dados" for screen readers.
+    expect(busy).toContain('class="territorios-acao-girando"')
+    expect(busy).not.toContain('/images/territorios/icones/baixar.svg')
+    expect(busy).toContain('<p class="territorios-sr" role="status">Carregando os dados</p>')
+
+    const idle = html(ReportActions, { ...ACTIONS, onDownload: noop })
+    expect(idle).toContain('/images/territorios/icones/baixar.svg')
+    expect(idle).toContain('<p class="territorios-sr" role="status"></p>')
   })
 })
 
@@ -207,6 +216,25 @@ describe('StorySummary', () => {
     expect(markup).toContain('Juazeiro (BA)')
     expect(markup).toContain('/images/territorios/icones/abrir.svg')
     expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte'])
+  })
+
+  it('puts a card\'s title before its reading, so heading navigation lands ahead of the badge', () => {
+    const fire: ThemeResponse = {
+      recorteId: 'municipios', featureId: 'juazeiro', theme: 'fogo', status: 'available', origin: 'zonal', coarseScaleM: null,
+      data: {
+        theme: 'fogo', regionAreaHa: 1_000, burnedOnceHa: 31,
+        recurrenceHa: { once: 20, twoToFour: 10, fivePlus: 1 }, annual: [{ year: 1999, burnedHa: 5 }],
+      },
+    }
+    const markup = html(StorySummary, {
+      ...SUMMARY, hidden: false,
+      territory: { ...JUAZEIRO, biome: { ...NO_BIOME, fireBurnedSharePct: 12 } },
+      loads: { ...LOADING_ALL, fogo: { kind: 'ready', response: fire } },
+    })
+    const title = markup.indexOf('<h4 class="territorios-ficha-titulo">Área que já queimou</h4>')
+    const badge = markup.indexOf('<p class="territorios-ficha-leitura" data-tom="good">Abaixo da Caatinga</p>')
+    expect(title).toBeGreaterThan(-1)
+    expect(badge).toBeGreaterThan(title)
   })
 
   it('offers a retry on a failed card, named for its theme', () => {

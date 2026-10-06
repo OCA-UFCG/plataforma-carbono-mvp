@@ -20,7 +20,7 @@ import {
 } from '@/config/territorios/story'
 import { CHOOSER, INTRO, REPORT } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
-import { readyToPrint, sectionId, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
+import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
 // MapLibre needs WebGL and window.
@@ -149,7 +149,9 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   const screen = !type ? 'intro' : !featureId ? 'search' : 'story'
 
   // Derived during render, as mapStep is: the print itself waits for the
-  // effect below, once the summary holds the last answer.
+  // effect below, once the summary holds the last answer. A request left on
+  // another territory is dropped first.
+  if (stalePrintRequest(printKey, territoryKey)) setPrintKey(null)
   if (readyToPrint(printKey, territoryKey, expired, entries)) {
     setPrintKey(null)
     setPrintRun((n) => n + 1)

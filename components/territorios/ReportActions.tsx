@@ -98,7 +98,9 @@ export default function ReportActions({
         onClick={onDownload ?? undefined}
       >
         {REPORT.download}
-        <img src={UI_ICONS.download} alt="" width={16} height={16} />
+        {downloading
+          ? <span className="territorios-acao-girando" />
+          : <img src={UI_ICONS.download} alt="" width={16} height={16} />}
       </button>
       <button
         type="button"
@@ -113,6 +115,8 @@ export default function ReportActions({
       <p className="territorios-aviso-link" role="status">
         {notice === 'copied' ? UI.linkCopied : notice === 'failed' ? UI.copyFailed : ''}
       </p>
+      {/* Always in the page, so the wait is announced when it starts. */}
+      <p className="territorios-sr" role="status">{downloading ? UI.loading : ''}</p>
     </div>
   )
 }

@@ -101,13 +101,15 @@ export default function StorySummary({
               // A print from another tab can come before this theme was ever requested.
               className={load.kind === 'loading' ? 'territorios-ficha territorios-no-print' : 'territorios-ficha'}
             >
+              {/* The title comes first, so heading navigation lands ahead of the
+                  badge; the stylesheet lifts the badge above it, as drawn. */}
               <div className="territorios-ficha-topo">
+                <h4 className="territorios-ficha-titulo">{row.title}</h4>
                 {row.reading && row.tone && (
                   <p className="territorios-ficha-leitura" data-tom={row.tone}>
                     {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
                   </p>
                 )}
-                <h4 className="territorios-ficha-titulo">{row.title}</h4>
               </div>
               {load.kind === 'loading' ? (
                 <p className="territorios-ficha-estado">{UI.loading}</p>

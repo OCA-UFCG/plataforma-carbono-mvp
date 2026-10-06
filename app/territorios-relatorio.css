@@ -146,6 +146,24 @@ button.territorios-selo:focus-visible {
   cursor: progress;
 }
 
+/* While "Baixar" waits for the summary's last themes: a turning ring in place
+   of its icon, in the label's color. Still, but drawn, under reduced motion. */
+.territorios-acao-girando {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: territorios-girar 0.8s linear infinite;
+}
+
+@keyframes territorios-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* "Link copiado", under the buttons. */
 .territorios-aviso-link {
   flex-basis: 100%;

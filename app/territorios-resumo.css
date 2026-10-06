@@ -69,8 +69,10 @@
 }
 
 /* The reading (19254:17370), colored by whether it is good news for the
-   territory (readingTone in storyText.ts); grey when close, and for rain. */
+   territory (readingTone in storyText.ts); grey when close, and for rain.
+   Drawn above the title it follows in the markup. */
 .territorios-ficha-leitura {
+  order: -1;
   padding: 1px 9px;
   border: 1px solid var(--am-200);
   border-radius: 9999px;

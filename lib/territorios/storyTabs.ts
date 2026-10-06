@@ -68,3 +68,11 @@ export function readyToPrint(
   if (printKey === null || printKey !== territoryKey) return false
   return expired || THEME_IDS.every((theme) => settled[theme] !== undefined)
 }
+
+/**
+ * A "Baixar" still waiting when the visitor leaves its territory: dropped, or
+ * coming back to that territory later would print with nothing pressed.
+ */
+export function stalePrintRequest(printKey: string | null, territoryKey: string | null): boolean {
+  return printKey !== null && printKey !== territoryKey
+}

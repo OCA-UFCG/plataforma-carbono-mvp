@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextStep, readyToPrint, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
+import { nextStep, readyToPrint, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 
 describe('wantedThemes', () => {
   it('asks for the next theme from the territory tab, which has none of its own', () => {
@@ -59,5 +59,17 @@ describe('readyToPrint', () => {
   it('never prints for another territory or without a request', () => {
     expect(readyToPrint('m|a', 'm|b', false, ALL)).toBe(false)
     expect(readyToPrint(null, 'm|a', false, ALL)).toBe(false)
+  })
+})
+
+describe('stalePrintRequest', () => {
+  it('drops a "Baixar" left pending on a territory the visitor has left', () => {
+    expect(stalePrintRequest('m|a', 'm|b')).toBe(true)
+    expect(stalePrintRequest('m|a', null)).toBe(true)
+  })
+
+  it('keeps it on its own territory, and has nothing to drop without one', () => {
+    expect(stalePrintRequest('m|a', 'm|a')).toBe(false)
+    expect(stalePrintRequest(null, 'm|a')).toBe(false)
   })
 })
