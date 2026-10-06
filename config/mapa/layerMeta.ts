@@ -23,8 +23,8 @@ export const LAYER_META: Record<string, LayerMeta> = {
   // displayed total breaks down into five pools and into phytophysiognomy.
   estoque_carbono:  { description: 'estoque de carbono dos cinco reservatórios, decomposto por reservatório e por fitofisionomia ao clicar numa área', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   // The five pools that add up to the layer above, each one in its own band.
-  estoque_c_agb:    { description: 'carbono na biomassa acima do solo',  source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
-  estoque_c_bgb:    { description: 'carbono na biomassa abaixo do solo, raízes', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_agb:    { description: 'carbono na biomassa aérea',  source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
+  estoque_c_bgb:    { description: 'carbono na biomassa subterrânea, raízes', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_dw:     { description: 'carbono na madeira morta',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_litter: { description: 'carbono na serrapilheira',           source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },
   estoque_c_solo:   { description: 'carbono orgânico do solo, segunda estimativa ao lado da do MapBiomas', source: 'Quarto Inventário Nacional, 100 m', kind: 'Raster contínuo' },

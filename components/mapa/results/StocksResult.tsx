@@ -5,7 +5,7 @@
 // server returns the same report for all six layers; only the reading differs.
 
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
-import { formatarTc } from '../StockReportView'
+import { COR_POOL, Rosca, formatarTc } from '../StockReportView'
 import { adaptive, coverageNote, percentShort } from '@/lib/mapa/results/format'
 import { STOCK_TOTAL_BAND } from '@/lib/mapa/results/headline'
 import type { StockReport } from '@/types/mapa'
@@ -14,8 +14,8 @@ import { sourceOf, type LayerResultViewProps } from './LayerResultView'
 
 /** The headline sentence of each pool layer. */
 const POOL_CAPTION: Record<string, string> = {
-  b2: 'de carbono na biomassa acima do solo',
-  b3: 'de carbono na biomassa abaixo do solo',
+  b2: 'de carbono na biomassa aérea',
+  b3: 'de carbono na biomassa subterrânea',
   b4: 'de carbono na madeira morta',
   b5: 'de carbono na serrapilheira',
   b6: 'de carbono orgânico no solo',
@@ -65,6 +65,17 @@ export default function StocksResult({
     <>
       <Hero theme={theme} value={hero.valor} unit={hero.unidade} caption={caption} />
       <Pair theme={theme} items={pair} />
+      {!focusPool && (
+        <Rosca
+          titulo="Estoque por compartimento"
+          total={report.totalTc}
+          theme={theme}
+          fatias={report.pools
+            .map((p, i) => ({ nome: p.label, tc: p.tc, cor: COR_POOL[i % COR_POOL.length] }))
+            .filter((f) => f.tc > 0)
+            .sort((a, b) => b.tc - a.tc)}
+        />
+      )}
       <BarList
         theme={theme}
         title="Estoque por fitofisionomia"

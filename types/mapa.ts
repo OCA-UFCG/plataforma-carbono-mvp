@@ -22,6 +22,7 @@ export interface VectorLayerConfig {
   // Point layer drawn as a sonar: a larger dot with a ring pulsing around it,
   // and a round swatch in the legend.
   pulse?: true
+  hidden?: true            // as in RasterLayerConfig
   // glTF model stood on every point when zoomed in (lib/mapa/pointModels.ts);
   // a click on a point flies to it, tilted, so the model shows.
   model?: {
@@ -89,6 +90,9 @@ export interface RasterLayerConfig {
   // and not a quantity: it gets no result card, and on its own it gives a
   // click nothing to measure (lib/mapa/analysisTargets.ts).
   analysis?: false
+  // Left out of the map module for now (lib/mapa/store.ts), kept for the
+  // Territórios story and the allowlist.
+  hidden?: true
   // categorical:
   classes?: RasterClass[]
   // continuous:

@@ -25,9 +25,14 @@ import {
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
+// The layers the panel offers. A `hidden` layer stays in layers.json, so the
+// Territórios story and the GEE allowlist still reach it, but the map module
+// never lists, draws or restores it.
+const PANEL_LAYERS = (appConfig.layers as LayerConfig[]).filter((l) => !l.hidden)
+
 // State from the previous session, checked against today's layers.json. Read
 // once, at module load, for the initial store values below.
-const restaurado = readPersisted(appConfig.layers as LayerConfig[])
+const restaurado = readPersisted(PANEL_LAYERS)
 
 /**
  * GEE rasters that were on when the user left. They come back off: only
@@ -156,7 +161,7 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json, in the draw order.
-  layers: applyGroupOrder(restaurado?.layers ?? (appConfig.layers as LayerConfig[]), ordemTemas, ordemSubtemas),
+  layers: applyGroupOrder(restaurado?.layers ?? PANEL_LAYERS, ordemTemas, ordemSubtemas),
   themeOrder: ordemTemas,
   subthemeOrder: ordemSubtemas,
   drawMode: null,

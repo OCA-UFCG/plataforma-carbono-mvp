@@ -113,8 +113,8 @@ describe('sanitizeThemeOrder', () => {
 
 describe('sanitizeSubthemeOrder', () => {
   it('sanitizes each theme and fills the ones not stored', () => {
-    const out = sanitizeSubthemeOrder({ carbono: ['solo', 'estoques', 'nope'], territorio: ['limites'] })
-    expect(out.carbono.slice(0, 3)).toEqual(['solo', 'estoques', 'reservatorios'])
+    const out = sanitizeSubthemeOrder({ carbono: ['fluxos', 'estoques', 'nope'], territorio: ['limites'] })
+    expect(out.carbono.slice(0, 3)).toEqual(['fluxos', 'estoques', 'estrutura'])
     expect(out.carbono).toHaveLength(DEFAULT_SUBTHEME_ORDER.carbono.length)
     expect(out.uso_solo).toEqual(DEFAULT_SUBTHEME_ORDER.uso_solo)
     expect(out.territorio).toBeUndefined()

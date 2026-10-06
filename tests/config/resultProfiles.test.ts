@@ -37,7 +37,7 @@ describe('result profiles', () => {
   })
 
   it('total a density only in the unit its per-hectare value implies', () => {
-    const totalFor: Record<string, string> = { 't C/ha': 't C', 'Mg C/ha': 't C', 'Mg/ha': 't' }
+    const totalFor: Record<string, string> = { 't C/ha': 't C', 't/ha': 't' }
     for (const [id, p] of Object.entries(RESULT_PROFILES)) {
       if (p.archetype !== 'amount') continue
       const unit = byId.get(id)!.unit ?? ''
@@ -48,7 +48,7 @@ describe('result profiles', () => {
   })
 
   it('label a flux total with the gas unit of the layer', () => {
-    const totalFor: Record<string, string> = { 'Mg CO2e/ha': 't CO2e', 'Mg CO2/ha': 't CO2' }
+    const totalFor: Record<string, string> = { 't CO2e/ha': 't CO2e', 't CO2/ha': 't CO2' }
     for (const [id, p] of Object.entries(RESULT_PROFILES)) {
       if (p.archetype !== 'flux') continue
       expect(p.totalUnit).toBe(totalFor[byId.get(id)!.unit ?? ''])

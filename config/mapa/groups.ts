@@ -25,22 +25,17 @@ export const TERRITORY_THEME_ID = 'territorio'
 // layers.json.
 export const THEMES: ThemeInfo[] = [
   {
-    id: TERRITORY_THEME_ID, label: 'Território', color: '#597636', image: '/images/cards/recortes-territoriais.png',
+    id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', image: '/images/cards/recortes-territoriais.png',
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },
-      { id: 'territorios', label: 'Territórios e assentamentos', exclusive: false },
+      { id: 'territorios', label: 'Territórios tradicionais e assentamentos', exclusive: false },
     ],
   },
   {
-    id: 'carbono', label: 'Carbono', color: '#4F791E', image: '/images/cards/estoques-carbono.png',
+    id: 'carbono', label: 'Vegetação', color: '#4F791E', image: '/images/cards/estoques-carbono.png',
     subthemes: [
-      { id: 'estoques', label: 'Estoque total', exclusive: true },
-      { id: 'reservatorios', label: 'Reservatórios de carbono', exclusive: true },
-      { id: 'solo', label: 'Carbono do solo', exclusive: true },
-      { id: 'biomassa', label: 'Biomassa', exclusive: true },
-      { id: 'estrutura', label: 'Estrutura da vegetação', exclusive: true },
-      { id: 'gpp', label: 'Produtividade primária bruta (GPP)', exclusive: true },
-      { id: 'npp', label: 'Produtividade primária líquida (NPP)', exclusive: true },
+      { id: 'estoques', label: 'Estoques de carbono', exclusive: true },
+      { id: 'estrutura', label: 'Estrutura', exclusive: true },
       { id: 'fluxos', label: 'Fluxos de carbono', exclusive: true },
     ],
   },
@@ -55,7 +50,7 @@ export const THEMES: ThemeInfo[] = [
   {
     id: 'ambiente', label: 'Ambiente', color: '#A78400', image: '/images/cards/clima-fenologia.png',
     subthemes: [
-      { id: 'vegetacao', label: 'Vegetação e fenologia', exclusive: true },
+      { id: 'vegetacao', label: 'Índices de vegetação', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
       // The one thematic exception, so the hillshade can be combined with
       // altitude or slope; layers.json order sets which one is drawn on top.
