@@ -5,12 +5,10 @@ import { defineCopy, line, type Copy } from './site/model'
 // different sizes. Editors change the words in Contentful; the icons, and so
 // the number of cards, stay here.
 //
-// All four cards reuse the exact same "Map" icon glyph in the Figma file
-// (nodes I18862:8542;18808:5943, I18862:8543;18808:5943, I18862:8544;18808:5943
-// and I18862:8545;18808:5943 all point at the same exported asset). That is
-// not an oversight on this side: the icon paths below are four copies of that
-// one exported SVG, one per card, so a future design pass can swap a single
-// card's glyph without touching the others.
+// Each card has its own icon, exported from the Figma home of 2026-10-06
+// (working copy QP5obFCTTfjCSMVO8VgOc7, cards 19254:16784): "People",
+// "Efeito Estufa", "co2" and "Remoção carbono", in card order. Until then all
+// four drew the same "Map" glyph.
 //
 // The first two cards carry the copy of the content doc's 2026-10-05 meeting.
 // The second is back to the design's 40% of the greenhouse gases removed in
