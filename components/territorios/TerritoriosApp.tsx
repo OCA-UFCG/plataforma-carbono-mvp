@@ -114,6 +114,13 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     return step === 'resumo' ? 'territorio' : step
   })
   if (tab !== 'resumo' && tab !== mapStep) setMapStep(tab)
+  /**
+   * Whether a tab with the map has been open yet. An address can open on the
+   * summary, where the map's column is hidden, and MapLibre created in a
+   * hidden container never draws once shown: the map waits for its first tab.
+   */
+  const [mapSeen, setMapSeen] = useState(() => stepFromQuery(initialEtapa) !== 'resumo')
+  if (tab !== 'resumo' && !mapSeen) setMapSeen(true)
   const [expired, setExpired] = useState(false)
   const [landUseYear, setLandUseYear] = useState<LandUseYear>(LAND_USE_YEARS[LAND_USE_YEARS.length - 1])
 
@@ -468,13 +475,15 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                   {/* The one MapLibre instance of the report, kept mounted across
                       the tabs; on the summary its column is hidden. */}
                   <div className="territorios-relatorio-mapa territorios-no-print">
-                    <StoryMap
-                      territory={payload}
-                      step={mapStep}
-                      landUseYear={landUseYear}
-                      onLandUseYear={setLandUseYear}
-                      onUnauthorized={onUnauthorized}
-                    />
+                    {mapSeen && (
+                      <StoryMap
+                        territory={payload}
+                        step={mapStep}
+                        landUseYear={landUseYear}
+                        onLandUseYear={setLandUseYear}
+                        onUnauthorized={onUnauthorized}
+                      />
+                    )}
                   </div>
                 </div>
 
