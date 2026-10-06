@@ -7,16 +7,17 @@ import { FaBars, FaXmark } from "react-icons/fa6";
 import { signOut as firebaseSignOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
+import HeaderLogo from "./HeaderLogo";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 153 + 584 + 189px with 16px gaps between them (958px),
-// none of it allowed to shrink below content (`flex: none` on `.nav` and
-// `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px,
-// still 80 in this range — it only drops to 24 at <=768px) on both sides.
-// 958 + 160 = 1118px is the narrowest viewport the inline header fits at full
-// size; 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// `.actions` are 188 + 584 + 189px with 16px gaps between them (993px),
+// none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
+// (80px, still 80 in this range — it only drops to 24 at <=768px) on both
+// sides. The wordmark overruns `.brand` by 9px, inside the 16px gap.
+// 993 + 160 = 1153px is the narrowest viewport the inline header fits at;
+// 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or
@@ -25,13 +26,14 @@ const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
 
-// The session slot standing in for the Figma "Entrar" button (node 18862:8515,
-// button I18862:8515;2810:3921). The marketing layout redirects unauthenticated
-// visitors to /login (app/(marketing)/layout.tsx), so anyone who reaches this
-// header is already signed in and "Entrar" could never be the right label —
-// "Sair" is rendered instead, in the same button: 1px border, 6px radius, 16px
-// side padding, hugging its label. Figma's "people" icon is left out: it
-// stands for signing in, not out.
+// The session slot. It stood in for an "Entrar" button the design used to
+// have (I18862:8515;2810:3921), which the current header (19272:44333) no
+// longer draws: the language switch is alone on the right there. The marketing
+// layout redirects unauthenticated visitors to /login
+// (app/(marketing)/layout.tsx), so anyone who reaches this header is signed in
+// and "Entrar" could never have been the right label; "Sair" stays, as the
+// only way out of the session from these pages, in that button's style: 1px
+// border, 6px radius, 16px side padding, hugging its label.
 //
 // This is a plain client component, not AuthProvider: the marketing route group
 // deliberately does not mount AuthProvider (it is the one group that doesn't),
@@ -67,7 +69,7 @@ function SessionAction({ className }: { className?: string }) {
   );
 }
 
-// The PT-BR / En control from the Figma design (I18862:8515;16825:136014),
+// The PT-BR / En control from the Figma design (19272:44342),
 // rendered as designed but inert: internationalisation is out of scope, so
 // selecting "En" does nothing. --role-neutro-texto-desabilitado is the token
 // for that disabled state; it measures 2.50:1 against the background, which
@@ -139,20 +141,7 @@ export default function SiteHeader() {
     <header className={styles.siteHeader} aria-label="Cabeçalho">
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
-          {/* The Caativar lockup, Figma I18862:8515;19090:30266 (153x38). The
-              header places it as a raster PNG; public/logos/caativar.svg is
-              the same artwork exported as vectors from the logo board on the
-              "Área trabalho" page (node 19099:6670); rendered at the PNG's
-              1381px width, its bounds match the PNG's to the pixel. The
-              link's aria-label names it, so the image itself is decorative. */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma logo */}
-          <img
-            src="/logos/caativar.svg"
-            alt=""
-            width={153}
-            height={38}
-            className={styles.brandLogo}
-          />
+          <HeaderLogo />
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">

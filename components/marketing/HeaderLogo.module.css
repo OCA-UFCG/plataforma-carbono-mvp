@@ -1,0 +1,192 @@
+/* The header's Caativar lockup, Figma 19272:44346. Every number below is the
+ * design's own: positions are relative to the symbol's 79.18x76.38 box
+ * ("Logo-1", 19272:44347), and each image is drawn at its SVG's own size. */
+
+/* Symbol + wordmark, 5px apart and centred on each other. The design places
+ * the group at x=65, y=11 of the 1436x76 bar, over the 187.18x72 slot at
+ * x=80, y=2 that SiteHeader's `.brand` reserves for it: hence 15px left of the
+ * slot and 9px below its top. The symbol is taller than the bar, so it hangs
+ * past the bar's bottom edge; the z-index keeps it over SiteHeader's mobile
+ * panel, which opens right under the bar and would otherwise cut it off. */
+.lockup {
+  position: absolute;
+  z-index: 1;
+  left: -15px;
+  top: 9px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lockup img {
+  display: block;
+  max-width: none;
+}
+
+.symbol {
+  position: relative;
+  flex: none;
+  width: 79.18px;
+  height: 76.38px;
+}
+
+/* "Polygon 11" (19272:44348): a --bg-fundo hexagon outlined in --bg-borda,
+ * larger than the green one. Below the bar it covers the header's 2px bottom
+ * border and carries that line around the badge. */
+.halo {
+  position: absolute;
+  left: -4.24px;
+  top: -8.49px;
+  width: 86.99px;
+  height: 92.3px;
+  transform: rotate(180deg);
+}
+
+/* "Rectangle 2367" (19272:44350): paints the bar's own colour over the halo
+ * down to the top of the bar's border (y=74 of the bar), so the halo's
+ * outline shows only below the bar. */
+.mask {
+  position: absolute;
+  left: -7px;
+  top: -11px;
+  width: 90px;
+  height: 74px;
+  background: var(--bg-fundo);
+}
+
+/* A root's outer box centres its rectangle, which the design rotates, scales
+ * and skews about its centre; the path sits inset inside that rectangle. */
+.rootBox {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rootShape {
+  position: relative;
+  flex: none;
+}
+
+.rootShape img {
+  position: absolute;
+}
+
+/* "Rectangle 2362" (19272:44351). */
+.root1 {
+  left: 25.76px;
+  top: 38.55px;
+  width: 11.748px;
+  height: 14.752px;
+}
+
+.root1 .rootShape {
+  width: 6.621px;
+  height: 12.354px;
+  transform: rotate(-60.15deg) scale(1, 0.96) skewX(-16.98deg);
+}
+
+.root1 img {
+  left: 0.72%;
+  top: 5.83%;
+  width: 6.573px;
+  height: 11.444px;
+}
+
+/* "Rectangle 2364" (19272:44352). */
+.root2 {
+  left: 20.74px;
+  top: 41.19px;
+  width: 12.667px;
+  height: 10.97px;
+}
+
+.root2 .rootShape {
+  width: 4.737px;
+  height: 12.985px;
+  transform: rotate(-72.9deg) scale(1, 0.98) skewX(-12.64deg);
+}
+
+.root2 img {
+  left: 3.89%;
+  top: 17.54%;
+  width: 4.451px;
+  height: 9.769px;
+}
+
+/* "Rectangle 2363" (19272:44353), mirrored vertically. */
+.root3 {
+  left: 39.53px;
+  top: 40.73px;
+  width: 17.305px;
+  height: 13.77px;
+}
+
+.root3 .rootShape {
+  width: 7.136px;
+  height: 15.885px;
+  transform: rotate(-117.19deg) scale(1, -1) skewX(0.67deg);
+}
+
+.root3 img {
+  left: 1.43%;
+  top: 5%;
+  width: 6.225px;
+  height: 12.731px;
+}
+
+/* "Rectangle 2360" (19272:44354). */
+.root4 {
+  left: 41.61px;
+  top: 42.37px;
+  width: 12.528px;
+  height: 9.721px;
+}
+
+.root4 .rootShape {
+  width: 8.993px;
+  height: 11.311px;
+  transform: rotate(97.97deg) skewX(3.84deg);
+}
+
+.root4 img {
+  left: 1.43%;
+  top: 3.85%;
+  width: 8.234px;
+  height: 10.676px;
+}
+
+/* "Exclude" (19272:44355): the trunk. */
+.trunk {
+  position: absolute;
+  left: 34.14px;
+  top: 42.68px;
+  width: 10.295px;
+  height: 11.731px;
+}
+
+/* "Group 633438" (19272:44359): the canopy, three overlapping ellipses. */
+.canopy {
+  position: absolute;
+  left: 10.56px;
+  top: 22.05px;
+  width: 57.168px;
+  height: 23.275px;
+}
+
+/* "Polygon 12" (19272:44363): the green hexagon. */
+.outline {
+  position: absolute;
+  left: 4.41px;
+  top: 0;
+  width: 70.509px;
+  height: 74.916px;
+  transform: rotate(180deg);
+}
+
+/* "CaatiVAR" (19272:44364). */
+.wordmark {
+  flex: none;
+  width: 127px;
+  height: 26px;
+}
