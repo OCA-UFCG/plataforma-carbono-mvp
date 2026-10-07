@@ -40,7 +40,7 @@ export default async function ComunicacaoPage({
     <>
       <SiteHeader />
       <main>
-        <PageIntro eyebrow={pagina.introChamada} title={pagina.introTitulo} intro={pagina.introTexto} />
+        <PageIntro title={pagina.introTitulo} intro={pagina.introTexto} />
         <ComunicacaoAbas
           inicial={parseAba(params[ABA_PARAM])}
           paineis={{
