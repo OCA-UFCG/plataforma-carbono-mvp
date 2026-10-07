@@ -118,20 +118,14 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
     expect(c.vegetacaoDestaque).toBe('')
   })
 
-  // The landing's highlights (lib/content/destaques.ts) repeat three of these
-  // figures, which must agree: since the 2026-10-05 meeting the landing's
-  // removal card gives the same 40% as this page, not the 48% of gross carbon
-  // removal it carried before.
-  it('agrees with the landing on removal, efficiency and removal capacity', () => {
-    expect(c.climaIndicadorTexto).toContain(
-      `cerca de ${DESTAQUES.find((d) => d.rotulo === 'Remoção de carbono')?.numero}%`,
-    )
+  // The landing's highlights (lib/content/destaques.ts) repeat two of these
+  // figures, which must agree: the share of Brazil's removals in 2022 and the
+  // carbon use efficiency.
+  it('agrees with the landing on removal and efficiency', () => {
     const landing = (rotulo: string) => DESTAQUES.find((d) => d.rotulo === rotulo)
-    expect(`${landing('Eficiência de carbono')?.numero}${landing('Eficiência de carbono')?.unidade}`).toBe(
-      c.eficienciaIndicadorValor,
-    )
-    expect(landing('Capacidade de remoção')?.numero).toBe('1,5–5')
-    expect(c.armazenamentoIndicador2Valor.startsWith('1,5–5')).toBe(true)
+    expect(c.climaIndicadorTexto).toContain(`cerca de ${landing('Remoção de carbono')?.numero}%`)
+    const eficiencia = landing('Eficiência no uso de carbono')
+    expect(`${eficiencia?.numero}${eficiencia?.unidade}`).toBe(c.eficienciaIndicadorValor)
   })
 
   it('points its photo at a file that exists', () => {

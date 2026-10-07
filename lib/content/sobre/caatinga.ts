@@ -38,7 +38,7 @@ export const CAATINGA = defineCopy({
     climaIndicadorValor: line('Clima · Indicador · Valor', '410 Mt'),
     climaIndicadorTexto: line(
       'Clima · Indicador · Texto',
-      'removidos em 2022 — cerca de 40% das remoções realizadas pelos biomas brasileiros naquele ano, mais do que qualquer outro bioma',
+      'removidos em 2022 — cerca de 38% das remoções realizadas pelos biomas brasileiros naquele ano, mais do que qualquer outro bioma (Costa et al., 2025)',
     ),
     climaDepois: paragraph(
       'Clima · Texto depois do indicador',
