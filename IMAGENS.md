@@ -139,16 +139,16 @@ qualidade 85). Os PNGs vieram do `get_design_context` do MCP do Figma e não tra
 
 ## Faixas das páginas internas (public/images/faixas/)
 
-Fotos de fundo das faixas acima do rodapé nas páginas internas (componente `PhotoBand`):
-`sobre.webp` (2000×605, 60 KB), da faixa "O que a plataforma não faz" (nó 18988:8651), e
-`comunicacao.webp` (1600×640, 200 KB), da faixa "Esse espaço está crescendo" (nó 18978:2080).
-Os originais no Figma são fotos de celular: a primeira em 4000×3000 (Samsung SM-S901E, com EXIF
-mas sem GPS), a segunda em 3000×4000 (retrato, sem EXIF).
+Foto de fundo da faixa acima do rodapé da página Sobre (componente `PhotoBand`): `sobre.webp`
+(2000×605, 60 KB), da faixa "O que a plataforma não faz" (nó 18988:8651). O original no Figma é
+uma foto de celular em 4000×3000 (Samsung SM-S901E, com EXIF mas sem GPS). A foto da faixa "Esse
+espaço está crescendo", da página Comunicação, foi removida do projeto junto com a faixa, em
+06/10/2026.
 
-O design mostra só uma tira de cada foto (1436×219 e 1436×209). Os recortes guardam uma tira mais
-alta, centrada no mesmo ponto que o design centraliza, para que `object-fit: cover` ainda tenha
-imagem quando a faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os
-metadados. Autoria não registrada.
+O design mostra só uma tira da foto (1436×219). O recorte guarda uma tira mais alta, centrada no
+mesmo ponto que o design centraliza, para que `object-fit: cover` ainda tenha imagem quando a
+faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os metadados. Autoria
+não registrada.
 
 ## Páginas Sobre (public/images/sobre/)
 

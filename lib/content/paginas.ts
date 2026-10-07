@@ -15,7 +15,6 @@ export type PageIntroContent = {
 
 export type PhotoBandContent = {
   image: string
-  eyebrow?: string
   title: string
   items?: string[]
 }
@@ -37,9 +36,8 @@ export const SOBRE_INTRO = defineCopy({
   },
 })
 
-// The photo of each band stays in the code, with the rest of the images.
+// The band's photo stays in the code, with the rest of the images.
 export const SOBRE_FAIXA_IMAGEM = '/images/faixas/sobre.webp'
-export const COMUNICACAO_FAIXA_IMAGEM = '/images/faixas/comunicacao.webp'
 
 export const COMUNICACAO_PAGINA = defineCopy({
   id: 'comunicacaoPagina',
@@ -55,12 +53,6 @@ export const COMUNICACAO_PAGINA = defineCopy({
     introTexto: paragraph(
       'Introdução · Texto',
       'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
-    ),
-    // Figma node 18978:2080.
-    faixaChamada: line('Faixa do rodapé · Chamada acima do título', 'Esse espaço está crescendo'),
-    faixaTitulo: line(
-      'Faixa do rodapé · Título',
-      'Estamos desenvolvendo mais cartilhas, cadernos temáticos e outros materiais sobre o carbono na Caatinga.',
     ),
   },
 })
