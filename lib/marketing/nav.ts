@@ -46,8 +46,9 @@ export const HEADER_LINKS: NavLink[] = [
 
 // The header's order, with "Resumo territorial" before the platform; Figma's
 // footer (18862:8257) predates the Territórios story and lists no entry for it.
+// The first link reads "Início" as in the header, not the design's "Home".
 export const FOOTER_LINKS: NavLink[] = [
-  { href: '/', label: 'Home', external: false },
+  { href: '/', label: 'Início', external: false },
   { href: '/sobre', label: 'Sobre', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
   TERRITORIOS_LINK,

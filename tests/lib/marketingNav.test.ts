@@ -91,7 +91,7 @@ describe('marketing nav registry', () => {
 
   it('lists "Resumo territorial" in the footer, before the platform', () => {
     expect(FOOTER_LINKS.map((l) => l.label)).toEqual([
-      'Home',
+      'Início',
       'Sobre',
       'Comunicação',
       'Resumo territorial',
