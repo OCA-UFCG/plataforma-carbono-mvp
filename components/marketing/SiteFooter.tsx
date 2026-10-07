@@ -37,11 +37,12 @@ export default function SiteFooter() {
           <div className={styles.brand}>
             {/* The design's footer still holds the empty "logo" placeholder
                 (the Caativar lockup reached only the header). This fills it
-                with the Caativar symbol in white, like the partner marks: the
-                logo board's monochrome outline variant (Figma 19083:7621),
-                which is public/logos/caativar-simbolo.svg with every colour
-                set to white. The full-colour symbol would lose its dark trunk
-                against this background. The wordmark beside it already names
+                with the Caativar symbol in white, like the partner marks:
+                public/logos/caativar-simbolo.svg (see lib/favicon.ts) with
+                every colour set to white, as the logo board's monochrome
+                outline variant (Figma 19083:7621) does with the previous
+                tree. The full-colour symbol would lose its dark trunk against
+                this background. The wordmark beside it already names
                 the platform, so the mark itself is decorative here. */}
             {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma logo */}
             <img
