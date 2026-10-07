@@ -84,7 +84,7 @@
     },
     {
       "id": "assentamentos",
-      "name": "Assentamentos (INCRA)",
+      "name": "Assentamentos",
       "unitName": "Assentamento",
       "type": "vector",
       "url": "/data/vector/assentamentos.geojson",
@@ -98,8 +98,28 @@
       "subtheme": "territorios"
     },
     {
+      "id": "areas_monitoramento",
+      "name": "Áreas de Monitoramento",
+      "unitName": "Área de monitoramento",
+      "type": "vector",
+      "url": "/data/vector/areas_monitoramento.geojson",
+      "visible": false,
+      "opacity": 100,
+      "color": "#D62828",
+      "hoverLabelField": "nome",
+      "pickPriority": 60,
+      "theme": "localidades",
+      "subtheme": "monitoramento",
+      "pulse": true,
+      "model": {
+        "url": "/models/torre.glb",
+        "height": 22
+      },
+      "hidden": true
+    },
+    {
       "id": "estoque_carbono",
-      "name": "Estoque de Carbono (Quarto Inventário Nacional)",
+      "name": "Estoque Total",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -128,11 +148,11 @@
           "pools": [
             {
               "band": "b2",
-              "label": "Biomassa acima do solo"
+              "label": "Biomassa aérea"
             },
             {
               "band": "b3",
-              "label": "Biomassa abaixo do solo"
+              "label": "Biomassa subterrânea"
             },
             {
               "band": "b4",
@@ -162,7 +182,7 @@
     },
     {
       "id": "estoque_c_agb",
-      "name": "Biomassa acima do solo (Quarto Inventário)",
+      "name": "Biomassa aérea",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -193,11 +213,11 @@
       "colorType": "continuous",
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "reservatorios"
+      "subtheme": "estoques"
     },
     {
       "id": "estoque_c_bgb",
-      "name": "Biomassa abaixo do solo (Quarto Inventário)",
+      "name": "Biomassa subterrânea",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -228,11 +248,11 @@
       "colorType": "continuous",
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "reservatorios"
+      "subtheme": "estoques"
     },
     {
       "id": "estoque_c_dw",
-      "name": "Madeira morta (Quarto Inventário)",
+      "name": "Madeira morta",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -263,11 +283,11 @@
       "colorType": "continuous",
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "reservatorios"
+      "subtheme": "estoques"
     },
     {
       "id": "estoque_c_litter",
-      "name": "Serrapilheira (Quarto Inventário)",
+      "name": "Serrapilheira",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -298,7 +318,7 @@
       "colorType": "continuous",
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "reservatorios"
+      "subtheme": "estoques"
     },
     {
       "id": "estoque_c_solo",
@@ -333,7 +353,7 @@
       "colorType": "continuous",
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "reservatorios"
+      "subtheme": "estoques"
     },
     {
       "id": "solo_carbono",
@@ -379,7 +399,7 @@
       ],
       "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "solo"
+      "subtheme": "estoques"
     },
     {
       "id": "solo_carbono_embrapa",
@@ -416,7 +436,7 @@
       ],
       "unit": "g/kg",
       "theme": "carbono",
-      "subtheme": "solo"
+      "subtheme": "estoques"
     },
     {
       "id": "biomassa_gedi",
@@ -450,47 +470,7 @@
         0,
         120
       ],
-      "unit": "Mg/ha",
-      "theme": "carbono",
-      "subtheme": "biomassa"
-    },
-    {
-      "id": "altura_dossel",
-      "name": "Altura do Dossel (Meta e WRI 2023)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "projects/sat-io/open-datasets/facebook/meta-canopy-height",
-          "band": "cover_code",
-          "reducer": "mean",
-          "scale": 30
-        },
-        "visParams": {
-          "min": 0,
-          "max": 15,
-          "palette": [
-            "#f7fcf5",
-            "#e5f5e0",
-            "#c7e9c0",
-            "#a1d99b",
-            "#74c476",
-            "#41ab5d",
-            "#238b45",
-            "#005a32"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "continuous",
-      "rescale": [
-        0,
-        15
-      ],
-      "unit": "m",
+      "unit": "t/ha",
       "theme": "carbono",
       "subtheme": "estrutura"
     },
@@ -549,9 +529,9 @@
         0,
         120
       ],
-      "unit": "Mg/ha",
+      "unit": "t/ha",
       "theme": "carbono",
-      "subtheme": "biomassa"
+      "subtheme": "estrutura"
     },
     {
       "id": "biomassa_esa_territorial",
@@ -609,9 +589,10 @@
         0,
         120
       ],
-      "unit": "Mg/ha",
+      "unit": "t/ha",
       "theme": "carbono",
-      "subtheme": "biomassa"
+      "subtheme": "estrutura",
+      "hidden": true
     },
     {
       "id": "biomassa_spawn",
@@ -646,9 +627,50 @@
         0,
         100
       ],
-      "unit": "Mg C/ha",
+      "unit": "t C/ha",
       "theme": "carbono",
-      "subtheme": "biomassa"
+      "subtheme": "estrutura",
+      "hidden": true
+    },
+    {
+      "id": "altura_dossel",
+      "name": "Altura do Dossel",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/sat-io/open-datasets/facebook/meta-canopy-height",
+          "band": "cover_code",
+          "reducer": "mean",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 15,
+          "palette": [
+            "#f7fcf5",
+            "#e5f5e0",
+            "#c7e9c0",
+            "#a1d99b",
+            "#74c476",
+            "#41ab5d",
+            "#238b45",
+            "#005a32"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        15
+      ],
+      "unit": "m",
+      "theme": "carbono",
+      "subtheme": "estrutura"
     },
     {
       "id": "gpp_modis",
@@ -659,7 +681,7 @@
       "gee": {
         "asset": {
           "type": "imageCollection",
-          "id": "MODIS/061/MOD17A2HGF",
+          "id": "MODIS/061/MOD17A3HGF",
           "band": "Gpp",
           "filterDate": [
             "2023-01-01",
@@ -668,149 +690,40 @@
           "reducer": "mean",
           "scale": 500,
           "validMin": 0,
-          "validMax": 32760,
-          "scaleFactor": 0.0001
-        },
-        "classify": {
-          "numClasses": 5,
-          "method": "jenks",
-          "breaks": [
-            228.6304,
-            293.3043,
-            351.413,
-            433.6087
-          ]
+          "validMax": 30000,
+          "multiplier": 0.1
         },
         "visParams": {
+          "min": 0,
+          "max": 2500,
           "palette": [
-            "#d73027",
-            "#fc8d59",
-            "#fee08b",
-            "#91cf60",
-            "#1a9850"
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
           ]
         },
         "temporal": {
           "dateRange": [
             "2001-01-01",
-            "2024-01-01"
+            "2025-01-01"
           ]
         }
       },
       "visible": false,
       "opacity": 80,
-      "colorType": "categorical",
-      "unit": "kg*C/m²/8day",
-      "classes": [
-        {
-          "value": 1,
-          "label": "Muito baixo",
-          "color": "#d73027"
-        },
-        {
-          "value": 2,
-          "label": "Baixo",
-          "color": "#fc8d59"
-        },
-        {
-          "value": 3,
-          "label": "Médio",
-          "color": "#fee08b"
-        },
-        {
-          "value": 4,
-          "label": "Alto",
-          "color": "#91cf60"
-        },
-        {
-          "value": 5,
-          "label": "Muito alto",
-          "color": "#1a9850"
-        }
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        2500
       ],
+      "unit": "g C/m²/ano",
       "theme": "carbono",
-      "subtheme": "gpp"
-    },
-    {
-      "id": "npp_modis",
-      "name": "Produtividade Primária Líquida (NPP, MODIS)",
-      "type": "raster",
-      "source": "gee",
-      "clipToLayerId": "bioma",
-      "gee": {
-        "asset": {
-          "type": "imageCollection",
-          "id": "MODIS/061/MOD17A3HGF",
-          "band": "Npp",
-          "filterDate": [
-            "2023-01-01",
-            "2024-01-01"
-          ],
-          "reducer": "mean",
-          "scale": 500,
-          "validMin": -30000,
-          "validMax": 32760,
-          "scaleFactor": 0.0001
-        },
-        "classify": {
-          "numClasses": 5,
-          "method": "jenks",
-          "breaks": [
-            5352,
-            7133,
-            9055,
-            11883
-          ]
-        },
-        "visParams": {
-          "palette": [
-            "#d73027",
-            "#fc8d59",
-            "#fee08b",
-            "#91cf60",
-            "#1a9850"
-          ]
-        },
-        "temporal": {
-          "dateRange": [
-            "2001-01-01",
-            "2024-01-01"
-          ]
-        }
-      },
-      "visible": false,
-      "opacity": 80,
-      "colorType": "categorical",
-      "unit": "kg C/m²/ano",
-      "classes": [
-        {
-          "value": 1,
-          "label": "Muito baixo",
-          "color": "#d73027"
-        },
-        {
-          "value": 2,
-          "label": "Baixo",
-          "color": "#fc8d59"
-        },
-        {
-          "value": 3,
-          "label": "Médio",
-          "color": "#fee08b"
-        },
-        {
-          "value": 4,
-          "label": "Alto",
-          "color": "#91cf60"
-        },
-        {
-          "value": 5,
-          "label": "Muito alto",
-          "color": "#1a9850"
-        }
-      ],
-      "theme": "carbono",
-      "subtheme": "npp"
+      "subtheme": "fluxos"
     },
     {
       "id": "gpp_pml",
@@ -857,11 +770,64 @@
       "colorType": "continuous",
       "unit": "g C/m²/ano",
       "theme": "carbono",
-      "subtheme": "gpp"
+      "subtheme": "fluxos"
+    },
+    {
+      "id": "npp_modis",
+      "name": "Produtividade Primária Líquida (NPP)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "MODIS/061/MOD17A3HGF",
+          "band": "Npp",
+          "filterDate": [
+            "2023-01-01",
+            "2024-01-01"
+          ],
+          "reducer": "mean",
+          "scale": 500,
+          "validMin": -30000,
+          "validMax": 32760,
+          "multiplier": 0.1
+        },
+        "visParams": {
+          "min": 0,
+          "max": 1400,
+          "palette": [
+            "#ffffe5",
+            "#f7fcb9",
+            "#d9f0a3",
+            "#addd8e",
+            "#78c679",
+            "#41ab5d",
+            "#238443",
+            "#005a32"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "2001-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        1400
+      ],
+      "unit": "g C/m²/ano",
+      "theme": "carbono",
+      "subtheme": "fluxos"
     },
     {
       "id": "gfw_netflux",
-      "name": "Fluxo Líquido de Carbono Florestal (GFW)",
+      "name": "Fluxo Líquido de Carbono Florestal",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -896,13 +862,13 @@
         -100,
         300
       ],
-      "unit": "Mg CO2e/ha",
+      "unit": "t CO2e/ha",
       "theme": "carbono",
       "subtheme": "fluxos"
     },
     {
       "id": "gfw_emissions",
-      "name": "Emissões Brutas de Carbono Florestal (GFW)",
+      "name": "Emissões Brutas de Carbono Florestal",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -932,13 +898,13 @@
         0,
         500
       ],
-      "unit": "Mg CO2e/ha",
+      "unit": "t CO2e/ha",
       "theme": "carbono",
       "subtheme": "fluxos"
     },
     {
       "id": "gfw_removals",
-      "name": "Remoções Brutas de Carbono Florestal (GFW)",
+      "name": "Remoções Brutas de Carbono Florestal",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -968,13 +934,13 @@
         0,
         200
       ],
-      "unit": "Mg CO2/ha",
+      "unit": "t CO2/ha",
       "theme": "carbono",
       "subtheme": "fluxos"
     },
     {
       "id": "ndvi_modis",
-      "name": "NDVI (MODIS)",
+      "name": "NDVI",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1027,7 +993,7 @@
     },
     {
       "id": "evi_modis",
-      "name": "EVI (MODIS)",
+      "name": "EVI",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1080,7 +1046,7 @@
     },
     {
       "id": "chirps_precip",
-      "name": "Precipitação Anual (CHIRPS)",
+      "name": "Precipitação Anual",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1130,7 +1096,7 @@
     },
     {
       "id": "lst_modis",
-      "name": "Temperatura de Superfície (MODIS)",
+      "name": "Temperatura de Superfície",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1180,8 +1146,139 @@
       "subtheme": "clima"
     },
     {
+      "id": "altitude_fabdem",
+      "name": "Altitude",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/altitude_fabdem_m",
+          "band": "altitude",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 1400,
+          "palette": [
+            "#3b7d4a",
+            "#6fa65a",
+            "#b5cf7b",
+            "#ece59a",
+            "#e3c27a",
+            "#cf9a5a",
+            "#a8703f",
+            "#7f5233",
+            "#f3efe8"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        1400
+      ],
+      "unit": "m",
+      "theme": "ambiente",
+      "subtheme": "relevo",
+      "hidden": true
+    },
+    {
+      "id": "declividade_fabdem",
+      "name": "Declividade",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/declividade_fabdem_pct",
+          "band": "declividade_pct",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 0,
+          "max": 45,
+          "palette": [
+            "#ffffcc",
+            "#ffeda0",
+            "#fed976",
+            "#feb24c",
+            "#fd8d3c",
+            "#fc4e2a",
+            "#e31a1c",
+            "#b10026"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        0,
+        45
+      ],
+      "unit": "%",
+      "theme": "ambiente",
+      "subtheme": "relevo",
+      "hidden": true
+    },
+    {
+      "id": "hillshade_fabdem",
+      "name": "Relevo Sombreado (FABDEM)",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "image",
+          "id": "projects/obscaatinga/assets/caativar/hillshade_fabdem",
+          "band": "hillshade",
+          "scale": 30
+        },
+        "visParams": {
+          "min": 130,
+          "max": 230,
+          "palette": [
+            "#000000",
+            "#ffffff"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 40,
+      "colorType": "continuous",
+      "rescale": [
+        130,
+        230
+      ],
+      "analysis": false,
+      "theme": "ambiente",
+      "subtheme": "relevo",
+      "hidden": true
+    },
+    {
+      "id": "sombreado_terreno",
+      "name": "Relevo Sombreado (Copernicus GLO-30)",
+      "type": "raster",
+      "source": "dem",
+      "dem": {
+        "url": "https://tiles.mapterhorn.com/tilejson.json"
+      },
+      "visible": false,
+      "opacity": 70,
+      "colorType": "continuous",
+      "analysis": false,
+      "theme": "ambiente",
+      "subtheme": "relevo",
+      "hidden": true
+    },
+    {
       "id": "lulc_mapbiomas",
-      "name": "Uso e Cobertura da Terra (MapBiomas col. 10.1)",
+      "name": "Uso e Cobertura da Terra",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1442,7 +1539,7 @@
     },
     {
       "id": "fogo_frequencia",
-      "name": "Frequência de Fogo acumulada (MapBiomas Fogo col. 3)",
+      "name": "Frequência de Fogo acumulada",
       "type": "raster",
       "source": "gee",
       "clipToLayerId": "bioma",
@@ -1545,7 +1642,8 @@
         }
       ],
       "theme": "uso_solo",
-      "subtheme": "degradacao"
+      "subtheme": "degradacao",
+      "hidden": true
     }
   ]
 }

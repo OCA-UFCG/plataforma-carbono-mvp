@@ -127,6 +127,10 @@ const EMPTY_STYLE: maplibregl.StyleSpecification = {
 
 const BASEMAP_SOURCE_ID = 'basemap'
 const BASEMAP_LAYER_ID  = 'basemap'
+const TERRAIN_SOURCE_ID = 'terrain-dem'
+const PULSE_MIN_RADIUS  = 7
+const PULSE_MAX_RADIUS  = 24
+const PULSE_PERIOD_MS   = 1800
 
 // Toolbar tool -> mapbox-gl-draw mode name.
 const MAPBOX_DRAW_MODE: Record<Exclude<DrawMode, null>, string> = {
@@ -227,6 +231,19 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       },
     })
 
+    // Sonar ring under the point, animated by the pulse effect in MapView.
+    if (l.pulse) {
+      map.addLayer({
+        id: `${l.id}-pulse`,
+        type: 'circle',
+        source: l.id,
+        ...sl,
+        filter: ['==', ['geometry-type'], 'Point'],
+        layout: { visibility: vis },
+        paint: { 'circle-radius': PULSE_MIN_RADIUS, 'circle-color': l.color, 'circle-opacity': 0 },
+      })
+    }
+
     // Circle, only for Point features. The filter prevents MapLibre from
     // rendering circles at every vertex of Polygon/LineString features.
     map.addLayer({
@@ -237,7 +254,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       filter: ['==', ['geometry-type'], 'Point'],
       layout: { visibility: vis },
       paint: {
-        'circle-radius': 5,
+        'circle-radius': l.pulse ? PULSE_MIN_RADIUS : 5,
         'circle-color': l.color,
         'circle-opacity': l.opacity / 100,
         'circle-stroke-color': '#ffffff',
@@ -271,6 +288,23 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
 
   } else if (layer.type === 'raster') {
     const l = layer as RasterLayerConfig
+
+    if (l.source === 'dem' && l.dem) {
+      if (!map.getSource(l.id)) map.addSource(l.id, { type: 'raster-dem', url: l.dem.url })
+      map.addLayer({
+        id: `${l.id}-raster`,
+        type: 'hillshade',
+        source: l.id,
+        layout: { visibility: vis },
+        paint: {
+          // The ceiling of the style spec, which caps it at 1.
+          'hillshade-exaggeration': 1,
+          'hillshade-illumination-direction': 315,
+          ...hillshadeColors(l.opacity),
+        },
+      })
+      return true
+    }
 
     // Resolve the tile URL from the store's GEE cache. Until activateDynamicLayer
     // resolves it, return a sentinel (null) so the caller skips and retries.
@@ -316,6 +350,17 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
   return true
 }
 
+// A hillshade has no opacity of its own: the slider sets the alpha of its
+// shadow and light, and flat ground stays transparent either way.
+function hillshadeColors(opacity: number) {
+  const a = opacity / 100
+  return {
+    'hillshade-shadow-color':    `rgba(0,0,0,${a})`,
+    'hillshade-highlight-color': `rgba(255,255,255,${a * 0.6})`,
+    'hillshade-accent-color':    `rgba(0,0,0,${a * 0.5})`,
+  }
+}
+
 // Update visibility / opacity for an existing layer
 
 function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
@@ -323,7 +368,7 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
     const vis = layer.visible ? 'visible' : 'none'
     const l = layer as VectorLayerConfig
 
-    for (const suffix of ['-fill', '-outline', '-circle', '-label']) {
+    for (const suffix of ['-fill', '-outline', '-pulse', '-circle', '-label']) {
       const lid = `${l.id}${suffix}`
       if (map.getLayer(lid)) {
         map.setLayoutProperty(lid, 'visibility', vis)
@@ -338,6 +383,14 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
       map.setPaintProperty(`${l.id}-circle`, 'circle-stroke-opacity', l.opacity / 100)
     }
 
+  } else if (layer.type === 'raster' && layer.source === 'dem') {
+    const lid = `${layer.id}-raster`
+    if (map.getLayer(lid)) {
+      map.setLayoutProperty(lid, 'visibility', layer.visible ? 'visible' : 'none')
+      for (const [prop, color] of Object.entries(hillshadeColors(layer.opacity))) {
+        map.setPaintProperty(lid, prop, color)
+      }
+    }
   } else if (layer.type === 'raster') {
     const lid = `${layer.id}-raster`
     if (map.getLayer(lid)) {
@@ -400,7 +453,11 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   // Camera fit to a selected recorte. Requested from the init effect and run
   // by an effect, so the padding comes from the render in which the results
   // panel opened for that selection, not from the offsets before it.
-  const [fitRequest, setFitRequest] = useState<{ bbox: [number, number, number, number] } | null>(null)
+  const [fitRequest, setFitRequest] = useState<{
+    bbox: [number, number, number, number]
+    zoom?: number
+    pitch?: number
+  } | null>(null)
   const panelInsetsRef = useRef({ leftEdge, rightOffset })
   // The floating boxes over the bottom of the map, measured at fit time so the
   // feature does not land under them.
@@ -417,6 +474,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const clearSignal       = useStore((s) => s.clearSignal)
   const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
+  const terrain3d         = useStore((s) => s.terrain3d)
   const darkMode          = useStore((s) => s.darkMode)
   const setBasemap        = useStore((s) => s.setBasemap)
   const fetchedTileUrls   = useStore((s) => s.fetchedTileUrls)
@@ -886,7 +944,12 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         }
         // After setDrawnArea, which is what opens the results panel: the fit
         // effect then frames the feature in the map the panel leaves free.
-        if (fit) setFitRequest({ bbox: computeBbox(geom) })
+        // A point with a 3D model is flown to close and tilted, so the model shows.
+        if (fit) {
+          setFitRequest(vector.model && geom.type === 'Point'
+            ? { bbox: computeBbox(geom), zoom: 19, pitch: 60 }
+            : { bbox: computeBbox(geom) })
+        }
 
         // A recorte below the rasters names and highlights its feature and
         // stops there. Installing the selection would not merely measure once:
@@ -1107,7 +1170,9 @@ useEffect(() => {
           ? [
               `${layer.id}-fill`,
               `${layer.id}-outline`,
+              `${layer.id}-pulse`,
               `${layer.id}-circle`,
+              `${layer.id}-model`,
               ...((layer as VectorLayerConfig).labelField ? [`${layer.id}-label`] : []),
             ]
           : [`${layer.id}-raster`]
@@ -1125,6 +1190,87 @@ useEffect(() => {
     }
   }
 }, [layers, mapReady, fetchedTileUrls, temporalTileUrls, temporalDate])
+
+  // Sonar pulse of the point layers that ask for it: a ring grows out of each
+  // point and fades, repainted every frame while such a layer is on. Left
+  // still for readers who asked their system for reduced motion.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const rings = layers
+      .filter((l): l is VectorLayerConfig => l.type === 'vector' && !!l.pulse && l.visible)
+      .map((l) => ({ id: `${l.id}-pulse`, alpha: 0.6 * (l.opacity / 100) }))
+    if (rings.length === 0) return
+
+    let frame = 0
+    const tick = (now: number) => {
+      const t = (now % PULSE_PERIOD_MS) / PULSE_PERIOD_MS
+      for (const ring of rings) {
+        if (!map.getLayer(ring.id)) continue
+        map.setPaintProperty(ring.id, 'circle-radius', PULSE_MIN_RADIUS + t * (PULSE_MAX_RADIUS - PULSE_MIN_RADIUS))
+        map.setPaintProperty(ring.id, 'circle-opacity', ring.alpha * (1 - t))
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [layers, mapReady])
+
+  // glTF models on the points of the layers that declare one, added the first
+  // time such a layer is on and shown or hidden with it after that.
+  const modelLayersRef = useRef(new Set<string>())
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    for (const l of layers) {
+      if (l.type !== 'vector' || !l.model) continue
+      const id = `${l.id}-model`
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', l.visible ? 'visible' : 'none')
+        continue
+      }
+      if (!l.visible || modelLayersRef.current.has(id)) continue
+      modelLayersRef.current.add(id)
+      void (async () => {
+        const [{ createPointModelLayer }, fc] = await Promise.all([
+          import('@/lib/mapa/pointModels'),
+          loadVectorFeatureCollection(l.url),
+        ])
+        const points = (fc?.features ?? []).filter(
+          (f): f is GeoJSON.Feature<GeoJSON.Point> => f.geometry?.type === 'Point',
+        )
+        const custom = await createPointModelLayer(l, points)
+        if (mapRef.current !== map || map.getLayer(id)) return
+        map.addLayer(custom)
+        const now = useStore.getState().layers.find((x) => x.id === l.id)
+        if (!now?.visible) map.setLayoutProperty(id, 'visibility', 'none')
+      })().catch((err) => {
+        modelLayersRef.current.delete(id)
+        console.error('[pointModels]', err)
+      })
+    }
+  }, [layers, mapReady])
+
+  // 3D terrain from the same elevation tiles as the Relevo hillshade, in a
+  // source of its own: MapLibre renders terrain and hillshade better apart.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (terrain3d) {
+      const dem = useStore.getState().layers.find(
+        (l): l is RasterLayerConfig => l.type === 'raster' && l.source === 'dem',
+      )?.dem
+      if (!dem) return
+      if (!map.getSource(TERRAIN_SOURCE_ID)) map.addSource(TERRAIN_SOURCE_ID, { type: 'raster-dem', url: dem.url })
+      // The Caatinga is mostly flat; at 1x its relief barely shows.
+      map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration: 3 })
+      map.easeTo({ pitch: 60, duration: 800 })
+    } else if (map.getTerrain()) {
+      map.setTerrain(null)
+      map.easeTo({ pitch: 0, duration: 800 })
+    }
+  }, [terrain3d, mapReady])
 
   // WFS viewport loading
   // For layers with `source: 'wfs'`, fetch features from the configured
@@ -1266,7 +1412,7 @@ useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady || homeSignal === 0) return
     dismissFeatureSelectionRef.current?.()
-    map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom })
+    map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom, pitch: 0, bearing: 0 })
   }, [homeSignal, mapReady])
 
   // Latest panel offsets for the fit below. Declared before it, so within one
@@ -1289,16 +1435,19 @@ useEffect(() => {
       return { width: r.width, height: r.height, bottom: box.bottom - r.bottom, right: box.right - r.right }
     }
     const legend = measure(legendRef.current)
-    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, {
-      padding: spotlightPadding({ width: box.width, height: box.height }, panels, {
-        // The legend slides to the new rightOffset over .3s when the results
-        // panel opens, which is when this runs; its measured `right` is
-        // mid-slide, so it takes the offset it is sliding to.
-        legend: legend && { ...legend, right: panels.rightOffset },
-        slider: measure(sliderRef.current),
-      }),
-      maxZoom: 13,
+    const padding = spotlightPadding({ width: box.width, height: box.height }, panels, {
+      // The legend slides to the new rightOffset over .3s when the results
+      // panel opens, which is when this runs; its measured `right` is
+      // mid-slide, so it takes the offset it is sliding to.
+      legend: legend && { ...legend, right: panels.rightOffset },
+      slider: measure(sliderRef.current),
     })
+    if (fitRequest.pitch !== undefined) {
+      const [w, s, e, n] = fitRequest.bbox
+      map.flyTo({ center: [(w + e) / 2, (s + n) / 2], zoom: fitRequest.zoom, pitch: fitRequest.pitch, padding })
+      return
+    }
+    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, { padding, maxZoom: 13 })
   }, [fitRequest, mapReady])
 
   // Swap temporal tile URLs when date changes

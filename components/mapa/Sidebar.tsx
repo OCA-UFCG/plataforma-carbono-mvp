@@ -453,8 +453,32 @@ function SubthemeSection({
           {layers.map((layer) => (
             <LayerRow key={layer.id} theme={theme} layer={layer} infoOpen={infoId === layer.id} onInfo={onInfo} />
           ))}
+          {subtheme.terrain && <TerrainRow theme={theme} />}
         </div>
       )}
+    </div>
+  )
+}
+
+function TerrainRow({ theme }: { theme: PlatformTheme }) {
+  const on = useStore((s) => s.terrain3d)
+  const setTerrain3d = useStore((s) => s.setTerrain3d)
+  const c = theme.colors
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6, borderRadius: 7, padding: '5px 7px',
+      background: on ? c.accentBg : 'transparent', border: `1px solid ${on ? c.accentBd : 'transparent'}`,
+    }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: c.text }}>Terreno em 3D</span>
+      <button
+        role="switch" aria-checked={on}
+        aria-label={on ? 'Desligar terreno em 3D' : 'Ligar terreno em 3D'}
+        onClick={() => setTerrain3d(!on)}
+        style={{ flexShrink: 0, width: 32, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, position: 'relative', background: on ? c.accent : '#d8d5c9', transition: 'background .2s' }}
+      >
+        <span style={{ position: 'absolute', top: 2, left: 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'transform .2s', transform: on ? 'translateX(14px)' : 'translateX(0)' }} />
+      </button>
     </div>
   )
 }

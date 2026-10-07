@@ -148,6 +148,18 @@ body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
   animation: ficha-in .3s ease-out both;
 }
 
+/* Legend swatch of a pulsing point layer: the same sonar ring as on the map,
+   drawn in the swatch's own color (currentColor). */
+@keyframes legend-sonar {
+  from { box-shadow: 0 0 0 0 currentColor; }
+  to   { box-shadow: 0 0 0 7px transparent; }
+}
+
+.legend-sonar {
+  animation: legend-sonar 1.8s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ficha-in { animation-duration: .01ms; }
+  .legend-sonar { animation: none; }
 }

@@ -12,6 +12,7 @@ import { getRasterPointValue } from '@/lib/mapa/getRasterPointValue'
 import { getRasterStats, getTemporalTimeSeries } from '@/lib/mapa/getRasterStats'
 import { resolvePixelValue } from '@/lib/mapa/resolvePixelValue'
 import { useStore } from '@/lib/mapa/store'
+import { isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 
 export interface PendingAnalysis {
   layer: RasterLayerConfig
@@ -218,9 +219,7 @@ export async function runLayerAnalysis(
  */
 export function runVisibleRasterAnalyses(geom: SelectedGeometry, seq: number): void {
   const state = useStore.getState()
-  const rasters = state.layers.filter(
-    (l): l is RasterLayerConfig => l.type === 'raster' && l.visible,
-  )
+  const rasters = state.layers.filter(isMeasuredRaster)
 
   for (const { layer, date } of pendingAnalyses({
     rasters,

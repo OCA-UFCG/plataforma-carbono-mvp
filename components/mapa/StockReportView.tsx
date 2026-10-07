@@ -15,7 +15,7 @@ const MAX_FATIAS = 7
 
 // Pools follow the configuration order; the color is the brand's, from the green
 // of the living part to the terracotta of the soil.
-const COR_POOL = ['#597636', '#6b7d34', '#8a9b4a', '#c9a227', '#a66a2e']
+export const COR_POOL = ['#597636', '#6b7d34', '#8a9b4a', '#c9a227', '#a66a2e']
 
 const COR_CLASSE = new Map(fitofisionomia.classes.map((c) => [c.sigla, c.cor]))
 
@@ -153,7 +153,7 @@ function Cartao({
   )
 }
 
-function Rosca({
+export function Rosca({
   titulo, fatias, total, theme,
 }: {
   titulo: string; fatias: Fatia[]; total: number; theme: PlatformTheme
@@ -195,7 +195,10 @@ function Rosca({
         {/* `minWidth: 0` because a flex item's default `min-width` is `auto`,
             i.e. its min-content width — without it the legend cannot shrink and
             pushes the whole row past its container. */}
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, minWidth: 0, display: 'grid', gap: 3 }}>
+        {/* `minmax(0, 1fr)`: an implicit grid track sizes to the widest item's
+            min-content, the full label plus the percentage, and the ellipsis
+            below never engages. */}
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 3 }}>
           {fatias.map((f) => (
             <li key={f.nome} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}>
               <span
@@ -218,7 +221,7 @@ function Rosca({
               </span>
               <span
                 style={{
-                  color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums',
+                  color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums', flexShrink: 0,
                 }}
               >
                 {nf1.format((100 * f.tc) / total)}%

@@ -63,7 +63,6 @@ export default function LayerInfoCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        {meta && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.dim, background: c.mist, borderRadius: 5, padding: '2px 8px' }}>{meta.kind}</span>}
         {layer.visible && <span style={{ fontSize: 11.5, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 5, padding: '2px 8px' }}>Ativa</span>}
         <button onClick={onClose} aria-label="Fechar ficha" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 2, display: 'flex' }}><IcX size={15} /></button>
       </div>
