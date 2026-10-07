@@ -35,7 +35,7 @@ export const DEFAULT_EVENTOS: Evento[] = [
     date: '2026-09-17',
     local: 'Museu Interativo do Semiárido, UFCG',
     description:
-      'O Observatório da Caatinga e Desertificação (OCA) participou de encontro com a delegação tunisiana do Projeto ReGnR – Fortalecimento da Resiliência Climática por meio da Governança dos Recursos Naturais, em uma agenda de intercâmbio e parceria entre Brasil e Tunísia. A visita visou promover o diálogo entre Brasil e Tunísia sobre experiências, desafios comuns às regiões semiáridas e possibilidades de cooperação institucional.',
+      'Em encontro com a delegação tunisiana do Projeto ReGnR – Fortalecimento da Resiliência Climática por meio da Governança dos Recursos Naturais, a Caativar foi apresentada como uma iniciativa voltada à valorização da Caatinga, ao fortalecimento dos territórios e à geração de oportunidades de renda associadas à conservação do bioma. O encontro também promoveu o diálogo sobre experiências e desafios comuns às regiões semiáridas, além de possibilidades de cooperação institucional entre os dois países.',
     photo: '/images/eventos/encontro-brasil-tunisia.jpg',
     photoAlt: 'Plateia sentada em um auditório, com pessoas em pé ao fundo da sala',
     caption: 'Pesquisadores da UFCG com a comissão tunisiana. Fonte: peasa.ufcg.edu.br, 2026',
@@ -46,7 +46,7 @@ export const DEFAULT_EVENTOS: Evento[] = [
     date: '2026-09-15',
     local: 'Online',
     description:
-      'A reunião entre representantes do Ministério dos Povos Indígenas (MPI) e do Observatório da Caatinga e Desertificação da Universidade Federal de Campina Grande (OCA/UFCG), foi realizada por videoconferência. O encontro teve como objetivo aproximar as instituições e identificar possibilidades de cooperação relacionadas ao mercado de carbono, à desertificação, à adaptação climática e à proteção dos territórios indígenas localizados na Caatinga.',
+      'Como parte das articulações da Caativar, pesquisadores do Observatório da Caatinga e Desertificação da Universidade Federal de Campina Grande (OCA/UFCG) se reuniram com representantes do Ministério dos Povos Indígenas (MPI), por videoconferência, para discutir possibilidades de cooperação. Na agenda foram abordados temas estratégicos para a Caatinga, como mercado de carbono, desertificação, adaptação climática e proteção dos territórios indígenas.',
     photo: '/images/eventos/reuniao-mpi.jpg',
     photoAlt: 'Captura de tela de uma videoconferência com os participantes em mosaico',
     caption:

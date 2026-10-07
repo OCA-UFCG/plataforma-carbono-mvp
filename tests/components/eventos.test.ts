@@ -17,7 +17,7 @@ describe('EventoCard', () => {
     expect(markup).toContain('>Internacional</span>')
     expect(markup).toMatch(/<h3[^>]*>Encontro Brasil e Tunísia<\/h3>/)
     expect(markup).toContain('<time dateTime="2026-09-17">17 set 2026</time> · Museu Interativo do Semiárido, UFCG')
-    expect(markup).toContain('O Observatório da Caatinga e Desertificação (OCA) participou')
+    expect(markup).toContain('Em encontro com a delegação tunisiana do Projeto ReGnR')
     expect(markup).toContain('Fonte: peasa.ufcg.edu.br, 2026')
     expect(markup).toContain('alt="Plateia sentada em um auditório')
   })
