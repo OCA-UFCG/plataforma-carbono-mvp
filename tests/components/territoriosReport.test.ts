@@ -113,12 +113,12 @@ describe('ReportActions', () => {
 
 describe('ReportBand', () => {
   it('lays the actions beside the titles only when there are some', () => {
-    const plain = html(ReportBand, { eyebrow: 'Territórios', title: 'Que território você quer conhecer?', headingRef: null })
+    const plain = html(ReportBand, { title: 'Que território você quer conhecer?', headingRef: null })
     expect(plain).not.toContain('territorios-secao-faixa--acoes')
     expect(plain).toContain('<h2 id="territorios-secao-titulo" tabindex="-1" class="territorios-secao-titulo text-h2">')
 
     const withActions = html(ReportBand, {
-      eyebrow: 'Territórios', title: 'Juazeiro (BA)', headingRef: null, children: createElement('span', null, 'ações'),
+      title: 'Juazeiro (BA)', headingRef: null, children: createElement('span', null, 'ações'),
     })
     expect(withActions).toContain('territorios-secao-faixa--acoes')
   })
