@@ -169,9 +169,8 @@ preenchimento mostra, colunas 794 a 3575 e linhas 675 a 2719 (proporção 1,36, 
 reduzida para 596×438. A conversão (Pillow, WebP qualidade 80, `exif=b''`) descarta todos os
 metadados, inclusive o GPS; não publicar o original.
 
-Os ícones das perguntas numeradas (`public/icons/sobre/`) são os SVGs exportados do Figma sem
-alteração. Dois deles ("paid" e "calendar month") vêm em duas camadas, um quadro vazio de 85 px e
-o glifo posicionado dentro dele; as duas são usadas como o design as compõe.
+Os ícones das perguntas numeradas de "Entenda essa relação" foram removidos do projeto junto com a
+seção, em 06/10/2026; nenhum deles existe mais em `public/icons/sobre/`.
 
 Os ícones da página de publicação (`public/icons/conteudo/`) são os SVGs exportados do Figma (frame 19015:13056) sem alteração de desenho: a seta de "Voltar", as lupas de zoom, a tela cheia e o download. O download é a exceção de exportação: o `get_design_context` devolve para esse nó o ícone padrão do componente (um envelope), e não o trocado na instância, então o arquivo é o caminho do ícone tirado do SVG do botão inteiro, recortado por `viewBox` no quadro de 16 px que ele ocupa.
 

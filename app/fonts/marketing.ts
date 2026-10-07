@@ -6,11 +6,10 @@ import localFont from 'next/font/local'
 // OFL-Rubik.txt, OFL-ArchivoNarrow.txt, OFL-Inter.txt and OFL-Archivo.txt.
 
 // Body text. The file is Google's whole variable font (300-900); the declared
-// range is the one the code uses, up to the ExtraBold 800 of the question tile
-// numbers (Figma 18988:8889, QuestionTile.module.css).
+// range is the one the code uses, up to Bold 700.
 export const rubik = localFont({
   src: './Rubik-Variable-latin.woff2',
-  weight: '400 800',
+  weight: '400 700',
   variable: '--font-sans',
   display: 'swap',
 })

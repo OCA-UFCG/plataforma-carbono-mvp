@@ -59,13 +59,8 @@ const PAIRS: [string, string][] = [
   // Comunicação page (issue #49): the PDF badge and the type chip.
   ['--role-categorica2-texto-sobre', '--role-categorica2-padrao'],
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
-  // "Entenda essa relação" (issue #51): the law figures, the red card's text,
-  // the question tiles and their numbers.
-  ['--role-categorica2-padrao', '--role-categorica2-container'],
-  ['--bg-texto-primario', '--role-categorica2-container'],
+  // "Entenda essa relação" (issue #51): the red card's text.
   ['--bg-texto-primario', '--ctx-negativo-container'],
-  ['--role-categorica1-padrao', '--am-050'],
-  ['--ctx-informativo-texto-sobre', '--role-categorica1-padrao'],
   // "Conheça a plataforma" (issue #47): the icon cards' heading and text.
   ['--role-categorica1-hover', '--role-categorica1-container'],
   ['--bg-texto-primario', '--role-categorica1-container'],
