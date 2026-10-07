@@ -14,6 +14,7 @@ import {
   formatArea,
   formatPercent,
   formatTonnes,
+  formatTonnesInWords,
   landUseChart,
   landUseGroupShares,
   rainChart,
@@ -224,6 +225,16 @@ describe('formatting for the visitor', () => {
     expect(formatTonnes(2_727_845)).toBe('2,7 milhões de t')
     expect(formatTonnes(4_160_240_473)).toBe('4,2 bilhões de t')
     expect(tonnesParts(211_419)).toEqual({ value: '211', unit: 'mil t' })
+  })
+
+  it('spells the tonnes out, singular only for a bare tonne below 2', () => {
+    expect(formatTonnesInWords(0.4)).toBe('menos de 1 tonelada')
+    expect(formatTonnesInWords(1.2)).toBe('1 tonelada')
+    expect(formatTonnesInWords(999)).toBe('999 toneladas')
+    expect(formatTonnesInWords(1_234)).toBe('1,2 mil toneladas')
+    expect(formatTonnesInWords(1_500_000)).toBe('1,5 milhão de toneladas')
+    expect(formatTonnesInWords(2_727_845)).toBe('2,7 milhões de toneladas')
+    expect(formatTonnesInWords(4_160_240_473)).toBe('4,2 bilhões de toneladas')
   })
 
   it('writes percents whole from 10 up and with one decimal below', () => {

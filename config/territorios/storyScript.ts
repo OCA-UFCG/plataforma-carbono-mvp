@@ -5,7 +5,7 @@
 // file alone.
 //
 // A step shows a question of at most ten words, a big figure and an answer of
-// at most twenty, and compares the territory with the whole Caatinga in the
+// at most twenty-one, and compares the territory with the whole Caatinga in the
 // words "acima", "abaixo" and "perto". Sources, periods, definitions and
 // caveats wait in "Sobre os dados", at the end.
 
@@ -140,7 +140,7 @@ export const ANSWER_SCRIPT = {
     unit:    't de carbono por hectare',
     compare: (reading: Reading, biome: string) =>
       `${READING_OPENING[reading]} da Caatinga (${biome} t por hectare).`,
-    total:   (tonnes: string) => `No total, ${tonnes}.`,
+    total:   (tonnes: string) => `No total, ${tonnes} de carbono.`,
     noData:  'Sem dado de carbono para esta área.',
   },
   fluxo: {

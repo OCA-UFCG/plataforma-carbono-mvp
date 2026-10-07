@@ -125,6 +125,17 @@ export function formatTonnes(t: number): string {
   return joinParts(tonnesParts(t))
 }
 
+/**
+ * `formatTonnes` with the "t" spelled out: "812 toneladas", "462 mil
+ * toneladas", "2,7 milhões de toneladas". Only a bare tonne agrees with its
+ * number: "1 tonelada", "menos de 1 tonelada", but "1,5 milhão de toneladas".
+ */
+export function formatTonnesInWords(t: number): string {
+  const { value, unit } = tonnesParts(t)
+  const singular = unit === 't' && (value === '1' || value === 'menos de 1')
+  return `${value} ${unit.replace(/t$/, singular ? 'tonelada' : 'toneladas')}`
+}
+
 // Territory
 
 export function biomeAreaSharePct(territory: TerritoryPayload): number {
