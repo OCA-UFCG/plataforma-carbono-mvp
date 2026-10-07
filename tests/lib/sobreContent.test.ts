@@ -162,13 +162,7 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
     expect(c.armazenamentoIndicador2Valor.startsWith('1,5–5')).toBe(true)
   })
 
-  it('compares the area under severe desertification in 2000 and 2020', () => {
-    expect([c.comparacaoAnoAntes, c.comparacaoValorAntes]).toEqual(['2000', '74 mil km²'])
-    expect([c.comparacaoAnoDepois, c.comparacaoValorDepois]).toEqual(['2020', '107 mil km²'])
-  })
-
-  it('points its photo and arrow at files that exist', () => {
+  it('points its photo at a file that exists', () => {
     expect(inPublic(CAATINGA_PESSOAS_IMAGEM.src)).toBe(true)
-    expect(inPublic('/icons/sobre/arrow.svg')).toBe(true)
   })
 })

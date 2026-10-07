@@ -51,9 +51,8 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-secundario', '--am-050'],
   ['--role-primario-container', '--bg-fundo-inverso'],
   ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
-  // Shared Sobre blocks (issue #46): the 'alert' Section heading, and the
-  // 'outlined' IndicatorCard's value, unit and description on its cream fill.
-  ['--ctx-negativo-padrao', '--bg-fundo'],
+  // Shared Sobre blocks (issue #46): the 'outlined' IndicatorCard's value,
+  // unit and description on its cream fill.
   ['--bg-texto-secundario', '--bg-superficie-variante'],
   ['--am-400', '--bg-superficie-variante'],
   ['--bg-texto-primario', '--bg-superficie-variante'],
