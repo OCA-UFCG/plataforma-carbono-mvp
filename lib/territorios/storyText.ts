@@ -29,6 +29,7 @@ import {
   formatNumber,
   formatPercent,
   formatTonnes,
+  formatTonnesInWords,
   landUseChart,
   rainChart,
   rainComparison,
@@ -156,7 +157,7 @@ function stockAnswer({ response, territory, type }: StepInput): Answer {
     headline: { value: formatNumber(here), unit: s.unit },
     sentence: joinSentences(
       cmp && s.compare(cmp.reading, formatNumber(cmp.reference)),
-      s.total(formatTonnes(data.report.totalTc)),
+      s.total(formatTonnesInWords(data.report.totalTc)),
     ),
   }
 }

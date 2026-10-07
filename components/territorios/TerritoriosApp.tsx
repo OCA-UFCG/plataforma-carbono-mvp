@@ -394,7 +394,11 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
   return (
     <section ref={sectionRef} className="territorios-secao" aria-labelledby="territorios-secao-titulo">
-      <ReportBand eyebrow={INTRO.eyebrow} title={bandTitle} headingRef={bandHeadingRef}>
+      <ReportBand
+        title={bandTitle}
+        headingRef={bandHeadingRef}
+        lead={screen === 'intro' ? INTRO.lead : undefined}
+      >
         {screen !== 'intro' && type && (
           <ReportActions
             type={type}
