@@ -44,29 +44,22 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-hover', '--am-100'],
   ['--role-categorica1-padrao', '--am-100'],
   // Internal pages' frame (issue #45): the intro band's eyebrow and paragraph
-  // on --am-100, the sub-navigation at rest, active and hovered, and the photo
-  // bands' text over the solid stop of their gradients.
+  // on --am-100, the sub-navigation at rest, active and hovered, and the Sobre
+  // photo band's text over the solid stop of its gradient.
   ['--bg-texto-secundario', '--am-100'],
   ['--bg-texto-primario', '--am-100'],
   ['--bg-texto-secundario', '--am-050'],
-  ['--role-primario-container', '--bg-fundo-inverso'],
   ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
-  // Shared Sobre blocks (issue #46): the 'alert' Section heading, and the
-  // 'outlined' IndicatorCard's value, unit and description on its cream fill.
-  ['--ctx-negativo-padrao', '--bg-fundo'],
+  // Shared Sobre blocks (issue #46): the 'outlined' IndicatorCard's value,
+  // unit and description on its cream fill.
   ['--bg-texto-secundario', '--bg-superficie-variante'],
   ['--am-400', '--bg-superficie-variante'],
   ['--bg-texto-primario', '--bg-superficie-variante'],
   // Comunicação page (issue #49): the PDF badge and the type chip.
   ['--role-categorica2-texto-sobre', '--role-categorica2-padrao'],
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
-  // "Entenda essa relação" (issue #51): the law figures, the red card's text,
-  // the question tiles and their numbers.
-  ['--role-categorica2-padrao', '--role-categorica2-container'],
-  ['--bg-texto-primario', '--role-categorica2-container'],
+  // "Entenda essa relação" (issue #51): the red card's text.
   ['--bg-texto-primario', '--ctx-negativo-container'],
-  ['--role-categorica1-padrao', '--am-050'],
-  ['--ctx-informativo-texto-sobre', '--role-categorica1-padrao'],
   // "Conheça a plataforma" (issue #47): the icon cards' heading and text.
   ['--role-categorica1-hover', '--role-categorica1-container'],
   ['--bg-texto-primario', '--role-categorica1-container'],

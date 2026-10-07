@@ -38,7 +38,7 @@ export default async function SobrePlataformaPage() {
           </div>
         </div>
       </div>
-      <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} tone="warm" />
+      <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} />
     </>
   );
 }

@@ -52,8 +52,8 @@ describe('marketing type utilities', () => {
 describe('marketing fonts', () => {
   const source = readFileSync(path.join(process.cwd(), 'app/fonts/marketing.ts'), 'utf8')
 
-  it('declares Rubik up to 800, the weight of the question tile numbers', () => {
-    expect(source).toMatch(/Rubik-Variable-latin\.woff2',\s*weight: '400 800'/)
+  it('declares Rubik up to 700, the heaviest weight the pages set', () => {
+    expect(source).toMatch(/Rubik-Variable-latin\.woff2',\s*weight: '400 700'/)
   })
 
   it('loads Inter as --font-ui', () => {

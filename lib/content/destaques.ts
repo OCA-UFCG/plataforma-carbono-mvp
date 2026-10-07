@@ -1,30 +1,30 @@
 import { defineCopy, line, type Copy } from './site/model'
 
-// The four highlight cards, copy taken from the Figma home frame (18862:8538).
+// The four highlight cards of the Figma home frame (18862:8538).
 // Numbers are kept apart from their units because the card renders them at
 // different sizes. Editors change the words in Contentful; the icons, and so
 // the number of cards, stay here.
 //
-// Each card has its own icon, exported from the Figma home of 2026-10-06
-// (working copy QP5obFCTTfjCSMVO8VgOc7, cards 19254:16784): "People",
-// "Efeito Estufa", "co2" and "Remoção carbono", in card order. Until then all
-// four drew the same "Map" glyph.
-//
-// The first two cards carry the copy of the content doc's 2026-10-05 meeting.
-// The second is back to the design's 40% of the greenhouse gases removed in
-// Brazil in 2022, which the content doc's bulletin sources to Climate TRACE
-// (2022): 410 Mt CO2e, the figure /sobre/caatinga gives. It replaces the 48%
-// of gross carbon removal the previous landing carried, a different metric
-// (DA COSTA et al., 2025; MENDES et al., 2023; 2025). The card has no field to
-// display a source — the design's card has no source line — so it is recorded
+// The copy below is the Contentful entry as editors left it on 2026-10-06:
+// "Área" opens the row and "Eficiência no uso de carbono" closes it, where the
+// design had "Capacidade de remoção". The removal card gives 38% of the
+// greenhouse gases removed in Brazil in 2022, as /sobre/caatinga does (Costa
+// et al., 2025); the card has no field to display a source, so it is recorded
 // here.
+//
+// Each card has its own icon, white on the card's green header, named for its
+// glyph. "Área" and "Eficiência" are Material Symbols ("map_search",
+// "chart_data", 24dp, weight 400), recoloured from #1f1f1f, chosen on
+// 2026-10-06. "População" has the Figma home's "People" and "Remoção" its
+// "co2" (cards 19254:16784). The icons follow the cards by position, so a
+// card moved in Contentful must be moved here too.
 
 // One per card, in the order the cards show.
 export const DESTAQUES_ICONES = [
-  '/icons/destaques/populacao.svg',
-  '/icons/destaques/remocao.svg',
-  '/icons/destaques/eficiencia.svg',
-  '/icons/destaques/capacidade.svg',
+  '/icons/destaques/map-search.svg',
+  '/icons/destaques/people.svg',
+  '/icons/destaques/co2.svg',
+  '/icons/destaques/chart-data.svg',
 ]
 
 export const INICIO_DESTAQUES = defineCopy({
@@ -34,22 +34,22 @@ export const INICIO_DESTAQUES = defineCopy({
     'Os quatro cartões de números da página inicial, na ordem em que aparecem. Há uma única entrada deste tipo: edite-a, não crie outra.',
   fields: {
     titulo: line('Título da seção', 'Destaques'),
-    card1Rotulo: line('Cartão 1 · Rótulo', 'População'),
-    card1Numero: line('Cartão 1 · Número', '26'),
-    card1Unidade: line('Cartão 1 · Unidade', 'milhões'),
-    card1Texto: line('Cartão 1 · Texto', 'de pessoas vivem no bioma Caatinga.'),
-    card2Rotulo: line('Cartão 2 · Rótulo', 'Remoção de carbono'),
-    card2Numero: line('Cartão 2 · Número', '40'),
-    card2Unidade: line('Cartão 2 · Unidade', '%'),
-    card2Texto: line('Cartão 2 · Texto', 'dos gases de efeito estufa removidos no país em 2022 foi pelo bioma.'),
-    card3Rotulo: line('Cartão 3 · Rótulo', 'Eficiência de carbono'),
-    card3Numero: line('Cartão 3 · Número', '60'),
+    card1Rotulo: line('Cartão 1 · Rótulo', 'Área'),
+    card1Numero: line('Cartão 1 · Número', '≅850'),
+    card1Unidade: line('Cartão 1 · Unidade', 'mil km²'),
+    card1Texto: line('Cartão 1 · Texto', 'de extensão, abrangendo 9 estados'),
+    card2Rotulo: line('Cartão 2 · Rótulo', 'População'),
+    card2Numero: line('Cartão 2 · Número', '≅26'),
+    card2Unidade: line('Cartão 2 · Unidade', 'milhões'),
+    card2Texto: line('Cartão 2 · Texto', 'de pessoas vivem no bioma Caatinga'),
+    card3Rotulo: line('Cartão 3 · Rótulo', 'Remoção de carbono'),
+    card3Numero: line('Cartão 3 · Número', '38'),
     card3Unidade: line('Cartão 3 · Unidade', '%'),
-    card3Texto: line('Cartão 3 · Texto', 'de eficiência no uso do carbono, uma das maiores do Brasil e do mundo.'),
-    card4Rotulo: line('Cartão 4 · Rótulo', 'Capacidade de remoção'),
-    card4Numero: line('Cartão 4 · Número', '1,5–5'),
-    card4Unidade: line('Cartão 4 · Unidade', 't CO₂/ha/ano'),
-    card4Texto: line('Cartão 4 · Texto', 'de capacidade de remoção de carbono.'),
+    card3Texto: line('Cartão 3 · Texto', 'dos gases de efeito estufa removidos no país em 2022 foi pelo bioma'),
+    card4Rotulo: line('Cartão 4 · Rótulo', 'Eficiência no uso de carbono'),
+    card4Numero: line('Cartão 4 · Número', '60'),
+    card4Unidade: line('Cartão 4 · Unidade', '%'),
+    card4Texto: line('Cartão 4 · Texto', 'do carbono capturado não volta para a atmosfera'),
   },
 })
 

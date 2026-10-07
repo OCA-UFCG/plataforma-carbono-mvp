@@ -13,10 +13,10 @@ describe('destaques content', () => {
 
   it('separates the figure from its unit, so the card can size them apart', () => {
     // The design sets the number at display size and the unit at body size.
-    expect(DESTAQUES[0].numero).toBe('26')
-    expect(DESTAQUES[0].unidade).toBe('milhões')
-    expect(DESTAQUES[3].numero).toBe('1,5–5')
-    expect(DESTAQUES[3].unidade).toBe('t CO₂/ha/ano')
+    expect(DESTAQUES[0].numero).toBe('≅850')
+    expect(DESTAQUES[0].unidade).toBe('mil km²')
+    expect(DESTAQUES[1].numero).toBe('≅26')
+    expect(DESTAQUES[1].unidade).toBe('milhões')
   })
 
   it('writes figures in Brazilian Portuguese notation', () => {
