@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { SHIPPED_STORY_SCRIPT, storyScript } from '@/config/territorios/storyScript'
 import { getContentfulClient, isContentfulConfigured } from '@/lib/contentful'
 import {
   DEFAULT_CADERNO,
@@ -8,8 +9,10 @@ import {
   listPublicacoes,
 } from '@/lib/content/comunicacao'
 import { EVENTOS_QUERY } from '@/lib/content/eventos'
-import { copyQuery } from '@/lib/content/site/fetch'
+import { copyQuery, loadSiteCopy } from '@/lib/content/site/fetch'
+import { rejectedFields } from '@/lib/content/site/model'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
+import { TERRITORIOS_COPY } from '@/lib/content/territorios'
 
 // Smoke test against the real space: it is the only check that catches the
 // content model drifting away from the query, which the GraphQL API only reports
@@ -86,6 +89,29 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
 
     for (const type of SITE_COPY_TYPES) {
       expect(response[type.id]?.items, type.id).toHaveLength(1)
+    }
+  })
+
+  // The page swaps a text naming an unknown placeholder for the shipped one
+  // without a word; here the swap is an error the editor can act on.
+  it('names in every template only the placeholders its field fills', async () => {
+    const types = Object.fromEntries(SITE_COPY_TYPES.map((type) => [type.id, type]))
+    const response = await getContentfulClient()!<Record<string, { items: Record<string, unknown>[] }>>(copyQuery(types))
+
+    for (const type of SITE_COPY_TYPES) {
+      const entry = response[type.id]?.items[0]
+      if (entry) expect(rejectedFields(type, entry), type.id).toEqual([])
+    }
+  })
+
+  // tests/lib/territoriosStoryText.test.ts holds the shipped questions to ten
+  // words; an editor's question meets that check only here.
+  it("keeps the story's questions within ten words", async () => {
+    const script = storyScript(await loadSiteCopy(TERRITORIOS_COPY, getContentfulClient()))
+
+    expect(Object.keys(script.questions)).toEqual(Object.keys(SHIPPED_STORY_SCRIPT.questions))
+    for (const question of Object.values(script.questions)) {
+      expect(question.split(/\s+/).filter(Boolean).length, question).toBeLessThanOrEqual(10)
     }
   })
 
