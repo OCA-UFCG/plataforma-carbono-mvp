@@ -19,7 +19,7 @@ import type { BiomeReference, TerritoryPayload, TerritoryTypeId, ThemeResponse }
 // The panels read the story's words from the provider the page puts above
 // them; without a copy of its own, a test renders the shipped one.
 const html = <P extends object>(component: ComponentType<P>, props: P, copy: TerritoriosCopy = territoriosCopyDefaults()) =>
-  renderToStaticMarkup(createElement(StoryScriptProvider, { copy, children: createElement(component, props) }))
+  renderToStaticMarkup(createElement(StoryScriptProvider, { copy }, createElement(component, props)))
 
 const noop = () => {}
 const typeOf = (id: TerritoryTypeId): TerritoryType => TERRITORY_TYPES.find((t) => t.id === id)!

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, type PropsWithChildren } from 'react'
 import { storyScript, type StoryScript } from '@/config/territorios/storyScript'
 import type { TerritoriosCopy } from '@/lib/content/territorios'
 
@@ -11,7 +11,7 @@ const StoryScriptContext = createContext<StoryScript | null>(null)
  * server and sends plain strings, since functions do not cross into a client
  * component; the script, with its templates, is built here once.
  */
-export function StoryScriptProvider({ copy, children }: { copy: TerritoriosCopy; children: React.ReactNode }) {
+export function StoryScriptProvider({ copy, children }: PropsWithChildren<{ copy: TerritoriosCopy }>) {
   const script = useMemo(() => storyScript(copy), [copy])
   return <StoryScriptContext.Provider value={script}>{children}</StoryScriptContext.Provider>
 }
