@@ -4,11 +4,12 @@ import { useLayoutEffect, useRef } from 'react'
 import PanelNav from './PanelNav'
 import StepChart from './StepChart'
 import StepIcon from './StepIcon'
+import { useStoryScript } from './StoryScriptContext'
 import type { LandUseYear } from './StoryMap'
 import StepFigure from './charts/StepFigure'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
-import { SHIPPED_STORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { UI } from '@/config/territorios/storyScript'
 import { nextStep, sectionId } from '@/lib/territorios/storyTabs'
 import { stepAnswer, territoryIndicators } from '@/lib/territorios/storyText'
 import type { StepId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
@@ -45,10 +46,11 @@ export default function ThemeStep({
   step, territory, type, load, expired, onRetry, onBack, onNext, landUseYear,
 }: ThemeStepProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
+  const script = useStoryScript()
   const color = STEP_COLORS[step]
   const theme = step === 'territorio' ? null : load
   const response = theme?.kind === 'ready' ? theme.response : undefined
-  const answer = stepAnswer(step, { territory, type, response, script: SHIPPED_STORY_SCRIPT })
+  const answer = stepAnswer(step, { territory, type, response, script })
   const next = nextStep(step)
 
   // The chart that replaces "Carregando" pushes the buttons down, and a focused
@@ -84,7 +86,7 @@ export default function ThemeStep({
         </div>
         {step === 'territorio' && (
           <ul className="territorios-indicadores">
-            {territoryIndicators({ territory, type, script: SHIPPED_STORY_SCRIPT }).map((item) => (
+            {territoryIndicators({ territory, type, script }).map((item) => (
               <li key={item.text} className="territorios-indicador">
                 <p className="territorios-indicador-valor">{item.value}</p>
                 <p className="territorios-indicador-texto">{item.text}</p>

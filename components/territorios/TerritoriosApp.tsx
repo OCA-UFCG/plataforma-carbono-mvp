@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReportActions, { type LocationBadge } from './ReportActions'
 import ReportBand from './ReportBand'
 import ReportTabs from './ReportTabs'
+import { useStoryScript } from './StoryScriptContext'
 import StorySummary from './StorySummary'
 import type { LandUseYear } from './StoryMap'
 import ThemeStep, { type ThemeLoad } from './ThemeStep'
@@ -19,7 +20,7 @@ import {
   type TerritoryType,
 } from '@/config/territorios/story'
 import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
-import { SHIPPED_STORY_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
@@ -98,6 +99,7 @@ function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; 
  */
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
   const pathname = usePathname()
+  const script = useStoryScript()
   const [type, setType] = useState<TerritoryType | null>(() => typeOf(initialRecorte))
   const [featureId, setFeatureId] = useState(() => {
     const restored = typeOf(initialRecorte)
@@ -385,7 +387,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context)
     : null
   // The report names its territory; the gallery and the chooser keep the section's question.
-  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : SHIPPED_STORY_SCRIPT.intro.title
+  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : script.intro.title
   const location: LocationBadge | null | undefined =
     screen === 'search' ? null
       : isBioma ? { value: REPORT.biomeLocation, onEdit: null }
@@ -397,7 +399,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
       <ReportBand
         title={bandTitle}
         headingRef={bandHeadingRef}
-        lead={screen === 'intro' ? SHIPPED_STORY_SCRIPT.intro.lead : undefined}
+        lead={screen === 'intro' ? script.intro.lead : undefined}
       >
         {screen !== 'intro' && type && (
           <ReportActions
