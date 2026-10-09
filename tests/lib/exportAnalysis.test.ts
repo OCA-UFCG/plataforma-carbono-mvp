@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  analysisFilename,
   buildAnalysisCsv,
   type AnalysisSnapshot,
   type LayerSnapshot,
@@ -389,5 +390,14 @@ describe('buildAnalysisCsv', () => {
     })
 
     expect(csv).toContain('2023;1669,1;g C/m²/ano')
+  })
+})
+
+describe('analysisFilename', () => {
+  it('gives the JPEG the same name as the CSV of the same analysis', () => {
+    expect(analysisFilename(base, 'jpg')).toBe(
+      'caativar_carbono-organico-do-solo-0-30-cm_petrolina_2026-08-24.jpg',
+    )
+    expect(analysisFilename(base, 'csv')).toBe(buildAnalysisCsv(base).filename)
   })
 })
