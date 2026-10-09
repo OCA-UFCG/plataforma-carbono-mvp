@@ -1,18 +1,14 @@
-// Every string of the screens around the Territórios story: the section's title
-// band, its badges and tabs, the gallery of types, and the chooser where one
-// territory of a type is picked on the map, by location or by name. The
-// story's own strings live in storyScript.ts.
+// Every string of the screens around the Territórios story: the section's
+// badges and tabs (its title and lead are copy, in lib/content/territorios.ts),
+// the gallery of types, and the chooser where one territory of a type is
+// picked on the map, by location or by name. The story's own strings live in
+// storyScript.ts.
 
 import { numero } from '@/lib/mapa/format'
 import type { TerritoryTypeId } from '@/types/territorios'
 
 export const INTRO = {
-  title:   'Que território você quer conhecer?',
-  /** Under the title on the gallery only (Figma 19272:42557). */
-  lead:    'Conheça o território do seu interesse em um panorama rápido e acessível sobre estoque e fluxo de carbono, uso da terra, ocorrência de fogo e chuva.',
   changeType: 'Trocar tipo',
-  /** Over the gallery of types (Figma 19254:37354). */
-  chooseCut: 'Escolha o recorte',
 }
 
 export const CHOOSER = {

@@ -18,8 +18,8 @@ import {
   territoryTypeByRecorte,
   type TerritoryType,
 } from '@/config/territorios/story'
-import { CHOOSER, INTRO, REPORT } from '@/config/territorios/chooserScript'
-import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
+import { SHIPPED_STORY_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
@@ -385,7 +385,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context)
     : null
   // The report names its territory; the gallery and the chooser keep the section's question.
-  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : INTRO.title
+  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : SHIPPED_STORY_SCRIPT.intro.title
   const location: LocationBadge | null | undefined =
     screen === 'search' ? null
       : isBioma ? { value: REPORT.biomeLocation, onEdit: null }
@@ -397,7 +397,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
       <ReportBand
         title={bandTitle}
         headingRef={bandHeadingRef}
-        lead={screen === 'intro' ? INTRO.lead : undefined}
+        lead={screen === 'intro' ? SHIPPED_STORY_SCRIPT.intro.lead : undefined}
       >
         {screen !== 'intro' && type && (
           <ReportActions

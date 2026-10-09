@@ -1,14 +1,23 @@
-// Every string of the Territórios story.
+// The strings of the Territórios story.
+//
+// Editors keep the story's words in Contentful (lib/content/territorios.ts);
+// storyScript(), at the end of this file, turns that copy into the templates
+// lib/territorios/storyText.ts fills, with the years of each series from
+// config/territorios/story.ts. What stays here is what the copy leaves in
+// code: interface labels, the answers and summary sentences (for now), the
+// chart descriptions read by screen readers, the summary's badges and the
+// grammar tables.
 //
 // Templates receive values already formatted by lib/territorios/storyValues.ts;
-// lib/territorios/storyText.ts picks the variant, so a copy review reads this
-// file alone.
+// lib/territorios/storyText.ts picks the variant.
 //
 // A step shows a question of at most ten words, a big figure and an answer of
 // at most twenty-one, and compares the territory with the whole Caatinga in the
 // words "acima", "abaixo" and "perto". Sources, periods, definitions and
 // caveats wait in "Sobre os dados", at the end.
 
+import { fillPlaceholders as fill } from '@/lib/content/site/model'
+import { territoriosCopyDefaults, type TerritoriosCopy } from '@/lib/content/territorios'
 import { numero } from '@/lib/mapa/format'
 import { displayName } from '@/lib/territorios/featureIds'
 import {
@@ -93,16 +102,6 @@ export const STATE_LOCATIVE: Record<string, string> = {
   SE: 'em Sergipe',
 }
 
-/** Shown as soon as the step opens, before its data arrives. */
-export const STEP_QUESTIONS: Record<Exclude<StepId, 'resumo'>, string> = {
-  territorio: 'Onde fica e qual é o tamanho?',
-  estoque:    'Quanto carbono a vegetação original guardaria aqui?',
-  fluxo:      'As áreas com árvores tiraram ou lançaram carbono do ar?',
-  uso:        `Como mudou a vegetação nativa desde ${LAND_USE_FIRST}?`,
-  fogo:       `Quanto daqui já queimou desde ${FIRE_FIRST_YEAR}?`,
-  chuva:      `${RAIN_LAST_YEAR} foi um ano seco ou chuvoso aqui?`,
-}
-
 /** A reading on the final sheet. */
 export const READING_LABELS: Record<Reading, string> = {
   acima:  'Acima da Caatinga',
@@ -180,13 +179,6 @@ export const ANSWER_SCRIPT = {
 
 /** Lines of the final sheet, where the stock unit shortens to "t C". */
 export const SUMMARY_ROW_SCRIPT = {
-  titles: {
-    estoque:    'Carbono da vegetação original',
-    fluxo:      'Carbono trocado com o ar',
-    uso:        'Vegetação nativa',
-    fogo:       'Área que já queimou',
-    chuva:      'Chuva',
-  } satisfies Record<ThemeId, string>,
   estoque: {
     // No-break spaces keep "t C" and its number on one line.
     unit:  't C por hectare',
@@ -236,52 +228,6 @@ export const SUMMARY_ROW_SCRIPT = {
   },
 }
 
-/**
- * "Sobre os dados", at the end: everything the steps leave out. At most 250
- * words with every conditional sentence in (tests/lib/territoriosStoryText.test.ts).
- */
-export const ABOUT_SCRIPT = {
-  title: 'Sobre os dados',
-  territorio: {
-    title: 'Território',
-    text:  'Área dentro do limite da Caatinga, segundo o IBGE (2019).',
-  },
-  estoque: {
-    title: 'Estoque',
-    text:  'Quarto Inventário Nacional, em quadrados de 100 m. Carbono que a vegetação original guardaria, sem descontar o uso atual da terra; inclui o carbono do solo.',
-    /** Where the inventory has no pixel, the total leaves that part out. */
-    coverage: (pct: string) => `O inventário cobre ${pct} desta área; o total vale só para essa parte.`,
-  },
-  fluxo: {
-    title: 'Fluxo',
-    text:  `Global Forest Watch, versão 1.4.2, 30 m; saldo de ${FLUX_FIRST_YEAR} a ${FLUX_LAST_YEAR}. Áreas com árvores: copas cobrindo mais de 30% do chão em 2000, ou ganho de copas de 2000 a 2020.`,
-  },
-  uso: {
-    title: 'Uso da terra',
-    text:  `MapBiomas, coleção 10.1, 30 m, ${LAND_USE_FIRST} e ${LAND_USE_LAST}. Vegetação nativa: formações florestal, savânica e campestre, mangue, floresta alagável, restingas, campo alagado e apicum. Agropecuária inclui áreas de lavoura e pasto misturados.`,
-  },
-  fogo: {
-    title: 'Fogo',
-    text:  `MapBiomas Fogo, coleção 3, 30 m, ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}. Frequência: número de anos com cicatriz de fogo. Área queimada anual: área com cicatriz de fogo no ano.`,
-  },
-  chuva: {
-    title: 'Chuva',
-    text:  `CHIRPS, 5,6 km, de ${RAIN_FIRST_YEAR} a ${RAIN_LAST_YEAR}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal.`,
-  },
-  units: {
-    title: 'Unidades',
-    text:  't C é tonelada de carbono; 1 t C equivale a 3,67 t de CO₂. CO₂e soma ao CO₂ outros gases de efeito estufa, como metano e óxido nitroso.',
-  },
-  comparison: {
-    title: 'Comparação com a Caatinga',
-    text:  'Mesmas fontes e mesmo cálculo; no bioma, fluxo, uso da terra e fogo a 100 m. Perto: diferença menor que 10%.',
-  },
-  /** Appended to a theme computed at the pixel under an interior point. */
-  point:  'Aqui, valor de um ponto do território.',
-  /** Appended to a theme reduced coarser than the layer's own scale. */
-  coarse: (m: number) => `Aqui, calculado a ${numero(m, 0)} m.`,
-}
-
 function joinNonEmpty(...parts: (string | null)[]): string {
   return parts.filter(Boolean).join(' ')
 }
@@ -328,3 +274,73 @@ export const CHART_SCRIPT = {
     mean:    'Chuva média por ano, em mm',
   },
 }
+
+/**
+ * The story's words, built from the copy editors keep in Contentful. The
+ * server reads the copy and sends plain strings, since functions do not cross
+ * into a client component; the client builds this once
+ * (components/territorios/StoryScriptContext.tsx).
+ */
+export function storyScript(copy: TerritoriosCopy) {
+  const { apresentacao, territorio, estoque, fluxo, uso, fogo, chuva, sobre } = copy
+  return {
+    intro: {
+      title:     apresentacao.titulo,
+      lead:      apresentacao.chamada,
+      chooseCut: apresentacao.recortesTitulo,
+    },
+    /** Shown as soon as the step opens, before its data arrives. */
+    questions: {
+      territorio: territorio.pergunta,
+      estoque:    estoque.pergunta,
+      fluxo:      fluxo.pergunta,
+      uso:        fill(uso.pergunta, { anoInicial: LAND_USE_FIRST }),
+      fogo:       fill(fogo.pergunta, { anoInicial: FIRE_FIRST_YEAR }),
+      chuva:      fill(chuva.pergunta, { anoFinal: RAIN_LAST_YEAR }),
+    } satisfies Record<Exclude<StepId, 'resumo'>, string>,
+    territory: {
+      biomeShare: TERRITORY_SCRIPT.biomeShare,
+      rankText:   TERRITORY_SCRIPT.rankText,
+    },
+    answers: ANSWER_SCRIPT,
+    summary: {
+      ...SUMMARY_ROW_SCRIPT,
+      titles: {
+        estoque: estoque.resumoTitulo,
+        fluxo:   fluxo.resumoTitulo,
+        uso:     uso.resumoTitulo,
+        fogo:    fogo.resumoTitulo,
+        chuva:   chuva.resumoTitulo,
+      } satisfies Record<ThemeId, string>,
+    },
+    /**
+     * "Sobre os dados", at the end: everything the steps leave out. At most 250
+     * words with every conditional sentence in (tests/lib/territoriosStoryText.test.ts).
+     */
+    about: {
+      title: sobre.titulo,
+      territorio: { title: territorio.sobreTitulo, text: territorio.sobreTexto },
+      estoque: {
+        title: estoque.sobreTitulo,
+        text:  estoque.sobreTexto,
+        /** Where the inventory has no pixel, the total leaves that part out. */
+        coverage: (pct: string) => fill(estoque.sobreCobertura, { percentual: pct }),
+      },
+      fluxo: { title: fluxo.sobreTitulo, text: fill(fluxo.sobreTexto, { anoInicial: FLUX_FIRST_YEAR, anoFinal: FLUX_LAST_YEAR }) },
+      uso:   { title: uso.sobreTitulo, text: fill(uso.sobreTexto, { anoInicial: LAND_USE_FIRST, anoFinal: LAND_USE_LAST }) },
+      fogo:  { title: fogo.sobreTitulo, text: fill(fogo.sobreTexto, { anoInicial: FIRE_FIRST_YEAR, anoFinal: FIRE_LAST_YEAR }) },
+      chuva: { title: chuva.sobreTitulo, text: fill(chuva.sobreTexto, { anoInicial: RAIN_FIRST_YEAR, anoFinal: RAIN_LAST_YEAR }) },
+      units:      { title: sobre.unidadesTitulo, text: sobre.unidadesTexto },
+      comparison: { title: sobre.comparacaoTitulo, text: sobre.comparacaoTexto },
+      /** Appended to a theme computed at the pixel under an interior point. */
+      point:  sobre.ponto,
+      /** Appended to a theme reduced coarser than the layer's own scale. */
+      coarse: (m: number) => fill(sobre.escala, { metros: numero(m, 0) }),
+    },
+  }
+}
+
+export type StoryScript = ReturnType<typeof storyScript>
+
+/** The story as the code ships it: what the page shows without Contentful. */
+export const SHIPPED_STORY_SCRIPT: StoryScript = storyScript(territoriosCopyDefaults())

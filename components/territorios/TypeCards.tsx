@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- the photo is swapped for an empty fill when it fails to load, which next/image does not report */
 import { useState } from 'react'
 import '@/app/territorios-galeria.css'
-import { INTRO } from '@/config/territorios/chooserScript'
+import { SHIPPED_STORY_SCRIPT } from '@/config/territorios/storyScript'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 
@@ -37,7 +37,7 @@ function CardPhoto({ src }: { src: string }) {
 export default function TypeCards({ onSelect }: TypeCardsProps) {
   return (
     <section className="territorios-recortes" aria-labelledby="territorios-recortes-titulo">
-      <h3 id="territorios-recortes-titulo" className="territorios-recortes-titulo">{INTRO.chooseCut}</h3>
+      <h3 id="territorios-recortes-titulo" className="territorios-recortes-titulo">{SHIPPED_STORY_SCRIPT.intro.chooseCut}</h3>
       <ul className="territorios-recortes-grade">
         {TERRITORY_TYPES.map((type) => (
           <li key={type.id}>

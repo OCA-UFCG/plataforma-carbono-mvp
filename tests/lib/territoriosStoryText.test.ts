@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import precomputedJson from '@/config/territorios/precomputed.json'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
+import { SHIPPED_STORY_SCRIPT } from '@/config/territorios/storyScript'
 import {
   aboutItems,
   readingTone,
@@ -172,20 +173,22 @@ const answers: StepAnswer[] = []
 const rows: SummaryRow[] = []
 const abouts: AboutItem[][] = []
 
+type Input = Omit<SummaryInput, 'script'>
+
 function step(s: Step, territory: TerritoryPayload, type: TerritoryType, response?: ThemeResponse): StepAnswer {
-  const out = stepAnswer(s, { territory, type, response })
+  const out = stepAnswer(s, { territory, type, response, script: SHIPPED_STORY_SCRIPT })
   answers.push(out)
   return out
 }
 
-function sheet(input: SummaryInput): SummaryRow[] {
-  const out = summaryRows(input)
+function sheet(input: Input): SummaryRow[] {
+  const out = summaryRows({ ...input, script: SHIPPED_STORY_SCRIPT })
   rows.push(...out)
   return out
 }
 
-function about(input: SummaryInput): AboutItem[] {
-  const out = aboutItems(input)
+function about(input: Input): AboutItem[] {
+  const out = aboutItems({ ...input, script: SHIPPED_STORY_SCRIPT })
   abouts.push(out)
   return out
 }
@@ -378,6 +381,24 @@ describe('stepAnswer', () => {
     expect(sheet({ responses: { chuva: missing }, territory: CG, type: municipio }).at(-1)?.sentence)
       .toBe('Na Caatinga, 701 mm. Sem dado de 2024.')
   })
+  it('reads its words from the script it is given', () => {
+    const shipped = SHIPPED_STORY_SCRIPT
+    const questions = { ...shipped.questions, estoque: 'Quanto carbono há aqui?' }
+    expect(stepAnswer('estoque', { territory: CG, type: municipio, script: { ...shipped, questions } }).question)
+      .toBe('Quanto carbono há aqui?')
+
+    const answers = { ...shipped.answers, fogo: { ...shipped.answers.fogo, peak: (year: number) => `Pico em ${year}.` } }
+    expect(stepAnswer('fogo', { territory: CG, type: municipio, response: CG_ANSWERS.fogo, script: { ...shipped, answers } }).sentence)
+      .toBe('Na Caatinga, 12%. Pico em 1999.')
+
+    const summary = { ...shipped.summary, titles: { ...shipped.summary.titles, chuva: 'Precipitação' } }
+    expect(summaryRows({ responses: CG_ANSWERS, territory: CG, type: municipio, script: { ...shipped, summary } }).at(-1)?.title)
+      .toBe('Precipitação')
+
+    const aboutScript = { ...shipped.about, units: { title: 'Unidades de medida', text: 'Toneladas.' } }
+    expect(aboutItems({ responses: CG_ANSWERS, territory: CG, type: municipio, script: { ...shipped, about: aboutScript } }).at(-2))
+      .toEqual({ title: 'Unidades de medida', text: 'Toneladas.' })
+  })
 })
 
 describe('summaryRows', () => {
@@ -492,7 +513,7 @@ describe('territoryIndicators', () => {
   })
 
   it('gives a municipality its share of the biome and its rank by area (Figma 19254:37459)', () => {
-    expect(territoryIndicators({ territory: JUAZEIRO, type: municipio })).toEqual([
+    expect(territoryIndicators({ territory: JUAZEIRO, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([
       { value: '0,8%', text: 'da área da Caatinga' },
       { value: '40º', text: 'maior entre os 1.210 municípios' },
     ])
@@ -500,23 +521,23 @@ describe('territoryIndicators', () => {
 
   it('agrees the rank with a feminine type', () => {
     const ti = payload({ areaRank: { position: 3, total: 50 } })
-    expect(territoryIndicators({ territory: ti, type: typeOf('terra_indigena') }).at(-1))
+    expect(territoryIndicators({ territory: ti, type: typeOf('terra_indigena'), script: SHIPPED_STORY_SCRIPT }).at(-1))
       .toEqual({ value: '3ª', text: 'maior entre as 50 terras indígenas' })
   })
 
   it('gives the biome no card', () => {
-    expect(territoryIndicators({ territory: CG, type: bioma })).toEqual([])
+    expect(territoryIndicators({ territory: CG, type: bioma, script: SHIPPED_STORY_SCRIPT })).toEqual([])
   })
 
   it('leaves out a share under 0,1%, which would only read "menos de 0,1%"', () => {
     // Campina Grande: 59.553 ha of 86,6 million, 0,07% of the biome.
-    expect(territoryIndicators({ territory: payload({ areaRank: { position: 120, total: 1210 } }), type: municipio }))
+    expect(territoryIndicators({ territory: payload({ areaRank: { position: 120, total: 1210 } }), type: municipio, script: SHIPPED_STORY_SCRIPT }))
       .toEqual([{ value: '120º', text: 'maior entre os 1.210 municípios' }])
-    expect(territoryIndicators({ territory: CG, type: municipio })).toEqual([])
+    expect(territoryIndicators({ territory: CG, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([])
   })
 
   it('shows a share from 0,1% up', () => {
     const tenth = payload({ areaHa: 86_000, biomaAreaHa: 86_000_000 })
-    expect(territoryIndicators({ territory: tenth, type: municipio })).toEqual([{ value: '0,1%', text: 'da área da Caatinga' }])
+    expect(territoryIndicators({ territory: tenth, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([{ value: '0,1%', text: 'da área da Caatinga' }])
   })
 })
