@@ -51,7 +51,9 @@ export function unauthorizedResponse() {
 }
 
 /**
- * Post-login destination, restricted to the app's own routes.
+ * Post-login destination, restricted to the platform's private routes. The
+ * login exists only to reach them, so anything else, a missing value
+ * included, lands on the map.
  *
  * An allowlist rather than a "starts with /" check: `//evil.com` is a
  * protocol-relative URL that a naive prefix test lets through. Each entry is
@@ -59,21 +61,11 @@ export function unauthorizedResponse() {
  * `/relatoriofalso` does not pass as `/relatorio`.
  */
 export function safeRedirect(value: string | string[] | undefined): string {
-  if (typeof value !== 'string') return '/'
-  for (const base of ['/mapa', '/relatorio', '/sobre', '/comunicacao', '/territorios']) {
+  if (typeof value !== 'string') return '/mapa'
+  for (const base of ['/mapa', '/relatorio']) {
     if (value === base || value.startsWith(`${base}/`) || value.startsWith(`${base}?`)) {
       return value
     }
   }
-  return '/'
-}
-
-/**
- * The login URL for a visitor without a session on `path`, so that logging in
- * returns them to the page they asked for. The destination goes through
- * safeRedirect here, not only on the login page, so a forged path is never
- * even written into the URL.
- */
-export function loginRedirect(path: string | null): string {
-  return `/login?redirect=${encodeURIComponent(safeRedirect(path ?? undefined))}`
+  return '/mapa'
 }

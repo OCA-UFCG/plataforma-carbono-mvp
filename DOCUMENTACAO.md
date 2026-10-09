@@ -36,7 +36,7 @@ app/
 ├ globals.css                  # estilos das páginas de marketing
 └ mapa.css                     # estilos do módulo de mapas
 components/marketing/          # landing redesenhada a partir do Figma (ver seção própria abaixo)
-├ SiteHeader.tsx               # menu superior, âncoras de seção, slot de sessão
+├ SiteHeader.tsx               # menu superior, âncoras de seção
 ├ Hero.tsx                     # capa com carrossel de fotos
 ├ Destaques.tsx                # cartões de números
 ├ Plataforma.tsx               # abas "Conheça a plataforma"
@@ -148,7 +148,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 
 ### Decisões e pendências abertas
 
-- **"Entrar" vira "Sair".** O Figma mostra um botão "Entrar" no header, mas `app/(marketing)/layout.tsx` já redireciona todo visitante não autenticado para `/login` — quem vê a landing já está logado. O slot mostra "Sair" e executa as duas etapas do logout já estabelecido (`DELETE /api/session`, depois `firebaseSignOut`) antes de redirecionar.
+- **Sem botão de sessão no header.** As páginas institucionais e o `/territorios` são públicos; o login só abre a plataforma, pelo botão "Plataforma". O header não tem "Entrar" nem "Sair", como o Menu-superior do Figma atual (`19253:14746`), e o logout fica no header do mapa (`components/mapa/Header.tsx`).
 - **PT-BR / En não funciona.** O seletor de idioma é renderizado mas inerte; internacionalização está fora do escopo desta reconstrução.
 - **"Ver mais" leva às páginas internas.** O de "Conheça a plataforma" abre `/sobre` e o de "Comunicação" abre `/comunicacao` (issue #52); antes dessas páginas existirem, os dois eram inertes.
 - **As quatro abas de "Conheça a plataforma" têm conteúdo.** Na primeira reconstrução só "O que é a Caativar?" estava desenhada e as outras três mostravam "Conteúdo em preparação."; a atualização do Figma de setembro de 2026 trouxe o texto e a foto das três (PR #43), e o estado vazio foi removido.
