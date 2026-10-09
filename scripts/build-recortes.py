@@ -8,6 +8,10 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "public", "data", "vector")
 BIOMA = os.path.join(OUT, "limite_caatinga.geojson")
 os.makedirs(OUT, exist_ok=True)
 
+# Below this, a clipped feature that kept less than half of itself is a sliver
+# of the cut, not a recorte (see process).
+MIN_CLIPPED_HA = 100
+
 bioma = gpd.read_file(BIOMA).to_crs(4326)
 bioma_geom = bioma.union_all() if hasattr(bioma, "union_all") else bioma.unary_union
 
@@ -26,6 +30,13 @@ def process(name, gdf, label_candidates, tol, extras=()):
     # polygonal clip to the biome
     clipped = gpd.clip(gdf, bioma_geom)
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
+    # The state borders and the biome edge do not match along the Parnaíba, and
+    # the clip used to leave a sliver of Maranhão inside, which then showed up
+    # as a state of the Caatinga. A feature cut down to a crumb of itself goes;
+    # one that is small but whole, like a quilombo, stays.
+    clipped_ha = clipped.to_crs(5880).area / 1e4
+    whole_ha = gdf.loc[clipped.index].to_crs(5880).area / 1e4
+    clipped = clipped[(clipped_ha >= MIN_CLIPPED_HA) | (clipped_ha >= 0.5 * whole_ha)]
     label = pick_label(clipped, label_candidates)
     keep = [label] if label else []
     # Columns that identify a feature beyond its label. The label alone is not

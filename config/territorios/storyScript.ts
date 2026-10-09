@@ -84,7 +84,6 @@ export const STATE_LOCATIVE: Record<string, string> = {
   AL: 'em Alagoas',
   BA: 'na Bahia',
   CE: 'no Ceará',
-  MA: 'no Maranhão',
   MG: 'em Minas Gerais',
   PB: 'na Paraíba',
   PE: 'em Pernambuco',
@@ -133,8 +132,8 @@ export const ANSWER_SCRIPT = {
     located: (where: string) => `Área dentro da Caatinga, ${where}.`,
     plain:   'Área dentro da Caatinga.',
     state:   (biomePct: string) => `Área dentro da Caatinga, ${biomePct} do bioma.`,
-    // Ten features in the estados layer (tests/config/territoriosStory.test.ts).
-    biome:   'A Caatinga inteira, em dez estados.',
+    // Nine features in the estados layer (tests/config/territoriosStory.test.ts).
+    biome:   'A Caatinga inteira, em nove estados.',
   },
   estoque: {
     unit:    't de carbono por hectare',
