@@ -403,6 +403,9 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
   }
 }
 
+// How long the JPEG export waits for the tiles in view before capturing anyway.
+const CAPTURE_IDLE_TIMEOUT_MS = 15_000
+
 // MapView component
 
 interface MapViewProps {
@@ -416,9 +419,15 @@ interface MapViewProps {
    * panel's X. Returns false when there was no recorte selection to drop.
    */
   dismissSelectionRef: RefObject<(() => boolean) | null>
+  /**
+   * Filled with a snapshot of the map for the JPEG export: the strip between
+   * the floating panels, as a PNG data URL, or null when it cannot be read.
+   * Resolves once the tiles in view have loaded.
+   */
+  captureMapRef: RefObject<(() => Promise<string | null>) | null>
 }
 
-export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef }: MapViewProps) {
+export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, captureMapRef }: MapViewProps) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -459,6 +468,45 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
     pitch?: number
   } | null>(null)
   const panelInsetsRef = useRef({ leftEdge, rightOffset })
+  // The canvas is not created with `preserveDrawingBuffer` -- it costs every
+  // frame for an export that happens once in a while -- so its buffer is only
+  // readable right after a draw. `redraw()` draws synchronously, and reading
+  // in the same task gets the frame before the browser clears it.
+  //
+  // Only the strip between the panels is kept: what lies under the sidebar and
+  // the results panel is not what the reader was looking at, and the fit
+  // already placed the selection inside that strip.
+  //
+  // A raster still loading would come out as a rectangle of tiles over bare
+  // basemap -- the fit to a recorte has just moved the camera when the reader
+  // reaches for the button -- so the capture waits for the map to go idle,
+  // within a bound: a tile that never answers must not hold the download.
+  useImperativeHandle(captureMapRef, () => async () => {
+    const map = mapRef.current
+    if (!map) return null
+    if (!map.loaded() || !map.areTilesLoaded()) {
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, CAPTURE_IDLE_TIMEOUT_MS)
+        map.once('idle', () => { clearTimeout(timer); resolve() })
+      })
+    }
+    try {
+      map.redraw()
+      const src = map.getCanvas()
+      const scale = src.width / src.clientWidth
+      const { leftEdge: left, rightOffset: right } = panelInsetsRef.current
+      const x = Math.round(left * scale)
+      const w = Math.max(1, src.width - x - Math.round(right * scale))
+      const out = document.createElement('canvas')
+      out.width = w
+      out.height = src.height
+      out.getContext('2d')?.drawImage(src, x, 0, w, src.height, 0, 0, w, src.height)
+      return out.toDataURL('image/png')
+    } catch {
+      // A tile served without CORS headers taints the canvas and toDataURL throws.
+      return null
+    }
+  }, [])
   // The floating boxes over the bottom of the map, measured at fit time so the
   // feature does not land under them.
   const legendRef = useRef<HTMLDivElement>(null)
