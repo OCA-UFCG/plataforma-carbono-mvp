@@ -35,6 +35,11 @@ interface Props {
   geometry: SelectedGeometry | null
   /** Area of the analysed polygon in hectares, for the coverage note. */
   polygonHa: number | null
+  /**
+   * Rendered for the JPEG export: a plain heading instead of the toggle, no
+   * retry, and no chart animation, which the capture would catch mid-way.
+   */
+  still?: boolean
 }
 
 /**
@@ -46,9 +51,10 @@ interface Props {
  * and the year, so the number is not shown twice.
  */
 export default function LayerResultCard({
-  layer, result, date, expanded, onToggle, theme, geometry, polygonHa,
+  layer, result, date, expanded, onToggle, theme, geometry, polygonHa, still = false,
 }: Props) {
   const c = theme.colors
+  const Heading = still ? 'div' : 'button'
   const profile = getResultProfile(layer.id)
   const summary = resultSummary(layer, result)
   const loading = !result || result.status === 'loading'
@@ -69,10 +75,8 @@ export default function LayerResultCard({
       // several open cards would shrink to fit and clip instead of scrolling.
       flexShrink: 0,
     }}>
-      <button
-        className="ui-press"
-        onClick={onToggle}
-        aria-expanded={expanded}
+      <Heading
+        {...(still ? {} : { className: 'ui-press', onClick: onToggle, 'aria-expanded': expanded })}
         style={{
           width: '100%',
           display: 'flex',
@@ -105,14 +109,16 @@ export default function LayerResultCard({
             {period}
           </span>
         )}
-        <span style={{
-          color: c.textDim, flexShrink: 0, marginTop: 2,
-          transform: expanded ? 'rotate(180deg)' : 'none',
-          transition: 'transform .15s',
-        }}>
-          <IcChevronDown size={14} />
-        </span>
-      </button>
+        {!still && (
+          <span style={{
+            color: c.textDim, flexShrink: 0, marginTop: 2,
+            transform: expanded ? 'rotate(180deg)' : 'none',
+            transition: 'transform .15s',
+          }}>
+            <IcChevronDown size={14} />
+          </span>
+        )}
+      </Heading>
 
       {expanded && (
         <div style={{ paddingTop: 16 }}>
@@ -121,7 +127,7 @@ export default function LayerResultCard({
           {result?.status === 'error' && (
             <>
               <ErrorCard theme={theme} message={result.error ?? 'Falha ao calcular o resultado.'} />
-              {geometry && (
+              {geometry && !still && (
                 <button
                   className="ui-press"
                   onClick={() => void runLayerAnalysis(layer, geometry, date, currentAnalysisSeq())}
@@ -166,6 +172,7 @@ export default function LayerResultCard({
               classes={layer.classes}
               unit={layer.unit}
               signedFlux={layer.signedFlux}
+              animate={!still}
             />
           )}
 
