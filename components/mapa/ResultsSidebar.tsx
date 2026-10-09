@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
+import AnalysisSheet, { type SheetLayer } from './AnalysisSheet'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
-import { buildAnalysisCsv } from '@/lib/mapa/exportAnalysis'
+import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { LAYER_META } from '@/config/mapa/layerMeta'
@@ -22,7 +24,21 @@ interface Props {
   onSetCollapsed: (v: boolean) => void
   /** The header's X; the owner decides whether it drops the selection or collapses the panel. */
   onClose: () => void
+  /** Snapshot of the map between the panels, for the JPEG; null when unreadable. */
+  captureMap: () => Promise<string | null>
 }
+
+/** Hands a blob to the browser as a download. */
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 /**
  * Floating results panel. Appears whenever there's a measurement to show
@@ -31,10 +47,10 @@ interface Props {
  * onboarding hint.
  *
  * Anatomy: header with the cut, the feature name and its area; the length;
- * one collapsible result card per visible raster; the CSV download. Below
+ * one collapsible result card per visible raster; the CSV and JPEG downloads. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
-export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose }: Props) {
+export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose, captureMap }: Props) {
   const drawnArea        = useStore((s) => s.drawnArea)
   const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
@@ -120,13 +136,12 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   })
   const canDownload = hasContent
 
-  function handleDownload() {
-    const { filename, csv } = buildAnalysisCsv({
+  const snapshot = (generatedAt: Date): AnalysisSnapshot => ({
       analysisKind,
       analysisLabel,
       drawnArea,
       drawnLength,
-      generatedAt: new Date(),
+      generatedAt,
       layers: measured.map((raster) => ({
         layerName:    raster.name,
         layerUnit:    raster.unit,
@@ -138,16 +153,98 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         profile:      getResultProfile(raster.id),
         source:       LAYER_META[raster.id]?.source,
       })),
-    })
+  })
 
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    URL.revokeObjectURL(url)
+  function handleDownload() {
+    const { filename, csv } = buildAnalysisCsv(snapshot(new Date()))
+    saveBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), filename)
   }
+
+  // The JPEG: the map beside the panel, every measured card open. The same
+  // layers as the CSV, so the two files of one analysis agree. The sheet is
+  // mounted off screen only while the picture is taken, and the effect below
+  // takes it once the sheet has committed.
+  // The layers are read at render, not at the click: the map may spend a few
+  // seconds on its tiles, and a card that finishes meanwhile belongs in it.
+  const [sheet, setSheet] = useState<{ mapSrc: string | null; generatedAt: Date } | null>(null)
+  const sheetLayers: SheetLayer[] = measured.map((raster) => {
+    const date = raster.gee?.temporal ? temporalDate[raster.id] : undefined
+    return { raster, date, result: cardResult(raster, date)! }
+  })
+  const [jpegFailed, setJpegFailed] = useState(false)
+  // From the click to the download: the map's wait for its tiles comes before
+  // the sheet exists, and the button must stay busy through it.
+  const [exporting, setExporting] = useState(false)
+  const sheetRef = useRef<HTMLDivElement>(null)
+
+  async function handleDownloadJpeg() {
+    if (exporting) return
+    setExporting(true)
+    setJpegFailed(false)
+    const [mapSrc] = await Promise.all([
+      captureMap(),
+      // The charts are lazy chunks; a card the reader never opened has not
+      // pulled its chart yet, and the sheet must not be captured without it.
+      import('./StatsChart').catch(() => {}),
+      import('./results/PointSeries').catch(() => {}),
+    ])
+    setSheet({ mapSrc, generatedAt: new Date() })
+  }
+
+  useEffect(() => {
+    if (!sheet) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const node = sheetRef.current
+        if (!node) throw new Error('sheet not mounted')
+        await document.fonts.ready
+        await Promise.all([...node.querySelectorAll('img')].map((img) => img.decode().catch(() => {})))
+        // Two frames: the lazy charts resolve and render, and ResponsiveContainer
+        // measures its box, before the DOM is cloned.
+        await nextFrame()
+        await nextFrame()
+        const { toBlob } = await import('html-to-image')
+        const blob = await toBlob(node, {
+          type: 'image/jpeg', quality: 0.92, pixelRatio: 2, backgroundColor: c.bg,
+        })
+        if (cancelled) return
+        if (!blob) throw new Error('empty capture')
+        saveBlob(blob, analysisFilename(snapshot(sheet.generatedAt), 'jpg'))
+      } catch (err) {
+        console.error('JPEG export failed', err)
+        if (!cancelled) setJpegFailed(true)
+      } finally {
+        if (!cancelled) {
+          setSheet(null)
+          setExporting(false)
+        }
+      }
+    })()
+    return () => { cancelled = true }
+    // Runs once per requested sheet; everything else it reads is from that render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet])
   const showEmptyHint = !hasContent && !!activeRaster
+
+  const downloadButton: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    height: 44,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    background: c.accentInk,
+    border: 'none',
+    borderRadius: 10,
+    cursor: 'pointer',
+    color: c.bgCard,
+    fontFamily: 'var(--font-app), sans-serif',
+    fontSize: 14,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+  }
 
   // Below 768px the panel becomes a bottom drawer over the map.
   const [narrow, setNarrow] = useState(
@@ -309,32 +406,56 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
       {/* Baixar a análise, pinned below the scrollable body like the header above
           it, so the download stays in view however many cards are open. */}
       {canDownload && (
-        <button
-          className="ui-press"
-          onClick={handleDownload}
-          title="Baixar esta análise em CSV"
-          style={{
-            marginTop: 16,
-            width: '100%',
-            height: 44,
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            background: c.accentInk,
-            border: 'none',
-            borderRadius: 10,
-            cursor: 'pointer',
-            color: c.bgCard,
-            fontFamily: 'var(--font-app), sans-serif',
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          <IcDownload size={16} />
-          Baixar CSV
-        </button>
+        <div style={{ marginTop: 16, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="ui-press"
+              onClick={handleDownload}
+              title="Baixar esta análise em CSV"
+              style={downloadButton}
+            >
+              <IcDownload size={16} />
+              Baixar CSV
+            </button>
+            <button
+              className="ui-press"
+              onClick={() => void handleDownloadJpeg()}
+              disabled={exporting}
+              aria-busy={exporting}
+              title="Baixar o mapa e esta análise em JPEG"
+              style={{ ...downloadButton, cursor: exporting ? 'progress' : 'pointer', opacity: exporting ? 0.7 : 1 }}
+            >
+              <IcDownload size={16} />
+              {exporting ? 'Gerando…' : 'Baixar JPEG'}
+            </button>
+          </div>
+          {jpegFailed && (
+            <span role="alert" style={{ fontSize: 13, color: c.textDim, textAlign: 'center' }}>
+              Não foi possível gerar a imagem. Tente novamente.
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* The JPEG's sheet, off screen while it is captured. Portalled out of
+          the panel: its backdrop-filter would make it the containing block of
+          a fixed child, and the sheet would land inside the panel. The map
+          root keeps the theme's CSS variables in reach. */}
+      {sheet && createPortal(
+        <div aria-hidden style={{ position: 'fixed', left: -100_000, top: 0, pointerEvents: 'none' }}>
+          <AnalysisSheet
+            ref={sheetRef}
+            theme={theme}
+            mapSrc={sheet.mapSrc}
+            analysisKind={analysisKind}
+            analysisLabel={analysisLabel}
+            drawnArea={drawnArea}
+            drawnLength={drawnLength}
+            generatedAt={sheet.generatedAt}
+            layers={sheetLayers}
+          />
+        </div>,
+        document.querySelector('[data-cc-root]') ?? document.body,
       )}
     </div>
   )

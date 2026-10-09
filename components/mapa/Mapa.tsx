@@ -226,6 +226,7 @@ export default function Mapa() {
           collapsed={resultsCollapsed}
           onSetCollapsed={setResultsCollapsed}
           onClose={closeResults}
+          captureMap={() => captureMapRef.current?.() ?? Promise.resolve(null)}
         />
 
         <ReportForm theme={theme} open={reportOpen} onClose={() => setReportOpen(false)} />
