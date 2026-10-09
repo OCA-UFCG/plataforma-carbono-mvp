@@ -24,7 +24,7 @@ const LOGOS = [
 const STEPS = [
   { n: 1, t: 'Ative uma camada', d: 'Ligue uma camada de carbono ou ambiente no painel de temas.' },
   { n: 2, t: 'Clique ou desenhe', d: 'Clique num município ou desenhe uma área sobre o mapa.' },
-  { n: 3, t: 'Leia e exporte', d: 'Veja a estatística zonal e exporte em CSV ou PNG.' },
+  { n: 3, t: 'Leia e exporte', d: 'Veja a estatística zonal e exporte em CSV ou JPEG.' },
 ]
 
 export default function Welcome({ theme, month }: Props) {
