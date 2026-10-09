@@ -20,6 +20,11 @@
 // - list: a Text, one item per line.
 export type CopyKind = 'line' | 'paragraph' | 'text' | 'list'
 
+// What each placeholder of a field becomes, in Portuguese, by name. A field
+// the page fills in names them between braces, as in "Eram {percentual} em
+// {anoInicial}.", and the help text under it in Contentful lists them.
+export type Placeholders = Record<string, string>
+
 export type CopyField<K extends CopyKind = CopyKind> = {
   kind: K
   // The label the editor reads in Contentful, in Portuguese.
@@ -29,6 +34,10 @@ export type CopyField<K extends CopyKind = CopyKind> = {
   // An optional field may be left empty, and the page then leaves its element
   // out; every other field is required.
   optional?: boolean
+  // Set on a line or paragraph the page fills in. An entry whose text names
+  // any other placeholder, or leaves a brace unpaired, gets the shipped value
+  // for this field.
+  placeholders?: Placeholders
 }
 
 export type CopyFields = Record<string, CopyField>
@@ -52,8 +61,8 @@ export type Copy<T extends CopyType> = CopyValues<T['fields']>
 // Contentful's limit for a Symbol field.
 export const LINE_MAX_LENGTH = 256
 
-export function line(name: string, value: string): CopyField<'line'> {
-  return { kind: 'line', name, default: value }
+export function line(name: string, value: string, placeholders?: Placeholders): CopyField<'line'> {
+  return { kind: 'line', name, default: value, ...(placeholders && { placeholders }) }
 }
 
 // A line the page shows only when it has one: an empty one is empty on the
@@ -62,8 +71,8 @@ export function optionalLine(name: string, value = ''): CopyField<'line'> {
   return { kind: 'line', name, default: value, optional: true }
 }
 
-export function paragraph(name: string, value: string): CopyField<'paragraph'> {
-  return { kind: 'paragraph', name, default: value }
+export function paragraph(name: string, value: string, placeholders?: Placeholders): CopyField<'paragraph'> {
+  return { kind: 'paragraph', name, default: value, ...(placeholders && { placeholders }) }
 }
 
 // One string per paragraph; a "\n" inside one is a line break the design asks
@@ -115,6 +124,31 @@ export function parseCopy<K extends CopyKind>(kind: K, raw: string): CopyValue<K
   return value.split(/\n[^\S\n]*\n/).map(toParagraph).filter(Boolean) as CopyValue<K>
 }
 
+const PLACEHOLDER = /\{(\w+)\}/g
+
+// The placeholder names a text uses, each once, in the order they first appear.
+export function placeholdersIn(value: string): string[] {
+  return [...new Set(Array.from(value.matchAll(PLACEHOLDER), (match) => match[1]))]
+}
+
+// Whether every brace in the text belongs to a placeholder the field
+// declares. Leaving a declared one out is fine.
+export function fitsPlaceholders(value: string, placeholders: Placeholders = {}): boolean {
+  const rest = value.replace(PLACEHOLDER, (match, name: string) => (Object.hasOwn(placeholders, name) ? '' : match))
+
+  return !/[{}]/.test(rest)
+}
+
+// Fills a text's placeholders. copyFromEntry has already refused a text naming
+// one its field does not declare.
+export function fillPlaceholders(value: string, values: Record<string, string | number>): string {
+  return value.replace(PLACEHOLDER, (match, name: string) => (Object.hasOwn(values, name) ? String(values[name]) : match))
+}
+
+function fitsField(field: CopyField, value: string | string[]): boolean {
+  return !field.placeholders || [value].flat().every((part) => fitsPlaceholders(part, field.placeholders))
+}
+
 function isEmpty(value: string | string[]): boolean {
   return value.length === 0
 }
@@ -123,7 +157,8 @@ function isEmpty(value: string | string[]): boolean {
 // that is missing, empty or not a string falls back to the shipped value on
 // its own: one field cleared by mistake must not blank its neighbours. An
 // optional one left empty in an entry is empty on purpose (the API answers it
-// with null); without an entry, it too takes the shipped value.
+// with null); without an entry, it too takes the shipped value. A text naming
+// a placeholder its field does not declare falls back the same way.
 export function copyFromEntry<F extends CopyFields>(
   type: CopyType<F>,
   entry: Record<string, unknown> | null | undefined,
@@ -134,7 +169,9 @@ export function copyFromEntry<F extends CopyFields>(
     const raw = entry?.[id]
     const parsed = typeof raw === 'string' ? parseCopy(field.kind, raw) : null
 
-    if (field.optional && entry) {
+    if (parsed !== null && !fitsField(field, parsed)) {
+      values[id] = parseCopy(field.kind, field.default)
+    } else if (field.optional && entry) {
       values[id] = parsed ?? parseCopy(field.kind, '')
     } else {
       values[id] = parsed === null || isEmpty(parsed) ? parseCopy(field.kind, field.default) : parsed
@@ -146,4 +183,16 @@ export function copyFromEntry<F extends CopyFields>(
 
 export function copyDefaults<F extends CopyFields>(type: CopyType<F>): CopyValues<F> {
   return copyFromEntry(type, null)
+}
+
+// The fields of an entry whose text the page refuses for naming a placeholder
+// the field does not fill; tests/lib/contentfulSpace.test.ts lists them.
+export function rejectedFields(type: CopyType, entry: Record<string, unknown>): string[] {
+  return Object.entries(type.fields)
+    .filter(([id, field]) => {
+      const raw = entry[id]
+
+      return typeof raw === 'string' && !fitsField(field, parseCopy(field.kind, raw))
+    })
+    .map(([id]) => id)
 }
