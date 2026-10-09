@@ -1,0 +1,126 @@
+/* EventoCard, Figma component "Card eventos" (19254:16478): a 1px --bg-borda
+ * frame on the --bg-superficie fill, 8px corners, the photo and the text 24px
+ * apart. Figma draws the stroke inside the 24px padding; a CSS border adds to
+ * the box, so the padding gives up the border's 1px. */
+.card {
+  display: flex;
+  gap: 24px;
+  padding: 23px;
+  border: 1px solid var(--bg-borda);
+  border-radius: 8px;
+  background: var(--bg-superficie);
+}
+
+/* 340px wide and as tall as the text beside it (the design's self-stretch),
+ * so the photo is cropped to whatever the text leaves it. The frame's border
+ * is the untokenized warm grey (#d1cec8) MediaText.module.css also uses. */
+.media {
+  position: relative;
+  flex: none;
+  width: 340px;
+  border: 1px solid #d1cec8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* The badge's 1px stroke sits inside its 2px/10px padding in Figma, as the
+ * publication type chip's does (PublicationCard.module.css). */
+.badge {
+  padding: 1px 9px;
+  border: 1px solid var(--role-categorica1-borda);
+  border-radius: 9999px;
+  color: var(--role-categorica1-padrao);
+}
+
+/* Rubik SemiBold 24/32, the design's h3 style; it tracks at -0.6%, which is
+ * -0.144px at 24px. No .text-* utility has this step. */
+.title {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--role-marca-ancora-pressionado);
+  margin: 0;
+}
+
+.meta,
+.descricao,
+.caption {
+  color: var(--bg-texto-primario);
+  margin: 0;
+}
+
+.texto {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Two lines and an ellipsis, as the closed variant cuts the text
+ * (19254:16462). */
+.descricaoFechada {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* "Mostrar mais" (19254:16481): a 1px -marca-ancora-borda outline inside
+ * 8px/16px padding, 6px corners, the label in -marca-ancora-padrao (4.74:1
+ * on the card). The design draws no hover; it takes the --am-050 fill the
+ * strip's tabs hover to, with the label stepped to -hover (6.05:1 there,
+ * where -padrao is 4.40:1). */
+.toggle {
+  padding: 7px 15px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius-interno);
+  background: none;
+  color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--am-050);
+  color: var(--role-marca-ancora-hover);
+}
+
+/* Below a tablet's width the photo moves above the text, full width, at the
+ * proportion the design's first card gives it (340x270). */
+@media (max-width: 767px) {
+  .card {
+    flex-direction: column;
+    padding: 15px;
+    gap: 16px;
+  }
+
+  .media {
+    width: auto;
+    aspect-ratio: 34 / 27;
+  }
+
+  .body {
+    gap: 16px;
+  }
+}

@@ -1,5 +1,5 @@
 import type { Publicacao } from "@/lib/content/comunicacao";
-import PublicationCard from "./PublicationCard";
+import PublicationCard, { PublicationSoon } from "./PublicationCard";
 import styles from "./Publicacoes.module.css";
 
 // The "Conteúdo" grid of the Comunicação page, Figma node 18978:2072. No id
@@ -18,6 +18,7 @@ export default function Publicacoes({ publicacoes }: { publicacoes: Publicacao[]
           {publicacoes.map((publicacao) => (
             <PublicationCard key={publicacao.key} publicacao={publicacao} />
           ))}
+          <PublicationSoon />
         </ul>
       </div>
     </section>

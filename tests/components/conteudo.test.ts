@@ -5,6 +5,7 @@ import ConteudoHeader from '@/components/marketing/conteudo/ConteudoHeader'
 import ConteudoSemPdf from '@/components/marketing/conteudo/ConteudoSemPdf'
 import type { Publicacao } from '@/lib/content/comunicacao'
 import PublicationCard from '@/components/marketing/PublicationCard'
+import Publicacoes from '@/components/marketing/Publicacoes'
 import Comunicacao from '@/components/marketing/Comunicacao'
 import RelatedContent from '@/components/marketing/conteudo/RelatedContent'
 import { getComunicacaoContent } from '@/lib/content/comunicacao'
@@ -91,6 +92,17 @@ describe('PublicationCard', () => {
 
   it('is not a link without an address', () => {
     expect(html(PublicationCard, { publicacao: { ...PUBLICACAO, slug: undefined } })).not.toContain('<a')
+  })
+})
+
+describe('Publicacoes', () => {
+  it('closes the grid on an "Em breve" slot that leads nowhere', () => {
+    const markup = html(Publicacoes, { publicacoes: [PUBLICACAO] })
+    const items = markup.match(/<li /g) ?? []
+
+    expect(items).toHaveLength(2)
+    expect(markup).toMatch(/Em breve<\/p><\/div><\/li><\/ul>/)
+    expect(markup.match(/<a /g)).toHaveLength(1)
   })
 })
 

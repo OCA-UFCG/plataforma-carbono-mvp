@@ -35,14 +35,14 @@ describe('sanitizePersisted', () => {
   })
 
   it('round-trips a payload built from live state, theme and subtheme order included', () => {
-    const subthemeOrder = { ...DEFAULT_SUBTHEME_ORDER, ambiente: ['clima', 'vegetacao'] }
+    const subthemeOrder = { ...DEFAULT_SUBTHEME_ORDER, ambiente: ['clima', 'relevo', 'vegetacao'] }
     const payload = buildPersisted({
       layers: config,
       basemapId: 'esri-imagery',
       temporalDate: {},
       view: null,
       drawing: null,
-      themeOrder: ['ambiente', 'carbono', 'uso_solo'],
+      themeOrder: ['ambiente', 'carbono', 'uso_solo', 'localidades'],
       subthemeOrder,
     })
 
@@ -50,7 +50,7 @@ describe('sanitizePersisted', () => {
 
     expect(restored?.basemapId).toBe('esri-imagery')
     expect(restored?.layers.map((l) => l.id)).toEqual(['bioma', 'solo_carbono', 'fogo_frequencia'])
-    expect(restored?.themeOrder).toEqual(['ambiente', 'carbono', 'uso_solo'])
+    expect(restored?.themeOrder).toEqual(['ambiente', 'carbono', 'uso_solo', 'localidades'])
     expect(restored?.subthemeOrder).toEqual(subthemeOrder)
   })
 
@@ -76,7 +76,7 @@ describe('sanitizePersisted', () => {
       config,
     )
 
-    expect(restored?.themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente'])
+    expect(restored?.themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
     expect(restored?.subthemeOrder.carbono).toEqual(DEFAULT_SUBTHEME_ORDER.carbono)
   })
 

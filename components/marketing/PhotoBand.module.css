@@ -1,12 +1,10 @@
-/* PhotoBand, Figma nodes 18988:8651 ("warm", 219px tall, 40px of block
- * padding) and 18978:2080 ("dark", 209px, 56px). The photographs are
- * pre-cropped to a strip centred where the design centres them, but taller
- * than the desktop band (IMAGENS.md), so `cover` still has picture to show
- * when the band grows at narrow widths. */
-/* Both bands end on a 1px #e4e4e4 rule (18988:8651, 18978:2080), part of
- * their 219px and 209px. The file has no variable for that grey; --am-100
- * (#e6eaeb) is the nearest token. The photo (absolute, inset 0) fills the
- * padding box and stops above it. */
+/* PhotoBand, Figma node 18988:8651: 219px tall, 40px of block padding. The
+ * photograph is pre-cropped to a strip centred where the design centres it,
+ * but taller than the desktop band (IMAGENS.md), so `cover` still has picture
+ * to show when the band grows at narrow widths. */
+/* The band ends on a 1px #e4e4e4 rule, part of its 219px. The file has no
+ * variable for that grey; --am-100 (#e6eaeb) is the nearest token. The photo
+ * (absolute, inset 0) fills the padding box and stops above it. */
 .photoBand {
   position: relative;
   overflow: hidden;
@@ -22,51 +20,22 @@
   object-fit: cover;
 }
 
-.overlay {
-  position: absolute;
-  inset: 0;
-}
-
 /* The design starts this gradient at #80190d, which is not a variable in the
  * file; --role-alerta-risco-hover (#8f3a32) is the nearest token. The text
  * sits at the left, over the gradient's near-solid start: white on its
  * solid stop is 7.37:1. */
-.warm {
-  --band-padding: 40px;
-}
-
-.warm .overlay {
+.overlay {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to right, var(--role-alerta-risco-hover) 2%, transparent 116%);
-}
-
-/* The design's stop is pure black; --bg-fundo-inverso (#000f15) is the
- * token for it. */
-.dark {
-  --band-padding: 56px;
-}
-
-.dark .overlay {
-  background: linear-gradient(to right, var(--bg-fundo-inverso) 9%, transparent 174%);
 }
 
 .content {
   position: relative;
-  padding-block: var(--band-padding);
+  padding-block: 40px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.heading {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.eyebrow {
-  color: var(--role-primario-container);
-  text-transform: uppercase;
-  margin: 0;
 }
 
 .title {

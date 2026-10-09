@@ -14,16 +14,16 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 
 ## Cartilhas (public/images/cartilhas/)
 
-Capas da coleção "Mercado de carbono: o que isso tem a ver com a Caatinga?", produzida por OCA, UFCG, INSA e SUDENE, usadas na seção Comunicação. Originais em `../cartilhas` (PNG de ~2,4 MB cada), reduzidos e convertidos para JPEG (largura 760 px, ~120 KB) por um passo com Pillow.
+Capas das publicações usadas na seção Comunicação, reduzidas e convertidas para JPEG (760×1075, ~130 KB) por um passo com Pillow.
 
 | Arquivo | Origem | Uso |
 |---|---|---|
-| `vol1.jpg` a `vol4.jpg` | `cartilhas/01.png` a `04.png` | Grade dos 4 volumes |
+| `vol1.jpg` | `CAPA (10).png` (1414×2000), recebida em 06/10/2026 | Capa da cartilha "Mercado de carbono: o que isso tem a ver com a Caatinga?", produzida por OCA, UFCG, INSA e SUDENE |
 | `caderno.jpg` | página 1 do PDF final do caderno (29/09/2026), renderizada com Ghostscript a 150 dpi e reduzida para 760×1075 | Capa do caderno temático |
 
 `colecao_banner.jpg` (recorte de `cartilhas/todas.png`, usado no remate da seção) foi removido junto com o trecho que o usava; o arquivo não existe mais em `public/images/cartilhas/`.
 
-Observação: a capa do Volume 1 tem um erro de digitação na arte ("O que é crédito de caborno?"). A legenda na landing usa a grafia correta ("carbono"). Para corrigir a imagem, é preciso editar o arquivo original da cartilha. O `todas.png` traz um quadrado de QR em branco (placeholder de impressão); por isso a landing usa o recorte sem essa área.
+Em 06/10/2026 a coleção de quatro volumes (`vol1.jpg` a `vol4.jpg`, de `../cartilhas/01.png` a `04.png`) deu lugar a uma única cartilha, a que tem PDF publicado. `vol2.jpg` a `vol4.jpg` foram removidos, e as entries dos volumes 2 a 4 foram despublicadas e arquivadas no Contentful. Só despublicar não bastava: o beta lê a API de preview (`CONTENTFUL_PREVIEW=true` em `deploy-beta.yml`), que também devolve rascunhos, e entries arquivadas ficam de fora das duas APIs. Para trazê-las de volta, basta desarquivar e publicar. A capa nova substituiu a do Volume 1 nas duas cópias: o asset no Contentful, que a página usa, e o `vol1.jpg`, que só entra no fallback. Com ela saiu também o erro de digitação da arte antiga ("O que é crédito de caborno?").
 
 A capa do caderno vem da versão final da publicação ("Caderno temático… desafios, riscos e perspectivas"), que substituiu a arte antiga ("Boletim temático… Desafios, Ameaças e Perspectivas") em 29/09/2026, junto com o título. A troca foi feita nas duas cópias: o asset da capa no Contentful, que a página usa, e o `caderno.jpg`, que só entra no fallback.
 
@@ -76,11 +76,25 @@ cada). A ordem no design é **Sudene, UFCG, OCA** (x=470, 643 e 858 dentro do fr
 O logo do INSA (`public/logos/logo_insa.png`) não aparece: o design credita três instituições, o
 rodapé anterior creditava quatro. Decisão de conteúdo a confirmar.
 
+Os logos ficam sem título acima, como no design; o rótulo "Parceiros e apoio" saiu em 06/10/2026.
+Ao lado do nome "Caativar", o rodapé mostra o símbolo da Caativar em branco
+(`public/logos/caativar-simbolo-branco.svg`, o `caativar-simbolo.svg` com todas as cores trocadas
+por branco), no lugar da marca da OCA.
+
 ## Formação (public/images/formacao/)
 
 Fotos das atividades de formação (oficinas, eventos, rodas de diálogo, encontros em assentamentos). A seção Formação e seu carrossel foram removidos na reconstrução da landing; as fotos sobrevivem em `DEFAULT_FOTOS_FORMACAO` mas nada as renderiza hoje. Originais na pasta `../fotos` (imagens de WhatsApp e uma foto DSC), selecionadas e otimizadas com Pillow para 1280 px de largura, JPEG progressivo (~90 a 280 KB).
 
 Seis fotos em uso: `f1.jpg` (encontro em assentamento), `f2.jpg` (apresentação em evento), `f3.jpg` (oficina), `f4.jpg` (roda de diálogo), `f6.jpg` (foto de grupo), `f7.jpg` (oficina com a sociedade civil). A sétima selecionada era um momento cultural em orientação retrato (`f5`), removida porque o carrossel usa moldura paisagem 3:2 e a foto perdia metade do conteúdo no recorte. As legendas são provisórias (descrevem o que se vê); ajustar quando houver a identificação dos eventos. A pasta `../fotos` tem mais imagens disponíveis e um `photos_caatinga.zip` (não usado).
+
+## Eventos (public/images/eventos/)
+
+Fotos dos dois eventos da aba "Eventos e articulações" da página Comunicação, exportadas do Figma (preenchimento de imagem do card, nó 19254:16456) e convertidas para JPEG progressivo de 760 px de largura com Pillow. Só entram no fallback (`DEFAULT_EVENTOS` em `lib/content/eventos.ts`): com o Contentful configurado, a página usa a foto de cada entrada de Evento. O crédito de cada foto está na legenda do card.
+
+| Arquivo | Evento | Crédito |
+|---|---|---|
+| `encontro-brasil-tunisia.jpg` | Encontro Brasil e Tunísia (17/09/2026) | peasa.ufcg.edu.br, 2026 |
+| `reuniao-mpi.jpg` | Reunião com o Ministério dos Povos Indígenas (15/09/2026) | MPI, 2026 |
 
 ## Plataforma (public/images/)
 
@@ -125,16 +139,16 @@ qualidade 85). Os PNGs vieram do `get_design_context` do MCP do Figma e não tra
 
 ## Faixas das páginas internas (public/images/faixas/)
 
-Fotos de fundo das faixas acima do rodapé nas páginas internas (componente `PhotoBand`):
-`sobre.webp` (2000×605, 60 KB), da faixa "O que a plataforma não faz" (nó 18988:8651), e
-`comunicacao.webp` (1600×640, 200 KB), da faixa "Esse espaço está crescendo" (nó 18978:2080).
-Os originais no Figma são fotos de celular: a primeira em 4000×3000 (Samsung SM-S901E, com EXIF
-mas sem GPS), a segunda em 3000×4000 (retrato, sem EXIF).
+Foto de fundo da faixa acima do rodapé da página Sobre (componente `PhotoBand`): `sobre.webp`
+(2000×605, 60 KB), da faixa "O que a plataforma não faz" (nó 18988:8651). O original no Figma é
+uma foto de celular em 4000×3000 (Samsung SM-S901E, com EXIF mas sem GPS). A foto da faixa "Esse
+espaço está crescendo", da página Comunicação, foi removida do projeto junto com a faixa, em
+06/10/2026.
 
-O design mostra só uma tira de cada foto (1436×219 e 1436×209). Os recortes guardam uma tira mais
-alta, centrada no mesmo ponto que o design centraliza, para que `object-fit: cover` ainda tenha
-imagem quando a faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os
-metadados. Autoria não registrada.
+O design mostra só uma tira da foto (1436×219). O recorte guarda uma tira mais alta, centrada no
+mesmo ponto que o design centraliza, para que `object-fit: cover` ainda tenha imagem quando a
+faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os metadados. Autoria
+não registrada.
 
 ## Páginas Sobre (public/images/sobre/)
 
@@ -155,9 +169,8 @@ preenchimento mostra, colunas 794 a 3575 e linhas 675 a 2719 (proporção 1,36, 
 reduzida para 596×438. A conversão (Pillow, WebP qualidade 80, `exif=b''`) descarta todos os
 metadados, inclusive o GPS; não publicar o original.
 
-Os ícones das perguntas numeradas (`public/icons/sobre/`) são os SVGs exportados do Figma sem
-alteração. Dois deles ("paid" e "calendar month") vêm em duas camadas, um quadro vazio de 85 px e
-o glifo posicionado dentro dele; as duas são usadas como o design as compõe.
+Os ícones das perguntas numeradas de "Entenda essa relação" foram removidos do projeto junto com a
+seção, em 06/10/2026; nenhum deles existe mais em `public/icons/sobre/`.
 
 Os ícones da página de publicação (`public/icons/conteudo/`) são os SVGs exportados do Figma (frame 19015:13056) sem alteração de desenho: a seta de "Voltar", as lupas de zoom, a tela cheia e o download. O download é a exceção de exportação: o `get_design_context` devolve para esse nó o ícone padrão do componente (um envelope), e não o trocado na instância, então o arquivo é o caminho do ícone tirado do SVG do botão inteiro, recortado por `viewBox` no quadro de 16 px que ele ocupa.
 

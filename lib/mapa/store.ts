@@ -25,9 +25,15 @@ import {
 const DARK_MODE_KEY = 'cc_dark_mode_v1'
 const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
+// The layers the panel offers. A `hidden` layer stays in layers.json, so the
+// GEE allowlist and the Territórios story still reach it, but the map module
+// never lists, draws or restores it; a theme or subtheme left without layers
+// drops out of the panel with them.
+const PANEL_LAYERS = (appConfig.layers as LayerConfig[]).filter((l) => !l.hidden)
+
 // State from the previous session, checked against today's layers.json. Read
 // once, at module load, for the initial store values below.
-const restaurado = readPersisted(appConfig.layers as LayerConfig[])
+const restaurado = readPersisted(PANEL_LAYERS)
 
 /**
  * GEE rasters that were on when the user left. They come back off: only
@@ -91,6 +97,8 @@ interface MapaStore {
   /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
   homeSignal: number
   basemapId: string
+  /** Relief in 3D, from the elevation tiles of the Relevo subtheme. Not persisted. */
+  terrain3d: boolean
   darkMode: boolean
   // Current viewport and drawing. They live in the store so persistence has a
   // single read point; MapView consumes them on mount and feeds them afterwards.
@@ -137,6 +145,7 @@ interface MapaStore {
   setAnalysisLabel: (v: string | null) => void
   setAnalysisKind:  (v: string | null) => void
   setBasemap:     (id: string) => void
+  setTerrain3d:   (on: boolean) => void
   setView:        (v: PersistedView) => void
   setDrawing:     (f: GeoJSON.Feature | null) => void
   toggleDarkMode: () => void
@@ -153,7 +162,7 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json, in the draw order.
-  layers: applyGroupOrder(restaurado?.layers ?? (appConfig.layers as LayerConfig[]), ordemTemas, ordemSubtemas),
+  layers: applyGroupOrder(restaurado?.layers ?? PANEL_LAYERS, ordemTemas, ordemSubtemas),
   themeOrder: ordemTemas,
   subthemeOrder: ordemSubtemas,
   drawMode: null,
@@ -166,6 +175,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   clearSignal: 0,
   homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
+  terrain3d: false,
   // Dark mode: hydrates from localStorage on the client and, with no stored
   // mark, follows the operating system preference.
   // LEGACY: until 2026-07 the key was 'websig-dark-mode'. It is still read once
@@ -297,6 +307,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   setAnalysisLabel: (v)    => set({ analysisLabel: v }),
   setAnalysisKind:  (v)    => set({ analysisKind: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
+  setTerrain3d:   (on)     => set({ terrain3d: on }),
   toggleDarkMode: () =>
     set((s) => {
       const next = !s.darkMode

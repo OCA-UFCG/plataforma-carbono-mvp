@@ -8,14 +8,13 @@ import { defineCopy, line, optionalLine, paragraph } from './site/model'
 // (lib/content/sobre/plataforma.ts).
 
 export type PageIntroContent = {
-  eyebrow: string
+  eyebrow?: string
   title: string
   intro: string
 }
 
 export type PhotoBandContent = {
   image: string
-  eyebrow?: string
   title: string
   items?: string[]
 }
@@ -37,9 +36,8 @@ export const SOBRE_INTRO = defineCopy({
   },
 })
 
-// The photo of each band stays in the code, with the rest of the images.
+// The band's photo stays in the code, with the rest of the images.
 export const SOBRE_FAIXA_IMAGEM = '/images/faixas/sobre.webp'
-export const COMUNICACAO_FAIXA_IMAGEM = '/images/faixas/comunicacao.webp'
 
 export const COMUNICACAO_PAGINA = defineCopy({
   id: 'comunicacaoPagina',
@@ -47,20 +45,14 @@ export const COMUNICACAO_PAGINA = defineCopy({
   description:
     'Textos da página Comunicação ao redor da lista de publicações. As publicações em si são as entradas de Cartilha e Caderno Temático. Há uma única entrada deste tipo: edite-a, não crie outra.',
   fields: {
-    // Figma node 18978:2050. The paragraph is the landing's former description
-    // of the platform, word for word; it looks like placeholder copy, and is an
-    // open question to the content owner (issue #44, question 4).
-    introChamada: line('Introdução · Chamada acima do título', 'Materiais'),
+    // Figma node 18978:2050, without its "Materiais" eyebrow, taken out on
+    // 2026-10-06. The paragraph is the landing's former description of the
+    // platform, word for word; it looks like placeholder copy, and is an open
+    // question to the content owner (issue #44, question 4).
     introTitulo: line('Introdução · Título', 'Comunicação'),
     introTexto: paragraph(
       'Introdução · Texto',
       'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
-    ),
-    // Figma node 18978:2080.
-    faixaChamada: line('Faixa do rodapé · Chamada acima do título', 'Esse espaço está crescendo'),
-    faixaTitulo: line(
-      'Faixa do rodapé · Título',
-      'Estamos desenvolvendo mais cartilhas, cadernos temáticos e outros materiais sobre o carbono na Caatinga.',
     ),
   },
 })

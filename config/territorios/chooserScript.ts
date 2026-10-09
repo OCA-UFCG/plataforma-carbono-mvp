@@ -7,8 +7,9 @@ import { numero } from '@/lib/mapa/format'
 import type { TerritoryTypeId } from '@/types/territorios'
 
 export const INTRO = {
-  eyebrow: 'Territórios',
   title:   'Que território você quer conhecer?',
+  /** Under the title on the gallery only (Figma 19272:42557). */
+  lead:    'Conheça o território do seu interesse em um panorama rápido e acessível sobre estoque e fluxo de carbono, uso da terra, ocorrência de fogo e chuva.',
   changeType: 'Trocar tipo',
   /** Over the gallery of types (Figma 19254:37354). */
   chooseCut: 'Escolha o recorte',

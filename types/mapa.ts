@@ -19,6 +19,16 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // Point layer drawn as a sonar: a larger dot with a ring pulsing around it,
+  // and a round swatch in the legend.
+  pulse?: true
+  hidden?: true            // as in RasterLayerConfig
+  // glTF model stood on every point when zoomed in (lib/mapa/pointModels.ts);
+  // a click on a point flies to it, tilted, so the model shows.
+  model?: {
+    url:    string
+    height: number  // meters, the same at every point; larger than the real towers so they read at z19
+  }
   // Property that tells homonymous features apart, written into the GeoJSONs by
   // scripts/enrich-uf.py. Labels are not unique -- 34 municipality names repeat
   // inside the Caatinga clip, 213 settlement names do -- so the search shows
@@ -76,6 +86,13 @@ export interface RasterLayerConfig {
   // and a color instead (lib/mapa/carbonFlux.ts). A stock or a gross flux is
   // one-directional and leaves it unset.
   signedFlux?: boolean
+  // A layer read by eye only, like a hillshade, whose values are a rendering
+  // and not a quantity: it gets no result card, and on its own it gives a
+  // click nothing to measure (lib/mapa/analysisTargets.ts).
+  analysis?: false
+  // Left out of the map panel for now (lib/mapa/store.ts): set aside, or not
+  // released yet. Deleting the flag brings the layer back.
+  hidden?: true
   // categorical:
   classes?: RasterClass[]
   // continuous:
@@ -87,7 +104,10 @@ export interface RasterLayerConfig {
   // When `source` is 'gee', the tile URL is resolved via `/api/gee/tile`
   // at activation time and cached in the store. The full asset pipeline
   // is declared in `gee.asset`.
-  source?: 'titiler' | 'gee'
+  source?: 'titiler' | 'gee' | 'dem'
+  // `source: 'dem'`: elevation tiles (TileJSON) that MapLibre shades by itself,
+  // with no GEE request. The same tiles feed the 3D terrain.
+  dem?: { url: string }
   clipToLayerId?: string         // vector layer id whose bbox clips the GEE image
   gee?: {
     asset: {

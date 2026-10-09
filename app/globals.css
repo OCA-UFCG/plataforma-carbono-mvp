@@ -94,9 +94,10 @@
   --container-max: 1276px;
   --gutter: 80px;
 
-  /* Height of SiteHeader (Figma "Menu-superior" 18862:8515), which is
+  /* Height of SiteHeader (Figma "Menu-superior" 19272:44333), which is
    * `position: sticky`, not fixed. Sections read this for scroll-margin-top
-   * below so anchor navigation clears the sticky header. */
+   * below so anchor navigation clears the sticky header. The logo badge
+   * hanging below the bar is not counted: it overlaps the page by design. */
   --header-height: 76px;
 }
 

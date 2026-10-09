@@ -1,4 +1,4 @@
-/* Site header. Figma "Menu-superior", node 18862:8515, 1436x76.
+/* Site header. Figma "Menu-superior", component 19272:44333, 1436x76.
  * Font sizes/weights/line-heights come only from the .text-* utility classes
  * applied in SiteHeader.tsx (see app/globals.css); this file handles color,
  * spacing and layout only. */
@@ -20,8 +20,9 @@
 
 /* Figma pads the 76px frame 18px top and bottom and draws the 2px border
  * inside it, over the bottom padding, so the row sits 1px below the centre of
- * the 74px above the border: the 2px here puts the 40px items at y=18 and the
- * logo at y=19, as in node 18862:8515. */
+ * the 74px above the border: the 2px here puts the 40px nav items at y=18,
+ * the 32px language switch at y=22 and the 72px logo slot at y=2, as in
+ * component 19272:44333. */
 .bar {
   height: 100%;
   padding-top: 2px;
@@ -31,22 +32,15 @@
   gap: 16px;
 }
 
-/* Caativar lockup, left side of the bar. The only part of the bar allowed to
- * shrink (`.nav`/`.actions` below stay `flex: none`). */
+/* The design's 187.18x72 logo slot ("Rectangle 2367", 19272:44335), left side
+ * of the bar. HeaderLogo positions the lockup against it and lets it overflow:
+ * the badge hangs below the bar and the wordmark runs 9px past the slot. */
 .brand {
-  display: flex;
-  align-items: center;
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-/* Drawn at the design's 153px width. `height: auto` keeps the SVG's own
- * 691:171 ratio (37.9px tall against the slot's rounded 38) and lets the logo
- * scale down with `.brand` without distorting. */
-.brandLogo {
+  position: relative;
   display: block;
-  max-width: 100%;
-  height: auto;
+  flex: none;
+  width: 187.18px;
+  height: 72px;
 }
 
 /* Inline nav: HEADER_LINKS, the "Resumo territorial" link + the Mapas button. */
@@ -114,13 +108,13 @@
   flex: none;
 }
 
-/* Figma I18862:8515;16825:136014: as tall as the "Entrar" button beside it
- * (40px), with a 4px radius on the track and on the active pill — the design
+/* Figma 19272:44342: 32px tall, each option 6px above and below its 20px
+ * line, with a 4px radius on the track and on the active pill — the design
  * system has no token for 4px, so it is written out. */
 .language {
   display: flex;
   align-items: center;
-  height: 40px;
+  height: 32px;
   background: var(--am-200);
   border-radius: 4px;
   overflow: hidden;

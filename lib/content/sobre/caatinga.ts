@@ -38,7 +38,7 @@ export const CAATINGA = defineCopy({
     climaIndicadorValor: line('Clima · Indicador · Valor', '410 Mt'),
     climaIndicadorTexto: line(
       'Clima · Indicador · Texto',
-      'removidos em 2022 — cerca de 40% das remoções realizadas pelos biomas brasileiros naquele ano, mais do que qualquer outro bioma',
+      'removidos em 2022 — cerca de 38% das remoções realizadas pelos biomas brasileiros naquele ano, mais do que qualquer outro bioma (Costa et al., 2025)',
     ),
     climaDepois: paragraph(
       'Clima · Texto depois do indicador',
@@ -92,23 +92,6 @@ export const CAATINGA = defineCopy({
       'A Caatinga abriga cidades de diferentes portes e uma ampla rede de comunidades rurais. Agricultores e agricultoras familiares, povos indígenas, comunidades quilombolas, assentamentos da reforma agrária, comunidades de fundo e fecho de pasto e outros povos e comunidades tradicionais desenvolveram conhecimentos e práticas de convivência com o Semiárido.',
       'São essas populações que manejam os roçados, os quintais produtivos e as áreas de vegetação nativa. Qualquer discussão sobre carbono no bioma é também uma discussão sobre esses territórios e sobre quem os sustenta',
     ]),
-
-    // 18988:8741, the section with the red heading; the comparison is
-    // 18988:8747.
-    pressaoTitulo: line('Sob pressão · Título', 'Um bioma sob pressão'),
-    pressaoAntes: paragraph(
-      'Sob pressão · Texto antes da comparação',
-      'Apesar da capacidade de absorver e reter carbono, a Caatinga enfrenta um processo contínuo de degradação. Entre 2001 e 2021, as áreas conservadas diminuíram em todas as categorias fundiárias, com perdas maiores nos assentamentos e nas pequenas propriedades. Entre 2000 e 2020, a área afetada por desertificação severa cresceu de 74 mil para 107 mil km², mais do que o território de Pernambuco.',
-    ),
-    comparacaoTitulo: line('Sob pressão · Comparação · Título', 'Em desertificação severa'),
-    comparacaoAnoAntes: line('Sob pressão · Comparação · Ano inicial', '2000'),
-    comparacaoValorAntes: line('Sob pressão · Comparação · Valor inicial', '74 mil km²'),
-    comparacaoAnoDepois: line('Sob pressão · Comparação · Ano final', '2020'),
-    comparacaoValorDepois: line('Sob pressão · Comparação · Valor final', '107 mil km²'),
-    pressaoDepois: paragraph(
-      'Sob pressão · Texto depois da comparação',
-      'Os territórios indígenas, quilombolas, os assentamentos e as pequenas propriedades guardam parte relevante da vegetação em pé e, ao mesmo tempo, estão entre os mais expostos à degradação e à insegurança fundiária. É por isso que a forma como o mercado de carbono tratar esses territórios definirá se ele remunera quem conservou o bioma ou aprofunda desigualdades.',
-    ),
   },
 })
 

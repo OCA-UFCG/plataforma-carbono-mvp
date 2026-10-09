@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { RESULT_PROFILES } from '@/config/mapa/resultProfiles'
-import { analysisScale, binsFromGroups, countsFromGroups, physicalAsset } from '@/lib/mapa/layerResult'
+import { analysisScale, binsFromGroups, countsFromGroups } from '@/lib/mapa/layerResult'
 import { getResultLayer, resolveTemporalDate } from '@/lib/mapa/resultsRegistry'
 import { nominalSummary, ordinalSummary } from '@/lib/mapa/results/composition'
 import { coverageNote, edge, hectares, hectaresShort, layerTitle, percent, percentShort, quantity, sourceNote } from '@/lib/mapa/results/format'
@@ -159,15 +159,6 @@ describe('server-side pieces', () => {
     expect(resolveTemporalDate(layer('biomassa_esa_lenhosa'), '2010-01-01')).toBe('2010-01-01')
     // A static layer ignores the date instead of failing.
     expect(resolveTemporalDate(layer('degradacao_terra'), '2024-01-01')).toBeUndefined()
-  })
-
-  it('makes the MODIS productivity physical without touching the other layers', () => {
-    const gpp = getResultLayer('gpp_modis')!
-    expect(physicalAsset(gpp.asset, gpp.profile)).toMatchObject({ reducer: 'sum', multiplier: 0.1 })
-    const npp = getResultLayer('npp_modis')!
-    expect(physicalAsset(npp.asset, npp.profile)).toMatchObject({ reducer: 'mean', multiplier: 0.1 })
-    const lst = getResultLayer('lst_modis')!
-    expect(physicalAsset(lst.asset, lst.profile)).toBe(lst.asset)
   })
 
   it('resolves every raster layer, and the pool layers to the stock report', () => {

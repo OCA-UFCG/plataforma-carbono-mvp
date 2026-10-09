@@ -85,6 +85,36 @@
   margin: 0;
 }
 
+/* The "Em breve" slot: the cover's frame, dashed and unfilled, a place kept
+ * for the next cover. Its label is Rubik Medium 16/24 in --bg-texto-secundario
+ * on the page's --bg-fundo, after a dot of the site's green,
+ * --role-categorica1-padrao. */
+.soon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.soonLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--bg-texto-secundario);
+  margin: 0;
+}
+
+.soonDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--role-categorica1-padrao);
+}
+
 a.surface:hover .cover,
 a.surface:focus-visible .cover {
   border-color: var(--bg-borda);

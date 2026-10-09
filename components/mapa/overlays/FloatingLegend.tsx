@@ -145,13 +145,15 @@ function VectorLegendItem({ layer, theme }: { layer: VectorLayerConfig; theme: P
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span
+        className={layer.pulse ? 'legend-sonar' : undefined}
         style={{
           width: 13,
           height: 13,
-          borderRadius: 3,
+          borderRadius: layer.pulse ? '50%' : 3,
           flexShrink: 0,
           background: layer.color,
-          border: `1px solid ${layer.color}`,
+          border: `1px solid ${layer.pulse ? '#fff' : layer.color}`,
+          color: layer.color,
         }}
       />
       <span
@@ -218,7 +220,7 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
         ))}
 
       {/* Continuous: real palette gradient with min/max + unit */}
-      {!hasClasses && layer.colorType === 'continuous' && (
+      {!hasClasses && layer.colorType === 'continuous' && layer.source !== 'dem' && (
         <ContinuousLegend layer={layer} theme={theme} />
       )}
     </div>

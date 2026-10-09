@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FOOTER_LINKS } from "@/lib/marketing/nav";
 import styles from "./SiteFooter.module.css";
@@ -13,9 +12,8 @@ import styles from "./SiteFooter.module.css";
 // through Figma's REST API at 3x, resizing to 2x, and saving as WebP with
 // alpha (5-10 KB each).
 //
-// The colour PNGs in public/logos/ are not orphaned by this: logo_oca.png
-// still serves the brand mark below and every layout's favicon, while
-// logo_ufcg.png, logo_sudene.png and logo_insa.png are kept alive solely by
+// The colour PNGs in public/logos/ are not orphaned by this: logo_oca.png,
+// logo_ufcg.png, logo_sudene.png and logo_insa.png are kept alive by
 // components/mapa/Welcome.tsx. Do not delete them as unused.
 //
 // INSA is committed at public/logos/logo_insa.png and was credited in the
@@ -38,12 +36,17 @@ export default function SiteFooter() {
         <div className={`${styles.column} ${styles.columnBrand}`}>
           <div className={styles.brand}>
             {/* The design's footer still holds the empty "logo" placeholder
-                (the Caativar lockup reached only the header), so this keeps
-                the institutional mark at public/logos/logo_oca.png; the
-                wordmark beside it already names the platform, so the mark
-                itself is decorative here. */}
-            <Image
-              src="/logos/logo_oca.png"
+                (the Caativar lockup reached only the header). This fills it
+                with the Caativar symbol in white, like the partner marks:
+                public/logos/caativar-simbolo.svg (see lib/favicon.ts) with
+                every colour set to white, as the logo board's monochrome
+                outline variant (Figma 19083:7621) does with the previous
+                tree. The full-colour symbol would lose its dark trunk against
+                this background. The wordmark beside it already names
+                the platform, so the mark itself is decorative here. */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma logo */}
+            <img
+              src="/logos/caativar-simbolo-branco.svg"
               alt=""
               width={36}
               height={36}
@@ -62,7 +65,8 @@ export default function SiteFooter() {
             <ul className={styles.navList} role="list">
               {FOOTER_LINKS.map((link) =>
                 link.external ? (
-                  // MAPA_LINK crosses a route group: a full page load, not next/link.
+                  // TERRITORIOS_LINK and MAPA_LINK cross a route group: a full
+                  // page load, not next/link.
                   <li key={link.href} role="listitem">
                     <a href={link.href} className={styles.navLink}>
                       {link.label}
@@ -80,8 +84,8 @@ export default function SiteFooter() {
           </nav>
         </div>
 
+        {/* No heading: the design's partner column is the logo row alone. */}
         <div className={`${styles.column} ${styles.columnPartners}`}>
-          <h2 className={`${styles.heading} text-p-ui`}>Parceiros e apoio</h2>
           <div className={styles.logos}>
             {/* External partner marks, not part of the app's own optimized asset
                 pipeline; explicit width/height avoids the intrinsic-size blowup

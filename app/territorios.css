@@ -148,29 +148,30 @@ input:focus-visible,
   background: var(--am-100);
 }
 
-/* 40 px above and below on the gallery (Figma 19254:37328); the report's band
-   keeps 40 above and 16 below (territorios-relatorio.css). */
+/* 40 px above and below on the gallery (Figma 19254:37328), with 24 between
+   the title and the lead (19272:42533); the report's band keeps 40 above and
+   16 below (territorios-relatorio.css). */
 .territorios-secao-faixa-conteudo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 24px;
   padding-block: 40px;
 }
 
-/* The eyebrow sets solid, Rubik Medium 14/14 (19254:37346). */
-.territorios-secao-sobretitulo {
-  line-height: 14px;
-  color: var(--bg-texto-secundario);
-  text-transform: uppercase;
-}
-
-/* The design's green (19254:37347), 4.75:1 on --am-100. */
+/* The design's green (19254:37347), 4.75:1 on --am-100. Beside the
+   actions it may shrink below its longest word and wrap. */
 .territorios-secao-titulo {
+  min-width: 0;
   color: var(--role-categorica1-padrao);
 }
 
 .territorios-secao-titulo:focus {
   outline: none;
+}
+
+/* Rubik Regular 14/24 under the title (19272:42557). */
+.territorios-secao-lead {
+  color: var(--bg-texto-primario);
 }
 
 /* Search */

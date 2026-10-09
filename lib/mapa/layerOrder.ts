@@ -7,8 +7,9 @@ import type { LayerConfig } from '@/types/mapa'
  * (layers[0] is drawn on top): the recortes first, in layers.json order, then
  * the rasters by the user's theme order, then subtheme order. Recortes have to
  * sit above the rasters: a click resolves to a recorte and measures the rasters
- * under it (`clickableRecortes`). Every thematic subtheme is exclusive, so
- * ordering subthemes orders the visible rasters.
+ * under it (`clickableRecortes`). Every thematic subtheme but Relevo is
+ * exclusive, so ordering subthemes orders the visible rasters; inside Relevo
+ * the layers.json order decides.
  *
  * Every function returns the same array when nothing changes, so the store does
  * not notify, re-render or re-persist for a no-op.

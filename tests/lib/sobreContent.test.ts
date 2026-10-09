@@ -1,11 +1,7 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import {
-  CARBONO_E_COMUNIDADES,
-  CARBONO_E_COMUNIDADES_IMAGEM,
-  perguntas,
-} from '@/lib/content/sobre/carbono-e-comunidades'
+import { CARBONO_E_COMUNIDADES, CARBONO_E_COMUNIDADES_IMAGEM } from '@/lib/content/sobre/carbono-e-comunidades'
 import {
   SOBRE_PLATAFORMA,
   SOBRE_PLATAFORMA_ICONES,
@@ -60,33 +56,9 @@ describe('Entenda essa relação (/sobre/carbono-e-comunidades)', () => {
     expect(c.cuidadosTitulo).toBe('Quais cuidados devem ser observados?')
   })
 
-  it('asks the eight questions, each with an icon that exists', () => {
-    expect(perguntas(c)).toHaveLength(8)
-    for (const { pergunta, icone } of perguntas(c)) {
-      expect(inPublic(icone.src), `${pergunta}: ${icone.src}`).toBe(true)
-      if (icone.glyph) expect(inPublic(icone.glyph.src), `${pergunta}: ${icone.glyph.src}`).toBe(true)
-    }
-  })
-
-  // Figma 18988:8918 breaks question 5 as "Quem assumirá os custos e / os
-  // riscos?". A no-break space keeps "os riscos?" together, which gives that
-  // break in the 389px question column and still wraps freely when narrower.
-  it('keeps "os riscos?" together in question 5', () => {
-    expect(c.pergunta5).toBe('Quem assumirá os custos e os\u00a0riscos?')
-  })
-
-  it('states the two minimum shares the law guarantees', () => {
-    expect([
-      { rotulo: c.garantia1Rotulo, valor: c.garantia1Valor },
-      { rotulo: c.garantia2Rotulo, valor: c.garantia2Valor },
-    ]).toEqual([
-      { rotulo: 'créditos de remoção', valor: 'mín. 50%' },
-      { rotulo: 'redução do desmatamento', valor: 'mín. 70%' },
-    ])
-  })
-
-  // The design marks three terms with "ⓘ" for a glossary it does not define
-  // (issue #44, question 3). Until it exists, the words appear without it.
+  // The design marks "consulta livre, prévia e informada" with "ⓘ" for a
+  // glossary it does not define (issue #44, question 3). Until it exists, the
+  // words appear without it.
   it('carries no glossary marker yet', () => {
     expect(JSON.stringify(c)).not.toContain('ⓘ')
   })
@@ -146,29 +118,17 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
     expect(c.vegetacaoDestaque).toBe('')
   })
 
-  // The landing's highlights (lib/content/destaques.ts) repeat three of these
-  // figures, which must agree: since the 2026-10-05 meeting the landing's
-  // removal card gives the same 40% as this page, not the 48% of gross carbon
-  // removal it carried before.
-  it('agrees with the landing on removal, efficiency and removal capacity', () => {
-    expect(c.climaIndicadorTexto).toContain(
-      `cerca de ${DESTAQUES.find((d) => d.rotulo === 'Remoção de carbono')?.numero}%`,
-    )
+  // The landing's highlights (lib/content/destaques.ts) repeat two of these
+  // figures, which must agree: the share of Brazil's removals in 2022 and the
+  // carbon use efficiency.
+  it('agrees with the landing on removal and efficiency', () => {
     const landing = (rotulo: string) => DESTAQUES.find((d) => d.rotulo === rotulo)
-    expect(`${landing('Eficiência de carbono')?.numero}${landing('Eficiência de carbono')?.unidade}`).toBe(
-      c.eficienciaIndicadorValor,
-    )
-    expect(landing('Capacidade de remoção')?.numero).toBe('1,5–5')
-    expect(c.armazenamentoIndicador2Valor.startsWith('1,5–5')).toBe(true)
+    expect(c.climaIndicadorTexto).toContain(`cerca de ${landing('Remoção de carbono')?.numero}%`)
+    const eficiencia = landing('Eficiência no uso de carbono')
+    expect(`${eficiencia?.numero}${eficiencia?.unidade}`).toBe(c.eficienciaIndicadorValor)
   })
 
-  it('compares the area under severe desertification in 2000 and 2020', () => {
-    expect([c.comparacaoAnoAntes, c.comparacaoValorAntes]).toEqual(['2000', '74 mil km²'])
-    expect([c.comparacaoAnoDepois, c.comparacaoValorDepois]).toEqual(['2020', '107 mil km²'])
-  })
-
-  it('points its photo and arrow at files that exist', () => {
+  it('points its photo at a file that exists', () => {
     expect(inPublic(CAATINGA_PESSOAS_IMAGEM.src)).toBe(true)
-    expect(inPublic('/icons/sobre/arrow.svg')).toBe(true)
   })
 })

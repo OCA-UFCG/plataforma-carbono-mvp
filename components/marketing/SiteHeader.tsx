@@ -5,16 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
+import HeaderLogo from "./HeaderLogo";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 153 + 584 + 107px with 16px gaps between them (876px),
-// none of it allowed to shrink below content (`flex: none` on `.nav` and
-// `.actions`, deliberately — only `.brand` may shrink), plus `--gutter` (80px,
-// still 80 in this range — it only drops to 24 at <=768px) on both sides.
-// 876 + 160 = 1036px is the narrowest viewport the inline header fits at full
-// size; 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px),
+// none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
+// (80px, still 80 in this range — it only drops to 24 at <=768px) on both
+// sides. The wordmark overruns `.brand` by 9px, inside the 16px gap.
+// 911 + 160 = 1071px is the narrowest viewport the inline header fits at;
+// 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or
@@ -23,7 +24,7 @@ const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
 
-// The PT-BR / En control from the Figma design (I18862:8515;16825:136014),
+// The PT-BR / En control from the Figma design (19272:44342),
 // rendered as designed but inert: internationalisation is out of scope, so
 // selecting "En" does nothing. --role-neutro-texto-desabilitado is the token
 // for that disabled state; it measures 2.50:1 against the background, which
@@ -95,20 +96,7 @@ export default function SiteHeader() {
     <header className={styles.siteHeader} aria-label="Cabeçalho">
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
-          {/* The Caativar lockup, Figma I18862:8515;19090:30266 (153x38). The
-              header places it as a raster PNG; public/logos/caativar.svg is
-              the same artwork exported as vectors from the logo board on the
-              "Área trabalho" page (node 19099:6670); rendered at the PNG's
-              1381px width, its bounds match the PNG's to the pixel. The
-              link's aria-label names it, so the image itself is decorative. */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- exported Figma logo */}
-          <img
-            src="/logos/caativar.svg"
-            alt=""
-            width={153}
-            height={38}
-            className={styles.brandLogo}
-          />
+          <HeaderLogo />
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">

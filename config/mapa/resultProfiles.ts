@@ -72,12 +72,6 @@ export interface AnnualProfile extends Common {
   archetype: 'annual'
   meanLabel: string
   unit: string
-  /**
-   * Changes to the layer's asset needed for a physical yearly value. The map
-   * tile of the MODIS productivity layers stays in raw counts, because its
-   * Jenks breaks were computed on them.
-   */
-  physical?: { reducer?: 'sum'; multiplier: number }
   /** Productivity: the yearly value summed over the area; m² per unit of the total. */
   total?: { label: string; unit: string; areaDivisor: number }
 }
@@ -203,6 +197,18 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     threshold: { value: 5, label: 'Área com dossel de 5 m ou mais' },
     period: '2023',
   },
+  altitude_fabdem: {
+    archetype: 'distribution',
+    scale: 30,
+    bins: [0, 200, 400, 600, 800, 1000],
+  },
+  // The edges are the Embrapa relief classes, from "plano" (0 to 3%) to
+  // "escarpado" (above 75%).
+  declividade_fabdem: {
+    archetype: 'distribution',
+    scale: 30,
+    bins: [0, 3, 8, 20, 45, 75],
+  },
 
   gfw_netflux: {
     archetype: 'flux',
@@ -231,14 +237,12 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     archetype: 'annual',
     meanLabel: 'GPP média',
     unit: 'g C/m²/ano',
-    physical: { reducer: 'sum', multiplier: 0.1 },
     total: { label: 'GPP total', unit: 't C/ano', areaDivisor: 1e6 },
   },
   npp_modis: {
     archetype: 'annual',
     meanLabel: 'NPP média',
     unit: 'g C/m²/ano',
-    physical: { multiplier: 0.1 },
     total: { label: 'NPP total', unit: 't C/ano', areaDivisor: 1e6 },
   },
   gpp_pml: {

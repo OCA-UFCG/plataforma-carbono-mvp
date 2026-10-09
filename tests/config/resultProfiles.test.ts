@@ -14,9 +14,12 @@ const rasters = (appConfig.layers as LayerConfig[]).filter(
 const byId = new Map(rasters.map((l) => [l.id, l]))
 
 describe('result profiles', () => {
-  it('give every raster layer exactly one profile, and name no other layer', () => {
+  it('give every measured raster layer exactly one profile, and name no other layer', () => {
     expect(rasters.length).toBeGreaterThan(0)
-    for (const l of rasters) expect(RESULT_PROFILES[l.id], `${l.id} has no result profile`).toBeDefined()
+    for (const l of rasters) {
+      if (l.analysis === false) expect(RESULT_PROFILES[l.id], `${l.id} is not measured`).toBeUndefined()
+      else expect(RESULT_PROFILES[l.id], `${l.id} has no result profile`).toBeDefined()
+    }
     for (const id of Object.keys(RESULT_PROFILES)) expect(byId.has(id), `${id} is not a raster layer`).toBe(true)
   })
 
@@ -34,7 +37,7 @@ describe('result profiles', () => {
   })
 
   it('total a density only in the unit its per-hectare value implies', () => {
-    const totalFor: Record<string, string> = { 't C/ha': 't C', 'Mg C/ha': 't C', 'Mg/ha': 't' }
+    const totalFor: Record<string, string> = { 't C/ha': 't C', 't/ha': 't' }
     for (const [id, p] of Object.entries(RESULT_PROFILES)) {
       if (p.archetype !== 'amount') continue
       const unit = byId.get(id)!.unit ?? ''
@@ -45,7 +48,7 @@ describe('result profiles', () => {
   })
 
   it('label a flux total with the gas unit of the layer', () => {
-    const totalFor: Record<string, string> = { 'Mg CO2e/ha': 't CO2e', 'Mg CO2/ha': 't CO2' }
+    const totalFor: Record<string, string> = { 't CO2e/ha': 't CO2e', 't CO2/ha': 't CO2' }
     for (const [id, p] of Object.entries(RESULT_PROFILES)) {
       if (p.archetype !== 'flux') continue
       expect(p.totalUnit).toBe(totalFor[byId.get(id)!.unit ?? ''])

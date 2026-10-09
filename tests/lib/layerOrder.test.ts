@@ -90,7 +90,7 @@ describe('applyGroupOrder', () => {
 
 describe('default orders', () => {
   it('follow groups.ts, without Território', () => {
-    expect(DEFAULT_THEME_ORDER).toEqual(['carbono', 'uso_solo', 'ambiente'])
+    expect(DEFAULT_THEME_ORDER).toEqual(['carbono', 'uso_solo', 'ambiente', 'localidades'])
     expect(DEFAULT_SUBTHEME_ORDER.carbono[0]).toBe('estoques')
     expect(DEFAULT_SUBTHEME_ORDER.territorio).toBeUndefined()
   })
@@ -98,11 +98,11 @@ describe('default orders', () => {
 
 describe('sanitizeThemeOrder', () => {
   it('keeps a valid stored order', () => {
-    expect(sanitizeThemeOrder(['ambiente', 'carbono', 'uso_solo'])).toEqual(['ambiente', 'carbono', 'uso_solo'])
+    expect(sanitizeThemeOrder(['ambiente', 'carbono', 'uso_solo', 'localidades'])).toEqual(['ambiente', 'carbono', 'uso_solo', 'localidades'])
   })
 
   it('drops unknown ids, duplicates and Território, and appends what is missing', () => {
-    expect(sanitizeThemeOrder(['uso_solo', 'territorio', 'x', 'uso_solo', 42])).toEqual(['uso_solo', 'carbono', 'ambiente'])
+    expect(sanitizeThemeOrder(['uso_solo', 'territorio', 'x', 'uso_solo', 42])).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
   })
 
   it('falls back to the default for anything that is not a list', () => {
@@ -113,8 +113,8 @@ describe('sanitizeThemeOrder', () => {
 
 describe('sanitizeSubthemeOrder', () => {
   it('sanitizes each theme and fills the ones not stored', () => {
-    const out = sanitizeSubthemeOrder({ carbono: ['solo', 'estoques', 'nope'], territorio: ['limites'] })
-    expect(out.carbono.slice(0, 3)).toEqual(['solo', 'estoques', 'reservatorios'])
+    const out = sanitizeSubthemeOrder({ carbono: ['fluxos', 'estoques', 'nope'], territorio: ['limites'] })
+    expect(out.carbono.slice(0, 3)).toEqual(['fluxos', 'estoques', 'estrutura'])
     expect(out.carbono).toHaveLength(DEFAULT_SUBTHEME_ORDER.carbono.length)
     expect(out.uso_solo).toEqual(DEFAULT_SUBTHEME_ORDER.uso_solo)
     expect(out.territorio).toBeUndefined()
@@ -128,11 +128,11 @@ describe('sanitizeSubthemeOrder', () => {
 
 describe('orderThemes', () => {
   it('keeps Território first and orders the rest, subthemes included', () => {
-    const out = orderThemes(THEMES, ['ambiente', 'carbono', 'uso_solo'], {
+    const out = orderThemes(THEMES, ['ambiente', 'carbono', 'uso_solo', 'localidades'], {
       ...DEFAULT_SUBTHEME_ORDER,
-      ambiente: ['clima', 'vegetacao'],
+      ambiente: ['clima', 'relevo', 'vegetacao'],
     })
-    expect(out.map((theme) => theme.id)).toEqual(['territorio', 'ambiente', 'carbono', 'uso_solo'])
-    expect(out[1].subthemes.map((subtheme) => subtheme.id)).toEqual(['clima', 'vegetacao'])
+    expect(out.map((theme) => theme.id)).toEqual(['territorio', 'ambiente', 'carbono', 'uso_solo', 'localidades'])
+    expect(out[1].subthemes.map((subtheme) => subtheme.id)).toEqual(['clima', 'relevo', 'vegetacao'])
   })
 })

@@ -22,11 +22,6 @@
   margin: 0;
 }
 
-/* --ctx-negativo-padrao, 5.10:1 on --bg-fundo (tests/lib/marketingPalette.test.ts). */
-.alert {
-  color: var(--ctx-negativo-padrao);
-}
-
 /* 24px between blocks: the design separates paragraphs with one blank 24px
  * line (18988:8646) and sets the indicator cards 24px from the text around
  * them (18988:8712). A closing Quote is not one of these blocks: Section.tsx

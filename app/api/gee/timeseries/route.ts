@@ -20,7 +20,6 @@ import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { anosDoIntervalo, computeSeries, MAX_ANOS } from '@/lib/mapa/zonalSeries'
 import { getResultLayer } from '@/lib/mapa/resultsRegistry'
-import { physicalAsset } from '@/lib/mapa/layerResult'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -69,7 +68,7 @@ export async function POST(req: Request) {
     if (!temporal) {
       return NextResponse.json({ error: 'layer has no yearly series' }, { status: 400 })
     }
-    asset = physicalAsset(entry.asset, entry.profile)
+    asset = entry.asset
     anos = anosDoIntervalo(temporal.dateRange)
   } else {
     if (!isValidAsset(body.asset)) {

@@ -47,6 +47,14 @@ describe('topVisibleRasterIndex', () => {
 
     expect(topVisibleRasterIndex(layers)).toBe(2)
   })
+
+  it('skips a raster shown for the eye only', () => {
+    // A hillshade on its own leaves a click on a municipality nothing to measure.
+    const hillshade: RasterLayerConfig = { ...raster('hillshade', true), analysis: false }
+
+    expect(topVisibleRasterIndex([vector('municipios', true), hillshade])).toBe(-1)
+    expect(topVisibleRasterIndex([vector('municipios', true), hillshade, raster('agb', true)])).toBe(2)
+  })
 })
 
 describe('clickableRecortes', () => {

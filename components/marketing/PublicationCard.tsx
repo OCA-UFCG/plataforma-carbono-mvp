@@ -64,3 +64,19 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
     </li>
   );
 }
+
+// The slot after the last publication, where the page used to close on the
+// "Esse espaço está crescendo" band: an empty cover frame, dashed, holding
+// "Em breve". Not in the design; asked for on 2026-10-06. Not a control.
+export function PublicationSoon() {
+  return (
+    <li className={styles.card} role="listitem">
+      <div className={`${styles.cover} ${styles.soon}`}>
+        <p className={styles.soonLabel}>
+          <span className={styles.soonDot} aria-hidden="true" />
+          Em breve
+        </p>
+      </div>
+    </li>
+  );
+}
