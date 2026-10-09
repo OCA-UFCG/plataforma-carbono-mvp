@@ -4,7 +4,7 @@
 // The field IDs are the ones the GraphQL queries select; tests/scripts/
 // contentfulProvision.test.ts keeps the two in step. The display names are in
 // Portuguese because they are what the editor reads in the web interface.
-import { displayField, type CopyKind, type CopyType } from './model'
+import { displayField, type CopyKind, type CopyType, type Placeholders } from './model'
 import { SITE_COPY_TYPES } from './types'
 
 // A publication's address, /comunicacao/<slug>: lowercase words joined by
@@ -25,6 +25,8 @@ export type ProvisionedField = {
   slug?: boolean
   // Set on the fields of the institutional copy: how the editor types it.
   copy?: CopyKind
+  // Set on a copy field the page fills in: what each placeholder becomes.
+  placeholders?: Placeholders
 }
 
 export type ProvisionedType = {
@@ -119,6 +121,7 @@ export function toProvisionedType(copyType: CopyType): ProvisionedType {
       type: field.kind === 'line' ? 'Symbol' : 'Text',
       required: !field.optional,
       copy: field.kind,
+      ...(field.placeholders && { placeholders: field.placeholders }),
     })),
   }
 }
@@ -140,14 +143,24 @@ const COPY_HELP: Record<CopyKind, string> = {
 
 const OPTIONAL_HELP = 'Opcional: deixe em branco para não mostrar.'
 
+// Appended to the help of a field the page fills in. A name the page does not
+// know makes it show the shipped text (lib/content/site/model.ts, copyFromEntry).
+function placeholderHelp(placeholders: Placeholders): string {
+  const names = Object.entries(placeholders).map(([name, meaning]) => `{${name}} = ${meaning}`).join('; ')
+
+  return ` Marcadores: ${names}. Mantenha as chaves; com um marcador desconhecido, a página usa o texto padrão.`
+}
+
 export function toEditorControl(field: ProvisionedField) {
   if (!field.copy) return null
+
+  const help = field.required ? COPY_HELP[field.copy] : OPTIONAL_HELP
 
   return {
     fieldId: field.id,
     widgetNamespace: 'builtin',
     widgetId: field.copy === 'line' ? 'singleLine' : 'multipleLine',
-    settings: { helpText: field.required ? COPY_HELP[field.copy] : OPTIONAL_HELP },
+    settings: { helpText: field.placeholders ? help + placeholderHelp(field.placeholders) : help },
   }
 }
 

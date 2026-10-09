@@ -4,11 +4,12 @@ import {
   toCmaEntry,
   toCmaField,
   toEditorControl,
+  toProvisionedType,
 } from '@/lib/content/site/provision'
 import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
 import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
-import { copyDefaults, copyFromEntry } from '@/lib/content/site/model'
+import { copyDefaults, copyFromEntry, defineCopy, line } from '@/lib/content/site/model'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 
 // The GraphQL API rejects a query naming a field the content model does not
@@ -144,6 +145,29 @@ describe('the provisioned institutional copy', () => {
         expect(control?.settings.helpText, `${type.id}.${field.id}`).toBeTruthy()
       }
     }
+  })
+
+  // The editor sees the braces in the shipped text; the help says what each
+  // one becomes and what happens to a name the page does not know.
+  it('tells the editor what each placeholder of a field becomes', () => {
+    const type = toProvisionedType(defineCopy({
+      id: 'modelo',
+      name: 'Modelo',
+      description: 'Teste.',
+      fields: {
+        frase: line('Frase', 'Eram {percentual} em {anoInicial}.', {
+          percentual: 'parte da área',
+          anoInicial: 'primeiro ano dos dados',
+        }),
+        titulo: line('Título', 'Sem marcador'),
+      },
+    }))
+    const [frase, titulo] = type.fields.map((field) => toEditorControl(field)?.settings.helpText)
+
+    expect(frase).toBe(
+      'Uma linha. Marcadores: {percentual} = parte da área; {anoInicial} = primeiro ano dos dados. Mantenha as chaves; com um marcador desconhecido, a página usa o texto padrão.',
+    )
+    expect(titulo).toBe('Uma linha.')
   })
 
   it('leaves the publication types to their default editors', () => {
