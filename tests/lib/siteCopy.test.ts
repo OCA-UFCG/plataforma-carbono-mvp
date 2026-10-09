@@ -146,14 +146,18 @@ describe('copyFromEntry', () => {
     expect(copyFromEntry(MODELO, { frase: 'Eram {percentual}.' }).frase).toBe('Eram {percentual}.')
   })
 
-  it('checks braces only on a field that declares placeholders', () => {
-    expect(copyFromEntry(MODELO, { livre: 'Outras {chaves}.' }).livre).toBe('Outras {chaves}.')
+  // An editor copies a placeholder from a sibling field that has one; on a
+  // field that fills none, it would reach the page as braces.
+  it('falls back on a brace in a field that declares no placeholders', () => {
+    expect(copyFromEntry(MODELO, { livre: 'Desde {anoInicial}.' }).livre).toBe('Sem marcadores declarados.')
+    expect(copyFromEntry(MODELO, { livre: 'IBGE {2019' }).livre).toBe('Sem marcadores declarados.')
+    expect(copyFromEntry(MODELO, { livre: 'Sem chaves.' }).livre).toBe('Sem chaves.')
   })
 })
 
 describe('rejectedFields', () => {
   it('names the fields of an entry the page replaces with the shipped value', () => {
-    expect(rejectedFields(MODELO, { frase: 'Eram {porcentagem}.', nota: 'Desde {ano}.', livre: '{x}' })).toEqual(['frase'])
+    expect(rejectedFields(MODELO, { frase: 'Eram {porcentagem}.', nota: 'Desde {ano}.', livre: '{x}' })).toEqual(['frase', 'livre'])
     expect(rejectedFields(MODELO, { frase: null })).toEqual([])
   })
 })

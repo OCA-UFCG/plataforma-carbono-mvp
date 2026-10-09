@@ -36,7 +36,7 @@ export type CopyField<K extends CopyKind = CopyKind> = {
   optional?: boolean
   // Set on a line or paragraph the page fills in. An entry whose text names
   // any other placeholder, or leaves a brace unpaired, gets the shipped value
-  // for this field.
+  // for this field; a field without placeholders takes no braces at all.
   placeholders?: Placeholders
 }
 
@@ -146,7 +146,7 @@ export function fillPlaceholders(value: string, values: Record<string, string | 
 }
 
 function fitsField(field: CopyField, value: string | string[]): boolean {
-  return !field.placeholders || [value].flat().every((part) => fitsPlaceholders(part, field.placeholders))
+  return [value].flat().every((part) => fitsPlaceholders(part, field.placeholders))
 }
 
 function isEmpty(value: string | string[]): boolean {

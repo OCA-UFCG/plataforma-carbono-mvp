@@ -52,6 +52,13 @@ describe('storyScript', () => {
       .toBe('Como mudou a vegetação nativa desde 1985?')
   })
 
+  // The uso, fogo and chuva questions show an editor {anoInicial}; the flux
+  // question fills no year.
+  it('keeps the shipped question when the edit copies a placeholder into a tab that fills none', () => {
+    expect(storyScript(edited('fluxo', { pergunta: 'O carbono mudou desde {anoInicial}?' })).questions.fluxo)
+      .toBe('As áreas com árvores tiraram ou lançaram carbono do ar?')
+  })
+
   it('carries the edited presentation, summary title and source', () => {
     const script = storyScript({
       ...edited('apresentacao', { titulo: 'Escolha um território' }),
