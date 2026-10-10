@@ -1,4 +1,5 @@
-# Downloads the territorial recortes (IBGE, FUNAI and INCRA via geobr), keeps
+# Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
+# own current exports, which geobr lags by months), keeps
 # those that belong to the Caatinga, clips them to the biome, simplifies them
 # and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
 #
@@ -26,6 +27,12 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "public", "data", "vector")
 BIOMA = os.path.join(OUT, "limite_caatinga.geojson")
 IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/"
                    "documentos/Bioma_Predominante_por_Municipio_2024.csv")
+# Current exports of the producing agencies. mapas2.funai.gov.br sends only its
+# leaf certificate, without the Sectigo intermediate: the download works where
+# the system already holds that intermediate (Windows loads it from its store)
+# and fails with CERTIFICATE_VERIFY_FAILED elsewhere.
+FUNAI_TIS = "https://mapas2.funai.gov.br/portal_mapas/shapes/ti_sirgas.zip"
+INCRA_QUILOMBOS = "https://certificacao.incra.gov.br/csv_shp/zip/%C3%81reas%20de%20Quilombolas.zip"
 # South America Albers Equal Area, for the share of a territory inside the biome.
 EQUAL_AREA = "ESRI:102033"
 
@@ -49,6 +56,53 @@ def mostly_inside(gdf):
     for i in share[(share > 0) & (share <= 0.5)].index:
         print(f"   fora: {gdf.at[i, gdf.columns[0]]} ({share[i]:.0%} na Caatinga)")
     return gdf[share > 0.5]
+
+
+def read_zip(url, encoding):
+    with urllib.request.urlopen(url, timeout=600) as r:
+        return gpd.read_file(io.BytesIO(r.read()), encoding=encoding)
+
+
+def states_of(gdf, fallback):
+    """
+    The states holding at least 20% of each territory, by share, joined with
+    "/" (the threshold of scripts/enrich-uf.py). INCRA records one state per
+    quilombo, and Serra da Guia has a fifth of its area in Bahia.
+    """
+    states = geobr.read_state(year=2022, show_progress=False).to_crs(EQUAL_AREA)[["abbrev_state", "geometry"]]
+    parts = gpd.overlay(gdf[["geometry"]].reset_index().to_crs(EQUAL_AREA), states, how="intersection")
+    parts["share"] = parts.area / parts["index"].map(gdf.to_crs(EQUAL_AREA).area)
+    kept = parts[parts["share"] >= 0.2].sort_values("share", ascending=False)
+    joined = kept.groupby("index")["abbrev_state"].agg("/".join)
+    return joined.reindex(gdf.index).fillna(fallback)
+
+
+# Title case for INCRA's labels in capitals, with the rule of displayName in
+# lib/territorios/featureIds.ts: a label already in mixed case passes as it is;
+# otherwise word by word, including after a slash, hyphen or apostrophe, with
+# connectives in lowercase ("d" as in "Pau d'Arco") and roman numerals, the
+# leading "TQ" (território quilombola) and a trailing state ("Mocambo - SE") kept.
+LOWERCASE_WORDS = {"a", "o", "as", "os", "ao", "aos", "d", "de", "da", "do", "das", "dos", "e", "em", "na", "no", "nas", "nos"}
+ROMAN_NUMERAL = re.compile(r"^(?:I{1,3}|IV|VI{0,3}|IX|XI{0,3})$")
+UFS = {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE",
+       "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}
+
+
+def title_case(label):
+    text = " ".join(str(label).replace("_", " ").split())
+    if any(w != w.upper() and w != "e" for w in text.split()):
+        return text
+
+    def word(m):
+        w, low = m.group(0), m.group(0).lower()
+        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ"):
+            return w
+        if w in UFS and text[:m.start()].endswith("- ") and m.end() == len(text):
+            return w
+        if m.start() > 0 and low in LOWERCASE_WORDS:
+            return low
+        return low[:1].upper() + low[1:]
+    return re.sub(r"[^\W\d_]+", word, text)
 
 
 def slug(value):
@@ -88,13 +142,20 @@ def previous_order(path, gdf, label):
     return pd.Series({i: rank[i] if i in rank else next(tail) for i in gdf.index})
 
 
-def write(name, gdf, columns, tol):
+def write(name, gdf, columns, tol, keep_area=False):
     path = os.path.join(OUT, name + ".geojson")
     clipped = gpd.clip(gdf, bioma_geom, sort=True)
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
     clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
     clipped = clipped[columns + ["geometry"]].to_crs(4326)
-    clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
+    simple = clipped.geometry.simplify(tol, preserve_topology=True)
+    if keep_area:
+        # A territory of a few dozen hectares loses half of itself to a 200 m
+        # tolerance (TI Barra, 62 to 34 ha); those get a ten times finer one.
+        before, after = clipped.to_crs(EQUAL_AREA).area, simple.to_crs(EQUAL_AREA).area
+        off = (after - before).abs() > 0.05 * before
+        simple[off] = clipped.geometry[off].simplify(tol / 10, preserve_topology=True)
+    clipped["geometry"] = simple
     clipped.to_file(path, driver="GeoJSON")
     # rewrites compactly with 5 decimals (about 1 m)
     d = json.load(open(path, encoding="utf-8"))
@@ -121,24 +182,31 @@ def estados():
 
 
 def terras_indigenas():
-    g = geobr.read_indigenous_land(year=2025, show_progress=False)
-    g["code_indigenous_land"] = g["code_indigenous_land"].astype("Int64")
+    g = read_zip(FUNAI_TIS, "utf-8").to_crs(4674)
+    g = g.rename(columns={"terrai_nom": "name_indigenous_land", "terrai_cod": "code_indigenous_land"})
+    g["name_indigenous_land"] = g["name_indigenous_land"].str.split().str.join(" ")
+    # "MT, PA" and "AM,PA" become "MT/PA", the form searchMatch and the story read.
+    g["abbrev_state"] = g["uf_sigla"].str.replace(r"\s*,\s*", "/", regex=True)
+    g["code_indigenous_land"] = pd.to_numeric(g["code_indigenous_land"], errors="coerce").astype("Int64")
     return mostly_inside(g[["name_indigenous_land", "abbrev_state", "code_indigenous_land", "geometry"]])
 
 
 def quilombolas():
-    g = geobr.read_quilombola_land(date=202605, show_progress=False)
-    g["code_quilombo"] = g["code_quilombo"].astype("Int64")
-    return mostly_inside(g[["name_quilombo", "abbrev_state", "code_quilombo", "geometry"]])
+    g = read_zip(INCRA_QUILOMBOS, "cp1252").to_crs(4674)
+    g["name_quilombo"] = g["nm_comunid"].map(title_case)
+    g["code_quilombo"] = pd.to_numeric(g["cd_quilomb"], errors="coerce").astype("Int64")
+    g = mostly_inside(g[["name_quilombo", "cd_uf", "code_quilombo", "geometry"]])
+    g["abbrev_state"] = states_of(g, g["cd_uf"])
+    return g
 
 
 jobs = [
-    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
-    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
-    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 0.002),
-    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 0.002),
+    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002, False),
+    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004, False),
+    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 0.002, True),
+    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 0.002, True),
 ]
 
-for name, load, columns, tol in jobs:
+for name, load, columns, tol, keep_area in jobs:
     print(f"baixando {name}...", flush=True)
-    write(name, load(), columns, tol)
+    write(name, load(), columns, tol, keep_area)
