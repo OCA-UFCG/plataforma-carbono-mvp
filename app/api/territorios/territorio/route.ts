@@ -42,9 +42,10 @@ export async function GET(req: Request) {
   }
 
   try {
-    // The vector files are static, so a day of staleness costs nothing.
+    // The vector files change only with a deploy (scripts/build-recortes.py),
+    // so an hour of staleness is the most a counted ranking can lag a release.
     return NextResponse.json(getTerritory(recorteId, featureId), {
-      headers: { 'Cache-Control': 'private, max-age=86400' },
+      headers: { 'Cache-Control': 'private, max-age=3600' },
     })
   } catch (err) {
     if (err instanceof TerritoryNotFoundError) {

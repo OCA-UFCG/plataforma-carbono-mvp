@@ -72,7 +72,9 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     if (!open) return
     const controller = new AbortController()
 
-    fetch(`/api/mapa/relatorio/feicoes?recorte=${encodeURIComponent(recorteId)}`, {
+    // `v` only renames the cache entry: lists cached for a day before the
+    // recortes changed (2026-10) must not outlive the release.
+    fetch(`/api/mapa/relatorio/feicoes?recorte=${encodeURIComponent(recorteId)}&v=2`, {
       signal: controller.signal,
     })
       .then((res) => {

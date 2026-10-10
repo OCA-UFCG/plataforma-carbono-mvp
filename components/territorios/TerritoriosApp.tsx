@@ -195,7 +195,9 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     if (!recorteId || !featureId) return
     const key = `${recorteId}|${featureId}`
     const controller = new AbortController()
-    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId })
+    // `v` only renames the cache entry: answers cached for a day before the
+    // recortes changed (2026-10) must not outlive the release.
+    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId, v: '2' })
 
     fetch(`/api/territorios/territorio?${params}`, { signal: controller.signal })
       .then(async (res) => {
