@@ -31,16 +31,14 @@ describe('listFeicoes', () => {
   it('suffixes homonyms in file order, the first occurrence keeping the bare slug', () => {
     const saoDomingos = listFeicoes('municipios').filter((f) => f.name === 'São Domingos')
 
-    // Three municipalities share this name, at file indices 19, 211 and 791.
-    expect(saoDomingos.map((f) => f.id)).toEqual([
-      'sao-domingos', 'sao-domingos-2', 'sao-domingos-3',
-    ])
+    // Two municipalities share this name, at file indices 174 and 691.
+    expect(saoDomingos.map((f) => f.id)).toEqual(['sao-domingos', 'sao-domingos-2'])
   })
 
   it('carries the state that tells homonyms apart', () => {
     const saoDomingos = listFeicoes('municipios').filter((f) => f.name === 'São Domingos')
 
-    expect(saoDomingos.map((f) => f.context)).toEqual(['SE', 'BA', 'PB'])
+    expect(saoDomingos.map((f) => f.context)).toEqual(['BA', 'PB'])
   })
 
   it('leaves the context out for a recorte that declares no contextField', () => {

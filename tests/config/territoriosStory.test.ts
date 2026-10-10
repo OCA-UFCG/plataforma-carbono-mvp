@@ -53,10 +53,10 @@ describe('STATE_LOCATIVE', () => {
     }
   })
 
-  it('has the ten states the answer of the biome counts', () => {
-    // ANSWER_SCRIPT.territorio.biome: "A Caatinga inteira, em dez estados."
-    expect(listFeicoes('estados')).toHaveLength(10)
-    expect(Object.keys(STATE_LOCATIVE)).toHaveLength(10)
+  it('has the nine states the answer of the biome counts', () => {
+    // ANSWER_SCRIPT.territorio.biome: "A Caatinga inteira, em nove estados."
+    expect(listFeicoes('estados')).toHaveLength(9)
+    expect(Object.keys(STATE_LOCATIVE)).toHaveLength(9)
   })
 })
 

@@ -46,8 +46,13 @@ export interface TerritoryChooserProps {
 /** The simplified boundary, the one the story map outlines and the registry measures the biome by. */
 const BIOME_URL = '/data/vector/limite_caatinga_clip.geojson'
 
-/** Types whose territories are small and scattered, so a location usually falls between them. */
-const NEAREST_TYPES: TerritoryTypeId[] = ['assentamento', 'terra_indigena', 'territorio_quilombola']
+/**
+ * Types whose territories leave gaps, so a location can fall between them: the
+ * small, scattered ones, and municipalities, which since the IBGE predominant
+ * biome list no longer cover the whole biome. Snapping to the nearest outline
+ * would there name a neighbour as the place the reader is in.
+ */
+const NEAREST_TYPES: TerritoryTypeId[] = ['municipio', 'assentamento', 'terra_indigena', 'territorio_quilombola']
 const NEAREST_COUNT = 3
 
 /**
@@ -132,8 +137,8 @@ function resolveLocation(data: ChooserData, typeId: TerritoryTypeId, lon: number
       options: { reason: 'nearest', items: nearest.map(({ item, distanceKm }) => ({ index: item.index, distanceKm })) },
     }
   }
-  // States and municipalities cover the whole biome, so a location in none of
-  // them sits in a gap between simplified outlines.
+  // The states cover the whole biome, so a location in none of them sits in a
+  // gap between simplified outlines.
   if (nearEdge) return { kind: 'inside', index: nearest[0].item.index }
   return inBiome ? { kind: 'uncovered' } : { kind: 'outside' }
 }
