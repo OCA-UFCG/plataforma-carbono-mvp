@@ -34,7 +34,10 @@ export const CHOOSER = {
 
   /** Lead of the nearest options, per type, for the gender and number of each. */
   nearestLead: {
-    municipio:             'Sua localização não fica em nenhum município da Caatinga. Estes são os mais próximos:',
+    // "do mapa", not "da Caatinga": a location in a Caatinga municipality can
+    // fall in a sliver its simplified outline leaves out (NEAREST_TYPES in
+    // TerritoryChooser).
+    municipio:             'Sua localização não fica em nenhum município do mapa. Estes são os mais próximos:',
     terra_indigena:        'Sua localização não fica em nenhuma terra indígena. Estas são as mais próximas:',
     territorio_quilombola: 'Sua localização não fica em nenhum território quilombola. Estes são os mais próximos:',
     assentamento:          'Sua localização não fica em nenhum assentamento. Estes são os mais próximos:',
