@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReportDocument from './ReportDocument'
 import { buildReportTheme } from '@/config/mapa/platforms'
+import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import type { ReportAnalysis, ReportShell } from '@/types/relatorio'
 
 export interface ReportClientProps {
@@ -75,7 +76,7 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
 
     async function loadShell() {
       try {
-        const params = new URLSearchParams({ ...query, camadas })
+        const params = new URLSearchParams({ ...query, camadas, v: RECORTE_DATA_VERSION })
         const res = await fetch(`/api/mapa/relatorio/base?${params}`, { signal: controller.signal })
         if (!res.ok) {
           const payload = await res.json().catch(() => ({}))
@@ -104,7 +105,7 @@ export default function ReportClient({ recorteId, feicaoId, year, layerIds }: Re
     })
 
     try {
-      const params = new URLSearchParams({ ...query, camada: layerId })
+      const params = new URLSearchParams({ ...query, camada: layerId, v: RECORTE_DATA_VERSION })
       const res = await fetch(`/api/mapa/relatorio/analise?${params}`, { signal })
       // A session that expired mid-generation would otherwise raise the same
       // notice once per section.

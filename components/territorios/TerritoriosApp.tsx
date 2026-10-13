@@ -20,6 +20,7 @@ import {
 } from '@/config/territorios/story'
 import { CHOOSER, INTRO, REPORT } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
@@ -195,7 +196,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     if (!recorteId || !featureId) return
     const key = `${recorteId}|${featureId}`
     const controller = new AbortController()
-    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId })
+    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId, v: RECORTE_DATA_VERSION })
 
     fetch(`/api/territorios/territorio?${params}`, { signal: controller.signal })
       .then(async (res) => {
@@ -245,7 +246,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
     const load = async (theme: ThemeId) => {
       try {
-        const params = new URLSearchParams({ recorte, feicao, tema: theme })
+        const params = new URLSearchParams({ recorte, feicao, tema: theme, v: RECORTE_DATA_VERSION })
         const res = await fetch(`/api/territorios/tema?${params}`, { signal: scheduler.controller.signal })
         if (res.status === 401) {
           setExpired(true)

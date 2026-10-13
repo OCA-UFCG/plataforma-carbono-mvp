@@ -152,20 +152,20 @@ describe('the rule against the municipalities actually on disk', () => {
   }
 
   it('shows every homonym, each with a state of its own', () => {
-    // Five features contain "bom jesus": Bom Jesus da Lapa and Bom Jesus da
-    // Serra, both in BA, plus the three called exactly Bom Jesus, which are the
+    // Four features contain "bom jesus": Bom Jesus da Lapa and Bom Jesus da
+    // Serra, both in BA, plus the two called exactly Bom Jesus, which are the
     // ones a reader cannot otherwise tell apart.
     const found = search('bom jesus')
     const exact = found.filter((p) => p.name_muni === 'Bom Jesus')
 
-    expect(found).toHaveLength(5)
-    expect(exact).toHaveLength(3)
-    expect(exact.map((p) => p.abbrev_state).sort()).toEqual(['PB', 'PI', 'RN'])
+    expect(found).toHaveLength(4)
+    expect(exact).toHaveLength(2)
+    expect(exact.map((p) => p.abbrev_state).sort()).toEqual(['PB', 'RN'])
   })
 
   it('narrows to one once the state is typed', () => {
-    expect(search('bom jesus pi')).toHaveLength(1)
-    expect(search('bom jesus pi')[0].abbrev_state).toBe('PI')
+    expect(search('bom jesus rn')).toHaveLength(1)
+    expect(search('bom jesus rn')[0].abbrev_state).toBe('RN')
   })
 
   it('leaves no pair of municipalities that name and state cannot tell apart', () => {
@@ -176,8 +176,8 @@ describe('the rule against the municipalities actually on disk', () => {
 
   it('does not let a bare state abbreviation list the whole state', () => {
     // "pi" is a substring of Picos and Piripiri, so it matches names. What it
-    // must never do is match a municipality merely for being in Piauí: 86 of
-    // the 140 the clip holds have no "pi" in their name, and none may appear.
+    // must never do is match a municipality merely for being in Piauí: 71 of
+    // the 116 the layer holds have no "pi" in their name, and none may appear.
     const found = search('pi')
     const piaui = all.filter((p) => p.abbrev_state === 'PI')
     const pulledInByState = found.filter(

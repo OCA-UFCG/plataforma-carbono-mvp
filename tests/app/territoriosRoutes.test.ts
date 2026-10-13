@@ -72,7 +72,7 @@ describe('GET /api/territorios/territorio', () => {
     const res = await getTerritorio(req('/api/territorios/territorio', territorioQuery))
 
     expect(res.status).toBe(200)
-    expect(res.headers.get('Cache-Control')).toBe('private, max-age=86400')
+    expect(res.headers.get('Cache-Control')).toBe('private, max-age=3600')
     const body = await res.json()
     expect(body).toMatchObject({
       recorteId: 'municipios', recorteName: 'Municípios',

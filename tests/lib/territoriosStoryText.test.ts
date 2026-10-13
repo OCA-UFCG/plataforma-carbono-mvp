@@ -256,7 +256,7 @@ describe('stepAnswer', () => {
     const out = story(caatingaItself, bioma, responses)
 
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
-      territorio: 'A Caatinga inteira, em dez estados.',
+      territorio: 'A Caatinga inteira, em nove estados.',
       estoque:    'No total, 4,2 bilhões de toneladas de carbono.',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
