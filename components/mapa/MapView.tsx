@@ -405,6 +405,10 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
 
 // How long the JPEG export waits for the tiles in view before capturing anyway.
 const CAPTURE_IDLE_TIMEOUT_MS = 15_000
+// The narrowest the JPEG's map gets, as width over height. The sheet lays the
+// map out at a fixed width, so a sliver left between wide panels would come out
+// stretched to many times its height.
+const CAPTURE_MIN_ASPECT = 3 / 4
 
 // MapView component
 
@@ -475,7 +479,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   //
   // Only the strip between the panels is kept: what lies under the sidebar and
   // the results panel is not what the reader was looking at, and the fit
-  // already placed the selection inside that strip.
+  // already placed the selection inside that strip. When the panels leave it
+  // narrower than CAPTURE_MIN_ASPECT, it widens about its middle into the map
+  // under them, still taking the whole strip.
   //
   // A raster still loading would come out as a rectangle of tiles over bare
   // basemap -- the fit to a recorte has just moved the camera when the reader
@@ -495,8 +501,10 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
       const src = map.getCanvas()
       const scale = src.width / src.clientWidth
       const { leftEdge: left, rightOffset: right } = panelInsetsRef.current
-      const x = Math.round(left * scale)
-      const w = Math.max(1, src.width - x - Math.round(right * scale))
+      const stripLeft  = Math.round(left * scale)
+      const stripRight = src.width - Math.round(right * scale)
+      const w = Math.min(src.width, Math.max(stripRight - stripLeft, Math.round(src.height * CAPTURE_MIN_ASPECT)))
+      const x = Math.round(Math.min(Math.max((stripLeft + stripRight - w) / 2, 0), src.width - w))
       const out = document.createElement('canvas')
       out.width = w
       out.height = src.height
