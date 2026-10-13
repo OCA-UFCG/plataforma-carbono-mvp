@@ -47,12 +47,23 @@ export interface TerritoryChooserProps {
 const BIOME_URL = '/data/vector/limite_caatinga_clip.geojson'
 
 /**
- * Types whose territories leave gaps, so a location can fall between them: the
- * small, scattered ones, and municipalities, which since the IBGE predominant
- * biome list no longer cover the whole biome. Snapping to the nearest outline
- * would there name a neighbour as the place the reader is in.
+ * Types whose territories are small and scattered: a location usually falls
+ * between them, and their polygons vanish at the zoom that frames them all, so
+ * the chooser map gives each a dot.
  */
-const NEAREST_TYPES: TerritoryTypeId[] = ['municipio', 'assentamento', 'terra_indigena', 'territorio_quilombola']
+const SCATTERED_TYPES: TerritoryTypeId[] = ['assentamento', 'terra_indigena', 'territorio_quilombola']
+
+/**
+ * Types whose territories leave gaps, so a location can fall between them: the
+ * scattered ones, and municipalities, which since the IBGE predominant biome
+ * list no longer cover the whole biome. Snapping to the nearest outline would
+ * there name a neighbour as the place the reader is in. Distance does not tell
+ * a municipality the list left out from a sliver between simplified outlines:
+ * of 31 120 random points inside the biome, 1013 fell in a left-out
+ * municipality and 125 in a sliver, and within 1 km of an outline they were 44
+ * and 69 (measured on 2026-10-13).
+ */
+const NEAREST_TYPES: TerritoryTypeId[] = [...SCATTERED_TYPES, 'municipio']
 const NEAREST_COUNT = 3
 
 /**
@@ -124,12 +135,12 @@ function resolveLocation(data: ChooserData, typeId: TerritoryTypeId, lon: number
     return { kind: 'options', options: { reason: 'overlap', items: hits.map((e) => ({ index: e.index, distanceKm: 0 })) } }
   }
 
-  const scattered = NEAREST_TYPES.includes(typeId)
-  const nearest = nearestFeatures(data.entries, lon, lat, scattered ? NEAREST_COUNT : 1)
+  const leavesGaps = NEAREST_TYPES.includes(typeId)
+  const nearest = nearestFeatures(data.entries, lon, lat, leavesGaps ? NEAREST_COUNT : 1)
   const nearEdge = nearest.length > 0 && nearest[0].distanceKm <= EDGE_TOLERANCE_KM
   const inBiome = containsPoint(data.biome, lon, lat)
 
-  if (scattered) {
+  if (leavesGaps) {
     if (nearest.length === 0) return inBiome ? { kind: 'uncovered' } : { kind: 'outside' }
     if (!inBiome && !nearEdge) return { kind: 'outside' }
     return {
@@ -432,7 +443,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
             entries={data.entries}
             biome={data.biome}
             color={STEP_COLORS.territorio}
-            markers={NEAREST_TYPES.includes(type.id)}
+            markers={SCATTERED_TYPES.includes(type.id)}
             selectedIndex={candidateEntry ? candidateEntry.index : null}
             onPick={propose}
           />
