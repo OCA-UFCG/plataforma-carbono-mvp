@@ -1,12 +1,18 @@
 'use client'
 
 import type { Ref } from 'react'
-import LayerResultCard from './LayerResultCard'
+import LayerResultCard, { type CardCharts } from './LayerResultCard'
+import { StatsChartView } from './StatsChart'
+import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
 import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
+
+// The charts come with the sheet, not lazily: the capture runs right after the
+// sheet commits, and a lazy chart is still empty then.
+const charts: CardCharts = { StatsChartView, PointSeries }
 
 /** Width of the results column: the panel's own 328 px of content, plus air. */
 const RESULTS_WIDTH = 360
@@ -48,6 +54,9 @@ interface Props {
  * Rendered off screen and captured by html-to-image. The image travels alone
  * -- shared in a message, pasted in a slide -- so it carries what the panel
  * leaves to its surroundings: where the area is, and when it was measured.
+ *
+ * It imports recharts outright, so the panel loads it only when a JPEG is
+ * asked for.
  */
 export default function AnalysisSheet({
   theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, ref,
@@ -79,6 +88,7 @@ export default function AnalysisSheet({
       geometry={null}
       polygonHa={drawnArea !== null ? drawnArea * 100 : null}
       still
+      charts={charts}
     />
   ))
 

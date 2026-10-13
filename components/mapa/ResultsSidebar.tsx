@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
-import AnalysisSheet, { type SheetLayer } from './AnalysisSheet'
+import type { default as AnalysisSheet, SheetLayer } from './AnalysisSheet'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
@@ -166,7 +166,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   // takes it once the sheet has committed.
   // The layers are read at render, not at the click: the map may spend a few
   // seconds on its tiles, and a card that finishes meanwhile belongs in it.
-  const [sheet, setSheet] = useState<{ mapSrc: string | null; generatedAt: Date } | null>(null)
+  const [sheet, setSheet] = useState<{
+    Sheet: typeof AnalysisSheet; mapSrc: string | null; generatedAt: Date
+  } | null>(null)
   const sheetLayers: SheetLayer[] = measured.map((raster) => {
     const date = raster.gee?.temporal ? temporalDate[raster.id] : undefined
     return { raster, date, result: cardResult(raster, date)! }
@@ -181,14 +183,19 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     if (exporting) return
     setExporting(true)
     setJpegFailed(false)
-    const [mapSrc] = await Promise.all([
-      captureMap(),
-      // The charts are lazy chunks; a card the reader never opened has not
-      // pulled its chart yet, and the sheet must not be captured without it.
-      import('./StatsChart').catch(() => {}),
-      import('./results/PointSeries').catch(() => {}),
-    ])
-    setSheet({ mapSrc, generatedAt: new Date() })
+    try {
+      const [mapSrc, { default: Sheet }] = await Promise.all([
+        captureMap(),
+        // The sheet brings its charts already loaded: a lazy one renders
+        // nothing on its first pass, and the capture would catch it empty.
+        import('./AnalysisSheet'),
+      ])
+      setSheet({ Sheet, mapSrc, generatedAt: new Date() })
+    } catch (err) {
+      console.error('JPEG export failed', err)
+      setJpegFailed(true)
+      setExporting(false)
+    }
   }
 
   useEffect(() => {
@@ -200,8 +207,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         if (!node) throw new Error('sheet not mounted')
         await document.fonts.ready
         await Promise.all([...node.querySelectorAll('img')].map((img) => img.decode().catch(() => {})))
-        // Two frames: the lazy charts resolve and render, and ResponsiveContainer
-        // measures its box, before the DOM is cloned.
+        // Two frames: ResponsiveContainer measures its box and the charts draw
+        // at that size before the DOM is cloned.
         await nextFrame()
         await nextFrame()
         const { toBlob } = await import('html-to-image')
@@ -443,7 +450,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
           root keeps the theme's CSS variables in reach. */}
       {sheet && createPortal(
         <div aria-hidden style={{ position: 'fixed', left: -100_000, top: 0, pointerEvents: 'none' }}>
-          <AnalysisSheet
+          <sheet.Sheet
             ref={sheetRef}
             theme={theme}
             mapSrc={sheet.mapSrc}
