@@ -1,7 +1,7 @@
 # Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
 # own current exports, which geobr lags by months), keeps
-# those that belong to the Caatinga, clips them to the biome, simplifies them
-# and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
+# those that belong to the Caatinga, clips them to the biome, simplifies estados and
+# municipios and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
 #   municipios        IBGE's list of predominant biome per municipality (2024,
@@ -13,6 +13,10 @@
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
 # What is kept is still clipped, so the map shows the area the analysis measures.
+#
+# Indigenous lands and quilombos are not simplified: a 0.002 degree tolerance
+# changed the outline of a quilombo by 68% and of an indigenous land by 47%,
+# and these are the geometries the statistics are computed on.
 #
 # Homonyms take an ordinal suffix in file order (lib/territorios/featureIds.ts),
 # so features keep the order of the file being replaced and new ones go at the
@@ -142,20 +146,14 @@ def previous_order(path, gdf, label):
     return pd.Series({i: rank[i] if i in rank else next(tail) for i in gdf.index})
 
 
-def write(name, gdf, columns, tol, keep_area=False):
+def write(name, gdf, columns, tol=None):
     path = os.path.join(OUT, name + ".geojson")
     clipped = gpd.clip(gdf, bioma_geom, sort=True)
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
     clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
     clipped = clipped[columns + ["geometry"]].to_crs(4326)
-    simple = clipped.geometry.simplify(tol, preserve_topology=True)
-    if keep_area:
-        # A territory of a few dozen hectares loses half of itself to a 200 m
-        # tolerance (TI Barra, 62 to 34 ha); those get a ten times finer one.
-        before, after = clipped.to_crs(EQUAL_AREA).area, simple.to_crs(EQUAL_AREA).area
-        off = (after - before).abs() > 0.05 * before
-        simple[off] = clipped.geometry[off].simplify(tol / 10, preserve_topology=True)
-    clipped["geometry"] = simple
+    if tol:
+        clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
     clipped.to_file(path, driver="GeoJSON")
     # rewrites compactly with 5 decimals (about 1 m)
     d = json.load(open(path, encoding="utf-8"))
@@ -201,12 +199,12 @@ def quilombolas():
 
 
 jobs = [
-    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002, False),
-    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004, False),
-    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 0.002, True),
-    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 0.002, True),
+    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
+    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
+    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], None),
+    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], None),
 ]
 
-for name, load, columns, tol, keep_area in jobs:
+for name, load, columns, tol in jobs:
     print(f"baixando {name}...", flush=True)
-    write(name, load(), columns, tol, keep_area)
+    write(name, load(), columns, tol)
