@@ -190,6 +190,12 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         // nothing on its first pass, and the capture would catch it empty.
         import('./AnalysisSheet'),
       ])
+      // The reader dropped the selection while the map settled: the analysis
+      // the file was asked for is gone, and so is the reason to make it.
+      if (!hasAnalysisContent(useStore.getState())) {
+        setExporting(false)
+        return
+      }
       setSheet({ Sheet, mapSrc, generatedAt: new Date() })
     } catch (err) {
       console.error('JPEG export failed', err)
@@ -263,12 +269,37 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  if (!hasContent && !showEmptyHint) return null
+  // The JPEG's sheet, off screen while it is captured. Portalled out of the
+  // panel: its backdrop-filter would make it the containing block of a fixed
+  // child, and the sheet would land inside the panel. The map root keeps the
+  // theme's CSS variables in reach.
+  // Returned beside whatever the panel shows, and keyed, so React keeps the
+  // one sheet mounted when the reader collapses the panel mid-capture: the
+  // capture holds on to its DOM node.
+  const sheetPortal = sheet && createPortal(
+    <div aria-hidden style={{ position: 'fixed', left: -100_000, top: 0, pointerEvents: 'none' }}>
+      <sheet.Sheet
+        ref={sheetRef}
+        theme={theme}
+        mapSrc={sheet.mapSrc}
+        analysisKind={analysisKind}
+        analysisLabel={analysisLabel}
+        drawnArea={drawnArea}
+        drawnLength={drawnLength}
+        generatedAt={sheet.generatedAt}
+        layers={sheetLayers}
+      />
+    </div>,
+    document.querySelector('[data-cc-root]') ?? document.body,
+    'jpeg-sheet',
+  )
+
+  if (!hasContent && !showEmptyHint) return sheetPortal
 
   // Collapsed: a pill at the bottom on narrow screens, a slim tab on the right
   // edge on desktop.
   if (collapsed) {
-    return (
+    const tab = (
       <button
         className="ui-press"
         onClick={() => onSetCollapsed(false)}
@@ -300,13 +331,19 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         {narrow && <span>Resultados</span>}
       </button>
     )
+    return (
+      <>
+        {tab}
+        {sheetPortal}
+      </>
+    )
   }
 
   // Leftovers of an earlier analysis (a deleted drawing, a hint with nothing
   // analysed) must not name the panel.
   const title = hasContent ? (analysisLabel ?? analysisKind ?? 'Resultados') : 'Resultados'
 
-  return (
+  const panel = (
     <div
       role="region"
       aria-label="Resultados"
@@ -443,27 +480,13 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
           )}
         </div>
       )}
-
-      {/* The JPEG's sheet, off screen while it is captured. Portalled out of
-          the panel: its backdrop-filter would make it the containing block of
-          a fixed child, and the sheet would land inside the panel. The map
-          root keeps the theme's CSS variables in reach. */}
-      {sheet && createPortal(
-        <div aria-hidden style={{ position: 'fixed', left: -100_000, top: 0, pointerEvents: 'none' }}>
-          <sheet.Sheet
-            ref={sheetRef}
-            theme={theme}
-            mapSrc={sheet.mapSrc}
-            analysisKind={analysisKind}
-            analysisLabel={analysisLabel}
-            drawnArea={drawnArea}
-            drawnLength={drawnLength}
-            generatedAt={sheet.generatedAt}
-            layers={sheetLayers}
-          />
-        </div>,
-        document.querySelector('[data-cc-root]') ?? document.body,
-      )}
     </div>
+  )
+
+  return (
+    <>
+      {panel}
+      {sheetPortal}
+    </>
   )
 }
