@@ -5,16 +5,21 @@ import PanelNav from '@/components/territorios/PanelNav'
 import ReportActions, { type ReportActionsProps } from '@/components/territorios/ReportActions'
 import ReportBand from '@/components/territorios/ReportBand'
 import ReportTabs from '@/components/territorios/ReportTabs'
+import { StoryScriptProvider } from '@/components/territorios/StoryScriptContext'
 import StepIcon from '@/components/territorios/StepIcon'
 import StorySummary from '@/components/territorios/StorySummary'
 import TerritoryChooser from '@/components/territorios/TerritoryChooser'
 import TypeCards from '@/components/territorios/TypeCards'
 import ThemeStep from '@/components/territorios/ThemeStep'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
+import { copyFromEntry } from '@/lib/content/site/model'
+import { TERRITORIOS_COPY, territoriosCopyDefaults, type TerritoriosCopy } from '@/lib/content/territorios'
 import type { BiomeReference, TerritoryPayload, TerritoryTypeId, ThemeResponse } from '@/types/territorios'
 
-const html = <P extends object>(component: ComponentType<P>, props: P) =>
-  renderToStaticMarkup(createElement(component, props))
+// The panels read the story's words from the provider the page puts above
+// them; without a copy of its own, a test renders the shipped one.
+const html = <P extends object>(component: ComponentType<P>, props: P, copy: TerritoriosCopy = territoriosCopyDefaults()) =>
+  renderToStaticMarkup(createElement(StoryScriptProvider, { copy }, createElement(component, props)))
 
 const noop = () => {}
 const typeOf = (id: TerritoryTypeId): TerritoryType => TERRITORY_TYPES.find((t) => t.id === id)!
@@ -191,6 +196,11 @@ describe('ThemeStep', () => {
     expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Resumo'])
     expect(markup).toContain('Carregando os dados')
   })
+
+  it('asks the question an editor wrote, with its year filled', () => {
+    const copy = { ...territoriosCopyDefaults(), chuva: copyFromEntry(TERRITORIOS_COPY.chuva, { pergunta: 'Choveu em {anoFinal}?' }) }
+    expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2024?')
+  })
 })
 
 const LOADING_ALL = {
@@ -273,5 +283,16 @@ describe('TypeCards', () => {
     expect(markup.match(/<img src="\/images\/territorios\/[a-z-]+\.webp"/g)).toHaveLength(6)
     expect(markup.match(/<img src="\/images\/territorios\/icones\/avancar\.svg"/g)).toHaveLength(6)
     expect(markup).not.toContain('Explorar')
+  })
+
+  it('titles the gallery with the words an editor wrote', () => {
+    const copy = { ...territoriosCopyDefaults(), apresentacao: copyFromEntry(TERRITORIOS_COPY.apresentacao, { recortesTitulo: 'Escolha o tipo de território' }) }
+    expect(html(TypeCards, { onSelect: noop }, copy)).toContain('>Escolha o tipo de território</h3>')
+  })
+
+  // A panel left outside the provider would otherwise show the shipped copy
+  // and hide the editors' changes without a trace.
+  it('fails loudly outside the provider', () => {
+    expect(() => renderToStaticMarkup(createElement(TypeCards, { onSelect: noop }))).toThrow(/StoryScriptProvider/)
   })
 })

@@ -188,6 +188,9 @@
 
 .territorios-sobre dd {
   margin: 0;
+  /* A source is a Contentful paragraph, whose help text promises that a line
+     break stays a line break. */
+  white-space: pre-line;
 }
 
 .territorios-sobre-data {

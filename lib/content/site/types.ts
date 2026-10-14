@@ -8,10 +8,11 @@ import { SOBRE_PLATAFORMA } from '../sobre/plataforma'
 import { CAATINGA } from '../sobre/caatinga'
 import { CARBONO_E_COMUNIDADES } from '../sobre/carbono-e-comunidades'
 import { COMO_FUNCIONA } from '../sobre/como-funciona'
+import { TERRITORIOS_COPY } from '../territorios'
 
 // Every content type of the institutional copy, in the order the site shows
-// them. scripts/contentful-provision.mts creates them and seeds each with its
-// shipped values.
+// them, then the Territórios story's. scripts/contentful-provision.mts creates
+// them and seeds each with its shipped values.
 export const SITE_COPY_TYPES: CopyType[] = [
   INICIO_HERO,
   INICIO_DESTAQUES,
@@ -23,4 +24,5 @@ export const SITE_COPY_TYPES: CopyType[] = [
   CARBONO_E_COMUNIDADES,
   COMO_FUNCIONA,
   COMUNICACAO_PAGINA,
+  ...Object.values(TERRITORIOS_COPY),
 ]
