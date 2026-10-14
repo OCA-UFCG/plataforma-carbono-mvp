@@ -58,6 +58,9 @@ export default function Mapa() {
   // there the X collapses the panel. MapView fills the ref: it holds the draw
   // instance, the only reliable answer to whether a drawing is on the map.
   const dismissSelectionRef = useRef<(() => boolean) | null>(null)
+  // Snapshot of the map for the results panel's JPEG. MapView fills it: only
+  // it holds the map instance.
+  const captureMapRef = useRef<(() => Promise<string | null>) | null>(null)
   const closeResults = () => {
     if (!dismissSelectionRef.current?.()) setResultsCollapsed(true)
   }
@@ -136,7 +139,7 @@ export default function Mapa() {
 
       {/* Full-bleed map with floating panels over it (GFW style). */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} dismissSelectionRef={dismissSelectionRef} />
+        <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} dismissSelectionRef={dismissSelectionRef} captureMapRef={captureMapRef} />
 
         {panelOpen ? (
           <Sidebar
@@ -223,6 +226,7 @@ export default function Mapa() {
           collapsed={resultsCollapsed}
           onSetCollapsed={setResultsCollapsed}
           onClose={closeResults}
+          captureMap={() => captureMapRef.current?.() ?? Promise.resolve(null)}
         />
 
         <ReportForm theme={theme} open={reportOpen} onClose={() => setReportOpen(false)} />

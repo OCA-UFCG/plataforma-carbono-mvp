@@ -242,16 +242,10 @@ function statsRows(layer: LayerSnapshot): string[] {
 }
 
 /**
- * Builds the CSV of an analysis. Pure function: it takes the snapshot of the
- * store and returns text, touching neither DOM nor network, so it can be
- * verified in tests.
+ * Name of an exported analysis, shared by the CSV and the JPEG so the two
+ * files of one analysis sort side by side.
  */
-export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; csv: string } {
-  const blocks = [metadataRows(snap), measurementRows(snap)]
-  for (const layer of snap.layers) {
-    blocks.push(layerHeaderRows(layer), pixelRows(layer), statsRows(layer))
-  }
-
+export function analysisFilename(snap: AnalysisSnapshot, extension: 'csv' | 'jpg'): string {
   const recorte = snap.analysisLabel ?? snap.analysisKind ?? 'analise'
   // A single layer keeps the name it has always had; only a comparison needs
   // the count, and naming it after the topmost layer would misdescribe the file.
@@ -263,11 +257,23 @@ export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; cs
     : snap.layers.length === 1 ? slug(snap.layers[0].layerName)
     : `${snap.layers.length}-camadas`
 
-  const filename = ['caativar', subject, slug(recorte), isoDate(snap.generatedAt)]
-    .join('_') + '.csv'
+  return ['caativar', subject, slug(recorte), isoDate(snap.generatedAt)]
+    .join('_') + '.' + extension
+}
+
+/**
+ * Builds the CSV of an analysis. Pure function: it takes the snapshot of the
+ * store and returns text, touching neither DOM nor network, so it can be
+ * verified in tests.
+ */
+export function buildAnalysisCsv(snap: AnalysisSnapshot): { filename: string; csv: string } {
+  const blocks = [metadataRows(snap), measurementRows(snap)]
+  for (const layer of snap.layers) {
+    blocks.push(layerHeaderRows(layer), pixelRows(layer), statsRows(layer))
+  }
 
   return {
-    filename,
+    filename: analysisFilename(snap, 'csv'),
     csv: BOM + blocks.filter((b) => b.length > 0).map((b) => b.join(EOL)).join(EOL + EOL) + EOL,
   }
 }
