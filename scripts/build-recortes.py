@@ -8,20 +8,20 @@
 #                     on the 2022 municipal grid)
 #   estados           the states holding at least one of those municipalities
 #   terras_indigenas, more than half of their own area inside the biome
-#   quilombolas
+#   quilombolas,
+#   assentamentos
 # Clipping every recorte that touched the biome used to let in crumbs of
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
 # What is kept is still clipped, so the map shows the area the analysis measures.
 #
-# Indigenous lands and quilombos are not simplified: a 0.002 degree tolerance
+# Indigenous lands, quilombos and settlements are not simplified: a 0.002 degree tolerance
 # changed the outline of a quilombo by 68% and of an indigenous land by 47%,
 # and these are the geometries the statistics are computed on.
 #
 # Homonyms take an ordinal suffix in file order (lib/territorios/featureIds.ts),
 # so features keep the order of the file being replaced and new ones go at the
 # end, in source order: a regeneration only moves the ids it cannot avoid.
-# `assentamentos` does not come from here (INSA file, see DOCUMENTACAO.md).
 import io, os, json, re, unicodedata, urllib.request
 import pandas as pd
 import geopandas as gpd
@@ -37,6 +37,7 @@ IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_am
 # and fails with CERTIFICATE_VERIFY_FAILED elsewhere.
 FUNAI_TIS = "https://mapas2.funai.gov.br/portal_mapas/shapes/ti_sirgas.zip"
 INCRA_QUILOMBOS = "https://certificacao.incra.gov.br/csv_shp/zip/%C3%81reas%20de%20Quilombolas.zip"
+INCRA_ASSENTAMENTOS = "https://certificacao.incra.gov.br/csv_shp/zip/Assentamento%20Brasil.zip"
 # South America Albers Equal Area, for the share of a territory inside the biome.
 EQUAL_AREA = "ESRI:102033"
 
@@ -198,11 +199,19 @@ def quilombolas():
     return g
 
 
+def assentamentos():
+    g = read_zip(INCRA_ASSENTAMENTOS, "cp1252").to_crs(4674)
+    g["nome_proje"] = g["nome_proje"].str.split().str.join(" ")
+    g["abbrev_state"] = g["uf"]
+    return mostly_inside(g[["nome_proje", "abbrev_state", "cd_sipra", "geometry"]])
+
+
 jobs = [
     ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
     ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
     ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], None),
     ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], None),
+    ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], None),
 ]
 
 for name, load, columns, tol in jobs:
