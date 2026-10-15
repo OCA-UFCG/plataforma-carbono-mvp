@@ -10,7 +10,7 @@ type Bbox = [number, number, number, number]
 /** Mean Earth radius (IUGG), in km. */
 const EARTH_RADIUS_KM = 6371.0088
 
-// Keyed by the geometry object: 1923 settlements are scanned on every lookup,
+// Keyed by the geometry object: about 2,000 settlements are scanned on every lookup,
 // and their bboxes never change while the parsed file lives.
 const bboxCache = new WeakMap<PolygonalGeometry, Bbox>()
 
@@ -31,9 +31,9 @@ export function containsPoint(geometry: PolygonalGeometry, lon: number, lat: num
 
 /**
  * Every item whose geometry contains the point, in list order. Outlines of one
- * type do overlap: the interior point of 28 of the 1923 settlements, 3 of the
- * 50 indigenous lands and 1 of the 1210 municipalities lies inside another
- * territory of the same type (measured on 2026-09-16).
+ * type do overlap: on 2026-09-16 the interior point of 28 of the then 1,923
+ * settlements, 3 of the 50 indigenous lands and 1 of the 1,210 municipalities
+ * lay inside another territory of the same type.
  */
 export function findContaining<T extends { geometry: PolygonalGeometry }>(
   items: readonly T[],

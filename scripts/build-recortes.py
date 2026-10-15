@@ -1,7 +1,7 @@
 # Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
-# own current exports, which geobr lags by months), keeps
-# those that belong to the Caatinga, clips them to the biome, simplifies estados and
-# municipios and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
+# own current exports, which geobr lags by months), keeps those that belong to
+# the Caatinga, clips them to the biome, simplifies them and writes GeoJSON into
+# public/data/vector. Usage: python scripts/build-recortes.py
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
 #   municipios        IBGE's list of predominant biome per municipality (2024,
@@ -15,15 +15,18 @@
 # the state or municipal borders and the biome edge disagree by a few metres.
 # What is kept is still clipped, so the map shows the area the analysis measures.
 #
-# Indigenous lands, quilombos and settlements are not simplified: a 0.002 degree tolerance
-# changed the outline of a quilombo by 68% and of an indigenous land by 47%,
-# and these are the geometries the statistics are computed on.
+# Indigenous lands, quilombos and settlements take a 1e-5 degree tolerance
+# (about 1 m): 0.002 degrees changed the outline of a quilombo by 68% and of an
+# indigenous land by 47%, and these are the geometries the statistics are
+# computed on. 1e-5 drops 41% of the settlement vertices and changes no
+# feature's area by more than 0.53%.
 #
 # Homonyms take an ordinal suffix in file order (lib/territorios/featureIds.ts),
 # so features keep the order of the file being replaced and new ones go at the
 # end, in source order: a regeneration only moves the ids it cannot avoid.
 import io, os, json, re, unicodedata, urllib.request
 import pandas as pd
+import shapely
 import geopandas as gpd
 import geobr
 
@@ -63,6 +66,11 @@ def mostly_inside(gdf):
     return gdf[share > 0.5]
 
 
+def clean_label(labels):
+    """Collapses the runs of whitespace the agencies' exports leave in labels."""
+    return labels.str.split().str.join(" ")
+
+
 def read_zip(url, encoding):
     with urllib.request.urlopen(url, timeout=600) as r:
         return gpd.read_file(io.BytesIO(r.read()), encoding=encoding)
@@ -71,8 +79,8 @@ def read_zip(url, encoding):
 def states_of(gdf, fallback):
     """
     The states holding at least 20% of each territory, by share, joined with
-    "/" (the threshold of scripts/enrich-uf.py). INCRA records one state per
-    quilombo, and Serra da Guia has a fifth of its area in Bahia.
+    "/". INCRA records one state per quilombo and settlement: Serra da Guia
+    has a fifth of its area in Bahia, PA Nova Terra 54% in Ceará.
     """
     states = geobr.read_state(year=2022, show_progress=False).to_crs(EQUAL_AREA)[["abbrev_state", "geometry"]]
     parts = gpd.overlay(gdf[["geometry"]].reset_index().to_crs(EQUAL_AREA), states, how="intersection")
@@ -119,22 +127,25 @@ def slug(value):
 def previous_order(path, gdf, label):
     """
     Position of each row in the file being replaced, so homonyms keep their id
-    suffix. A row is matched first by label and state, the nearest one when the
-    pair repeats; then, for what is left, by the label's slug alone, among old
-    rows its geometry overlaps (a source can rename a state field, as INCRA's
-    "SE" for what enrich-uf.py had as "SE/BA"). The rest goes to the end.
+    suffix. A row is matched first by label and state, then, for what is left,
+    by the label's slug alone (a source can rename a state field, as INCRA's
+    "SE" for what the old file had as "SE/BA"). Both passes only consider old
+    rows the new geometry overlaps and take the one it overlaps most: the
+    nearest homonym in the same state is not necessarily the same territory.
+    The rest goes to the end.
     """
     if not os.path.exists(path):
         return pd.Series(range(len(gdf)), index=gdf.index)
     old = gpd.read_file(path).to_crs(gdf.crs)
-    old_c, new_c = old.geometry.representative_point(), gdf.geometry.representative_point()
     old_slug, new_slug = old[label].map(slug), gdf[label].map(slug)
     taken, rank = set(), {}
 
     def take(i, candidates):
-        free = [j for j in candidates if j not in taken]
-        if free:
-            j = min(free, key=lambda j: old_c[j].distance(new_c[i]))
+        geom = gdf.geometry[i]
+        overlap = {j: old.geometry[j].intersection(geom).area for j in candidates
+                   if j not in taken and old.geometry[j].intersects(geom)}
+        if overlap:
+            j = max(overlap, key=overlap.get)
             taken.add(j)
             rank[i] = j
 
@@ -142,21 +153,34 @@ def previous_order(path, gdf, label):
         take(i, old[(old_slug == new_slug[i]) & (old["abbrev_state"] == gdf.at[i, "abbrev_state"])].index)
     for i in gdf.index:
         if i not in rank:
-            take(i, [j for j in old[old_slug == new_slug[i]].index if old.geometry[j].intersects(gdf.geometry[i])])
+            take(i, old[old_slug == new_slug[i]].index)
     tail = iter(range(len(old), len(old) + len(gdf)))
     return pd.Series({i: rank[i] if i in rank else next(tail) for i in gdf.index})
 
 
-def write(name, gdf, columns, tol=None):
+def polygonal(geom):
+    """The polygons of a geometry, dropping the lines and points make_valid can leave."""
+    if geom.geom_type in ("Polygon", "MultiPolygon"):
+        return geom
+    parts = [p for p in getattr(geom, "geoms", []) if p.geom_type in ("Polygon", "MultiPolygon")]
+    return shapely.union_all(parts) if parts else shapely.Polygon()
+
+
+def write(name, gdf, columns, tol):
     path = os.path.join(OUT, name + ".geojson")
     clipped = gpd.clip(gdf, bioma_geom, sort=True)
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
     clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
     clipped = clipped[columns + ["geometry"]].to_crs(4326)
-    if tol:
-        clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
+    clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
+    # Snapped to the 5-decimal grid (about 1 m) the file is written in, here
+    # rather than by rounding the output: rounding an unsimplified outline left
+    # a quarter of its vertices repeated and some rings self-intersecting.
+    clipped["geometry"] = shapely.set_precision(shapely.make_valid(clipped.geometry.values), grid_size=1e-5)
+    clipped["geometry"] = clipped.geometry.map(polygonal)
+    clipped = clipped[~clipped.geometry.is_empty]
     clipped.to_file(path, driver="GeoJSON")
-    # rewrites compactly with 5 decimals (about 1 m)
+    # rewrites compactly; the rounding only trims the float noise of the grid
     d = json.load(open(path, encoding="utf-8"))
     def rnd(x): return [rnd(v) for v in x] if isinstance(x, list) else round(x, 5)
     for f in d["features"]:
@@ -183,7 +207,7 @@ def estados():
 def terras_indigenas():
     g = read_zip(FUNAI_TIS, "utf-8").to_crs(4674)
     g = g.rename(columns={"terrai_nom": "name_indigenous_land", "terrai_cod": "code_indigenous_land"})
-    g["name_indigenous_land"] = g["name_indigenous_land"].str.split().str.join(" ")
+    g["name_indigenous_land"] = clean_label(g["name_indigenous_land"])
     # "MT, PA" and "AM,PA" become "MT/PA", the form searchMatch and the story read.
     g["abbrev_state"] = g["uf_sigla"].str.replace(r"\s*,\s*", "/", regex=True)
     g["code_indigenous_land"] = pd.to_numeric(g["code_indigenous_land"], errors="coerce").astype("Int64")
@@ -201,17 +225,21 @@ def quilombolas():
 
 def assentamentos():
     g = read_zip(INCRA_ASSENTAMENTOS, "cp1252").to_crs(4674)
-    g["nome_proje"] = g["nome_proje"].str.split().str.join(" ")
-    g["abbrev_state"] = g["uf"]
-    return mostly_inside(g[["nome_proje", "abbrev_state", "cd_sipra", "geometry"]])
+    g["nome_proje"] = clean_label(g["nome_proje"])
+    # INCRA repeats a project over several rows, some with the same polygon and
+    # some as separate parts (CE0318000 in four); one feature per SIPRA code.
+    g = g[["nome_proje", "uf", "cd_sipra", "geometry"]].dissolve(by="cd_sipra", aggfunc="first", sort=False).reset_index()
+    g = mostly_inside(g[["nome_proje", "uf", "cd_sipra", "geometry"]])
+    g["abbrev_state"] = states_of(g, g["uf"])
+    return g
 
 
 jobs = [
     ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
     ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
-    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], None),
-    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], None),
-    ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], None),
+    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 1e-5),
+    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 1e-5),
+    ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], 1e-5),
 ]
 
 for name, load, columns, tol in jobs:
