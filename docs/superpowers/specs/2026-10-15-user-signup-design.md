@@ -276,7 +276,9 @@ Shared by the confirmation route and the login route.
 ## 6. Pages and components
 
 All new pages live in `app/(auth)/` so they share the login layout (fonts, `AuthProvider`,
-Analytics) and need no session. Links inside the group use `next/link`; links out of it (to `/`)
+Analytics) and need no session. `/cadastro/confirmacao` and `/redefinir-senha` do not load
+Analytics: their URL carries a code (§8.9). The layout renders `AuthAnalytics`, which leaves GA out
+on those two paths. Links inside the group use `next/link`; links out of it (to `/`)
 use `<a href>`, per CLAUDE.md.
 
 ### 6.1 The shared card
@@ -421,7 +423,11 @@ project, so local test signups create real accounts there; delete them after tes
    the link spends nothing, so mail scanners cannot burn the code before the person clicks.
 9. **Codes are credentials.** The confirmation and reset codes never reach logs. Mail errors are
    logged through `describeWithoutLink`, which strips the code from the message, since SMTP
-   libraries sometimes echo the body they failed to send. `MAIL_LOG_BODY` defaults to off.
+   libraries sometimes echo the body they failed to send. `MAIL_LOG_BODY` defaults to off. Nor do
+   they reach Google Analytics, whose page_view sends the full URL: the two pages whose URL
+   carries a code (`/cadastro/confirmacao?code=…&email=…`, `/redefinir-senha?code=…`) do not load
+   it (`components/auth/AuthAnalytics.tsx`). Redacting the `code` and `email` query parameters in
+   the GA4 data stream is the second layer (docs/signup.md).
 10. **Origin check** on every public mutation and on approve (`lib/access/trustedOrigin.ts`): reject
    when `Sec-Fetch-Site` is present and not `same-origin`/`none`; reject when `Origin` or `Referer`
    is present and not trusted; reject when none of the three is present. Trusted = the request
@@ -563,7 +569,7 @@ account).
 - `app/api/signup/{route,confirm/check/route,confirm/route,resend/route,approve/route}.ts`.
 - `app/api/password-reset/{route,check/route,confirm/route}.ts`.
 - `app/(auth)/{cadastro,cadastro/confirmacao,aguardando-liberacao,esqueci-senha,redefinir-senha,aprovacoes}/page.tsx`.
-- `components/auth/{AuthCard,PasswordFields,ResendConfirmation,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable}.tsx`.
+- `components/auth/{AuthCard,PasswordFields,ResendConfirmation,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable,AuthAnalytics}.tsx`.
 - `scripts/backfill-access-claims.mjs` — loads `.env.local` through `@next/env`'s
   `loadEnvConfig`, the loader the app uses. The line-by-line reader in `verify-assets.mjs` and
   `contentful-provision.mts` would cut the multi-line `FIREBASE_PRIVATE_KEY`, and Node 20's

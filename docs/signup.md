@@ -36,6 +36,8 @@ Steps 3–4 can go through `firebase deploy --only firestore --project plataform
 
 Our own pages handle the confirmation and reset links, so the beta and production domains do not need to be in Authentication → Settings → Authorized domains.
 
+**Google Analytics.** The confirmation and reset pages do not load GA, since their URL carries the one-time code (`/cadastro/confirmacao?code=…&email=…`, `/redefinir-senha?code=…`) and GA's page view sends the full URL. As defense in depth, turn on GA4 → Admin → Data streams → the web stream → Redact data → query parameters, listing `code` and `email`.
+
 ## Rollout order
 
 **This order cannot be inverted**; out of order, every current user loses access.

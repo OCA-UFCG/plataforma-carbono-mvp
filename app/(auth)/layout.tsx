@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { AuthProvider } from '@/components/auth/AuthProvider'
-import { Analytics } from '@/components/Analytics'
+import { AuthAnalytics } from '@/components/auth/AuthAnalytics'
 import { libreFranklin } from '../fonts/app'
 import { FAVICON } from '@/lib/favicon'
 
@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={libreFranklin.variable}>
       <body style={{ margin: 0, minHeight: '100dvh', fontFamily: 'var(--font-app), sans-serif' }}>
         <AuthProvider>{children}</AuthProvider>
-        <Analytics />
+        <AuthAnalytics />
       </body>
     </html>
   )
