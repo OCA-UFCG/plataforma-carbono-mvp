@@ -84,6 +84,13 @@ describe('POST /api/signup', () => {
     expect(await res.json()).toEqual({ status: 'accepted' })
     expect(mocks.createUser).toHaveBeenCalledWith({ email: 'fulana@ufcg.edu.br', emailVerified: false })
     expect(mocks.createAccessRequest).toHaveBeenCalledWith('new-uid', { email: 'fulana@ufcg.edu.br', tier: 'allowed', intention: 'Ensino de carbono' })
+  })
+
+  it('sends the confirmation email after the response, so its timing tells nothing', async () => {
+    expect((await signup(jsonPost('/api/signup', { ...VALID, email: '  Fulana@UFCG.edu.br ' }))).status).toBe(201)
+    expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
+
+    await flushAfter()
     expect(mocks.sendVerificationEmail).toHaveBeenCalledWith('fulana@ufcg.edu.br')
   })
 
@@ -105,6 +112,7 @@ describe('POST /api/signup', () => {
     expect(await res.json()).toEqual({ error: 'Não foi possível concluir o cadastro.' })
     expect(mocks.deleteUser).toHaveBeenCalledWith('new-uid')
     expect(mocks.createAccessRequest).not.toHaveBeenCalled()
+    await flushAfter()
     expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
     expect(error).toHaveBeenCalled()
   })
@@ -122,6 +130,7 @@ describe('POST /api/signup', () => {
     expect(res.status).toBe(201)
     expect(await res.json()).toEqual({ status: 'accepted' })
     expect(mocks.createAccessRequest).not.toHaveBeenCalled()
+    await flushAfter()
     expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
   })
 
@@ -133,6 +142,7 @@ describe('POST /api/signup', () => {
 
     expect(res.status).toBe(500)
     expect(mocks.deleteUser).toHaveBeenCalledWith('new-uid')
+    await flushAfter()
     expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
   })
 
@@ -141,6 +151,9 @@ describe('POST /api/signup', () => {
     mocks.sendVerificationEmail.mockResolvedValueOnce(false)
 
     expect((await signup(jsonPost('/api/signup', VALID))).status).toBe(201)
+    expect(error).not.toHaveBeenCalled()
+
+    await flushAfter()
     expect(error).toHaveBeenCalledOnce()
   })
 })

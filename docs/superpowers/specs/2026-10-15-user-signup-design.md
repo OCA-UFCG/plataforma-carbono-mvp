@@ -155,7 +155,8 @@ It signs the Firebase client out on any non-`ok` outcome, as it does today on fa
                     fails ─► deleteUser(uid), 500
                   createAccessRequest(uid, { email, tier, intention })
                     fails ─► deleteUser(uid), 500                        (no orphan accounts)
-                  sendVerificationEmail(email)                           (failure logged, not fatal)
+                  after(): sendVerificationEmail(email)                  (once the response is out;
+                                                                          failure logged, not fatal)
                   201 { status: 'accepted' }
 ```
 
@@ -402,11 +403,12 @@ project, so local test signups create real accounts there; delete them after tes
 
 ## 8. Security
 
-1. **No account enumeration.** Signup answers 201 `accepted` whether or not the email exists.
-   Resend and the password-reset request always answer 202, and both send their email in
-   `after()`, once the response is out, so response time does not reveal whether the account
-   exists. Confirmation takes the email from
-   the code only; an invalid code answers 410 whatever address the link carries.
+1. **No account enumeration.** Signup answers 201 `accepted` whether or not the email exists,
+   and sends the confirmation email in `after()`, so the mail's latency does not tell a new
+   account from a taken one. Resend and the password-reset request always answer 202, and both
+   send their email in `after()`, once the response is out, so response time does not reveal
+   whether the account exists. Confirmation takes the email from the code only; an invalid code
+   answers 410 whatever address the link carries.
 2. **The tier is never trusted from the client.** It is recomputed from the email on the server,
    at signup and again in settlement step 3. Domain matching is exact, never by suffix:
    `ufcg.edu.br` admits neither `ccc.ufcg.edu.br` nor `naoufcg.edu.br`. A malformed address

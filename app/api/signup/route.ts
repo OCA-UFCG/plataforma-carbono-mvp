@@ -5,6 +5,7 @@
  * the Firebase console, so the public API key cannot create accounts that skip this route.
  */
 
+import { after } from 'next/server'
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
 import { buildRequestedClaims } from '@/lib/access/claims'
 import { isWellFormedEmail, normalizeEmail } from '@/lib/access/emailAddress'
@@ -84,10 +85,14 @@ export async function POST(req: Request) {
     return serverError()
   }
 
-  // The request is recorded, and a mail failure does not undo it: resend exists for that. It must
-  // not pass silently either, or a broken mailer in production would go unnoticed.
-  if (!(await sendVerificationEmail(email))) {
-    console.error(`[/api/signup] signup recorded without a delivered confirmation email (${email}).`)
-  }
+  // After the response: a taken email answers without sending, and waiting for the mail here would
+  // let the clock tell a new account from a taken one. The request is recorded, and a mail failure
+  // does not undo it: resend exists for that. It must not pass silently either, or a broken mailer
+  // in production would go unnoticed.
+  after(async () => {
+    if (!(await sendVerificationEmail(email))) {
+      console.error(`[/api/signup] signup recorded without a delivered confirmation email (${email}).`)
+    }
+  })
   return accepted()
 }
