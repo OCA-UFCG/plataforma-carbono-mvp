@@ -40,13 +40,15 @@ export default function Header({ theme, month }: Props) {
   const isAuto = monthPref === 'auto'
   const realMonth = resolveMonth('auto')
 
+  const c = theme.colors
+
   async function handleSignOut() {
     await signOut()
     window.location.replace('/login')
   }
 
   return (
-    <div style={{ flex: 'none', background: '#26241d', position: 'relative', zIndex: 30 }}>
+    <div style={{ flex: 'none', background: c.bgCard, borderBottom: `1px solid ${c.border}`, position: 'relative', zIndex: 30 }}>
       <div style={{ height: 56, display: 'flex', alignItems: 'center', gap: 16, padding: '0 20px' }}>
         {/* Marca, volta para a landing. <a> e não next/link: a landing tem outro
             layout raiz, então a navegação precisa ser um carregamento de página
@@ -64,7 +66,7 @@ export default function Header({ theme, month }: Props) {
           }}>
             <IcLeaf size={17} />
           </div>
-          <div style={{ fontSize: 16.5, fontWeight: 800, color: '#f5f4ec', lineHeight: 1.1 }}>Caativar</div>
+          <div style={{ fontSize: 16.5, fontWeight: 800, color: c.text, lineHeight: 1.1 }}>Caativar</div>
         </a>
 
         {/* Chip do mês + seletor */}
@@ -75,18 +77,18 @@ export default function Header({ theme, month }: Props) {
             aria-expanded={pickerOpen}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 12px 0 8px',
-              borderRadius: 999, background: 'rgba(255,255,255,.09)', border: '1px solid rgba(255,255,255,.14)',
+              borderRadius: 999, background: c.chip, border: `1px solid ${c.border}`,
               cursor: 'pointer',
             }}
           >
             <span style={{ width: 14, height: 14, borderRadius: '50%', background: month.color, transition: 'background .4s' }} />
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#ede9d8', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: c.body, whiteSpace: 'nowrap' }}>
               {month.label}, {PHASES[month.phase].label.toLowerCase()}
             </span>
             {isAuto && (
-              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', color: '#26241d', background: '#cfccc0', borderRadius: 999, padding: '1px 6px', textTransform: 'uppercase' }}>auto</span>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', color: c.textDim, background: c.mist, borderRadius: 999, padding: '1px 6px', textTransform: 'uppercase' }}>auto</span>
             )}
-            <IcChevronDown size={12} color="#a5a294" />
+            <IcChevronDown size={12} color={c.dim} />
           </button>
 
           {pickerOpen && (
@@ -153,7 +155,7 @@ export default function Header({ theme, month }: Props) {
           onClick={() => window.dispatchEvent(new CustomEvent('cc-open-search'))}
           style={{
             flex: 1, maxWidth: 400, minWidth: 0, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9,
-            height: 36, padding: '0 14px', borderRadius: 999, background: 'rgba(255,255,255,.1)', color: '#c6c2b0',
+            height: 36, padding: '0 14px', borderRadius: 999, background: c.chip, color: c.textDim,
             cursor: 'text', overflow: 'hidden', border: 'none', textAlign: 'left',
           }}
         >
@@ -164,27 +166,27 @@ export default function Header({ theme, month }: Props) {
         </button>
 
         {/* Nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 15, fontWeight: 600, color: '#b3af9e', flex: 'none', whiteSpace: 'nowrap' }}>
-          <div style={{ color: '#fff', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 15, fontWeight: 600, color: c.textDim, flex: 'none', whiteSpace: 'nowrap' }}>
+          <div style={{ color: c.text, fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             Mapa
             <span style={{ width: 16, height: 2.5, borderRadius: 2, background: theme.colors.accent, transition: 'background .4s' }} />
           </div>
           <span style={{ opacity: .75 }}>Dados</span>
           <span style={{ opacity: .75 }}>Metodologia</span>
-          <button onClick={() => setWelcomeSeen(false)} style={{ background: 'none', border: 'none', color: '#b3af9e', font: 'inherit', cursor: 'pointer', padding: 0 }}>Sobre</button>
+          <button onClick={() => setWelcomeSeen(false)} style={{ background: 'none', border: 'none', color: c.textDim, font: 'inherit', cursor: 'pointer', padding: 0 }}>Sobre</button>
           <button
             onClick={toggleDarkMode}
             title={darkMode ? 'Modo claro' : 'Modo escuro'}
             aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
-            style={{ background: 'rgba(255,255,255,.09)', border: '1px solid rgba(255,255,255,.14)', color: '#ede9d8', cursor: 'pointer', width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: c.chip, border: `1px solid ${c.border}`, color: c.body, cursor: 'pointer', width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {darkMode ? <IcSun size={14} /> : <IcMoon size={13} />}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 2 }}>
-            {user?.email && <span title={user.email} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', color: '#d9d5c5', fontSize: 13 }}>{user.email}</span>}
+            {user?.email && <span title={user.email} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', color: c.textDim, fontSize: 13 }}>{user.email}</span>}
             <button
               onClick={() => { void handleSignOut() }}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, color: '#ede9d8', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 700, padding: '6px 10px' }}
+              style={{ background: 'none', border: `1px solid ${c.border}`, borderRadius: 999, color: c.body, cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 700, padding: '6px 10px' }}
             >
               Sair
             </button>
