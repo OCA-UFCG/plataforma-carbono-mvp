@@ -27,7 +27,7 @@ export default function ResendConfirmation({ email }: { email: string }) {
       <button type="button" onClick={() => void resend()} disabled={state === 'sending' || !email} style={secondaryButtonStyle(state === 'sending')}>
         {state === 'sending' ? 'Enviando...' : 'Reenviar e-mail de confirmação'}
       </button>
-      {state === 'sent' && <p role="status" style={authStyles.status}>Se o endereço estiver cadastrado, um novo e-mail foi enviado.</p>}
+      {state === 'sent' && <p role="status" style={authStyles.status}>Se o endereço estiver cadastrado, um novo e-mail foi enviado. Se não chegar, aguarde um minuto e tente de novo.</p>}
     </div>
   )
 }
