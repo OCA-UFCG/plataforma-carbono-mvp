@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
+import AuthCard, { authStyles, primaryButtonStyle } from '@/components/auth/AuthCard'
 
 function loginErrorMessage(error: unknown) {
   const code = typeof error === 'object' && error && 'code' in error ? String(error.code) : ''
@@ -36,29 +37,21 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
   }
 
   return (
-    <main style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: 'linear-gradient(140deg, #20281d 0%, #3d482c 48%, #c5813e 160%)' }}>
-      <section style={{ width: 'min(100%, 420px)', padding: '40px', borderRadius: 20, background: '#fffdf7', boxShadow: '0 24px 60px rgba(0,0,0,.28)' }}>
-        <div aria-label="Caativar" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: '#26241d', fontWeight: 800 }}>
-          <span style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 9, background: '#5f7030', color: '#fff' }}>O</span>
-          Caativar
-        </div>
-        <h1 style={{ margin: '36px 0 8px', color: '#26241d', fontSize: 28, lineHeight: 1.15 }}>Acesse a plataforma de carbono</h1>
-        <p style={{ margin: '0 0 28px', color: '#6b6a60', fontSize: 15, lineHeight: 1.5 }}>Entre com as credenciais fornecidas pela equipe da plataforma.</p>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 18 }}>
-          <label style={{ display: 'grid', gap: 7, color: '#39382f', fontSize: 13, fontWeight: 700 }}>
-            E-mail
-            <input name="email" type="email" autoComplete="username" required disabled={submitting} style={{ boxSizing: 'border-box', width: '100%', border: '1px solid #cfcbbd', borderRadius: 9, padding: '12px 13px', font: 'inherit' }} />
-          </label>
-          <label style={{ display: 'grid', gap: 7, color: '#39382f', fontSize: 13, fontWeight: 700 }}>
-            Senha
-            <input name="password" type="password" autoComplete="current-password" required disabled={submitting} style={{ boxSizing: 'border-box', width: '100%', border: '1px solid #cfcbbd', borderRadius: 9, padding: '12px 13px', font: 'inherit' }} />
-          </label>
-          {error && <p role="alert" style={{ margin: 0, color: '#a12b22', fontSize: 13, lineHeight: 1.4 }}>{error}</p>}
-          <button type="submit" disabled={submitting} style={{ border: 0, borderRadius: 9, padding: '13px 16px', background: '#5f7030', color: '#fff', cursor: submitting ? 'wait' : 'pointer', font: 'inherit', fontWeight: 800, opacity: submitting ? .7 : 1 }}>
-            {submitting ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-      </section>
-    </main>
+    <AuthCard title="Acesse a plataforma de carbono" description="Entre com as credenciais fornecidas pela equipe da plataforma.">
+      <form onSubmit={handleSubmit} style={authStyles.form}>
+        <label style={authStyles.label}>
+          E-mail
+          <input name="email" type="email" autoComplete="username" required disabled={submitting} style={authStyles.input} />
+        </label>
+        <label style={authStyles.label}>
+          Senha
+          <input name="password" type="password" autoComplete="current-password" required disabled={submitting} style={authStyles.input} />
+        </label>
+        {error && <p role="alert" style={authStyles.error}>{error}</p>}
+        <button type="submit" disabled={submitting} style={primaryButtonStyle(submitting)}>
+          {submitting ? 'Entrando...' : 'Entrar'}
+        </button>
+      </form>
+    </AuthCard>
   )
 }
