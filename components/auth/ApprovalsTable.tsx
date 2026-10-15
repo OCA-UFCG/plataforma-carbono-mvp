@@ -17,6 +17,16 @@ type Decision = 'approved' | 'rejected'
 type RowState = 'idle' | 'working' | Decision | 'conflict' | 'failed'
 
 const DECIDED_LABEL: Record<Decision, string> = { approved: 'Aprovado', rejected: 'Recusado' }
+const FAILED_MESSAGE = 'Não foi possível salvar a decisão.'
+
+/**
+ * What a refused decision shows: the route's own message when it sent one, since it says what went
+ * wrong (an unconfirmed email, a decision recorded without access). Not the 401's: that body comes
+ * from lib/auth.ts, in English.
+ */
+export function decisionFailureMessage(status: number, body: Record<string, unknown> | null): string {
+  return status !== 401 && typeof body?.error === 'string' && body.error ? body.error : FAILED_MESSAGE
+}
 
 const cell: CSSProperties = { padding: '12px 14px', verticalAlign: 'top', textAlign: 'left', fontSize: 14, lineHeight: 1.45 }
 const headerCell: CSSProperties = { ...cell, color: authColors.label, fontSize: 13, fontWeight: 700, borderBottom: `1px solid ${authColors.border}` }
@@ -25,8 +35,13 @@ export default function ApprovalsTable({ rows }: { rows: ApprovalRow[] }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [states, setStates] = useState<Record<string, RowState>>({})
+  const [failures, setFailures] = useState<Record<string, string>>({})
 
   const setRow = (uid: string, state: RowState) => setStates((current) => ({ ...current, [uid]: state }))
+  const failRow = (uid: string, message: string) => {
+    setFailures((current) => ({ ...current, [uid]: message }))
+    setRow(uid, 'failed')
+  }
 
   async function decide(uid: string, decision: Decision) {
     setRow(uid, 'working')
@@ -41,10 +56,14 @@ export default function ApprovalsTable({ rows }: { rows: ApprovalRow[] }) {
       // A 409 carrying a status means someone decided first, which the admin needs to tell apart
       // from a failure.
       const decidedElsewhere = status === 409 && typeof body?.status === 'string'
-      setRow(uid, decidedElsewhere ? 'conflict' : 'failed')
-      if (decidedElsewhere) startTransition(() => router.refresh())
+      if (decidedElsewhere) {
+        setRow(uid, 'conflict')
+        startTransition(() => router.refresh())
+        return
+      }
+      failRow(uid, decisionFailureMessage(status, body))
     } catch {
-      setRow(uid, 'failed')
+      failRow(uid, FAILED_MESSAGE)
     }
   }
 
@@ -85,7 +104,7 @@ export default function ApprovalsTable({ rows }: { rows: ApprovalRow[] }) {
                         </button>
                       </div>
                       {state === 'conflict' && <p role="alert" style={authStyles.error}>Outra pessoa decidiu este pedido antes de você.</p>}
-                      {state === 'failed' && <p role="alert" style={authStyles.error}>Não foi possível salvar a decisão.</p>}
+                      {state === 'failed' && <p role="alert" style={authStyles.error}>{failures[row.uid] ?? FAILED_MESSAGE}</p>}
                     </div>
                   )}
                 </td>
