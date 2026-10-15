@@ -4,6 +4,7 @@
  */
 
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
+import { hasApprovedAccess } from '@/lib/access/claims'
 import { applyVerificationCode, checkActionCode } from '@/lib/access/firebaseCodes'
 import { codeFailure, jsonNoStore, readJsonObject, rejectUntrustedOrLimited, rejectWhenSignupClosed } from '@/lib/access/http'
 import { isAcceptablePassword } from '@/lib/access/passwordRules'
@@ -32,7 +33,12 @@ export async function POST(req: Request) {
 
   const auth = getFirebaseAdminAuth()
   try {
-    const { uid } = await auth.getUserByEmail(email)
+    const { uid, emailVerified: alreadyConfirmed, customClaims } = await auth.getUserByEmail(email)
+
+    // A code only ever sets the first password. A confirmed account already chose one, and an
+    // account holding access has its own even with an unconfirmed address (the legacy accounts): a
+    // still-valid code must not replace it. Changing a password is what "Esqueci minha senha" is for.
+    if (alreadyConfirmed || hasApprovedAccess(customClaims)) return codeFailure('invalid-code', 410)
 
     // The password before the code: applying first and then failing here would leave a confirmed
     // account with no password and a spent code. The other way round, a failure leaves a password

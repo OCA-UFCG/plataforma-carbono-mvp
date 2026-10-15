@@ -86,6 +86,21 @@ describe('POST /api/signup/confirm', () => {
     expect(mocks.updateUser).not.toHaveBeenCalled()
   })
 
+  it('answers 410 for an account already confirmed or holding access, without setting a password', async () => {
+    mocks.getUserByEmail
+      .mockResolvedValueOnce({ uid: 'u1', emailVerified: true })
+      .mockResolvedValueOnce({ uid: 'u1', emailVerified: false, customClaims: { caativar: { access: 'approved', tier: 'legacy', at: 1 } } })
+
+    for (let i = 0; i < 2; i++) {
+      const res = await confirm(jsonPost('/api/signup/confirm', { code: 'C0DE', password: 'senha-forte-1' }))
+      expect(res.status).toBe(410)
+      expect(await res.json()).toEqual({ reason: 'invalid-code' })
+    }
+    expect(mocks.updateUser).not.toHaveBeenCalled()
+    expect(mocks.applyVerificationCode).not.toHaveBeenCalled()
+    expect(mocks.settleSignup).not.toHaveBeenCalled()
+  })
+
   it('takes the account from the code, never from the request body', async () => {
     await confirm(jsonPost('/api/signup/confirm', { code: 'C0DE', password: 'senha-forte-1', email: 'outra@evil.co' }))
     expect(mocks.getUserByEmail).toHaveBeenCalledWith(EMAIL)

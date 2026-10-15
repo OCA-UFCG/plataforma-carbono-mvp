@@ -185,9 +185,13 @@ The email links to `/cadastro/confirmacao?code=…&email=…`. Opening the link 
 3. Submit posts `{ code, password }` to `POST /api/signup/confirm`:
    1. password shorter than 8 → 400 `weak-password`;
    2. check the code again (not spent) → the email it belongs to, or 410 `invalid-code`;
-   3. `getUserByEmail(email)`; `updateUser(uid, { password })`;
-   4. apply the code (`accounts:update` with `oobCode`), which marks the email confirmed;
-   5. re-read the account, `settleSignup` (§5.3), answer
+   3. `getUserByEmail(email)`; an account whose email is already confirmed, or that holds an
+      approved claim (the legacy accounts have unconfirmed emails), → 410 `invalid-code` with its
+      password untouched: a code only ever sets the first password, and changing one is what
+      "Esqueci minha senha" is for;
+   4. `updateUser(uid, { password })`;
+   5. apply the code (`accounts:update` with `oobCode`), which marks the email confirmed;
+   6. re-read the account, `settleSignup` (§5.3), answer
       `{ status: 'approved' | 'pending' | 'rejected' }`.
 
    The password is set **before** the code is applied. Applying first and then failing to set the
