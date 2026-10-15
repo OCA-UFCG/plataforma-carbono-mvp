@@ -96,6 +96,17 @@ describe('POST /api/password-reset/confirm', () => {
     expect(mocks.revokeRefreshTokens).toHaveBeenCalledWith('u1')
   })
 
+  it('answers 410 for a code that is not a valid reset code, before using it', async () => {
+    mocks.checkActionCode.mockResolvedValueOnce(null)
+
+    const res = await submit({ code: 'V3RIFY', password: 'nova-senha-1' })
+
+    expect(res.status).toBe(410)
+    expect(await res.json()).toEqual({ reason: 'invalid-code' })
+    expect(mocks.checkActionCode).toHaveBeenCalledWith('V3RIFY', 'PASSWORD_RESET')
+    expect(mocks.resetPasswordWithCode).not.toHaveBeenCalled()
+  })
+
   it('maps each failure to its reason', async () => {
     expect((await submit({ code: 'R3SET', password: 'curta' })).status).toBe(400)
     expect((await submit({ password: 'nova-senha-1' })).status).toBe(410)

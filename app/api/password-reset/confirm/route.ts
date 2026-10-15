@@ -5,7 +5,7 @@
  */
 
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
-import { resetPasswordWithCode } from '@/lib/access/firebaseCodes'
+import { checkActionCode, resetPasswordWithCode } from '@/lib/access/firebaseCodes'
 import { codeFailure, jsonNoStore, readJsonObject, rejectUntrustedOrLimited } from '@/lib/access/http'
 import { isAcceptablePassword } from '@/lib/access/passwordRules'
 
@@ -19,6 +19,10 @@ export async function POST(req: Request) {
   const { code, password } = await readJsonObject(req)
   if (!isAcceptablePassword(password)) return codeFailure('weak-password', 400)
   if (typeof code !== 'string' || !code) return codeFailure('invalid-code', 410)
+
+  // The endpoint that resets the password accepts verification codes too: without this check a
+  // confirmation link would set a password here, past the confirm route's rules.
+  if (!(await checkActionCode(code, 'PASSWORD_RESET'))) return codeFailure('invalid-code', 410)
 
   const result = await resetPasswordWithCode(code, password)
   if (result.status === 'invalid-code') return codeFailure('invalid-code', 410)
