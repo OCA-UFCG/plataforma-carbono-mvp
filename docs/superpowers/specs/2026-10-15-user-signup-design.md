@@ -194,7 +194,9 @@ Shared by the confirmation route and the login route.
    request for an account that already has access and email the team about it.)
 3. No request document (a signup that failed midway) → open one now, tier from the domain,
    empty intention.
-4. Status already decided → return it.
+4. Status already decided → return it. An `approved` request reaching this step has an account
+   without the claim (step 2 returned otherwise): a grant that failed after the decision was
+   recorded. It is granted again with the stored tier first, so the next login heals it.
 5. `tier === 'allowed'` → `approveAccess(uid, 'allowed')`, record `approved` with
    `decidedBy: null` (the domain rule decided), return `'approved'`.
 6. Otherwise notify the team once (§6.3) and return `'pending'`.
@@ -280,7 +282,7 @@ confirmation page and the reset page.
 | `/aguardando-liberacao` | static | — | No guard. |
 | `/esqueci-senha` | — | `ForgotPasswordForm` | |
 | `/redefinir-senha` | — | `ResetPasswordForm` | Checks the code on mount; states `checking`, `ready`, `invalid`, `saving`, `changed`. |
-| `/aprovacoes` | Session plus admin email, else `notFound()` (do not reveal the page exists). Lists pending requests whose email is confirmed, oldest first. Firestore failure → an alert in the panel instead of a broken page. | `ApprovalsTable` | Per-row state: `idle`, `working`, `approved`, `rejected`, `conflict`, `failed`; `router.refresh()` after a decision or a conflict. The intention cell is plain text with `white-space: pre-wrap`. |
+| `/aprovacoes` | No session → the login, with `redirect=/aprovacoes` (an admin arriving from the team email while logged out comes back here; `safeRedirect` gains `/aprovacoes`). A session whose email is not an admin's → `notFound()` (do not reveal the page exists to a signed-in non-admin). Lists pending requests whose email is confirmed, oldest first. Firestore failure → an alert in the panel instead of a broken page. | `ApprovalsTable` | Per-row state: `idle`, `working`, `approved`, `rejected`, `conflict`, `failed`; `router.refresh()` after a decision or a conflict. The intention cell is plain text with `white-space: pre-wrap`. |
 
 Each page sets its own `metadata.title` ("Criar conta", "Confirmação de e-mail", "Cadastro em
 análise", "Esqueci minha senha", "Nova senha", "Pedidos de acesso"); the group layout keeps
@@ -378,7 +380,9 @@ project, so local test signups create real accounts there; delete them after tes
 ## 8. Security
 
 1. **No account enumeration.** Signup answers 201 `accepted` whether or not the email exists.
-   Resend and the password-reset request always answer 202. Confirmation takes the email from
+   Resend and the password-reset request always answer 202, and both send their email in
+   `after()`, once the response is out, so response time does not reveal whether the account
+   exists. Confirmation takes the email from
    the code only; an invalid code answers 410 whatever address the link carries.
 2. **The tier is never trusted from the client.** It is recomputed from the email on the server,
    at signup and again in settlement step 3. Domain matching is exact, never by suffix:
@@ -416,9 +420,9 @@ project, so local test signups create real accounts there; delete them after tes
     | password-reset request | 10 | Sends mail on every call |
     | password-reset check/confirm | 40 | The page checks the code as soon as it opens |
 
-    `lib/mapa/rateLimit.ts` moves to `lib/rateLimit.ts` and becomes a factory,
-    `createRateLimiter({ windowMs, max })`; the GEE and report routes keep their 60/min instance
-    and `clientIp`. Without an address header the key falls back to the user agent and logs an
+    A new `lib/rateLimit.ts` holds the factory, `createRateLimiter({ windowMs, max })`, and
+    `clientAddress` / `clientIp`. `lib/mapa/rateLimit.ts` keeps its exports as a 60/min instance
+    of it, so the GEE and report routes do not change. Without an address header the key falls back to the user agent and logs an
     error, so one global bucket cannot be exhausted to block signup for everyone.
 12. **Admins** are read from `ACCESS_ADMIN_EMAILS` on every call, so removing someone applies on
     the next request.
@@ -458,16 +462,20 @@ to about 500 recipients a day; each signup produces up to three emails.
 ## 10. Configuration
 
 All server-only, never `NEXT_PUBLIC_`. Added to `.env.example`, `deploy-beta.yml` and
-`deploy-prod.yml` (`-e` lines; `SMTP_PASSWORD` from `secrets`, the rest from `vars`).
+`deploy-prod.yml` (`-e` lines; `SMTP_PASSWORD` from `secrets`, the rest from `vars`). Both
+workflows read repository-level variables, so the two that differ by environment follow the
+existing `_BETA` suffix convention (`CONTAINER_NAME_BETA` / `CONTAINER_NAME`): beta reads
+`PLATFORM_ACCESS_GUARD_ENABLED_BETA` and `APP_BASE_URL_BETA`. The collection name is written into
+both workflows as a literal, like `CONTENTFUL_PREVIEW=true`.
 
 | Variable | Purpose | Beta / prod |
 |---|---|---|
-| `PLATFORM_ACCESS_GUARD_ENABLED` | The switch (§4.3) | `false`, then `true` after the backfill |
+| `PLATFORM_ACCESS_GUARD_ENABLED` (beta: `_BETA`) | The switch (§4.3) | `false`, then `true` after the backfill, beta first |
 | `SIGNUP_ALLOWED_DOMAINS` | Comma-separated; `@ufcg.edu.br` and `ufcg.edu.br` both accepted; empty sends every signup to approval | Team decision |
 | `ACCESS_ADMIN_EMAILS` | Comma-separated emails allowed at `/aprovacoes` | Team decision |
 | `OCA_NOTIFICATION_EMAIL` | Team mailbox for new requests; a shared box, not a person | Team decision |
 | `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Sending account | Suggested: `plataformacarbonocaatinga@gmail.com` with two-step verification and an app password |
-| `APP_BASE_URL` | Origin for links in emails, also trusted by the origin check | Each environment's public URL |
+| `APP_BASE_URL` (beta: `_BETA`) | Origin for links in emails, also trusted by the origin check | Each environment's public URL |
 | `FIREBASE_ACCESS_REQUESTS_COLLECTION` | §7.1 | `access-requests` on both |
 | `SIGNUP_SEND_REJECTION_EMAIL` | Send the rejection email | `false` until the team decides |
 | `MAIL_LOG_BODY` | Print email bodies to the log; development only (the link is a credential) | unset |
@@ -516,13 +524,19 @@ current user.
   `cache: 'no-store'`).
 - `lib/access/verification.ts` — `sendVerificationEmail`, `describeWithoutLink`.
 - `lib/access/passwordReset.ts` — `sendPasswordResetEmail`.
+- `lib/access/emailAddress.ts` (`normalizeEmail`, `isWellFormedEmail`),
+  `lib/access/passwordRules.ts` (`MIN_PASSWORD_LENGTH`, the pair check),
+  `lib/access/intention.ts` (`INTENTION_MAX_LENGTH`, `normalizeIntention`),
+  `lib/access/signupForm.ts` (the form's client-side check), `lib/access/sessionCodes.ts`
+  (`access_pending` / `access_granted` / `email_unconfirmed`), `lib/access/loginErrors.ts`:
+  pure and client-safe, shared by the routes and the client components.
 - `lib/access/emails.ts`, `lib/access/urls.ts`, `lib/access/trustedOrigin.ts`,
   `lib/access/rateLimits.ts`, `lib/access/http.ts` (shared `NO_STORE` responses, safe body read).
-- `lib/mailer.ts`, `lib/rateLimit.ts` (moved from `lib/mapa/`).
+- `lib/mailer.ts`, `lib/rateLimit.ts`.
 - `app/api/signup/{route,confirm/check/route,confirm/route,resend/route,approve/route}.ts`.
 - `app/api/password-reset/{route,check/route,confirm/route}.ts`.
 - `app/(auth)/{cadastro,cadastro/confirmacao,aguardando-liberacao,esqueci-senha,redefinir-senha,aprovacoes}/page.tsx`.
-- `components/auth/{AuthCard,PasswordFields,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable}.tsx`.
+- `components/auth/{AuthCard,PasswordFields,ResendConfirmation,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable}.tsx`.
 - `scripts/backfill-access-claims.mjs` — loads `.env.local` through `@next/env`'s
   `loadEnvConfig`, the loader the app uses. The line-by-line reader in `verify-assets.mjs` and
   `contentful-provision.mts` would cut the multi-line `FIREBASE_PRIVATE_KEY`, and Node 20's
@@ -538,11 +552,11 @@ current user.
 - `app/api/session/route.ts` — §4.5.
 - `components/auth/AuthProvider.tsx`, `components/auth/LoginForm.tsx`, `app/(auth)/login/page.tsx`
   — §5.4, §6.2.
-- The 9 routes importing `@/lib/mapa/rateLimit` — import path only.
+- `lib/mapa/rateLimit.ts` — the same exports, built on `lib/rateLimit.ts`.
+- `lib/auth.ts` `safeRedirect` — `/aprovacoes` joins the allowed destinations.
 - `.env.example`, `.github/workflows/deploy-{beta,prod}.yml`, `package.json` (`nodemailer`,
   `@types/nodemailer`).
-- `CLAUDE.md` — the Authentication section (claim gate, signup, admins, `docs/signup.md`) and the
-  rate limiter's new path.
+- `CLAUDE.md` — the Authentication section (claim gate, signup, admins, `docs/signup.md`).
 - `README.md` — `SMTP_PASSWORD` in the list of GitHub Actions secrets, in Portuguese to match the
   file.
 
