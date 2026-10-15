@@ -103,6 +103,14 @@ Configure estes valores em **Settings -> Secrets and variables -> Actions** do r
 | Variable | `NETWORK_NAME` | Rede Docker compartilhada com o proxy reverso |
 | Variable | `GEE_SERVICE_ACCOUNT_PATH_BETA` | Caminho absoluto, na VPS beta, para o JSON da service account |
 | Variable | `NEXT_PUBLIC_CARTO_KEY` | Chave dos mapas base da CARTO; sem ela os tiles saem com marca d'água |
+| Variable | `PLATFORM_ACCESS_GUARD_ENABLED_BETA` / `PLATFORM_ACCESS_GUARD_ENABLED` | Liga o bloqueio de acesso e o cadastro no beta / na produção; só depois do backfill (`docs/signup.md`) |
+| Variable | `APP_BASE_URL_BETA` / `APP_BASE_URL` | Endereço público do beta / da produção, usado nos links dos e-mails |
+| Variable | `SIGNUP_ALLOWED_DOMAINS` | Domínios de e-mail liberados sem aprovação, separados por vírgula |
+| Variable | `ACCESS_ADMIN_EMAILS` | E-mails de quem decide os pedidos em `/aprovacoes` |
+| Variable | `OCA_NOTIFICATION_EMAIL` | Caixa da equipe que recebe os pedidos novos |
+| Variable | `SMTP_USER` / `SMTP_FROM` | Conta do Gmail que envia os e-mails do cadastro |
+| Secret | `SMTP_PASSWORD` | Senha de app dessa conta |
+| Variable | `SIGNUP_SEND_REJECTION_EMAIL` | `true` para avisar por e-mail quem foi recusado |
 
 O arquivo da service account deve existir apenas na VPS beta e ser legível pelo Docker. Para imagens privadas, configure previamente o login no Docker Hub para o usuário do `beta-runner`, que executa o `docker pull`.
 
