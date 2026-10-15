@@ -10,7 +10,16 @@ vi.mock('@/lib/firebase-admin', () => ({
   getFirebaseAdminAuth: () => mocks,
 }))
 
-import { ACCESS_CLAIM_NAMESPACE, approveAccess, buildAccessClaims, hasApprovedAccess, readAccessClaim } from '@/lib/access/claims'
+import {
+  ACCESS_CLAIM_NAMESPACE,
+  approveAccess,
+  buildAccessClaims,
+  buildRequestedClaims,
+  hasApprovedAccess,
+  isAccessRequested,
+  readAccessClaim,
+  REQUESTED_ACCESS,
+} from '@/lib/access/claims'
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -40,6 +49,30 @@ describe('readAccessClaim', () => {
 
   it('tolerates a missing timestamp', () => {
     expect(readAccessClaim({ caativar: { access: 'approved', tier: 'legacy' } })?.at).toBe(0)
+  })
+
+  it('denies the signup marker', () => {
+    expect(readAccessClaim(buildRequestedClaims())).toBeNull()
+    expect(hasApprovedAccess(buildRequestedClaims())).toBe(false)
+  })
+})
+
+describe('the signup marker', () => {
+  it('nests the requested marker under the namespace', () => {
+    expect(REQUESTED_ACCESS).toBe('requested')
+    expect(buildRequestedClaims()).toEqual({ caativar: { access: 'requested' } })
+  })
+
+  it('recognizes the marker and nothing else', () => {
+    expect(isAccessRequested(buildRequestedClaims())).toBe(true)
+    expect(isAccessRequested({ uid: 'u1', email: 'a@b.co', caativar: { access: 'requested' } })).toBe(true)
+
+    const others: unknown[] = [
+      undefined, null, 'requested', {}, { caativar: null }, { caativar: 'requested' },
+      { requested: true }, { access: 'requested' },
+      buildAccessClaims('common', 1),
+    ]
+    for (const claims of others) expect(isAccessRequested(claims)).toBe(false)
   })
 })
 

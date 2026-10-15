@@ -73,8 +73,9 @@ Project settings → Users and permissions, or a login with the owner's account.
   `exp`…) and refuses a claim that collides with them.
 - `readAccessClaim(claims)` returns `null` for anything that is not a well-formed approved claim.
   A missing claim and a malformed one take the same path: the one that denies.
-- `approveAccess(uid, tier)` is the **only** caller of `setCustomUserClaims`. It reads the
-  account's current claims and merges ours in (the call replaces the whole set), then calls
+- `approveAccess(uid, tier)` is the **only** writer of the approved claim (signup writes only the
+  marker, §4.4). It reads the account's current claims and merges ours in (the call replaces the
+  whole set, and ours replaces the marker), then calls
   `revokeRefreshTokens(uid)`. This repo verifies session cookies with `checkRevoked: true` and no
   cache, so the revocation applies on the next request.
 
@@ -88,20 +89,34 @@ decided and when. It never authorizes: nothing on the request path reads it.
 `PLATFORM_ACCESS_GUARD_ENABLED=true` turns the gate on (SAP's name, kept so the setting reads the
 same in both projects). The switch also opens signup: with it off, `/cadastro`,
 `/cadastro/confirmacao` and every `/api/signup/*` route answer 404, and the login card shows no
-"Criar conta" link. A session minted with the switch off checks neither the claim nor the email,
-so an open signup in that state would make the platform *more* open than before signup existed.
-Forgot password does not depend on the switch: it creates no account.
+"Criar conta" link. A session minted with the switch off checks neither the claim nor the email
+of an account without the signup marker (§4.4), so an open signup in that state would make the
+platform *more* open than before signup existed. Forgot password does not depend on the switch:
+it creates no account.
+
+Beta, production and local development share the Firebase accounts, so an account signup created
+in one environment can try to log into another whose switch is off. The signup marker (§4.4) is
+what refuses it there: the switch decides whether accounts *without* a claim get in, never
+whether a signup account does.
 
 ### 4.4 Session gate, in `lib/auth.ts`
 
+- **The signup marker.** `POST /api/signup` sets `{ caativar: { access: 'requested' } }`
+  (`buildRequestedClaims`) on every account it creates, right after `createUser`; an account that
+  cannot carry it is deleted (§5.1). `approveAccess` writes the approved claim over it.
+  `isAccessRequested(claims)` reads it, and `readAccessClaim` treats it as no claim. It grants
+  nothing: it bars the account whatever the switch says, since the switch can be off in another
+  environment that shares the accounts (§4.3). The backfill skips marked accounts even when their
+  request document is missing.
 - `createSessionCookie(idToken)` returns
   `{ status: 'created', sessionCookie } | { status: 'unapproved', uid, email, emailVerified }`.
-  With the switch on, a token without an approved claim gets no cookie. The token is verified
-  once; the claim and `email_verified` come from the decoded token, with no extra call.
-- `verifySessionCookie(cookie)` additionally returns `null` when the switch is on and the decoded
-  cookie carries no approved claim. That covers cookies minted before the switch was turned on.
-  Every layout (`getAuthenticatedSession`) and API route (`getAuthenticatedRequest`) already goes
-  through it, so none of them change.
+  A token carrying the marker gets no cookie whatever the switch says; with the switch on, neither
+  does a token without an approved claim. The token is verified once; the claims and
+  `email_verified` come from the decoded token, with no extra call.
+- `verifySessionCookie(cookie)` additionally returns `null` under the same condition: the decoded
+  cookie carries the marker, or the switch is on and it carries no approved claim. That covers
+  cookies minted before the switch was turned on. Every layout (`getAuthenticatedSession`) and API
+  route (`getAuthenticatedRequest`) already goes through it, so none of them change.
 
 ### 4.5 `POST /api/session`
 
@@ -136,6 +151,8 @@ It signs the Firebase client out on any non-`ok` outcome, as it does today on fa
                   tier = resolveSignupTier(email)                        (never from the client)
                   createUser({ email, emailVerified: false })            (Admin SDK, no password)
                     email already taken ─► 201 { status: 'accepted' }   (same body, no mail)
+                  setCustomUserClaims(uid, { caativar: { access: 'requested' } })   (marker, §4.4)
+                    fails ─► deleteUser(uid), 500
                   createAccessRequest(uid, { email, tier, intention })
                     fails ─► deleteUser(uid), 500                        (no orphan accounts)
                   sendVerificationEmail(email)                           (failure logged, not fatal)
@@ -470,7 +487,7 @@ both workflows as a literal, like `CONTENTFUL_PREVIEW=true`.
 
 | Variable | Purpose | Beta / prod |
 |---|---|---|
-| `PLATFORM_ACCESS_GUARD_ENABLED` (beta: `_BETA`) | The switch (§4.3) | `false`, then `true` after the backfill, beta first |
+| `PLATFORM_ACCESS_GUARD_ENABLED` (beta: `_BETA`) | The switch (§4.3) | `false`, then `true` after the backfill, in both environments in the same session (§11) |
 | `SIGNUP_ALLOWED_DOMAINS` | Comma-separated; `@ufcg.edu.br` and `ufcg.edu.br` both accepted; empty sends every signup to approval | Team decision |
 | `ACCESS_ADMIN_EMAILS` | Comma-separated emails allowed at `/aprovacoes` | Team decision |
 | `OCA_NOTIFICATION_EMAIL` | Team mailbox for new requests; a shared box, not a person | Team decision |
@@ -498,11 +515,21 @@ current user.
    answers 404.
 2. **Backfill:** `node scripts/backfill-access-claims.mjs` (dry run), then `--apply`. It grants
    `legacy` to every account without a valid claim, skips accounts that have a signup request in
-   `access-requests` or `access-requests-local`, and revokes each granted account's tokens so the
+   `access-requests` or `access-requests-local` or carry the signup marker (§4.4), and revokes
+   each granted account's tokens so the
    next login carries the claim. Idempotent. Today that is the 2 existing accounts, each asked to
    log in once.
-3. **Turn the switch on, beta first**, walk the flow there (including the origin check behind the
-   proxy), then prod. The claims are already valid on prod: the accounts are shared.
+3. **Turn the switch on in both environments in the same session:** turn it on in beta, walk the
+   flow there briefly (including the origin check behind the proxy), then turn it on in prod right
+   away. The claims are already valid on prod: the accounts are shared.
+
+While the switch differs between environments, or after turning it off, the signup marker keeps
+signup accounts out of a switch-off environment (§4.4). Turning the switch off still drops the
+claim check for every other account, so an account created by hand in the console gets in without
+a claim. Rolling back to an image without the marker check admits every confirmed signup account,
+approved or not, wherever the switch is off, and an image from before signup has no switch at all:
+disable the pending accounts in Firebase Authentication first (a rejection already disables the
+account).
 
 ## 12. Files
 

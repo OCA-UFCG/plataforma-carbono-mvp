@@ -3,6 +3,7 @@ import { jsonPost } from '@/tests/helpers/jsonPost'
 
 const mocks = vi.hoisted(() => ({
   createUser: vi.fn(),
+  setCustomUserClaims: vi.fn(),
   deleteUser: vi.fn(),
   getUserByEmail: vi.fn(),
   createAccessRequest: vi.fn(),
@@ -17,7 +18,12 @@ vi.mock('next/server', async (importOriginal) => ({
   },
 }))
 vi.mock('@/lib/firebase-admin', () => ({
-  getFirebaseAdminAuth: () => ({ createUser: mocks.createUser, deleteUser: mocks.deleteUser, getUserByEmail: mocks.getUserByEmail }),
+  getFirebaseAdminAuth: () => ({
+    createUser: mocks.createUser,
+    setCustomUserClaims: mocks.setCustomUserClaims,
+    deleteUser: mocks.deleteUser,
+    getUserByEmail: mocks.getUserByEmail,
+  }),
 }))
 vi.mock('@/lib/access/requests', () => ({ createAccessRequest: mocks.createAccessRequest }))
 vi.mock('@/lib/access/verification', () => ({ sendVerificationEmail: mocks.sendVerificationEmail }))
@@ -38,6 +44,7 @@ beforeEach(() => {
   for (const limiter of Object.values(accessRateLimits)) limiter.clear()
   mocks.afterTasks.splice(0)
   mocks.createUser.mockResolvedValue({ uid: 'new-uid' })
+  mocks.setCustomUserClaims.mockResolvedValue(undefined)
   mocks.deleteUser.mockResolvedValue(undefined)
   mocks.createAccessRequest.mockResolvedValue(undefined)
   mocks.sendVerificationEmail.mockResolvedValue(true)
@@ -78,6 +85,28 @@ describe('POST /api/signup', () => {
     expect(mocks.createUser).toHaveBeenCalledWith({ email: 'fulana@ufcg.edu.br', emailVerified: false })
     expect(mocks.createAccessRequest).toHaveBeenCalledWith('new-uid', { email: 'fulana@ufcg.edu.br', tier: 'allowed', intention: 'Ensino de carbono' })
     expect(mocks.sendVerificationEmail).toHaveBeenCalledWith('fulana@ufcg.edu.br')
+  })
+
+  it('marks the new account as a signup before recording the request', async () => {
+    await signup(jsonPost('/api/signup', VALID))
+
+    expect(mocks.setCustomUserClaims).toHaveBeenCalledWith('new-uid', { caativar: { access: 'requested' } })
+    expect(mocks.createUser.mock.invocationCallOrder[0]).toBeLessThan(mocks.setCustomUserClaims.mock.invocationCallOrder[0])
+    expect(mocks.setCustomUserClaims.mock.invocationCallOrder[0]).toBeLessThan(mocks.createAccessRequest.mock.invocationCallOrder[0])
+  })
+
+  it('deletes the account when it cannot be marked as a signup', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mocks.setCustomUserClaims.mockRejectedValueOnce(new Error('auth down'))
+
+    const res = await signup(jsonPost('/api/signup', VALID))
+
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'Não foi possível concluir o cadastro.' })
+    expect(mocks.deleteUser).toHaveBeenCalledWith('new-uid')
+    expect(mocks.createAccessRequest).not.toHaveBeenCalled()
+    expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalled()
   })
 
   it('never takes the tier from the client', async () => {

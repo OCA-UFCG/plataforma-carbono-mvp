@@ -6,6 +6,7 @@
  */
 
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
+import { buildRequestedClaims } from '@/lib/access/claims'
 import { isWellFormedEmail, normalizeEmail } from '@/lib/access/emailAddress'
 import { resolveSignupTier } from '@/lib/access/domains'
 import { jsonNoStore, readJsonObject, rejectUntrustedOrLimited, rejectWhenSignupClosed } from '@/lib/access/http'
@@ -25,6 +26,16 @@ const serverError = () => jsonNoStore({ error: 'Não foi possível concluir o ca
 
 function isEmailTaken(error: unknown) {
   return (error as { code?: unknown } | null)?.code === 'auth/email-already-exists'
+}
+
+/**
+ * An orphan account is worse than none: the person would get "accepted" forever and never an
+ * email, and only a hand deletion would free the address.
+ */
+async function deleteOrphan(uid: string) {
+  await getFirebaseAdminAuth().deleteUser(uid).catch((undoError: unknown) => {
+    console.error('[/api/signup] could not delete the orphan account; remove it by hand:', undoError)
+  })
 }
 
 export async function POST(req: Request) {
@@ -56,14 +67,20 @@ export async function POST(req: Request) {
   }
 
   try {
+    // The marker keeps the account out of every environment until access is granted, the ones with
+    // the switch off included (lib/auth.ts). An account that cannot carry it is not kept.
+    await auth.setCustomUserClaims(uid, buildRequestedClaims())
+  } catch (error) {
+    console.error('[/api/signup] could not mark the account as a signup:', error instanceof Error ? error.message : 'unknown error')
+    await deleteOrphan(uid)
+    return serverError()
+  }
+
+  try {
     await createAccessRequest(uid, { email, tier, intention })
   } catch (error) {
-    // An orphan account is worse than none: the person would get "accepted" forever and never an
-    // email, and only a hand deletion would free the address.
     console.error('[/api/signup] could not record the access request:', error)
-    await auth.deleteUser(uid).catch((undoError: unknown) => {
-      console.error('[/api/signup] could not delete the orphan account; remove it by hand:', undoError)
-    })
+    await deleteOrphan(uid)
     return serverError()
   }
 

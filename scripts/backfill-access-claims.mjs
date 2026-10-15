@@ -12,9 +12,10 @@
  * Every granted account is signed out: the claim enters a session cookie only when the cookie is
  * minted. Run with the switch still off, the visible effect is one login prompt.
  *
- * Idempotent: accounts with a valid claim are skipped. Accounts with a signup request are skipped
- * too: the decision on them belongs to the approvals page, and running this after signup opens
- * would otherwise approve every pending and rejected request at once. Needs Firestore enabled.
+ * Idempotent: accounts with a valid claim are skipped. Accounts from signup (a signup request, or
+ * the signup marker) are skipped too: the decision on them belongs to the approvals page, and
+ * running this after signup opens would otherwise approve every pending and rejected request at
+ * once. Needs Firestore enabled.
  */
 
 import { createRequire } from 'node:module'
@@ -24,6 +25,8 @@ import { pathToFileURL } from 'node:url'
 // backfill writing a claim the gate does not recognize would lock everyone out.
 export const ACCESS_CLAIM_NAMESPACE = 'caativar'
 export const APPROVED_ACCESS = 'approved'
+// The marker signup puts on the accounts it creates. Granting `legacy` over it would approve them.
+export const REQUESTED_ACCESS = 'requested'
 const LEGACY_TIER = 'legacy'
 const VALID_TIERS = new Set(['allowed', 'common', LEGACY_TIER])
 
@@ -39,8 +42,13 @@ export function buildBackfillClaims(existingClaims = {}, atSeconds) {
   }
 }
 
+/** A request in any collection, or the signup marker: the marker holds even if the request document is missing. */
+function isSignupAccount(user, signupUids) {
+  return signupUids.has(user?.uid) || user?.customClaims?.[ACCESS_CLAIM_NAMESPACE]?.access === REQUESTED_ACCESS
+}
+
 export function shouldBackfillUser(user, signupUids = new Set()) {
-  if (signupUids.has(user?.uid)) return false
+  if (isSignupAccount(user, signupUids)) return false
 
   const namespaced = user?.customClaims?.[ACCESS_CLAIM_NAMESPACE]
   if (!namespaced || typeof namespaced !== 'object') return true
@@ -106,7 +114,7 @@ async function main() {
     const page = await auth.listUsers(1000, pageToken)
     for (const user of page.users) {
       scanned += 1
-      if (signupUids.has(user.uid)) {
+      if (isSignupAccount(user, signupUids)) {
         fromSignup += 1
         continue
       }

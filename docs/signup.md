@@ -42,8 +42,10 @@ Our own pages handle the confirmation and reset links, so the beta and productio
 
 1. Console steps above.
 2. **Deploy with the switch off** (`PLATFORM_ACCESS_GUARD_ENABLED_BETA` / `PLATFORM_ACCESS_GUARD_ENABLED` unset or `false`). Nothing visible changes; the signup pages and routes answer 404.
-3. **Backfill:** `node scripts/backfill-access-claims.mjs` (dry run), then `--apply`. It grants `legacy` to every account without a valid claim, skips accounts with a signup request, and signs each granted account out so its next login carries the claim. Idempotent.
-4. **Turn the switch on, beta first**, walk the flow there, then production. Beta and production share the Firebase accounts, so the claims are already valid on both. Before turning it on, confirm the reverse proxy in front of beta and production overwrites `X-Forwarded-For` rather than appending to it: the signup rate limits key on its first address, which a client controls if the proxy appends.
+3. **Backfill:** `node scripts/backfill-access-claims.mjs` (dry run), then `--apply`. It grants `legacy` to every account without a valid claim, skips signup accounts (a signup request or the signup marker), and signs each granted account out so its next login carries the claim. Idempotent.
+4. **Turn the switch on in both environments in the same session:** turn it on in beta, walk the flow there briefly, then turn it on in production right away. Beta and production share the Firebase accounts, so the claims are already valid on both. Before turning it on, confirm the reverse proxy in front of beta and production overwrites `X-Forwarded-For` rather than appending to it: the signup rate limits key on its first address, which a client controls if the proxy appends.
+
+**While the switch differs between environments, or when turning it off.** Every account signup creates carries a marker, `caativar: { access: 'requested' }`, until access is granted, and a session for a marked account is refused whatever the switch says: a switch-off environment refuses signup accounts. Turning the switch off still drops the claim check for every other account, so an account created by hand in the console gets in without a claim. **Rolling back to an image without the marker check admits every confirmed signup account, approved or not, wherever the switch is off, and an image from before signup has no switch at all:** disable the pending accounts in Firebase Authentication first (a rejection already disables the account).
 
 ## The sending account
 

@@ -3,7 +3,7 @@ import 'server-only'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { DecodedIdToken } from 'firebase-admin/auth'
-import { hasApprovedAccess } from '@/lib/access/claims'
+import { hasApprovedAccess, isAccessRequested } from '@/lib/access/claims'
 import { isAccessGuardEnabled } from '@/lib/access/flag'
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
 
@@ -31,15 +31,26 @@ export type SessionCreation =
     }
 
 /**
- * Opens a platform session, and this is where access is barred: with the gate on, an account
- * without the access claim gets no cookie, and without a cookie there is no platform. The token is
- * verified once; the claim and email_verified come from the decoded token at no extra cost.
+ * Whether a decoded token or session cookie is barred from the platform. An account signup created
+ * and nobody approved yet carries the signup marker and is barred whatever the switch says: beta
+ * and production share the accounts, and with the switch off in one of them it would otherwise get
+ * in there. With the gate on, any account without the access claim is barred too.
+ */
+function isBarred(decoded: DecodedIdToken) {
+  return isAccessRequested(decoded) || (isAccessGuardEnabled() && !hasApprovedAccess(decoded))
+}
+
+/**
+ * Opens a platform session, and this is where access is barred: an account carrying the signup
+ * marker, or, with the gate on, any account without the access claim, gets no cookie, and without
+ * a cookie there is no platform. The token is verified once; the claims and email_verified come
+ * from the decoded token at no extra cost.
  */
 export async function createSessionCookie(idToken: string): Promise<SessionCreation> {
   const auth = getFirebaseAdminAuth()
   const decoded = await auth.verifyIdToken(idToken)
 
-  if (isAccessGuardEnabled() && !hasApprovedAccess(decoded)) {
+  if (isBarred(decoded)) {
     return {
       status: 'unapproved',
       uid: decoded.uid,
@@ -52,16 +63,17 @@ export async function createSessionCookie(idToken: string): Promise<SessionCreat
 }
 
 /**
- * A verified, unrevoked session, or null. With the gate on, a cookie without the claim counts as
- * no session: that covers cookies minted before the gate was turned on, and every layout and API
- * route inherits the rule through here.
+ * A verified, unrevoked session, or null. A cookie carrying the signup marker counts as no
+ * session whatever the switch says, and with the gate on so does a cookie without the claim: that
+ * covers cookies minted before the gate was turned on, and every layout and API route inherits the
+ * rule through here.
  */
 export async function verifySessionCookie(sessionCookie: string | undefined): Promise<DecodedIdToken | null> {
   if (!sessionCookie) return null
 
   try {
     const decoded = await getFirebaseAdminAuth().verifySessionCookie(sessionCookie, true)
-    if (isAccessGuardEnabled() && !hasApprovedAccess(decoded)) return null
+    if (isBarred(decoded)) return null
     return decoded
   } catch {
     return null

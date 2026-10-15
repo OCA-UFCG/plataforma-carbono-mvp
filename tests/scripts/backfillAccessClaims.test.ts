@@ -2,18 +2,20 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ACCESS_CLAIM_NAMESPACE as SCRIPT_NAMESPACE,
   APPROVED_ACCESS as SCRIPT_APPROVED,
+  REQUESTED_ACCESS as SCRIPT_REQUESTED,
   backfillUser,
   buildBackfillClaims,
   listSignupUids,
   shouldBackfillUser,
 } from '@/scripts/backfill-access-claims.mjs'
-import { ACCESS_CLAIM_NAMESPACE, APPROVED_ACCESS, readAccessClaim } from '@/lib/access/claims'
+import { ACCESS_CLAIM_NAMESPACE, APPROVED_ACCESS, buildRequestedClaims, readAccessClaim, REQUESTED_ACCESS } from '@/lib/access/claims'
 import { createFakeFirestore } from '@/tests/helpers/fakeFirestore'
 
 describe('the backfill script', () => {
   it('writes the claim the gate reads', () => {
     expect(SCRIPT_NAMESPACE).toBe(ACCESS_CLAIM_NAMESPACE)
     expect(SCRIPT_APPROVED).toBe(APPROVED_ACCESS)
+    expect(SCRIPT_REQUESTED).toBe(REQUESTED_ACCESS)
     expect(readAccessClaim(buildBackfillClaims({}, 42))).toEqual({ access: 'approved', tier: 'legacy', at: 42 })
   })
 
@@ -30,6 +32,11 @@ describe('the backfill script', () => {
     expect(shouldBackfillUser({ uid: 'c', customClaims: { caativar: { access: 'approved', tier: 'admin' } } })).toBe(true)
     expect(shouldBackfillUser({ uid: 'd', customClaims: { caativar: { access: 'approved', tier: 'common', at: 1 } } })).toBe(false)
     expect(shouldBackfillUser({ uid: 'e' }, new Set(['e']))).toBe(false)
+  })
+
+  it('skips an account carrying the signup marker even when its request is missing', () => {
+    expect(shouldBackfillUser({ uid: 'f', customClaims: buildRequestedClaims() })).toBe(false)
+    expect(shouldBackfillUser({ uid: 'f', customClaims: { role: 'editor', ...buildRequestedClaims() } }, new Set())).toBe(false)
   })
 
   it('sets the claim before revoking the tokens', async () => {
