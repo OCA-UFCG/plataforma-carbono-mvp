@@ -328,7 +328,8 @@ possível concluir o cadastro. Tente novamente." · button "Criar conta" / "Cria
 
 **Signup sent:** "Confirme seu e-mail" · "Enviamos um link para o endereço informado. Abra o link
 para confirmar o cadastro e escolher sua senha." · "Reenviar e-mail de confirmação" /
-"Enviando..." · "Se o endereço estiver cadastrado, um novo e-mail foi enviado."
+"Enviando..." · "Se o endereço estiver cadastrado, um novo
+e-mail foi enviado. Se não chegar, aguarde um minuto e tente de novo."
 
 **Password fields** (confirmation and reset): "Senha" / "Confirmar senha" (reset: "Nova senha" /
 "Confirmar nova senha") · "Mostrar senha" / "Ocultar senha" · "Informe a senha.", "A senha precisa
@@ -538,8 +539,8 @@ current user.
 While the switch differs between environments, or after turning it off, the signup marker keeps
 signup accounts out of a switch-off environment (§4.4). Turning the switch off still drops the
 claim check for every other account, so an account created by hand in the console gets in without
-a claim. Rolling back to an image without the marker check admits every confirmed signup account,
-approved or not, wherever the switch is off, and an image from before signup has no switch at all:
+a claim. Rolling back to an image without the marker check admits every signup account that has a
+password, approved or not and confirmed or not, wherever the switch is off, and an image from before signup has no switch at all:
 disable the pending accounts in Firebase Authentication first (a rejection already disables the
 account).
 

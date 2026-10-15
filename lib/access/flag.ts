@@ -11,9 +11,10 @@ export function isAccessGuardEnabled(): boolean {
 }
 
 /**
- * Signup is open exactly when the gate is on. With the gate off a session checks neither the
- * claim nor the email, so an open signup would let anyone in, unconfirmed and unapproved: more
- * open than before signup existed.
+ * Signup is open exactly when the gate is on. With the gate off a session checks no access claim;
+ * the accounts signup creates carry a `requested` marker that lib/auth.ts refuses whatever the
+ * switch says, and tying signup to the switch keeps a switch-off environment exactly as it was
+ * before signup existed.
  */
 export function isSignupOpen(): boolean {
   return isAccessGuardEnabled()
