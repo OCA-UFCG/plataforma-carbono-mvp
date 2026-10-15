@@ -19,10 +19,10 @@ separate Firebase project (`plataforma-carbono`, not `sap-project-123`, so nothi
 with SAP).
 
 **Success:** with the switch on, a visitor on a listed domain signs up at `/cadastro`, clicks
-the link in the email, and lands on the map after logging in; a visitor on any other domain
-does the same and waits on "Cadastro em análise" until an admin presses "Aprovar" at
-`/aprovacoes`, then gets an email and logs in. The two existing accounts keep working
-throughout.
+the link in the email, chooses a password there, and lands on the map after logging in; a
+visitor on any other domain does the same and waits on "Cadastro em análise" until an admin
+presses "Aprovar" at `/aprovacoes`, then gets an email and logs in. The two existing accounts
+keep working throughout.
 
 ## 2. Decisions
 
@@ -38,6 +38,7 @@ Settled with the user before any code was written.
 | 6 | What does the waiting page show? | **A static card.** A pending user never gets a session cookie, so there is no email to show and nothing to sign out of. |
 | 7 | Which Firestore collection do beta and prod use? | **The same one, `access-requests`.** They share Firebase accounts; separate collections would hide a request made on one environment from the other's approvals page. |
 | 8 | Language | **Portuguese only.** SAP's `locale` field and per-locale templates are dropped. |
+| 9 | Who sets the password, and when? | **Whoever reads the mailbox, on the confirmation page.** The signup form asks only for the email and the intention; the account is created without a password. Departs from SAP, whose document lists the alternative as an open flaw (§15). |
 
 ## 3. Current state
 
@@ -48,7 +49,7 @@ Checked on 2026-10-15 through the service account in `.env.local` (read-only):
 | Accounts | **2**, both `gmail.com`, neither with a confirmed email, no custom claims | The backfill grants `legacy` to exactly these two and signs each out once. |
 | Client sign-up (Identity Toolkit `client.permissions`) | **Enabled** (nothing set) | **An open hole today:** anyone can call Firebase's `accounts:signUp` with the public API key, then log in at `/login` with full access, because nothing checks a claim yet. Turning it off is independent of this work and can happen now. Client sign-in keeps working. |
 | Password policy | Not configured | Console step in §11. |
-| Email enumeration protection | On | The reset flow looks the account up before generating a link (§8.6), as SAP does. |
+| Email enumeration protection | On | The reset flow looks the account up before generating a link (§5.6), as SAP does. |
 | Firestore | **Never enabled** (API off, no rules released) | The database has to be created before rollout (§11). |
 | Firebase's own auth emails | Built-in mailer, `noreply@plataforma-carbono.firebaseapp.com`, templates untouched, `en` | Unused by this design: the Admin SDK generates links but sends nothing, so we send our own mail (§9). |
 | Authorized domains | `localhost`, `*.firebaseapp.com`, `*.web.app` | Fine as is: confirmation and reset go through our own pages, never Firebase's action handler. |
@@ -131,9 +132,9 @@ It signs the Firebase client out on any non-`ok` outcome, as it does today on fa
 ```
 /cadastro form ─► POST /api/signup
                   switch off? 404 · untrusted origin? 403 · rate limit? 429
-                  validate email, password ≥ 8, intention non-empty     (400 on failure)
+                  validate email, intention non-empty                    (400 on failure)
                   tier = resolveSignupTier(email)                        (never from the client)
-                  createUser({ email, password, emailVerified: false })  (Admin SDK)
+                  createUser({ email, emailVerified: false })            (Admin SDK, no password)
                     email already taken ─► 201 { status: 'accepted' }   (same body, no mail)
                   createAccessRequest(uid, { email, tier, intention })
                     fails ─► deleteUser(uid), 500                        (no orphan accounts)
@@ -141,25 +142,46 @@ It signs the Firebase client out on any non-`ok` outcome, as it does today on fa
                   201 { status: 'accepted' }
 ```
 
+An account without a password cannot sign in, so until confirmation it is inert.
+
 The card then switches to "Confirme seu e-mail" with a resend button, which posts the submitted
-address to `/api/signup/resend`.
+address to `/api/signup/resend`. Resend sends only when the account exists, its email is not
+confirmed and it holds no approved claim; it answers 202 `accepted` in every case. (The two
+legacy accounts have unconfirmed emails, and a confirmation link would let whoever reads their
+mailbox replace the password through the confirmation page; that is what "Esqueci minha senha"
+is for.)
 
 ### 5.2 Confirmation
 
-The email links to `/cadastro/confirmacao?code=…&email=…`. The page posts both to
-`POST /api/signup/confirm`:
+The email links to `/cadastro/confirmacao?code=…&email=…`. Opening the link spends nothing:
 
-1. If `code` is present, the server applies it through Identity Toolkit
-   (`accounts:update` with `oobCode`, keyed by the public API key). When it applies, the email
-   that counts is the one Firebase says it confirmed. When it does not (already used, expired),
-   the server falls back to the link's `email`: whoever opens the link twice is already confirmed
-   and only needs the outcome.
-2. `getUserByEmail`; an unknown account and an unconfirmed one both answer 409, so the route is no
-   oracle of who has an account.
-3. `settleSignup` (§5.3) and answer `{ status: 'approved' | 'pending' | 'rejected' }`.
+1. On mount the page posts `{ code }` to `POST /api/signup/confirm/check`. The server checks the
+   code through Identity Toolkit without applying it (`accounts:resetPassword` with only
+   `oobCode`, keyed by the public API key; it is what the client SDK's `checkActionCode` calls),
+   and answers `{ email }` when the code is valid and its `requestType` is `VERIFY_EMAIL`,
+   410 otherwise. Mail scanners that open the link on their own therefore spend no code and
+   trigger no settlement.
+2. Valid: the page shows "Conta: {email}" and the password fields. Invalid (expired, used, made
+   up): "Link inválido ou expirado", with resend (posting the link's `email`) and a link to the
+   login. A person who opens the link a second time has already chosen a password and only needs
+   the login.
+3. Submit posts `{ code, password }` to `POST /api/signup/confirm`:
+   1. password shorter than 8 → 400 `weak-password`;
+   2. check the code again (not spent) → the email it belongs to, or 410 `invalid-code`;
+   3. `getUserByEmail(email)`; `updateUser(uid, { password })`;
+   4. apply the code (`accounts:update` with `oobCode`), which marks the email confirmed;
+   5. re-read the account, `settleSignup` (§5.3), answer
+      `{ status: 'approved' | 'pending' | 'rejected' }`.
 
-The `email` in the link is not a credential: the server re-reads `emailVerified` from Firebase
-before granting anything.
+   The password is set **before** the code is applied. Applying first and then failing to set the
+   password would leave a confirmed account with no password and a spent code; failing to apply
+   after the password is set leaves an account with a password chosen by whoever held a valid code
+   (the mailbox owner), whose login answers `email_unconfirmed` and offers resend.
+
+The `email` in the link is not a credential: it only fills the resend button. The confirm route
+takes the email from the code, never from the request. Unlike SAP's, the route never settles or
+reports the status of an address it was merely given, so it is no oracle of which accounts are
+confirmed.
 
 ### 5.3 Settlement — `settleSignup({ uid, email, emailVerified })`
 
@@ -185,7 +207,7 @@ Shared by the confirmation route and the login route.
 |---|---|
 | `ok` | Redirect to `redirectTo`, as today |
 | `pending` | `router.replace('/aguardando-liberacao')` |
-| `unconfirmed` | Inline: "Confirme seu e-mail antes de entrar. Enviamos o link para o endereço do cadastro." plus "Reenviar e-mail de confirmação" (posts the typed email to resend). The password was correct, so this reveals nothing to a stranger. |
+| `unconfirmed` | Inline: "Confirme seu e-mail antes de entrar. Enviamos o link para o endereço do cadastro." plus "Reenviar e-mail de confirmação" (posts the typed email to resend). The password was correct, so this reveals nothing to a stranger. Rare: a signup account has no password until it confirms, so this needs a confirmation that set the password but failed to apply the code, or an account that reset its password before confirming. |
 | `auth/user-disabled` (a rejected request), when Firebase reports it | "Esta conta não tem acesso à plataforma." |
 | `auth/too-many-requests` | Unchanged |
 | anything else | "E-mail ou senha inválidos.", unchanged |
@@ -228,6 +250,9 @@ Shared by the confirmation route and the login route.
 - `confirm` calls `revokeRefreshTokens` after the change, explicitly, even though Firebase already
   invalidates tokens when the password changes.
 - The link is valid for one hour, once. That limit is Firebase's.
+- A signup account that never confirmed has no password; a reset gives it one. Its next login
+  then goes through §4.5: settled if resetting confirmed the address, `email_unconfirmed`
+  otherwise. Either way it ends up on the normal path.
 
 ## 6. Pages and components
 
@@ -241,13 +266,17 @@ use `<a href>`, per CLAUDE.md.
 mark out of `LoginForm`, plus the shared input, label, button and link styles. `LoginForm` uses
 it and renders identically. Width: 420px for every card, 960px for the approvals panel.
 
+`components/auth/PasswordFields.tsx` holds the "Senha" / "Confirmar senha" pair with the
+visibility toggle and the client-side checks (at least 8, both equal), shared by the
+confirmation page and the reset page.
+
 ### 6.2 Routes
 
 | Route | Server page | Client component | Notes |
 |---|---|---|---|
 | `/login` | existing | `LoginForm` (changed) | Gets `signupOpen` from the server. "Não tem conta? Criar conta" only when open; "Esqueci minha senha" always. The subtitle stays as it is while signup is closed and becomes "Entre com seu e-mail e senha." when open. |
-| `/cadastro` | `notFound()` when the switch is off; a signed-in visitor is redirected to `/` | `SignupForm` | Email, password, confirm password, intention (textarea, `maxLength` 1000 as a courtesy; the server cut is the one that counts). Password visibility toggle as in SAP. |
-| `/cadastro/confirmacao` | `notFound()` when off | `SignupConfirmation` | Posts once on mount; states `checking`, `approved`, `pending`, `rejected`, `failed`. |
+| `/cadastro` | `notFound()` when the switch is off; a signed-in visitor is redirected to `/` | `SignupForm` | Email and intention only (textarea, `maxLength` 1000 as a courtesy; the server cut is the one that counts). |
+| `/cadastro/confirmacao` | `notFound()` when off | `SignupConfirmation` | Checks the code on mount; states `checking`, `password`, `saving`, `approved`, `pending`, `rejected`, `invalid`, `failed`. |
 | `/aguardando-liberacao` | static | — | No guard. |
 | `/esqueci-senha` | — | `ForgotPasswordForm` | |
 | `/redefinir-senha` | — | `ResetPasswordForm` | Checks the code on mount; states `checking`, `ready`, `invalid`, `saving`, `changed`. |
@@ -263,25 +292,32 @@ Ported from SAP's latest Portuguese copy (after its PR #357, which asked for an 
 email and affiliation and dropped the informal tone), with SEDES/OCA replaced and "e-mail"
 spelled as the login card does.
 
-**Signup:** title "Criar conta" · labels "E-mail", "Senha", "Confirmar senha", "Como pretende
-usar a plataforma?" · email placeholder "de preferência institucional" · intention placeholder
-"Se tiver vínculo com alguma instituição, informe qual." · hint "Sua descrição é enviada à equipe
-da plataforma, que libera o acesso." · errors "Informe o e-mail.", "Informe um e-mail válido.",
-"Informe a senha.", "A senha precisa de pelo menos 8 caracteres.", "Confirme a senha.", "As senhas
-não são iguais.", "Descreva como pretende usar a plataforma.", "Não foi possível concluir o
-cadastro. Tente novamente." · button "Criar conta" / "Criando conta..." · "Já tem conta? Entrar" ·
-"Mostrar senha" / "Ocultar senha".
+**Signup:** title "Criar conta" · labels "E-mail", "Como pretende usar a plataforma?" · email
+placeholder "de preferência institucional" · intention placeholder "Se tiver vínculo com alguma
+instituição, informe qual." · hint "Sua descrição é enviada à equipe da plataforma, que libera o
+acesso." · note under the form "Você escolhe sua senha ao confirmar o e-mail." · errors "Informe
+o e-mail.", "Informe um e-mail válido.", "Descreva como pretende usar a plataforma.", "Não foi
+possível concluir o cadastro. Tente novamente." · button "Criar conta" / "Criando conta..." ·
+"Já tem conta? Entrar".
 
 **Signup sent:** "Confirme seu e-mail" · "Enviamos um link para o endereço informado. Abra o link
-para confirmar o cadastro." · "Reenviar e-mail de confirmação" / "Enviando..." · "Se o endereço
-estiver cadastrado, um novo e-mail foi enviado."
+para confirmar o cadastro e escolher sua senha." · "Reenviar e-mail de confirmação" /
+"Enviando..." · "Se o endereço estiver cadastrado, um novo e-mail foi enviado."
 
-**Confirmation:** checking "Confirmando seu e-mail..." · approved "Acesso liberado" / "Seu e-mail
-foi confirmado e o acesso está liberado." / "Entrar na plataforma" · pending "E-mail confirmado" /
-"Sua solicitação foi enviada à equipe da plataforma. Você receberá um e-mail quando ela for
-analisada." · rejected "Pedido não aprovado" / "Este pedido de acesso não foi aprovado." · failed
-"Não foi possível confirmar o e-mail" / "O link pode ter expirado ou o e-mail ainda não foi
-confirmado. Solicite um novo e-mail abaixo." plus the resend button and status line.
+**Password fields** (confirmation and reset): "Senha" / "Confirmar senha" (reset: "Nova senha" /
+"Confirmar nova senha") · "Mostrar senha" / "Ocultar senha" · "Informe a senha.", "A senha precisa
+de pelo menos 8 caracteres.", "Confirme a senha.", "As senhas não são iguais." · weak (server)
+"A senha não atende aos requisitos. Use pelo menos 8 caracteres."
+
+**Confirmation:** checking "Verificando o link..." · password step "Escolha sua senha" /
+"Conta: {email}" / "Confirmar cadastro" / "Confirmando..." · approved "Acesso liberado" / "Seu
+e-mail foi confirmado e o acesso está liberado." / "Entrar na plataforma" · pending "E-mail
+confirmado" / "Sua solicitação foi enviada à equipe da plataforma. Você receberá um e-mail quando
+ela for analisada." · rejected "Pedido não aprovado" / "Este pedido de acesso não foi aprovado." ·
+invalid "Link inválido ou expirado" / "Este link já foi usado ou expirou. Se você já confirmou o
+cadastro, entre com seu e-mail e senha. Se não, peça um novo link." plus the resend button, its
+status line and "Ir para o login" · failed "Não foi possível confirmar o cadastro. Tente
+novamente."
 
 **Waiting:** "Cadastro em análise" · "Seu e-mail foi confirmado e sua solicitação chegou à equipe
 da plataforma. Assim que a intenção de uso que você descreveu for analisada, você receberá um
@@ -292,11 +328,10 @@ para escolher uma nova senha." · "Enviar link" / "Enviando..." · sent "Se houv
 este endereço, enviamos um link para redefinir a senha. O link vale por uma hora." · "Voltar para
 o login".
 
-**Reset password:** "Escolher nova senha" · "Conta: {email}" · "Nova senha", "Confirmar nova
-senha" · "Salvar nova senha" / "Salvando..." · changed "Senha alterada" / "Sua senha foi
-alterada. Entre com a nova senha." / "Entrar" · invalid "Link inválido ou expirado" / "Peça um
-novo link para redefinir a senha." / "Pedir novo link" · weak "A senha não atende aos requisitos.
-Use pelo menos 8 caracteres." · failed "Não foi possível alterar a senha. Tente novamente."
+**Reset password:** "Escolher nova senha" · "Conta: {email}" · the password fields · "Salvar
+nova senha" / "Salvando..." · changed "Senha alterada" / "Sua senha foi alterada. Entre com a nova
+senha." / "Entrar" · invalid "Link inválido ou expirado" / "Peça um novo link para redefinir a
+senha." / "Pedir novo link" · failed "Não foi possível alterar a senha. Tente novamente."
 
 **Approvals:** "Pedidos de acesso" · "Cadastros que confirmaram o e-mail e aguardam liberação." ·
 empty "Nenhum pedido aguardando decisão." · columns "E-mail", "Intenção de uso", "Pedido em",
@@ -343,8 +378,8 @@ project, so local test signups create real accounts there; delete them after tes
 ## 8. Security
 
 1. **No account enumeration.** Signup answers 201 `accepted` whether or not the email exists.
-   Resend and the password-reset request always answer 202. Confirm answers 409 for both an
-   unknown account and an unconfirmed one.
+   Resend and the password-reset request always answer 202. Confirmation takes the email from
+   the code only; an invalid code answers 410 whatever address the link carries.
 2. **The tier is never trusted from the client.** It is recomputed from the email on the server,
    at signup and again in settlement step 3. Domain matching is exact, never by suffix:
    `ufcg.edu.br` admits neither `ccc.ufcg.edu.br` nor `naoufcg.edu.br`. A malformed address
@@ -358,23 +393,26 @@ project, so local test signups create real accounts there; delete them after tes
    only lists confirmed requests, but the route does not trust the page.
 6. **Free text.** The intention is the only free input written by a stranger: normalized and cut
    on the server, HTML-escaped in emails, rendered as text by React.
-7. **Passwords:** at least 8 characters, checked on the server for signup and reset, plus
+7. **Passwords:** at least 8 characters, checked on the server for confirmation and reset, plus
    Firebase's password policy (§11).
-8. **Codes are credentials.** The confirmation and reset codes never reach logs. Mail errors are
+8. **Only the mailbox owner sets the password** (decision 9): the account is created without
+   one, and the confirm route sets it only for the holder of a valid verification code. Opening
+   the link spends nothing, so mail scanners cannot burn the code before the person clicks.
+9. **Codes are credentials.** The confirmation and reset codes never reach logs. Mail errors are
    logged through `describeWithoutLink`, which strips the code from the message, since SMTP
    libraries sometimes echo the body they failed to send. `MAIL_LOG_BODY` defaults to off.
-9. **Origin check** on every public mutation and on approve (`lib/access/trustedOrigin.ts`): reject
+10. **Origin check** on every public mutation and on approve (`lib/access/trustedOrigin.ts`): reject
    when `Sec-Fetch-Site` is present and not `same-origin`/`none`; reject when `Origin` or `Referer`
    is present and not trusted; reject when none of the three is present. Trusted = the request
    URL's origin plus `APP_BASE_URL`'s, which matters behind the beta/prod proxy, where
    `request.url` may carry the internal host. To verify on beta before turning the switch on.
-10. **Rate limits**, per client IP, one bucket per action, 1-minute window:
+11. **Rate limits**, per client IP, one bucket per action, 1-minute window:
 
     | Action | Limit | Why |
     |---|---|---|
     | signup | 20 | Creates an account and sends mail; a whole training session can sign up from one building's IP |
     | resend | 10 | Sends mail on every call |
-    | confirm | 40 | Only reads and decides; mail clients open links on their own to scan them |
+    | confirm check/confirm | 40 | The page checks the code as soon as it opens, and mail clients open links on their own to scan them |
     | password-reset request | 10 | Sends mail on every call |
     | password-reset check/confirm | 40 | The page checks the code as soon as it opens |
 
@@ -382,7 +420,7 @@ project, so local test signups create real accounts there; delete them after tes
     `createRateLimiter({ windowMs, max })`; the GEE and report routes keep their 60/min instance
     and `clientIp`. Without an address header the key falls back to the user agent and logs an
     error, so one global bucket cannot be exhausted to block signup for everyone.
-11. **Admins** are read from `ACCESS_ADMIN_EMAILS` on every call, so removing someone applies on
+12. **Admins** are read from `ACCESS_ADMIN_EMAILS` on every call, so removing someone applies on
     the next request.
 
 ## 9. Email
@@ -399,7 +437,7 @@ the HTML. Palette from the login card (`#5f7030` button, `#26241d` ink, `#fffdf7
 
 | Email | To | Subject | Body (Portuguese) | Link |
 |---|---|---|---|---|
-| Confirmation | applicant | "Confirme seu endereço de e-mail — Caativar" | "Recebemos um cadastro na Caativar, a plataforma de monitoramento do carbono florestal da Caatinga, com este endereço. Confirme que este e-mail pertence a você para continuar." Button "Confirmar endereço". "Se você não fez este cadastro, ignore este e-mail." (§15) | `/cadastro/confirmacao?code=…&email=…` |
+| Confirmation | applicant | "Confirme seu endereço de e-mail — Caativar" | "Recebemos um cadastro na Caativar, a plataforma de monitoramento do carbono florestal da Caatinga, com este endereço. Confirme que este e-mail pertence a você e escolha sua senha para continuar." Button "Confirmar e escolher senha". "Se você não fez este cadastro, ignore este e-mail." | `/cadastro/confirmacao?code=…&email=…` |
 | New request | `OCA_NOTIFICATION_EMAIL` | "Novo pedido de acesso à Caativar" | "{email} confirmou o endereço e aguarda liberação." / "Intenção de uso descrita no cadastro:" + the escaped intention in a quote block. Button "Abrir a tela de aprovação". | `/aprovacoes` |
 | Approved | applicant | "Seu acesso à Caativar foi liberado" | "Acesso liberado" / "Seu cadastro foi aprovado. A plataforma está disponível para acesso." Button "Entrar na Caativar". | `/login` |
 | Rejected (off by default) | applicant | "Sobre seu pedido de acesso à Caativar" | "Analisamos seu pedido de acesso à Caativar e ele não foi aprovado desta vez." / "Caso acredite que houve um engano, responda a este e-mail descrevendo como pretende usar a plataforma." No link. | — |
@@ -472,18 +510,19 @@ current user.
   `readAccessRequest`, `listPendingAccessRequests` (filters to confirmed accounts with batched
   `getUsers`), `claimTeamNotification`, `claimPendingDecision`, `recordAccessDecision`.
 - `lib/access/settlement.ts` — §5.3.
-- `lib/access/firebaseCodes.ts` — `extractOobCode`, `applyVerificationCode`,
-  `checkPasswordResetCode`, `resetPasswordWithCode` (Identity Toolkit REST, 10 s timeout,
+- `lib/access/firebaseCodes.ts` — `extractOobCode`, `checkActionCode(code, expectedType)`
+  (`accounts:resetPassword` with only `oobCode`; returns the email or `null`, spends nothing),
+  `applyVerificationCode`, `resetPasswordWithCode` (Identity Toolkit REST, 10 s timeout,
   `cache: 'no-store'`).
 - `lib/access/verification.ts` — `sendVerificationEmail`, `describeWithoutLink`.
 - `lib/access/passwordReset.ts` — `sendPasswordResetEmail`.
 - `lib/access/emails.ts`, `lib/access/urls.ts`, `lib/access/trustedOrigin.ts`,
   `lib/access/rateLimits.ts`, `lib/access/http.ts` (shared `NO_STORE` responses, safe body read).
 - `lib/mailer.ts`, `lib/rateLimit.ts` (moved from `lib/mapa/`).
-- `app/api/signup/{route,confirm/route,resend/route,approve/route}.ts`.
+- `app/api/signup/{route,confirm/check/route,confirm/route,resend/route,approve/route}.ts`.
 - `app/api/password-reset/{route,check/route,confirm/route}.ts`.
 - `app/(auth)/{cadastro,cadastro/confirmacao,aguardando-liberacao,esqueci-senha,redefinir-senha,aprovacoes}/page.tsx`.
-- `components/auth/{AuthCard,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable}.tsx`.
+- `components/auth/{AuthCard,PasswordFields,SignupForm,SignupConfirmation,ForgotPasswordForm,ResetPasswordForm,ApprovalsTable}.tsx`.
 - `scripts/backfill-access-claims.mjs` — loads `.env.local` through `@next/env`'s
   `loadEnvConfig`, the loader the app uses. The line-by-line reader in `verify-assets.mjs` and
   `contentful-provision.mts` would cut the multi-line `FIREBASE_PRIVATE_KEY`, and Node 20's
@@ -516,14 +555,18 @@ the mailer and `fetch` mocked; SAP's tests are ported and adapted.
   build, merge with existing claims, revoke after set), intention normalization, collection name
   default, trusted origin (each header case, `APP_BASE_URL`), rate-limit factory (separate
   buckets, window reset, user-agent fallback), emails (escaping of email and intention, URL under
-  the button, text part present), `describeWithoutLink`, firebaseCodes (applied / invalid /
-  `requestType` mismatch / weak password), settlement (each step of §5.3, including the
-  already-claimed account).
+  the button, text part present), `describeWithoutLink`, firebaseCodes (check valid / invalid /
+  `requestType` mismatch, applied / invalid, weak password), settlement (each step of §5.3,
+  including the already-claimed account).
 - `tests/lib/mailer.test.ts`: unconfigured logs and returns `delivered: false`; body logged only
   with `MAIL_LOG_BODY`.
 - `tests/app/`: every route — 404 with the switch off (signup routes), 403 on a cross-site
-  origin, 429 past the limit, identical bodies for new and existing emails, orphan cleanup on a
-  Firestore failure, `access_pending` / `email_unconfirmed` / `access_granted` on login, approve
+  origin, 429 past the limit, identical bodies for new and existing emails, the account created
+  without a password, orphan cleanup on a Firestore failure, resend silent for confirmed or
+  claimed accounts, confirm check spending nothing, confirm rejecting a short password before
+  touching the code, setting the password before applying the code, taking the email from the
+  code and never from the body, `access_pending` / `email_unconfirmed` / `access_granted` on
+  login, approve
   409 for an unconfirmed email and for an already-decided request, reject disables the account,
   admin check, reset `check`/`confirm` statuses and token revocation.
 - `tests/scripts/backfillAccessClaims.test.ts`: `shouldBackfillUser`, claim merging, signup
@@ -531,7 +574,8 @@ the mailer and `fetch` mocked; SAP's tests are ported and adapted.
   backfill writing a claim the gate does not recognize would lock everyone out).
 
 Rendered check: the whole flow on the dev server with `MAIL_LOG_BODY=true` and the switch on —
-signup on an allowed domain and on another, confirmation link from the log, login, waiting page,
+signup on an allowed domain and on another, confirmation link from the log, choosing the
+password, reopening the used link, login, waiting page,
 approval as an admin, reset password — using one test account in the shared project, deleted
 afterwards. Then `npm test`, `npm run lint`, `npm run build`.
 
@@ -543,20 +587,26 @@ afterwards. Then `npm test`, `npm run lint`, `npm run build`.
 - Customizing Firebase's own email templates (unused).
 - Internationalization.
 
-## 15. Open decision: who may set the password
+## 15. Why the password is chosen at confirmation
 
-SAP's document lists one design flaw as open, and this port inherits it as written: the account
-and its password are created **before** anyone proves they own the mailbox. Someone can sign up
-with a third party's institutional address and a password of their own; if the owner then clicks
-the confirmation link they never asked for, the squatter's account is approved (instantly, on an
-allowlisted domain). The owner can take it back through "Esqueci minha senha", but only after
-noticing.
+SAP's document lists one design flaw as open: its account and password are created **before**
+anyone proves they own the mailbox. Someone can sign up with a third party's institutional
+address and a password of their own; if the owner then clicks the confirmation link they never
+asked for, the squatter's account is approved (instantly, on an allowlisted domain). The owner can
+take it back through "Esqueci minha senha", but only after noticing.
 
-A fix that keeps everything else in this design: the signup form asks only for the email and the
-intention; `createUser` runs without a password; the confirmation page asks the person to choose
-the password, and the confirm route applies the code and sets the password with `updateUser` in
-the same request. Only whoever reads the mailbox can then set it. The cost is one more step on the
-confirmation page (which reuses the reset page's fields) and the confirm route taking a password.
+Decided with the user on 2026-10-15 (decision 9): the signup form asks only for the email and
+the intention, `createUser` runs without a password, and the confirmation page asks for it (§5.2).
+Only whoever reads the mailbox can set the password. The cost is one more step on the
+confirmation page, which reuses the reset page's fields.
 
-Until decided, the confirmation email also carries "Se você não fez este cadastro, ignore este
-e-mail." (not in SAP), which narrows the hole without closing it.
+What remains: a stranger can still sign up with someone else's address, and the request carries
+the stranger's intention text. The owner gets an email for a signup they never made (it says to
+ignore it), and if they confirm anyway, the account and its password are theirs; the team sees an
+intention the owner did not write and can reject or ask.
+
+**To verify first in implementation:** that `accounts:resetPassword` with only an `oobCode`
+returns `requestType: 'VERIFY_EMAIL'` and the email for a verification code without spending it,
+with email enumeration protection on. The client SDK's `checkActionCode` relies on this; if this
+project's settings change it, the check step falls back to SAP's behavior of applying the code on
+open, and the password step moves after it.
