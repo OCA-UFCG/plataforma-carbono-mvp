@@ -96,8 +96,7 @@ scripts/
 ├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
-├ build-recortes.py            # baixa e recorta os recortes ao bioma
-└ enrich-uf.py                 # grava a UF de cada feição dos recortes
+└ build-recortes.py            # baixa e recorta os recortes ao bioma
 next.config.ts                 # serverExternalPackages + Cache-Control dos GeoJSON
 render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
@@ -197,11 +196,11 @@ São 32 camadas, 6 vetoriais e 26 rasters, organizadas nos temas e subtemas de `
 | id | Nome | Unidade | Rótulo (hover) | Contexto | Origem | Feições |
 |---|---|---|---|---|---|---|
 | `bioma` | Bioma Caatinga | Bioma | `Bioma` | — | `../vectors/limite_caatinga.geojson` | 1 |
-| `estados` | Estados | Estado | `name_state` | `abbrev_state` | IBGE via geobr | 10 |
-| `municipios` | Municípios | Município | `name_muni` | `abbrev_state` | IBGE via geobr | 1210 |
-| `terras_indigenas` | Terras Indígenas | Terra Indígena | `name_indigenous_land` | `abbrev_state` | FUNAI via geobr | 50 |
-| `quilombolas` | Territórios Quilombolas | Território Quilombola | `name_quilombo` | `abbrev_state` | INCRA via geobr | 86 |
-| `assentamentos` | Assentamentos (INCRA) | Assentamento | `nome_proje` | `abbrev_state` | INSA (assentamentos SAB) | 1923 |
+| `estados` | Estados | Estado | `name_state` | `abbrev_state` | IBGE via geobr, malha 2022 | 9 |
+| `municipios` | Municípios | Município | `name_muni` | `abbrev_state` | IBGE via geobr, malha 2022; bioma predominante 2024 | 1095 |
+| `terras_indigenas` | Terras Indígenas | Terra Indígena | `name_indigenous_land` | `abbrev_state` | Funai (`ti_sirgas.zip`) | 46 |
+| `quilombolas` | Territórios Quilombolas | Território Quilombola | `name_quilombo` | `abbrev_state` | Incra ("Áreas de Quilombolas") | 84 |
+| `assentamentos` | Assentamentos | Assentamento | `nome_proje` | `abbrev_state` | Incra ("Assentamento Brasil") | 1994 |
 
 Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o clique em uma feição computar a estatística do raster abaixo.
 
@@ -212,9 +211,10 @@ resultado próprio, acompanha o rótulo e pode ser digitada junto dele. Ver
 "Busca de territórios".
 
 O contexto não vinha nos GeoJSONs originais, porque o `build-recortes.py`
-guardava só a coluna do rótulo. Quem o grava é `scripts/enrich-uf.py`. O
-`build-recortes.py` hoje preserva `abbrev_state` e `code_muni`, então uma
-regeração não desfaz mais isso.
+guardava só a coluna do rótulo, e um `scripts/enrich-uf.py` o deduzia da
+geometria. Hoje o `build-recortes.py` grava `abbrev_state` direto: a UF do IBGE
+e da Funai, e, nos quilombos e assentamentos, os estados com pelo menos 20% da
+área, porque o Incra registra um só.
 
 #### Entrega dos GeoJSON e cache do navegador
 
@@ -607,8 +607,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
-- `python scripts/build-recortes.py`: baixa os recortes (IBGE, FUNAI, INCRA via geobr), recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`. Preserva `abbrev_state` e `code_muni` quando a fonte os traz. Requer `pip install geobr geopandas`.
-- `python scripts/enrich-uf.py`: grava a UF de cada feição dos recortes (`abbrev_state`) e o nome por extenso dos estados (`name_state`). Deriva a UF da geometria já em disco — cada feição vota com uma grade de pontos interiores contra `estados.geojson`, medindo área e não contorno, porque um vértice de feição de divisa É o contorno do estado, onde o ray cast é cara-ou-coroa. Para municípios a lista oficial do IBGE arbitra: nome registrado num único estado leva aquele estado, e nome que ela não conhece aborta a execução, porque UF errada é pior que UF nenhuma. Oito feições atravessam divisa de verdade e ficam como `PE/PB`; a busca aceita qualquer um dos lados. Só biblioteca padrão, mas precisa de rede. Idempotente: rodar de novo não muda os arquivos já enriquecidos.
+- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
 
 ## Deploy
 

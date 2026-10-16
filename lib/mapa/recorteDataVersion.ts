@@ -12,4 +12,4 @@
 // fetch to a fresh entry the moment the release ships.
 //
 // Bump it with every regeneration that moves an id or redraws a feature.
-export const RECORTE_DATA_VERSION = '2'
+export const RECORTE_DATA_VERSION = '3'
