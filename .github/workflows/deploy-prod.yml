@@ -73,6 +73,16 @@ jobs:
             -e FIREBASE_PRIVATE_KEY_BASE64="${{ secrets.FIREBASE_PRIVATE_KEY_BASE64 }}" \
             -e CONTENTFUL_SPACE_ID="${{ vars.CONTENTFUL_SPACE_ID }}" \
             -e CONTENTFUL_ACCESS_TOKEN="${{ secrets.CONTENTFUL_ACCESS_TOKEN }}" \
+            -e PLATFORM_ACCESS_GUARD_ENABLED="${{ vars.PLATFORM_ACCESS_GUARD_ENABLED }}" \
+            -e APP_BASE_URL="${{ vars.APP_BASE_URL }}" \
+            -e SIGNUP_ALLOWED_DOMAINS="${{ vars.SIGNUP_ALLOWED_DOMAINS }}" \
+            -e ACCESS_ADMIN_EMAILS="${{ vars.ACCESS_ADMIN_EMAILS }}" \
+            -e OCA_NOTIFICATION_EMAIL="${{ vars.OCA_NOTIFICATION_EMAIL }}" \
+            -e SMTP_USER="${{ vars.SMTP_USER }}" \
+            -e SMTP_FROM="${{ vars.SMTP_FROM }}" \
+            -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
+            -e SIGNUP_SEND_REJECTION_EMAIL="${{ vars.SIGNUP_SEND_REJECTION_EMAIL }}" \
+            -e FIREBASE_ACCESS_REQUESTS_COLLECTION=access-requests \
             -v "${{ vars.GEE_SERVICE_ACCOUNT_PATH_BETA }}:/run/secrets/gee-service-account.json:ro" \
             -p ${{ vars.HOST_PORT_BETA }}:${{ vars.CONTAINER_PORT }} \
             -d \
