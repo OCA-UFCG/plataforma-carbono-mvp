@@ -17,6 +17,11 @@ const LABEL: CSSProperties = {
   fontSize: 11.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', margin: '22px 0 8px',
 }
 
+const LEARN_MORE: CSSProperties = {
+  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+  borderRadius: 999, fontSize: 14.5, fontWeight: 700,
+}
+
 /**
  * The layer sheet: a sibling panel of Temas, not a popover over it. It renders
  * from Mapa.tsx rather than from inside Sidebar, so it is not trapped in the
@@ -183,7 +188,7 @@ export default function LayerInfoCard({
         >
           {layer.visible ? 'Desativar camada' : 'Ativar camada'}
         </button>
-        {info?.learnMore && (
+        {info?.learnMore ? (
           // The Comunicação pages live in the marketing layout: a plain link,
           // in a new tab so the map keeps its state.
           <a
@@ -191,11 +196,18 @@ export default function LayerInfoCard({
             target="_blank"
             rel="noopener noreferrer"
             className="ui-press"
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1.5px solid ${c.text}`, color: c.text, borderRadius: 999, fontSize: 14.5, fontWeight: 700, textDecoration: 'none' }}
+            style={{ ...LEARN_MORE, border: `1.5px solid ${c.text}`, color: c.text, textDecoration: 'none' }}
           >
             {info.learnMore.label}
             <IcArrowUpRight size={13} />
           </a>
+        ) : (
+          // Every layer will get a Comunicação page; until its own exists, the
+          // place is held so the sheet does not change shape when it arrives.
+          <span aria-disabled="true" style={{ ...LEARN_MORE, border: `1.5px dashed ${c.border}`, color: c.dim, cursor: 'default' }}>
+            Saiba mais
+            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: c.caption }}>em breve</span>
+          </span>
         )}
       </div>
     </div>
