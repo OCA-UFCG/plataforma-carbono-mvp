@@ -1182,8 +1182,7 @@
       ],
       "unit": "m",
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "declividade_fabdem",
@@ -1222,8 +1221,7 @@
       ],
       "unit": "%",
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "hillshade_fabdem",
@@ -1256,8 +1254,7 @@
       ],
       "analysis": false,
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "sombreado_terreno",
@@ -1272,8 +1269,7 @@
       "colorType": "continuous",
       "analysis": false,
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "lulc_mapbiomas",
