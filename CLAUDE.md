@@ -75,6 +75,7 @@ The UI accent is the current month's color, derived from a 40-year NDFI series (
 
 ## Supporting documentation
 
+- `lib/cenas/REGRAS_CENAS.md` — rules for the Glossário animations (engine, scenes, visual conventions, sources). Read it before touching `lib/cenas/` or `components/glossario/`.
 - `DOCUMENTACAO.md` — full technical inventory: layer table with asset/band/unit, GEE pipeline, data decisions and TODOs. Read it before touching layers.
 - `README.md` — Firebase setup, Docker, CI/CD and the required GitHub Actions secrets.
 - `REVISAO_TECNICA.md` — the security/bug/performance review already implemented. Paths quoted there predate the merge: read `lib/` as `lib/mapa/`, `config/` as `config/mapa/`, `components/` as `components/mapa/`.

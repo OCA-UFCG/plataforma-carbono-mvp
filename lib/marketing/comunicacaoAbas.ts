@@ -1,4 +1,4 @@
-// The two tabs of the Comunicação page (Figma 19254:16031). The open one is in
+// The tabs of the Comunicação page (Figma 19254:16031). The open one is in
 // the address as ?aba=eventos, so a link can open the events tab and the
 // server renders it already selected; the first tab is the bare /comunicacao.
 // Not /comunicacao/eventos: that path belongs to the publication pages,
@@ -6,6 +6,7 @@
 export const ABAS_COMUNICACAO = [
   { id: 'conteudo', label: 'Conteúdo' },
   { id: 'eventos', label: 'Eventos e articulações' },
+  { id: 'glossario', label: 'Glossário' },
 ] as const
 
 export type AbaComunicacao = (typeof ABAS_COMUNICACAO)[number]['id']

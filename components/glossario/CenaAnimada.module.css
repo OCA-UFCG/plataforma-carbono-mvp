@@ -1,0 +1,71 @@
+/* The animations are always light (lib/cenas/REGRAS_CENAS.md): the canvas
+ * keeps its own sky colour whatever the page around it does. */
+.figura {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color-scheme: light;
+}
+
+.tela {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--am-200);
+  border-radius: 8px;
+  background: #cfe0e6;
+}
+
+.legenda {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-texto-secundario);
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+
+.botao {
+  min-width: 112px;
+  padding: 8px 16px;
+  border: 1px solid var(--bg-borda);
+  border-radius: 8px;
+  background: var(--bg-fundo);
+  color: var(--bg-texto-primario);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.campo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--bg-texto-primario);
+}
+
+.campo input {
+  width: 150px;
+  max-width: 40vw;
+  accent-color: var(--role-marca-ancora-padrao);
+}
+
+.valor {
+  min-width: 3.6em;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--am-400);
+}
