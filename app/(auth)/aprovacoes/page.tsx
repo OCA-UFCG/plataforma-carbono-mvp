@@ -46,8 +46,7 @@ export default async function ApprovalsPage() {
       )}
       {/* Another route group: a full page load, so a plain anchor (next/link would soft-navigate across the layouts). */}
       <p style={authStyles.footer}>
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- cross-route-group link; see CLAUDE.md */}
-        <a href="/" style={authStyles.link}>Voltar para a plataforma</a>
+        <a href="/mapa" style={authStyles.link}>Voltar para a plataforma</a>
       </p>
     </AuthCard>
   )

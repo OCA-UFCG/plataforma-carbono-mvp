@@ -6,10 +6,11 @@
  *
  * The client names a recorte and a feature, never a geometry: the server
  * resolves both, and only for the enabled territory types.
+ *
+ * Public, like the story itself: no session check, only the per-IP rate limit.
  */
 
 import { NextResponse } from 'next/server'
-import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { clientIp, rateLimit } from '@/lib/mapa/rateLimit'
 import { getTerritory, TerritoryNotFoundError } from '@/lib/territorios/themeService'
 
@@ -20,8 +21,6 @@ const RECORTE_PATTERN = /^[a-z0-9_-]{1,80}$/u
 const FEICAO_PATTERN  = /^[a-z0-9-]{1,120}$/u
 
 export async function GET(req: Request) {
-  if (!await getAuthenticatedRequest(req)) return unauthorizedResponse()
-
   const rl = rateLimit(clientIp(req))
   if (!rl.ok) {
     return NextResponse.json(

@@ -16,6 +16,7 @@ import { rateLimit, clientIp } from '@/lib/mapa/rateLimit'
 import { getClip } from '@/lib/mapa/clipRegistry'
 import { getTileCache, setTileCache } from '@/lib/mapa/tileCache'
 import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
+import { isStoryTileRequest } from '@/lib/territorios/storyTiles'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -65,8 +66,6 @@ function promisifyGetMap(image: any, visParams: Record<string, unknown>): Promis
 }
 
 export async function POST(req: Request) {
-  if (!await getAuthenticatedRequest(req)) return unauthorizedResponse()
-
   const rl = rateLimit(clientIp(req))
   if (!rl.ok) {
     return NextResponse.json(
@@ -83,6 +82,12 @@ export async function POST(req: Request) {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  // The public Territórios story draws its map through this route, so a visitor
+  // without a session gets exactly the story's tiles and nothing else.
+  if (!isStoryTileRequest(body) && !await getAuthenticatedRequest(req)) {
+    return unauthorizedResponse()
   }
 
   if (!isValidAsset(body.asset)) {

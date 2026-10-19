@@ -479,6 +479,8 @@ export default function StoryMap({
   }, [ready, step, territory])
 
   const themeId = themeOf(step)
+  // lib/territorios/storyTiles.ts lists the requests this can produce, the only
+  // ones /api/gee/tile serves without a session: a new year or theme goes there too.
   const year = themeId === 'uso' ? landUseYear : undefined
 
   useEffect(() => {
