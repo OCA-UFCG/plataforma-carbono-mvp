@@ -114,8 +114,7 @@
       "model": {
         "url": "/models/torre.glb",
         "height": 22
-      },
-      "hidden": true
+      }
     },
     {
       "id": "estoque_carbono",
