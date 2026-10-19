@@ -3,7 +3,7 @@
 // same GeoJSON in the browser. Both must derive the same id from the same file,
 // or a territory picked on the map would open another one, or none.
 //
-// Feature labels are not unique (34 homonymous municipalities, 213 settlements)
+// Feature labels are not unique (30 homonymous municipalities, 209 settlements)
 // and the GeoJSONs in public/data/vector carry no official code. So the id is
 // the slug of the label plus an ordinal suffix, in file order. Regenerating the
 // vectors in a different order can migrate a suffix; the fix is to key on the
@@ -113,13 +113,13 @@ export function featureEntries(features: readonly FeatureLike[], fields: Feature
 const LOWERCASE_WORDS = new Set(['a', 'o', 'as', 'os', 'ao', 'aos', 'de', 'da', 'do', 'das', 'dos', 'e', 'em', 'na', 'no', 'nas', 'nos'])
 const ROMAN_NUMERAL = /^(?:I{1,3}|IV|VI{0,3}|IX|XI{0,3})$/
 /** Kinds of settlement other than "PA" that head a label; they stay acronyms. */
-const SETTLEMENT_KINDS = new Set(['PAE', 'PAQ', 'PDS', 'PE', 'PIC', 'RTRQ'])
+const SETTLEMENT_KINDS = new Set(['PAE', 'PAQ', 'PDS', 'PE', 'PIC', 'RESEX', 'RTRQ'])
 /** "PA ", "PA. ", "PCA ": settlement kinds the "Assentamento" label already names. */
 const SETTLEMENT_PREFIX = /^PC?A\.?\s+(?:-\s+)?/
 
 /**
- * A feature's label as the visitor reads it. 1,920 of the 1,923 settlement
- * labels come in capitals behind "PA "; the prefix goes and the capitals turn
+ * A feature's label as the visitor reads it. Settlement labels come in
+ * capitals, 1,903 of the 1,994 behind "PA " or "PCA "; the prefix goes and the capitals turn
  * into title case, keeping roman numerals and the other settlement kinds.
  * Labels already in mixed case, like every municipality, pass unchanged.
  * Display only: the id is the slug of the label as the file has it.

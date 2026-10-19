@@ -138,7 +138,7 @@ describe('contextIsUnique', () => {
 
 // The rule and the data have to work together: the rule can be right while the
 // GeoJSON carries no state, which is exactly the state this repo was in before
-// scripts/enrich-uf.py ran.
+// the recortes carried `abbrev_state`.
 describe('the rule against the municipalities actually on disk', () => {
   const municipios: {
     features: { properties: { name_muni: string; abbrev_state: string } }[]
