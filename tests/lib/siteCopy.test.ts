@@ -4,11 +4,15 @@ import {
   copyDefaults,
   copyFromEntry,
   defineCopy,
+  fillPlaceholders,
+  fitsPlaceholders,
   line,
   list,
   optionalLine,
   paragraph,
   parseCopy,
+  placeholdersIn,
+  rejectedFields,
   text,
 } from '@/lib/content/site/model'
 import { copyQuery, loadSiteCopy } from '@/lib/content/site/fetch'
@@ -25,6 +29,48 @@ const TIPO = defineCopy({
     itens: list('Itens', ['um', 'dois']),
     chamada: optionalLine('Chamada'),
   },
+})
+
+const MODELO = defineCopy({
+  id: 'modelo',
+  name: 'Modelo',
+  description: 'Tipo de teste com marcadores.',
+  fields: {
+    frase: line('Frase', 'Eram {percentual} em {ano}.', { percentual: 'percentual', ano: 'ano' }),
+    nota: paragraph('Nota', 'De {ano} até hoje.', { ano: 'ano' }),
+    livre: line('Livre', 'Sem marcadores declarados.'),
+  },
+})
+
+describe('placeholders', () => {
+  it('lists the placeholders a text names, each once', () => {
+    expect(placeholdersIn('De {ano} a {fim}, desde {ano}.')).toEqual(['ano', 'fim'])
+    expect(placeholdersIn('Sem marcador.')).toEqual([])
+  })
+
+  // Dropping a figure from a sentence is the editor's call.
+  it('accepts a text naming only declared placeholders, or leaving some out', () => {
+    const declared = { percentual: '', ano: '' }
+    expect(fitsPlaceholders('Eram {percentual} em {ano}.', declared)).toBe(true)
+    expect(fitsPlaceholders('Eram {percentual}.', declared)).toBe(true)
+  })
+
+  it('refuses an unknown placeholder and an unpaired or empty brace', () => {
+    const declared = { percentual: '', ano: '' }
+    expect(fitsPlaceholders('Eram {porcentagem} em {ano}.', declared)).toBe(false)
+    expect(fitsPlaceholders('Eram {percentual em {ano}.', declared)).toBe(false)
+    expect(fitsPlaceholders('Eram percentual} em {ano}.', declared)).toBe(false)
+    expect(fitsPlaceholders('Eram {} em {ano}.', declared)).toBe(false)
+  })
+
+  it('refuses a name every object inherits, which no field declares', () => {
+    expect(fitsPlaceholders('{constructor}', {})).toBe(false)
+  })
+
+  it('fills every occurrence, a number as written', () => {
+    expect(fillPlaceholders('Eram {percentual} em {ano}; {ano}.', { percentual: '34%', ano: 1985 }))
+      .toBe('Eram 34% em 1985; 1985.')
+  })
 })
 
 describe('parseCopy', () => {
@@ -88,6 +134,32 @@ describe('copyFromEntry', () => {
     expect(copyFromEntry(TIPO, { titulo: 'Novo' }).titulo).toBe('Novo')
     expect(copyFromEntry(TIPO, { titulo: 'Novo' }).corpo).toEqual(copyDefaults(TIPO).corpo)
   })
+
+  // Braces on the page would read worse than the shipped wording.
+  it('falls back on a text naming a placeholder its field does not fill', () => {
+    const copy = copyFromEntry(MODELO, { frase: 'Eram {porcentagem} em {ano}.', nota: 'Desde {ano}.\n\n{fim}' })
+    expect(copy.frase).toBe('Eram {percentual} em {ano}.')
+    expect(copy.nota).toBe('De {ano} até hoje.')
+  })
+
+  it('takes a text that leaves a placeholder out', () => {
+    expect(copyFromEntry(MODELO, { frase: 'Eram {percentual}.' }).frase).toBe('Eram {percentual}.')
+  })
+
+  // An editor copies a placeholder from a sibling field that has one; on a
+  // field that fills none, it would reach the page as braces.
+  it('falls back on a brace in a field that declares no placeholders', () => {
+    expect(copyFromEntry(MODELO, { livre: 'Desde {anoInicial}.' }).livre).toBe('Sem marcadores declarados.')
+    expect(copyFromEntry(MODELO, { livre: 'IBGE {2019' }).livre).toBe('Sem marcadores declarados.')
+    expect(copyFromEntry(MODELO, { livre: 'Sem chaves.' }).livre).toBe('Sem chaves.')
+  })
+})
+
+describe('rejectedFields', () => {
+  it('names the fields of an entry the page replaces with the shipped value', () => {
+    expect(rejectedFields(MODELO, { frase: 'Eram {porcentagem}.', nota: 'Desde {ano}.', livre: '{x}' })).toEqual(['frase', 'livre'])
+    expect(rejectedFields(MODELO, { frase: null })).toEqual([])
+  })
 })
 
 describe('copyQuery', () => {
@@ -147,6 +219,17 @@ describe('the institutional copy', () => {
 
       const names = Object.values(type.fields).map((f) => f.name)
       expect(new Set(names).size, `${type.id}: repeated field labels`).toBe(names.length)
+    }
+  })
+
+  // A declared placeholder the shipped value never uses is one the help text
+  // promises and the page may never fill; an undeclared one would be refused.
+  it('declares exactly the placeholders each shipped value names', () => {
+    for (const type of SITE_COPY_TYPES) {
+      for (const [id, field] of Object.entries(type.fields)) {
+        expect(placeholdersIn(field.default).sort(), `${type.id}.${id}`)
+          .toEqual(Object.keys(field.placeholders ?? {}).sort())
+      }
     }
   })
 

@@ -1,6 +1,7 @@
 // Text of each screen of the Territórios story: picks the variant a theme
-// response calls for and fills the templates of storyScript.ts with the numbers
-// of storyValues.ts.
+// response calls for and fills the templates of the script it is given
+// (storyScript() in config/territorios/storyScript.ts) with the numbers of
+// storyValues.ts.
 //
 // A sentence never names the feature: settlement names arrive in capitals and
 // with "PA " prefixes, and the recorte types differ in gender. The biome
@@ -8,15 +9,7 @@
 // Caatinga with itself.
 
 import { STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
-import {
-  ABOUT_SCRIPT,
-  ANSWER_SCRIPT,
-  FEMININE_TYPES,
-  STATE_LOCATIVE,
-  STEP_QUESTIONS,
-  SUMMARY_ROW_SCRIPT,
-  TERRITORY_SCRIPT,
-} from '@/config/territorios/storyScript'
+import { FEMININE_TYPES, STATE_LOCATIVE, TERRITORY_SCRIPT, type StoryScript } from '@/config/territorios/storyScript'
 import {
   areaParts,
   biomeAreaSharePct,
@@ -57,6 +50,8 @@ export interface SummaryInput {
   responses: Partial<Record<ThemeId, ThemeResponse>>
   territory: TerritoryPayload
   type:      TerritoryType
+  /** The story's words, as storyScript() builds them from the copy. */
+  script:    StoryScript
 }
 
 function isBioma(type: TerritoryType): boolean {
@@ -76,6 +71,8 @@ export interface StepInput {
   type:      TerritoryType
   /** The theme's answer; unused on the territory step. */
   response?: ThemeResponse
+  /** The story's words, as storyScript() builds them from the copy. */
+  script:    StoryScript
 }
 
 type Answer = Omit<StepAnswer, 'question'>
@@ -107,8 +104,8 @@ function against(here: number, reference: number | null, type: TerritoryType): {
   return reading ? { reading, reference } : null
 }
 
-function territoryAnswer({ territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.territorio
+function territoryAnswer({ territory, type, script }: StepInput): Answer {
+  const s = script.answers.territorio
   let sentence: string
   if (isBioma(type)) {
     sentence = s.biome
@@ -131,21 +128,23 @@ const SHARE_CARD_MIN_PCT = 0.1
  * None for the biome, which is the whole. Most municipalities and every
  * smaller type fall under 0,1% and keep the rank alone.
  */
-export function territoryIndicators({ territory, type }: { territory: TerritoryPayload; type: TerritoryType }): Indicator[] {
+export function territoryIndicators(
+  { territory, type, script }: { territory: TerritoryPayload; type: TerritoryType; script: StoryScript },
+): Indicator[] {
   if (isBioma(type)) return []
-  const s = TERRITORY_SCRIPT
+  const s = script.territory
   const share = biomeAreaSharePct(territory)
   const items: Indicator[] = share >= SHARE_CARD_MIN_PCT ? [{ value: formatPercent(share), text: s.biomeShare }] : []
   const rank = territory.areaRank
   if (rank && type.plural) {
     const feminine = FEMININE_TYPES.has(type.id)
-    items.push({ value: s.rankValue(rank.position, feminine), text: s.rankText(rank.total, type.plural, feminine) })
+    items.push({ value: TERRITORY_SCRIPT.rankValue(rank.position, feminine), text: s.rankText(rank.total, type.plural, feminine) })
   }
   return items
 }
 
-function stockAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.estoque
+function stockAnswer({ response, territory, type, script }: StepInput): Answer {
+  const s = script.answers.estoque
   const data = availableData(response, 'estoque')
   const chart = data && stockChart(data.report, territory)
   // "Sem dado", never zero: where the inventory has no pixel nothing was measured.
@@ -162,8 +161,8 @@ function stockAnswer({ response, territory, type }: StepInput): Answer {
   }
 }
 
-function fluxAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.fluxo
+function fluxAnswer({ response, territory, type, script }: StepInput): Answer {
+  const s = script.answers.fluxo
   const data = availableData(response, 'fluxo')
   const m = data && fluxMetrics(data)
   if (!data || !m) return { headline: null, sentence: s.noForest }
@@ -183,8 +182,8 @@ function fluxAnswer({ response, territory, type }: StepInput): Answer {
   }
 }
 
-function landUseAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.uso
+function landUseAnswer({ response, territory, type, script }: StepInput): Answer {
+  const s = script.answers.uso
   const data = availableData(response, 'uso')
   const chart = data && landUseChart(data, territory)
   if (!chart) return { headline: null, sentence: s.noData }
@@ -199,8 +198,8 @@ function landUseAnswer({ response, territory, type }: StepInput): Answer {
   }
 }
 
-function fireAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.fogo
+function fireAnswer({ response, territory, type, script }: StepInput): Answer {
+  const s = script.answers.fogo
   const data = availableData(response, 'fogo')
   const share = data && fireBurnedSharePct(data)
   if (!data || share === null) return { headline: null, sentence: s.noData }
@@ -215,8 +214,7 @@ function fireAnswer({ response, territory, type }: StepInput): Answer {
   }
 }
 
-function rainYearSentence(lastMm: number, meanMm: number): string {
-  const s = ANSWER_SCRIPT.chuva
+function rainYearSentence(s: StoryScript['answers']['chuva'], lastMm: number, meanMm: number): string {
   const mean = formatNumber(meanMm)
   const { pct } = rainComparison(lastMm, meanMm)
   switch (rainKind(lastMm, meanMm)) {
@@ -226,8 +224,8 @@ function rainYearSentence(lastMm: number, meanMm: number): string {
   }
 }
 
-function rainAnswer({ response, territory, type }: StepInput): Answer {
-  const s = ANSWER_SCRIPT.chuva
+function rainAnswer({ response, territory, type, script }: StepInput): Answer {
+  const s = script.answers.chuva
   const data = availableData(response, 'chuva')
   const chart = data && rainChart(data.series, territory)
   if (!data || !chart) return { headline: null, sentence: s.noData }
@@ -239,7 +237,7 @@ function rainAnswer({ response, territory, type }: StepInput): Answer {
       ? { value: formatNumber(chart.meanMm), unit: s.meanUnit }
       : { value: formatNumber(lastMm), unit: s.unit },
     sentence: joinSentences(
-      lastMm === null ? s.missing : rainYearSentence(lastMm, chart.meanMm),
+      lastMm === null ? s.missing : rainYearSentence(s, lastMm, chart.meanMm),
       cmp && s.compare(formatNumber(cmp.reference), cmp.reading),
     ),
   }
@@ -255,7 +253,7 @@ function settled(theme: ThemeId, response: ThemeResponse | undefined): response 
  * loading or failed gets the question alone; the screen shows its own state.
  */
 export function stepAnswer(step: Exclude<StepId, 'resumo'>, input: StepInput): StepAnswer {
-  const question = STEP_QUESTIONS[step]
+  const question = input.script.questions[step]
   if (step === 'territorio') return { question, ...territoryAnswer(input) }
   if (!settled(step, input.response)) return { question, headline: null, sentence: '' }
 
@@ -287,11 +285,11 @@ export function readingTone(reading: Reading | null, moreIsBetter: boolean | nul
   return (reading === 'acima') === moreIsBetter ? 'good' : 'bad'
 }
 
-function stockRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.estoque
+function stockRow({ response, territory, type, script }: StepInput): Row {
+  const s = script.summary.estoque
   const data = availableData(response, 'estoque')
   const chart = data && stockChart(data.report, territory)
-  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.estoque.noData, reading: null, tone: null }
+  if (!data || !chart) return { headline: null, sentence: script.answers.estoque.noData, reading: null, tone: null }
 
   const { here, reference } = chart.density
   const cmp = against(here, reference, type)
@@ -304,11 +302,11 @@ function stockRow({ response, territory, type }: StepInput): Row {
   }
 }
 
-function fluxRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.fluxo
+function fluxRow({ response, territory, type, script }: StepInput): Row {
+  const s = script.summary.fluxo
   const data = availableData(response, 'fluxo')
   const m = data && fluxMetrics(data)
-  if (!data || !m) return { headline: null, sentence: ANSWER_SCRIPT.fluxo.noForest, reading: null, tone: null }
+  if (!data || !m) return { headline: null, sentence: script.answers.fluxo.noForest, reading: null, tone: null }
   if (m.direction === 'neutral') return { headline: null, sentence: s.balance, reading: null, tone: null }
 
   // Per hectare of forest is the one flux figure a territory and the biome
@@ -330,11 +328,11 @@ function fluxRow({ response, territory, type }: StepInput): Row {
   }
 }
 
-function landUseRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.uso
+function landUseRow({ response, territory, type, script }: StepInput): Row {
+  const s = script.summary.uso
   const data = availableData(response, 'uso')
   const chart = data && landUseChart(data, territory)
-  if (!chart) return { headline: null, sentence: ANSWER_SCRIPT.uso.noData, reading: null, tone: null }
+  if (!chart) return { headline: null, sentence: script.answers.uso.noData, reading: null, tone: null }
 
   const ref = isBioma(type) ? null : chart.reference
   return {
@@ -348,11 +346,11 @@ function landUseRow({ response, territory, type }: StepInput): Row {
   }
 }
 
-function fireRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.fogo
+function fireRow({ response, territory, type, script }: StepInput): Row {
+  const s = script.summary.fogo
   const data = availableData(response, 'fogo')
   const share = data && fireBurnedSharePct(data)
-  if (!data || share === null) return { headline: null, sentence: ANSWER_SCRIPT.fogo.noData, reading: null, tone: null }
+  if (!data || share === null) return { headline: null, sentence: script.answers.fogo.noData, reading: null, tone: null }
 
   const peak = firePeakYear(data)
   const cmp = against(share, territory.biome.fireBurnedSharePct, type)
@@ -364,11 +362,11 @@ function fireRow({ response, territory, type }: StepInput): Row {
   }
 }
 
-function rainRow({ response, territory, type }: StepInput): Row {
-  const s = SUMMARY_ROW_SCRIPT.chuva
+function rainRow({ response, territory, type, script }: StepInput): Row {
+  const s = script.summary.chuva
   const data = availableData(response, 'chuva')
   const chart = data && rainChart(data.series, territory)
-  if (!data || !chart) return { headline: null, sentence: ANSWER_SCRIPT.chuva.noData, reading: null, tone: null }
+  if (!data || !chart) return { headline: null, sentence: script.answers.chuva.noData, reading: null, tone: null }
 
   // The mean is what the reading compares, so it is the row's figure.
   const lastMm = rainLastYearMm(data.series)
@@ -390,11 +388,11 @@ function rainRow({ response, territory, type }: StepInput): Row {
  */
 export function summaryRows(input: SummaryInput): SummaryRow[] {
   return STORY_THEMES.map(({ id }): SummaryRow => {
-    const head = { theme: id, title: SUMMARY_ROW_SCRIPT.titles[id] }
+    const head = { theme: id, title: input.script.summary.titles[id] }
     const response = input.responses[id]
     if (!settled(id, response)) return { ...head, headline: null, sentence: '', reading: null, tone: null }
 
-    const row = { response, territory: input.territory, type: input.type }
+    const row = { response, territory: input.territory, type: input.type, script: input.script }
     switch (id) {
       case 'estoque':    return { ...head, ...stockRow(row) }
       case 'fluxo':      return { ...head, ...fluxRow(row) }
@@ -411,7 +409,7 @@ export function summaryRows(input: SummaryInput): SummaryRow[] {
  * fallback, a coarser calculation.
  */
 export function aboutItems(input: SummaryInput): AboutItem[] {
-  const a = ABOUT_SCRIPT
+  const a = input.script.about
   const { responses, territory, type } = input
 
   const qualified = (theme: ThemeId, text: string): string => {

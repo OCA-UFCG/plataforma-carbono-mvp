@@ -30,8 +30,8 @@ export interface VectorLayerConfig {
     height: number  // meters, the same at every point; larger than the real towers so they read at z19
   }
   // Property that tells homonymous features apart, written into the GeoJSONs by
-  // scripts/enrich-uf.py. Labels are not unique -- 34 municipality names repeat
-  // inside the Caatinga clip, 213 settlement names do -- so the search shows
+  // scripts/build-recortes.py. Labels are not unique -- 30 municipality names
+  // repeat inside the Caatinga clip, 209 settlement names do -- so the search shows
   // this value beside the label ("Bom Jesus · PI") and lets it be typed as the
   // last word of a query. It never becomes a search result of its own.
   contextField?: string

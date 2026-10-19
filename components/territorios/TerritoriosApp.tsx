@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReportActions, { type LocationBadge } from './ReportActions'
 import ReportBand from './ReportBand'
 import ReportTabs from './ReportTabs'
+import { useStoryScript } from './StoryScriptContext'
 import StorySummary from './StorySummary'
 import type { LandUseYear } from './StoryMap'
 import ThemeStep, { type ThemeLoad } from './ThemeStep'
@@ -18,8 +19,9 @@ import {
   territoryTypeByRecorte,
   type TerritoryType,
 } from '@/config/territorios/story'
-import { CHOOSER, INTRO, REPORT } from '@/config/territorios/chooserScript'
+import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
@@ -98,6 +100,7 @@ function stateFromQuery(params: URLSearchParams): { type: TerritoryType | null; 
  */
 export default function TerritoriosApp({ initialRecorte, initialFeicao, initialEtapa }: TerritoriosAppProps) {
   const pathname = usePathname()
+  const script = useStoryScript()
   const [type, setType] = useState<TerritoryType | null>(() => typeOf(initialRecorte))
   const [featureId, setFeatureId] = useState(() => {
     const restored = typeOf(initialRecorte)
@@ -195,7 +198,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     if (!recorteId || !featureId) return
     const key = `${recorteId}|${featureId}`
     const controller = new AbortController()
-    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId })
+    const params = new URLSearchParams({ recorte: recorteId, feicao: featureId, v: RECORTE_DATA_VERSION })
 
     fetch(`/api/territorios/territorio?${params}`, { signal: controller.signal })
       .then(async (res) => {
@@ -245,7 +248,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
 
     const load = async (theme: ThemeId) => {
       try {
-        const params = new URLSearchParams({ recorte, feicao, tema: theme })
+        const params = new URLSearchParams({ recorte, feicao, tema: theme, v: RECORTE_DATA_VERSION })
         const res = await fetch(`/api/territorios/tema?${params}`, { signal: scheduler.controller.signal })
         if (res.status === 401) {
           setExpired(true)
@@ -385,7 +388,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
     ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context)
     : null
   // The report names its territory; the gallery and the chooser keep the section's question.
-  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : INTRO.title
+  const bandTitle = screen === 'story' && territoryTitle ? territoryTitle : script.intro.title
   const location: LocationBadge | null | undefined =
     screen === 'search' ? null
       : isBioma ? { value: REPORT.biomeLocation, onEdit: null }
@@ -397,7 +400,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
       <ReportBand
         title={bandTitle}
         headingRef={bandHeadingRef}
-        lead={screen === 'intro' ? INTRO.lead : undefined}
+        lead={screen === 'intro' ? script.intro.lead : undefined}
       >
         {screen !== 'intro' && type && (
           <ReportActions

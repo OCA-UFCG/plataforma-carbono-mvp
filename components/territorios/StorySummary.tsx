@@ -6,12 +6,13 @@ import '@/app/territorios-resumo.css'
 import PanelNav from './PanelNav'
 import StepChart from './StepChart'
 import StepIcon from './StepIcon'
+import { useStoryScript } from './StoryScriptContext'
 import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
-import { ABOUT_SCRIPT, READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { sectionId } from '@/lib/territorios/storyTabs'
 import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
 import { formatArea } from '@/lib/territorios/storyValues'
@@ -43,6 +44,7 @@ export default function StorySummary({
 }: StorySummaryProps) {
   const [generatedAt] = useState(() => new Date().toLocaleDateString('pt-BR'))
   const aboutRef = useRef<HTMLDetailsElement | null>(null)
+  const script = useStoryScript()
 
   // A folded <details> prints folded; the sheet prints it open and folds it
   // back afterwards if the visitor had it closed.
@@ -70,7 +72,7 @@ export default function StorySummary({
   for (const [theme, load] of Object.entries(loads) as [ThemeId, ThemeLoad][]) {
     if (load.kind === 'ready') responses[theme] = load.response
   }
-  const input = { responses, territory, type }
+  const input = { responses, territory, type, script }
   const rows = summaryRows(input)
   const about = aboutItems(input)
   const title = TERRITORY_SCRIPT.title(territory.featureName, type.id === 'estado' ? undefined : territory.context)
@@ -145,13 +147,13 @@ export default function StorySummary({
 
       <details ref={aboutRef} className="territorios-sobre">
         <summary>
-          {ABOUT_SCRIPT.title}
+          {script.about.title}
           <img className="territorios-sobre-abrir" src={UI_ICONS.open} alt="" width={24} height={24} />
           <img className="territorios-sobre-fechar" src={UI_ICONS.close} alt="" width={24} height={24} />
         </summary>
         <dl>
-          {about.map((item) => (
-            <div key={item.title}>
+          {about.map((item, i) => (
+            <div key={i}>
               <dt>{item.title}</dt>
               <dd>{item.text}</dd>
             </div>

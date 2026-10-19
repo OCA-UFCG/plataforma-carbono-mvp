@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import appConfig from '@/config/mapa/layers.json'
 import { MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
 import { LAYER_META } from '@/config/mapa/layerMeta'
+import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { PlatformTheme, RasterLayerConfig, VectorLayerConfig } from '@/types/mapa'
@@ -72,7 +73,7 @@ export default function ReportForm({ theme, open, onClose }: ReportFormProps) {
     if (!open) return
     const controller = new AbortController()
 
-    fetch(`/api/mapa/relatorio/feicoes?recorte=${encodeURIComponent(recorteId)}`, {
+    fetch(`/api/mapa/relatorio/feicoes?recorte=${encodeURIComponent(recorteId)}&v=${RECORTE_DATA_VERSION}`, {
       signal: controller.signal,
     })
       .then((res) => {

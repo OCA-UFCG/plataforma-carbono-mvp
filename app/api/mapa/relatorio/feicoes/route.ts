@@ -38,9 +38,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Recorte not found.' }, { status: 404 })
   }
 
-  // The vector files are static, so a day of staleness costs nothing and saves
-  // the picker a round trip on every form open.
+  // The vector files change only with a deploy (scripts/build-recortes.py), so
+  // an hour of staleness saves the picker a round trip on every form open and
+  // still drops a removed recorte soon after a release.
   return NextResponse.json({ feicoes }, {
-    headers: { 'Cache-Control': 'private, max-age=86400' },
+    headers: { 'Cache-Control': 'private, max-age=3600' },
   })
 }

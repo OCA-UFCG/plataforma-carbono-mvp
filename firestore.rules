@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Caativar reaches Firestore only from the server, through the Admin SDK, which ignores these
+// rules by definition. No browser needs access, so nobody has it. Without this file the database
+// keeps whatever the console created it with, such as test mode's "open until a date", which
+// closes by expiry rather than by decision.
+//
+// Publish: firebase deploy --only firestore --project plataforma-carbono
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

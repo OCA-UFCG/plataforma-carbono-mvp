@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react'
 import PanelNav from './PanelNav'
 import StepChart from './StepChart'
 import StepIcon from './StepIcon'
+import { useStoryScript } from './StoryScriptContext'
 import type { LandUseYear } from './StoryMap'
 import StepFigure from './charts/StepFigure'
 import { STEP_COLORS } from '@/config/territorios/palette'
@@ -45,10 +46,11 @@ export default function ThemeStep({
   step, territory, type, load, expired, onRetry, onBack, onNext, landUseYear,
 }: ThemeStepProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
+  const script = useStoryScript()
   const color = STEP_COLORS[step]
   const theme = step === 'territorio' ? null : load
   const response = theme?.kind === 'ready' ? theme.response : undefined
-  const answer = stepAnswer(step, { territory, type, response })
+  const answer = stepAnswer(step, { territory, type, response, script })
   const next = nextStep(step)
 
   // The chart that replaces "Carregando" pushes the buttons down, and a focused
@@ -84,7 +86,7 @@ export default function ThemeStep({
         </div>
         {step === 'territorio' && (
           <ul className="territorios-indicadores">
-            {territoryIndicators({ territory, type }).map((item) => (
+            {territoryIndicators({ territory, type, script }).map((item) => (
               <li key={item.text} className="territorios-indicador">
                 <p className="territorios-indicador-valor">{item.value}</p>
                 <p className="territorios-indicador-texto">{item.text}</p>

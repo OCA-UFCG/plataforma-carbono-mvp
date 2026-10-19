@@ -1,6 +1,9 @@
 'use client'
 
+import type { ComponentProps, ComponentType } from 'react'
 import dynamic from 'next/dynamic'
+import type { StatsChartViewProps } from './StatsChart'
+import type PointSeriesView from './results/PointSeries'
 import { ErrorCard, SkeletonChart } from './StatsCards'
 import { IcChevronDown } from './icons'
 import LayerResultView from './results/LayerResultView'
@@ -15,13 +18,21 @@ import type {
   LayerResult, PlatformTheme, RasterLayerConfig, SelectedGeometry,
 } from '@/types/mapa'
 
+/** The card's two charts, the only parts of it that pull in recharts. */
+export interface CardCharts {
+  StatsChartView: ComponentType<StatsChartViewProps>
+  PointSeries:    ComponentType<ComponentProps<typeof PointSeriesView>>
+}
+
 // Recharts stays out of the initial map bundle: only a card that actually
 // opens a chart pulls it in.
-const StatsChartView = dynamic(
-  () => import('./StatsChart').then((m) => m.StatsChartView),
-  { ssr: false, loading: () => null },
-)
-const PointSeries = dynamic(() => import('./results/PointSeries'), { ssr: false, loading: () => null })
+const lazyCharts: CardCharts = {
+  StatsChartView: dynamic(
+    () => import('./StatsChart').then((m) => m.StatsChartView),
+    { ssr: false, loading: () => null },
+  ),
+  PointSeries: dynamic(() => import('./results/PointSeries'), { ssr: false, loading: () => null }),
+}
 
 interface Props {
   layer:    RasterLayerConfig
@@ -35,6 +46,17 @@ interface Props {
   geometry: SelectedGeometry | null
   /** Area of the analysed polygon in hectares, for the coverage note. */
   polygonHa: number | null
+  /**
+   * Rendered for the JPEG export: a plain heading instead of the toggle, no
+   * retry, and no chart animation, which the capture would catch mid-way.
+   */
+  still?: boolean
+  /**
+   * The charts, lazy by default. A lazy chart renders nothing on its first
+   * pass, even with its code already fetched, so the JPEG sheet passes them
+   * loaded: its capture runs right after it commits.
+   */
+  charts?: CardCharts
 }
 
 /**
@@ -46,9 +68,12 @@ interface Props {
  * and the year, so the number is not shown twice.
  */
 export default function LayerResultCard({
-  layer, result, date, expanded, onToggle, theme, geometry, polygonHa,
+  layer, result, date, expanded, onToggle, theme, geometry, polygonHa, still = false,
+  charts = lazyCharts,
 }: Props) {
+  const { StatsChartView, PointSeries } = charts
   const c = theme.colors
+  const Heading = still ? 'div' : 'button'
   const profile = getResultProfile(layer.id)
   const summary = resultSummary(layer, result)
   const loading = !result || result.status === 'loading'
@@ -69,10 +94,8 @@ export default function LayerResultCard({
       // several open cards would shrink to fit and clip instead of scrolling.
       flexShrink: 0,
     }}>
-      <button
-        className="ui-press"
-        onClick={onToggle}
-        aria-expanded={expanded}
+      <Heading
+        {...(still ? {} : { className: 'ui-press', onClick: onToggle, 'aria-expanded': expanded })}
         style={{
           width: '100%',
           display: 'flex',
@@ -105,14 +128,16 @@ export default function LayerResultCard({
             {period}
           </span>
         )}
-        <span style={{
-          color: c.textDim, flexShrink: 0, marginTop: 2,
-          transform: expanded ? 'rotate(180deg)' : 'none',
-          transition: 'transform .15s',
-        }}>
-          <IcChevronDown size={14} />
-        </span>
-      </button>
+        {!still && (
+          <span style={{
+            color: c.textDim, flexShrink: 0, marginTop: 2,
+            transform: expanded ? 'rotate(180deg)' : 'none',
+            transition: 'transform .15s',
+          }}>
+            <IcChevronDown size={14} />
+          </span>
+        )}
+      </Heading>
 
       {expanded && (
         <div style={{ paddingTop: 16 }}>
@@ -121,7 +146,7 @@ export default function LayerResultCard({
           {result?.status === 'error' && (
             <>
               <ErrorCard theme={theme} message={result.error ?? 'Falha ao calcular o resultado.'} />
-              {geometry && (
+              {geometry && !still && (
                 <button
                   className="ui-press"
                   onClick={() => void runLayerAnalysis(layer, geometry, date, currentAnalysisSeq())}
@@ -166,6 +191,7 @@ export default function LayerResultCard({
               classes={layer.classes}
               unit={layer.unit}
               signedFlux={layer.signedFlux}
+              animate={!still}
             />
           )}
 
