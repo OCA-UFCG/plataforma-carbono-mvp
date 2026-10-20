@@ -2,7 +2,7 @@
 // has its own page; one without is listed as "em breve". `animacao` names a
 // scene assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
 
-export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'fluxos'
+export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
 
 export interface Termo {
   slug: string
@@ -72,8 +72,36 @@ export const TERMOS: Termo[] = [
       descricao: 'Paisagem de Caatinga com a torre de fluxo, animada ao longo de um ano, mostrando GPP, respiração das plantas, NPP, respiração do solo, Reco e NEE. Os botões destacam cada fluxo.',
     },
   },
-  { slug: 'eficiencia-de-uso-do-carbono', titulo: 'Eficiência de uso do carbono' },
-  { slug: 'degradacao', titulo: 'Degradação' },
+  {
+    slug: 'eficiencia-de-uso-do-carbono',
+    titulo: 'Eficiência de uso do carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'cue',
+      titulo: 'Eficiência de uso do carbono (CUE)',
+      descricao: 'Paisagem de Caatinga com a torre de fluxo mostrando, de cada 100 unidades de carbono fixadas pela fotossíntese, quantas ficam no ecossistema, e por que a CUE da Caatinga é alta. Os botões escolhem a explicação.',
+    },
+  },
+  {
+    slug: 'degradacao',
+    titulo: 'Degradação',
+    paragrafos: [],
+    animacao: {
+      id: 'degradacao',
+      titulo: 'Caatinga degradada',
+      descricao: 'Paisagem de Caatinga passando por etapas de degradação, de conservada a erodida, com o carbono que resta no ecossistema. Os botões escolhem a etapa.',
+    },
+  },
+  {
+    slug: 'manejo-agroecologico',
+    titulo: 'Manejo agroecológico',
+    paragrafos: [],
+    animacao: {
+      id: 'agroecologia',
+      titulo: 'Agroecológico e tradicional exploratório',
+      descricao: 'A mesma área de Caatinga com dois manejos separados por uma cerca: à esquerda, raleamento, cobertura morta e consórcio; à direita, corte raso, queima e roça em solo nu. Os botões avançam as etapas, e o painel compara o carbono dos dois lados.',
+    },
+  },
 ]
 
 export const TERMO_PARAM = 'termo'

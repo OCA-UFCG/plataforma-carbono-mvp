@@ -25,6 +25,8 @@ export interface OpcoesCena {
   /** Font stack for the text drawn on the canvas, the page's own. */
   fonte?: string
   aoMudar?: (estado: EstadoCena) => void
+  /** Element under the animation where a scene with controls of its own builds them. */
+  painel?: HTMLElement
 }
 
 export interface ControleCena {

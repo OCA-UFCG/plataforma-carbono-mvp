@@ -12,6 +12,9 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   torreFluxo: () => import("@/lib/cenas/gerado/torreFluxo"),
   estoques: () => import("@/lib/cenas/gerado/estoques"),
   fluxos: () => import("@/lib/cenas/gerado/fluxos"),
+  cue: () => import("@/lib/cenas/gerado/cue"),
+  degradacao: () => import("@/lib/cenas/gerado/degradacao"),
+  agroecologia: () => import("@/lib/cenas/gerado/agroecologia"),
 };
 
 // One glossary animation with its controls, which live outside the canvas:
@@ -21,6 +24,7 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
   const caixa = useRef<HTMLDivElement>(null);
   const tela = useRef<HTMLCanvasElement>(null);
+  const painel = useRef<HTMLDivElement>(null);
   const controle = useRef<ControleCena | null>(null);
   const [estado, setEstado] = useState<EstadoCena | null>(null);
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
@@ -43,6 +47,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
             controle.current = criarCena(canvas, {
               fonte: getComputedStyle(canvas).fontFamily,
               aoMudar: setEstado,
+              painel: painel.current ?? undefined,
             });
             setEstado(controle.current.estado());
             setEtapas(controle.current.etapas());
@@ -87,6 +92,9 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
           <p className={styles.leitor} aria-live="polite">{estado?.textoEtapa ?? ""}</p>
         </div>
       )}
+      {/* Controls a scene builds itself (the CUE value, the stage texts of the
+          two farming systems). */}
+      <div ref={painel} className={styles.painel} />
       {tempo && (
       <div className={styles.controles}>
         <button
