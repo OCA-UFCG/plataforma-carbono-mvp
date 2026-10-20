@@ -72,7 +72,7 @@ import type {
   DrawMode,
 } from '@/types/mapa'
 import { activeRaster } from '@/lib/mapa/activeRaster'
-import { runRecorteScales } from '@/lib/mapa/recorteScaleRunner'
+import { retryRecorteFailures, runRecorteScales } from '@/lib/mapa/recorteScaleRunner'
 import { TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
@@ -1018,6 +1018,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
             vector.theme === TERRITORY_THEME_ID && !vector.source && Number.isInteger(index) && index >= 0
               ? { recorteId: vector.id, feicaoIndex: index, name: label }
               : undefined
+          // Selecting the feature again is how a failed scale or tile is retried.
+          if (recorte) retryRecorteFailures(recorte)
           const selected: SelectedGeometry = {
             geometry: geom, geometryType: 'polygon', ...(recorte ? { recorte } : {}),
           }

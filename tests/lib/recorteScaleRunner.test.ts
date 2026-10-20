@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { pendingRecorteWork, type PendingRecorteInput } from '@/lib/mapa/recorteScaleRunner'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  pendingRecorteWork,
+  retryRecorteFailures,
+  runRecorteScales,
+  type PendingRecorteInput,
+} from '@/lib/mapa/recorteScaleRunner'
 import { recorteScaleKey } from '@/lib/mapa/recorteScale'
+import { useStore } from '@/lib/mapa/store'
 import type { LayerConfig, RasterLayerConfig, SelectedRecorte } from '@/types/mapa'
 
 const raster = (id: string, over: Partial<RasterLayerConfig> = {}): RasterLayerConfig => ({
@@ -28,6 +34,7 @@ const input = (over: Partial<PendingRecorteInput> = {}): PendingRecorteInput => 
   recorteScales: {},
   recorteTileUrls: {},
   inFlightTiles: new Set<string>(),
+  failedTiles: new Set<string>(),
   ...over,
 })
 
@@ -94,6 +101,16 @@ describe('pendingRecorteWork', () => {
     }))).toEqual([])
   })
 
+  it('does not ask again for a tile that failed', () => {
+    const ready = { status: 'ready' as const, stretch: { min: 1, max: 2 }, range: null }
+
+    expect(pendingRecorteWork(input({
+      layers: [raster('a')],
+      recorteScales: { [keyOf('a')]: ready },
+      failedTiles: new Set([`${keyOf('a')}@static`]),
+    }))).toEqual([])
+  })
+
   it("never takes another feature's scale for the selected one", () => {
     const other: SelectedRecorte = { recorteId: 'municipios', feicaoIndex: 7, name: 'Patos' }
     const layer = raster('estoque_carbono')
@@ -104,5 +121,80 @@ describe('pendingRecorteWork', () => {
     }))
 
     expect(out).toEqual([{ layer, key: keyOf('estoque_carbono'), need: 'scale', dateKey: 'static' }])
+  })
+})
+
+describe('runRecorteScales', () => {
+  const layer = raster('estoque_carbono')
+  const polygon = { type: 'Polygon' as const, coordinates: [[[-40, -8], [-40, -7], [-39, -7], [-40, -8]]] }
+  const calls = (fetchMock: ReturnType<typeof vi.fn>, url: string) =>
+    fetchMock.mock.calls.filter(([u]) => u === url).length
+  let consoleError: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    useStore.setState({
+      layers: [layer],
+      selectedGeometry: { geometry: polygon, geometryType: 'polygon', recorte: campina },
+      temporalDate: {},
+      recorteScales: {},
+      recorteTileUrls: {},
+    })
+    retryRecorteFailures(campina)
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    consoleError.mockRestore()
+  })
+
+  it('asks a failed scale again once the feature is selected again, and not before', async () => {
+    const fetchMock = vi.fn(async () => new Response('{}', { status: 503 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    runRecorteScales()
+    await vi.waitFor(() =>
+      expect(useStore.getState().recorteScales[keyOf('estoque_carbono')]).toEqual({ status: 'error' }))
+    runRecorteScales()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    retryRecorteFailures(campina)
+    runRecorteScales()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not re-send a failed tile until the feature is selected again', async () => {
+    const fetchMock = vi.fn(async (url: string) => url === '/api/gee/scale'
+      ? Response.json({ stretch: { min: 1, max: 2 }, range: null })
+      : new Response('{}', { status: 429 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    runRecorteScales()
+    await vi.waitFor(() =>
+      expect(consoleError).toHaveBeenCalledWith('[recorteScale] tile', 'estoque_carbono', expect.anything()))
+    runRecorteScales()
+    runRecorteScales()
+    expect(calls(fetchMock, '/api/gee/tile')).toBe(1)
+
+    retryRecorteFailures(campina)
+    runRecorteScales()
+    expect(calls(fetchMock, '/api/gee/tile')).toBe(2)
+    expect(calls(fetchMock, '/api/gee/scale')).toBe(1)
+  })
+
+  it("keeps ready scales and other features' failures when the feature is selected again", () => {
+    const other: SelectedRecorte = { recorteId: 'municipios', feicaoIndex: 7, name: 'Patos' }
+    const ready = { status: 'ready' as const, stretch: null, range: null }
+    useStore.setState({ recorteScales: {
+      [keyOf('estoque_carbono')]: { status: 'error' },
+      [keyOf('gpp_modis')]: ready,
+      [keyOf('estoque_carbono', other)]: { status: 'error' },
+    } })
+
+    retryRecorteFailures(campina)
+
+    expect(useStore.getState().recorteScales).toEqual({
+      [keyOf('gpp_modis')]: ready,
+      [keyOf('estoque_carbono', other)]: { status: 'error' },
+    })
   })
 })

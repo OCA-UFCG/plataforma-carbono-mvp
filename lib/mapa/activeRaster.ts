@@ -43,8 +43,16 @@ export function activeRaster(state: ActiveRasterInput, layerId: string): ActiveR
 
   const key = recorteScaleKey(layerId, recorte.recorteId, recorte.feicaoIndex)
   const entry = state.recorteScales[key]
-  const tileUrl = state.recorteTileUrls[key]?.[date ?? STATIC_KEY]
-  if (entry?.status !== 'ready' || !entry.stretch || !tileUrl) return { tileUrl: biome, scale: null }
+  if (entry?.status !== 'ready' || !entry.stretch) return { tileUrl: biome, scale: null }
 
-  return { tileUrl, scale: { stretch: entry.stretch, range: entry.range, recorteName: recorte.name } }
+  const scale = { stretch: entry.stretch, range: entry.range, recorteName: recorte.name }
+  const tiles = state.recorteTileUrls[key]
+  const tileUrl = tiles?.[date ?? STATIC_KEY]
+  if (tileUrl) return { tileUrl, scale }
+
+  // A year stepped with neither of its tiles in yet: the map holds the tile it
+  // has, a recorte one once any has arrived, and the stretch is the same for
+  // every year, so the legend keeps describing it.
+  if (!biome && tiles && Object.keys(tiles).length > 0) return { tileUrl: null, scale }
+  return { tileUrl: biome, scale: null }
 }

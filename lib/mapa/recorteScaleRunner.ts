@@ -47,6 +47,13 @@ export interface PendingRecorteInput {
   recorteTileUrls: Record<string, Record<string, string>>
   /** `${key}@${dateKey}` of the tile requests already running. */
   inFlightTiles:   ReadonlySet<string>
+  /**
+   * `${key}@${dateKey}` of the tile requests that failed. Not sent again until
+   * the feature is selected again: every opacity drag re-runs the runner, and
+   * re-sending a 429 at that pace would drain the per-IP limit the stats and
+   * the biome tiles share.
+   */
+  failedTiles:     ReadonlySet<string>
 }
 
 /**
@@ -73,12 +80,14 @@ export function pendingRecorteWork(input: PendingRecorteInput): RecorteWork[] {
     if (entry.status !== 'ready' || !entry.stretch) continue
     if (input.recorteTileUrls[key]?.[dateKey]) continue
     if (input.inFlightTiles.has(`${key}@${dateKey}`)) continue
+    if (input.failedTiles.has(`${key}@${dateKey}`)) continue
     out.push({ layer, key, need: 'tile', dateKey, stretch: entry.stretch })
   }
   return out
 }
 
 const inFlightTiles = new Set<string>()
+const failedTiles = new Set<string>()
 
 function setScale(key: string, entry: RecorteScaleEntry) {
   useStore.setState((s) => ({ recorteScales: { ...s.recorteScales, [key]: entry } }))
@@ -128,9 +137,26 @@ async function fetchTile(layer: RasterLayerConfig, key: string, dateKey: string,
   } catch (err) {
     // An empty slot keeps the biome tile on screen.
     console.error('[recorteScale] tile', layer.id, err)
+    failedTiles.add(flight)
   } finally {
     inFlightTiles.delete(flight)
   }
+}
+
+/**
+ * Forget what failed for this feature, so selecting it again asks again. Only
+ * failures: a ready scale, degenerate or not, is what the server would answer
+ * again from its cache.
+ */
+export function retryRecorteFailures(recorte: SelectedRecorte): void {
+  const suffix = `|${recorte.recorteId}|${recorte.feicaoIndex}`
+  for (const flight of failedTiles) {
+    if (flight.slice(0, flight.lastIndexOf('@')).endsWith(suffix)) failedTiles.delete(flight)
+  }
+  useStore.setState((s) => ({
+    recorteScales: Object.fromEntries(Object.entries(s.recorteScales)
+      .filter(([key, entry]) => !(key.endsWith(suffix) && entry.status === 'error'))),
+  }))
 }
 
 /** Fetch whatever the current selection still lacks; a no-op without a recorte. */
@@ -146,6 +172,7 @@ export function runRecorteScales(): void {
     recorteScales:   s.recorteScales,
     recorteTileUrls: s.recorteTileUrls,
     inFlightTiles,
+    failedTiles,
   })) {
     if (work.need === 'scale') void fetchScale(work.layer, work.key, recorte)
     else void fetchTile(work.layer, work.key, work.dateKey, work.stretch!)

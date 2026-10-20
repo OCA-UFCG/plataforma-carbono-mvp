@@ -77,6 +77,25 @@ describe('activeRaster', () => {
     }), 'gpp')).toEqual({ tileUrl: 'biome-2010', scale: null })
   })
 
+  it('keeps the recorte scale while neither tile of a stepped year has arrived', () => {
+    // The map holds the recorte tile it has; the stretch covers every year, so
+    // the legend must keep describing it rather than fall back to the biome.
+    expect(activeRaster(input({
+      selectedGeometry: selected,
+      temporalDate: { gpp: '2015-01-01' },
+      recorteScales: { [key('gpp')]: { status: 'ready', stretch, range: null } },
+      recorteTileUrls: { [key('gpp')]: { '2024-01-01': 'recorte-2024' } },
+    }), 'gpp')).toEqual({ tileUrl: null, scale: { stretch, range: null, recorteName: 'Campina Grande' } })
+  })
+
+  it('claims no recorte scale before any recorte tile has reached the map', () => {
+    expect(activeRaster(input({
+      selectedGeometry: selected,
+      temporalDate: { gpp: '2015-01-01' },
+      recorteScales: { [key('gpp')]: { status: 'ready', stretch, range: null } },
+    }), 'gpp')).toEqual({ tileUrl: null, scale: null })
+  })
+
   it("never shows another feature's scale", () => {
     expect(activeRaster(input({
       selectedGeometry: selected,
