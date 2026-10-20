@@ -68,24 +68,34 @@ describe('activeRaster', () => {
     })
   })
 
-  it('shows the biome tile of a year stepped before its recorte tile exists', () => {
+  it("keeps the recorte colors on a year step, even when that year's biome tile is in", () => {
+    // The stretch is the same for every year, so the previous year's recorte
+    // tile stands in until the new one arrives; flashing the biome scale in
+    // between is what the user asked to avoid.
     expect(activeRaster(input({
       selectedGeometry: selected,
       temporalDate: { gpp: '2010-01-01' },
       recorteScales: { [key('gpp')]: { status: 'ready', stretch, range: null } },
       recorteTileUrls: { [key('gpp')]: { '2024-01-01': 'recorte-2024' } },
-    }), 'gpp')).toEqual({ tileUrl: 'biome-2010', scale: null })
+    }), 'gpp')).toEqual({ tileUrl: 'recorte-2024', scale: { stretch, range: null, recorteName: 'Campina Grande' } })
   })
 
-  it('keeps the recorte scale while neither tile of a stepped year has arrived', () => {
-    // The map holds the recorte tile it has; the stretch covers every year, so
-    // the legend must keep describing it rather than fall back to the biome.
+  it('keeps the recorte colors while neither tile of a stepped year has arrived', () => {
     expect(activeRaster(input({
       selectedGeometry: selected,
       temporalDate: { gpp: '2015-01-01' },
       recorteScales: { [key('gpp')]: { status: 'ready', stretch, range: null } },
       recorteTileUrls: { [key('gpp')]: { '2024-01-01': 'recorte-2024' } },
-    }), 'gpp')).toEqual({ tileUrl: null, scale: { stretch, range: null, recorteName: 'Campina Grande' } })
+    }), 'gpp')).toEqual({ tileUrl: 'recorte-2024', scale: { stretch, range: null, recorteName: 'Campina Grande' } })
+  })
+
+  it('stands in with the recorte tile of the nearest year', () => {
+    expect(activeRaster(input({
+      selectedGeometry: selected,
+      temporalDate: { gpp: '2020-01-01' },
+      recorteScales: { [key('gpp')]: { status: 'ready', stretch, range: null } },
+      recorteTileUrls: { [key('gpp')]: { '2010-01-01': 'recorte-2010', '2024-01-01': 'recorte-2024' } },
+    }), 'gpp').tileUrl).toBe('recorte-2024')
   })
 
   it('claims no recorte scale before any recorte tile has reached the map', () => {

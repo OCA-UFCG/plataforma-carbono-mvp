@@ -50,9 +50,26 @@ export function activeRaster(state: ActiveRasterInput, layerId: string): ActiveR
   const tileUrl = tiles?.[date ?? STATIC_KEY]
   if (tileUrl) return { tileUrl, scale }
 
-  // A year stepped with neither of its tiles in yet: the map holds the tile it
-  // has, a recorte one once any has arrived, and the stretch is the same for
-  // every year, so the legend keeps describing it.
-  if (!biome && tiles && Object.keys(tiles).length > 0) return { tileUrl: null, scale }
+  // A year stepped before its recorte tile arrived: the nearest year's recorte
+  // tile stands in, since the stretch is the same for every year, instead of
+  // flashing the biome scale until the new one lands. Before any recorte tile
+  // has arrived (the first selection), the biome tile stays.
+  const standIn = nearestYearTile(tiles, date)
+  if (standIn) return { tileUrl: standIn, scale }
   return { tileUrl: biome, scale: null }
+}
+
+function nearestYearTile(tiles: Record<string, string> | undefined, date: string | undefined): string | undefined {
+  if (!tiles || !date) return undefined
+  const year = Number(date.slice(0, 4))
+  let nearest: string | undefined
+  let gap = Infinity
+  for (const [stop, url] of Object.entries(tiles)) {
+    const distance = Math.abs(Number(stop.slice(0, 4)) - year)
+    if (distance < gap) {
+      nearest = url
+      gap = distance
+    }
+  }
+  return nearest
 }

@@ -36,6 +36,7 @@ Settled with the user before any code was written.
 | 4 | Categorical layers? | **Colors unchanged; the legend lists only the classes with area inside the feature**, from the composition the results panel already computes. |
 | 5 | Compute the scale on demand or offline? | **On demand on the server**, cached per layer and feature. Precomputing thousands of features × 27 layers × years offline was rejected: hours of batch work, a very large JSON, and a rerun on every data update. |
 | 6 | Behavior details (presented as part 1 and approved) | A caption `"Escala ajustada a {nome}"` under the layer name while the recorte scale is on screen. The biome tile stays on screen until the recorte one is ready. Any failure falls back silently to the biome scale. `hillshade_fabdem` adapts like any other continuous GEE layer. |
+| 7 | On a year step, what shows until the new year's recorte tile arrives? (settled after the final review) | **The nearest year's recorte tile.** The stretch is the same for every year, so the recorte colors stay on screen instead of flashing the biome scale on every step. The biome tile is shown only before the first recorte tile of a selection arrives. |
 
 ## 3. Behavior
 
@@ -51,8 +52,10 @@ path that fills the results panel):
   the year on screen, following today's convention: bar = stretch, ends = real extremes.
 - **Caption.** `"Escala ajustada a {nome}"` sits under the layer name, `{nome}` being the
   analysis label (the feature's name).
-- **While loading.** The biome tile stays on screen until the recorte tile is ready; the tile and
-  the legend switch together.
+- **While loading.** On a new selection the biome tile stays on screen until the recorte tile is
+  ready; the tile and the legend switch together. On a year step after that, the nearest year's
+  recorte tile stands in until the new year's arrives (decision 7), so the colors never flash back
+  to the biome scale.
 - **Signed flux (`gfw_netflux`).** The palette puts its white (`#f7f7f7`) at 1/4 of the bar, which
   is where zero falls on the biome's −100…300. The recorte scale keeps that proportion — the biome
   scale times a factor, `[min·k, max·k]` — so zero stays white and the equilibrium tick stays put.
@@ -268,10 +271,11 @@ export function activeRaster(state, layerId): {
 }
 ```
 
-**Recorte path.** When the selection has a `recorte`, the layer's scale entry is `ready` with a
-`stretch`, and `recorteTileUrls[key][dateKey]` exists, it returns that tile and that scale.
+**Recorte path.** When the selection has a `recorte` and the layer's scale entry is `ready` with a
+`stretch`, it returns that scale with `recorteTileUrls[key][dateKey]`, or, when that year's tile
+has not arrived, the recorte tile of the nearest year already fetched (decision 7).
 
-**Biome path.** Otherwise it returns the biome tile (`temporalTileUrls[id][date]` or
+**Biome path.** Otherwise (no recorte tile fetched yet for this selection) it returns the biome tile (`temporalTileUrls[id][date]` or
 `fetchedTileUrls[id]`, as today) and `scale: null`.
 
 **Callers.** Every place that decides what is on screen goes through it:
@@ -349,7 +353,8 @@ spec).
 - **`activeRaster.test.ts`:**
   - the biome tile while the scale or the recorte tile is loading;
   - the recorte tile and scale when both are ready;
-  - a year stepped whose recorte tile is not there yet → the biome tile of that year;
+  - a year stepped whose recorte tile is not there yet → the nearest year's recorte tile, with the
+    recorte scale (decision 7);
   - a selection without `recorte` (a drawn area) → biome;
   - `stretch: null` and `error` → biome.
 - **`presentClasses.test.ts`:**
