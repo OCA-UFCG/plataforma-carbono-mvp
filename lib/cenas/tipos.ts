@@ -9,6 +9,16 @@ export interface EstadoCena {
   /** Day and month at the position, "2 nov". */
   data: string
   movimentoReduzido: boolean
+  /** Open step, in an animation told in steps; null otherwise. */
+  etapa: number | null
+  /** Name and text of the open step, read by screen readers. */
+  textoEtapa: string | null
+}
+
+export interface EtapaCena {
+  nome: string
+  /** Colour of the step's swatch, when it has one. */
+  cor: string | null
 }
 
 export interface OpcoesCena {
@@ -23,6 +33,9 @@ export interface ControleCena {
   posicao(p: number): void
   /** Off screen the scene stops drawing. */
   visivel(v: boolean): void
+  /** The steps of an animation told in steps; null for one that plays a year. */
+  etapas(): EtapaCena[] | null
+  etapa(i: number): void
   estado(): EstadoCena
   encerrar(): void
 }

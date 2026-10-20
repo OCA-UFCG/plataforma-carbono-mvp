@@ -2,7 +2,7 @@
 // has its own page; one without is listed as "em breve". `animacao` names a
 // scene assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
 
-export type AnimacaoId = 'cicloAnual'
+export type AnimacaoId = 'cicloAnual' | 'torreFluxo'
 
 export interface Termo {
   slug: string
@@ -51,7 +51,17 @@ export const TERMOS: Termo[] = [
     ],
   },
   { slug: 'estoque-de-carbono', titulo: 'Estoque de carbono' },
-  { slug: 'torre-de-fluxo', titulo: 'Torre de fluxo' },
+  {
+    slug: 'torre-de-fluxo',
+    titulo: 'Torre de fluxo',
+    paragrafos: [],
+    animacao: {
+      id: 'torreFluxo',
+      titulo: 'Como a torre mede o carbono',
+      descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento vertical e o CO₂ medidos no topo mostram se a vegetação absorve ou libera carbono. Os botões escolhem o caso.',
+      nota: 'Ilustração sem escala. As diferenças de CO₂ entre o ar que sobe e o que desce estão exageradas para ficarem visíveis; cores, pontos e velocidades são escolhas de representação.',
+    },
+  },
   { slug: 'fluxos-de-carbono', titulo: 'Fluxos de carbono' },
   { slug: 'eficiencia-de-uso-do-carbono', titulo: 'Eficiência de uso do carbono' },
   { slug: 'degradacao', titulo: 'Degradação' },

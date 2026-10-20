@@ -69,3 +69,52 @@
   font-variant-numeric: tabular-nums;
   color: var(--am-400);
 }
+
+/* Steps of a scene told in steps, the package's "chips". */
+.etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.etapa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--am-200);
+  border-radius: 999px;
+  background: var(--bg-fundo);
+  color: var(--bg-texto-primario);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.etapa:hover {
+  border-color: var(--bg-borda);
+}
+
+.etapa[aria-pressed="true"] {
+  border: 2px solid var(--role-marca-ancora-padrao);
+  padding: 7px 13px;
+  font-weight: 700;
+}
+
+.amostra {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
