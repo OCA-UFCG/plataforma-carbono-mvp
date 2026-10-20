@@ -68,8 +68,12 @@ import type {
   RasterLayerConfig,
   PlatformTheme,
   SelectedGeometry,
+  SelectedRecorte,
   DrawMode,
 } from '@/types/mapa'
+import { activeRaster } from '@/lib/mapa/activeRaster'
+import { runRecorteScales } from '@/lib/mapa/recorteScaleRunner'
+import { TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
 import DrawToolbar from './overlays/DrawToolbar'
@@ -309,17 +313,10 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
     // Resolve the tile URL from the store's GEE cache. Until activateDynamicLayer
     // resolves it, return a sentinel (null) so the caller skips and retries.
     if (l.source !== 'gee') return false // only GEE rasters are supported
-    let tileUrl: string | null
-    {
-      const store = useStore.getState()
-      // Temporal layers: look up by current date
-      const tempDate = store.temporalDate[l.id]
-      if (tempDate && store.temporalTileUrls[l.id]) {
-        tileUrl = store.temporalTileUrls[l.id][tempDate] ?? null
-      } else {
-        tileUrl = store.fetchedTileUrls[l.id] ?? null
-      }
-    }
+    // The selected recorte's tile when its scale is ready, the biome's
+    // otherwise. A style reload re-adds every source through here, so it must
+    // ask the same question the tile-sync effect does.
+    const tileUrl = activeRaster(useStore.getState(), l.id).tileUrl
 
     if (!tileUrl) {
       // Dynamic layer hasn't been activated yet, abort without marking added.
@@ -973,9 +970,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // field) so the results card is never ambiguous about its source.
         const labelField = vector.hoverLabelField
         const featureName = labelField ? properties?.[labelField] : undefined
-        setAnalysisLabel(
-          featureName != null && featureName !== '' ? String(featureName) : vector.name,
-        )
+        const label = featureName != null && featureName !== '' ? String(featureName) : vector.name
+        setAnalysisLabel(label)
         // Singular, as the header's eyebrow over the feature name ("Município").
         setAnalysisKind(vector.unitName ?? vector.name)
 
@@ -1014,7 +1010,17 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         if (belowRaster) return
 
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon' }
+          // A feature of a Território recorte re-scales the rasters to itself.
+          // Plain GeoJSON sources number features by file position
+          // (generateId), which is how the server finds it again.
+          const index = Number(featureId)
+          const recorte: SelectedRecorte | undefined =
+            vector.theme === TERRITORY_THEME_ID && !vector.source && Number.isInteger(index) && index >= 0
+              ? { recorteId: vector.id, feicaoIndex: index, name: label }
+              : undefined
+          const selected: SelectedGeometry = {
+            geometry: geom, geometryType: 'polygon', ...(recorte ? { recorte } : {}),
+          }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
         } else if (geom.type === 'Point') {
@@ -1506,21 +1512,6 @@ useEffect(() => {
     map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, { padding, maxZoom: 13 })
   }, [fitRequest, mapReady])
 
-  // Swap temporal tile URLs when date changes
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady) return
-
-    for (const [layerId, dateKey] of Object.entries(temporalDate)) {
-      const tileUrl = temporalTileUrls[layerId]?.[dateKey]
-      if (!tileUrl) continue
-      const source = map.getSource(layerId)
-      if (source && 'setTiles' in source) {
-        (source as maplibregl.RasterTileSource).setTiles([withRetryProtocol(tileUrl)])
-      }
-    }
-  }, [temporalDate, temporalTileUrls, mapReady])
-
   // Reactive recomputation. Switching a layer on, or stepping a year, leaves the
   // selection in place: `pendingAnalyses` inside runVisibleRasterAnalyses returns
   // only the layers whose stop is not already answered, so a layer that did not
@@ -1534,6 +1525,35 @@ useEffect(() => {
     if (!selectedGeometry) return
     runVisibleRasterAnalyses(selectedGeometry, currentAnalysisSeq())
   }, [layers, temporalDate, temporalTileUrls, fetchedTileUrls, selectedGeometry])
+
+  // The selected recorte's scale for every continuous raster on screen: the
+  // runner fetches only what is missing, so a re-run on an opacity drag is free.
+  useEffect(() => {
+    if (!selectedGeometry?.recorte) return
+    runRecorteScales()
+  }, [layers, temporalDate, selectedGeometry])
+
+  // Swap a raster's tiles when what it should show changes: a year stepped, or
+  // the selected recorte's scale arriving or going away. Compares with the
+  // source's current tiles, so a re-run never makes the map refetch.
+  const recorteScales   = useStore((s) => s.recorteScales)
+  const recorteTileUrls = useStore((s) => s.recorteTileUrls)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const state = useStore.getState()
+    for (const layer of state.layers) {
+      if (layer.type !== 'raster' || layer.source !== 'gee') continue
+      const { tileUrl } = activeRaster(state, layer.id)
+      if (!tileUrl) continue
+      const source = map.getSource(layer.id) as maplibregl.RasterTileSource | undefined
+      if (!source || !('setTiles' in source)) continue
+      const next = withRetryProtocol(tileUrl)
+      if (source.serialize().tiles?.[0] === next) continue
+      source.setTiles([next])
+    }
+  }, [temporalDate, temporalTileUrls, fetchedTileUrls, recorteScales, recorteTileUrls, selectedGeometry, mapReady])
 
   // Sync draw mode
   // Switching to a drawing mode clears any previous feature + measurements.
