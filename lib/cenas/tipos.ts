@@ -36,6 +36,8 @@ export interface ControleCena {
   /** The steps of an animation told in steps; null for one that plays a year. */
   etapas(): EtapaCena[] | null
   etapa(i: number): void
+  /** Whether the page shows the time controls; false for a scene told only in steps. */
+  tempo(): boolean
   estado(): EstadoCena
   encerrar(): void
 }

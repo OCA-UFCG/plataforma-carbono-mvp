@@ -2,7 +2,7 @@
 // has its own page; one without is listed as "em breve". `animacao` names a
 // scene assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
 
-export type AnimacaoId = 'cicloAnual' | 'torreFluxo'
+export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'fluxos'
 
 export interface Termo {
   slug: string
@@ -32,7 +32,16 @@ export const TERMOS: Termo[] = [
       descricao: 'Paisagem de Caatinga em corte, animada ao longo de um ano: o CO₂ entra nas plantas pela fotossíntese e sai pela respiração de plantas, serapilheira e solo; o saldo muda com a chuva.',
     },
   },
-  { slug: 'estoque-de-carbono', titulo: 'Estoque de carbono' },
+  {
+    slug: 'estoque-de-carbono',
+    titulo: 'Estoque de carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'estoques',
+      titulo: 'Onde o carbono fica guardado',
+      descricao: 'Paisagem de Caatinga em corte mostrando onde o carbono fica guardado: solo, parte aérea, raízes, madeira morta, serapilheira e herbáceas. Os botões destacam cada compartimento.',
+    },
+  },
   {
     slug: 'torre-de-fluxo',
     titulo: 'Torre de fluxo',
@@ -43,7 +52,16 @@ export const TERMOS: Termo[] = [
       descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento vertical e o CO₂ medidos no topo mostram se a vegetação absorve ou libera carbono. Os botões escolhem o caso.',
     },
   },
-  { slug: 'fluxos-de-carbono', titulo: 'Fluxos de carbono' },
+  {
+    slug: 'fluxos-de-carbono',
+    titulo: 'Fluxos de carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'fluxos',
+      titulo: 'Os nomes dos fluxos: GPP, Ra, NPP, Rh, Reco e NEE',
+      descricao: 'Paisagem de Caatinga com a torre de fluxo, animada ao longo de um ano, mostrando GPP, respiração das plantas, NPP, respiração do solo, Reco e NEE. Os botões destacam cada fluxo.',
+    },
+  },
   { slug: 'eficiencia-de-uso-do-carbono', titulo: 'Eficiência de uso do carbono' },
   { slug: 'degradacao', titulo: 'Degradação' },
 ]

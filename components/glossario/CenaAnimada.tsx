@@ -10,11 +10,13 @@ import styles from "./CenaAnimada.module.css";
 const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   cicloAnual: () => import("@/lib/cenas/gerado/cicloAnual"),
   torreFluxo: () => import("@/lib/cenas/gerado/torreFluxo"),
+  estoques: () => import("@/lib/cenas/gerado/estoques"),
+  fluxos: () => import("@/lib/cenas/gerado/fluxos"),
 };
 
 // One glossary animation with its controls, which live outside the canvas:
-// the time controls for a scene that plays a year, one button per step for a
-// scene told in steps. The scene pauses drawing while off screen or in a
+// one button per step for a scene told in steps, the time controls for a
+// scene that plays a year (some have both). The scene pauses drawing while off screen or in a
 // hidden tab.
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
   const caixa = useRef<HTMLDivElement>(null);
@@ -22,6 +24,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const controle = useRef<ControleCena | null>(null);
   const [estado, setEstado] = useState<EstadoCena | null>(null);
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
+  const [tempo, setTempo] = useState(true);
 
   useEffect(() => {
     const box = caixa.current;
@@ -43,6 +46,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
             });
             setEstado(controle.current.estado());
             setEtapas(controle.current.etapas());
+            setTempo(controle.current.tempo());
             aplicarVisibilidade();
           });
         }
@@ -66,7 +70,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
     <figure className={styles.figura} ref={caixa}>
       <canvas ref={tela} className={styles.tela} width={960} height={540} role="img" aria-label={descricao} />
       <figcaption className={styles.legenda}>{titulo}</figcaption>
-      {etapas ? (
+      {etapas && (
         <div className={styles.etapas} role="group" aria-label={`Etapas de ${titulo}`}>
           {etapas.map((etapa, i) => (
             <button
@@ -82,7 +86,8 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
           ))}
           <p className={styles.leitor} aria-live="polite">{estado?.textoEtapa ?? ""}</p>
         </div>
-      ) : (
+      )}
+      {tempo && (
       <div className={styles.controles}>
         <button
           type="button"
