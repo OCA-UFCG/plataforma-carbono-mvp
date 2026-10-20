@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The glossary animations: vanilla canvas code kept as the package wrote it.
+    "lib/cenas/fonte/**",
+    "lib/cenas/gerado/**",
   ]),
 ]);
 

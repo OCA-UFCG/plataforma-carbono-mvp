@@ -4,6 +4,7 @@ import PageIntro from "@/components/marketing/PageIntro";
 import ComunicacaoAbas from "@/components/marketing/ComunicacaoAbas";
 import Publicacoes from "@/components/marketing/Publicacoes";
 import Eventos from "@/components/marketing/Eventos";
+import Glossario from "@/components/marketing/Glossario";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import { COMUNICACAO_PAGINA } from "@/lib/content/paginas";
 import { getComunicacaoContent, listPublicacoes } from "@/lib/content/comunicacao";
@@ -11,6 +12,7 @@ import { getEventos } from "@/lib/content/eventos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 import { getContentfulClient } from "@/lib/contentful";
 import { ABA_PARAM, parseAba } from "@/lib/marketing/comunicacaoAbas";
+import { TERMO_PARAM, parseTermo } from "@/lib/glossario/termos";
 
 export const metadata: Metadata = { title: "Comunicação" };
 
@@ -46,6 +48,7 @@ export default async function ComunicacaoPage({
           paineis={{
             conteudo: <Publicacoes publicacoes={listPublicacoes(conteudo)} />,
             eventos: <Eventos eventos={eventos} />,
+            glossario: <Glossario inicial={parseTermo(params[TERMO_PARAM]).slug} />,
           }}
         />
       </main>
