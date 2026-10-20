@@ -61,7 +61,6 @@ export default function Glossario({ inicial }: { inicial: string }) {
             {termo.animacao && (
               <div className={styles.animacao}>
                 <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
-                <p className={styles.nota}>{termo.animacao.nota}</p>
               </div>
             )}
             {termo.fontes && termo.fontes.length > 0 && (

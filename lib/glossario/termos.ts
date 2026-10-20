@@ -13,8 +13,6 @@ export interface Termo {
     titulo: string
     /** Read by screen readers in place of the canvas. */
     descricao: string
-    /** What the animation simplifies; shown under it. */
-    nota: string
   }
   /** References in APA, in the order they are cited. */
   fontes?: string[]
@@ -37,7 +35,6 @@ export const TERMOS: Termo[] = [
       id: 'cicloAnual',
       titulo: 'Um ano na Caatinga',
       descricao: 'Paisagem de Caatinga em corte, animada ao longo de um ano: o CO₂ entra nas plantas pela fotossíntese e sai pela respiração de plantas, serapilheira e solo; o saldo muda com a chuva.',
-      nota: 'Ilustração sem escala, sobre um modelo conceitual em valores relativos, sem medições. A respiração anual em torno de 60% da fotossíntese segue Mendes et al. (2020); os demais valores são escolhas de representação. Na natureza, a resposta à chuva muda de espécie para espécie e de um ano para outro, e os cactos CAM absorvem CO₂ sobretudo à noite.',
     },
     fontes: [
       'Baldocchi, D. D. (2003). Assessing the eddy covariance technique for evaluating carbon dioxide exchange rates of ecosystems: Past, present and future. Global Change Biology, 9(4), 479-492. https://doi.org/10.1046/j.1365-2486.2003.00629.x',
@@ -59,11 +56,7 @@ export const TERMOS: Termo[] = [
       id: 'torreFluxo',
       titulo: 'Como a torre mede o carbono',
       descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento vertical e o CO₂ medidos no topo mostram se a vegetação absorve ou libera carbono. Os botões escolhem o caso.',
-      nota: 'Ilustração sem escala. As diferenças de CO₂ entre o ar que sobe e o que desce estão exageradas para ficarem visíveis; cores, pontos, velocidades, a direção do vento e a forma da área medida são escolhas de representação. A área de onde vem o ar medido se estende contra o vento e fica maior com o ar estável da noite (Kljun et al., 2015).',
     },
-    fontes: [
-      'Kljun, N., Calanca, P., Rotach, M. W., & Schmid, H. P. (2015). A simple two-dimensional parameterisation for Flux Footprint Prediction (FFP). Geoscientific Model Development, 8(11), 3695-3713. https://doi.org/10.5194/gmd-8-3695-2015',
-    ],
   },
   { slug: 'fluxos-de-carbono', titulo: 'Fluxos de carbono' },
   { slug: 'eficiencia-de-uso-do-carbono', titulo: 'Eficiência de uso do carbono' },

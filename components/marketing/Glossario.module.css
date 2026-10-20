@@ -114,13 +114,6 @@
   gap: 8px;
 }
 
-.nota {
-  margin: 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--am-400);
-}
-
 .fontesTitulo {
   margin: 24px 0 0;
   font-size: 14px;

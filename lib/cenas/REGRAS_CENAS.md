@@ -22,8 +22,7 @@ Valem para tudo em `lib/cenas/` e para os componentes que mostram as cenas (`com
 - As animações são ilustrações: o rigor está em reproduzir corretamente os comportamentos e em escolher a representação mais didática, não em replicar dados medidos. Direção do vento, formas e posições podem ser escolhidas para ensinar melhor (o vento pode vir da esquerda mesmo que na torre real venha de leste).
 - O estilo é sempre desenhado, como o da paisagem; nada de imagem de satélite ou fotografia na cena.
 - Números e textos que aparecem na tela ou na página sempre com fonte. O comportamento representado segue a literatura, mesmo quando a forma de mostrá-lo é livre.
-- O que é escolha de representação fica marcado como ilustração no código e na nota abaixo da animação.
-- Os desenhos não têm escala, e isso é dito na página.
+- O que é escolha de representação fica marcado como ilustração no código. A página não leva nota de "ilustração sem escala" abaixo da animação (decisão do Artur, 19/10/2026).
 - Nada de dados inventados. Referência incompleta não vai para a página.
 
 ## Desempenho
