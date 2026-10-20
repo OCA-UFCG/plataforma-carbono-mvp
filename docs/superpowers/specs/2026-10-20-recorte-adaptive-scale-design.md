@@ -164,7 +164,8 @@ export function recorteScale(
 - **Signed flux.** With `signedFlux` and a biome scale with `min < 0 < max`:
   `k = max(p2 / min, p98 / max)` (both ratios positive when the feature spans zero), and
   `stretch = [min·k, max·k]`. This keeps zero at the palette's white.
-- **Degenerate.** No year with pixels, `p2 >= p98`, or `k <= 0` → `stretch: null`.
+- **Degenerate.** No year with pixels, or `p2 >= p98` → `stretch: null`. (With `p2 < p98`, `k` is
+  always positive, so the signed case needs no check of its own.)
 - **`range`.** Per-year `{ min, max }` → `{ byYear }` for a temporal layer, the single entry for a
   static one; years with no pixels are left out.
 
@@ -252,8 +253,9 @@ and both caches. It returns, per visible continuous GEE raster whose `clipToLaye
 A module-scope `Set` of in-flight keys prevents duplicate requests. A tile request that fails
 leaves the slot empty, so the biome tile stays.
 
-A `MapView` effect runs it on `[layers, temporalDate, selectedGeometry, recorteScales]`. A layer
-switched on, or a year stepped, with the feature still selected fetches only what is missing.
+A `MapView` effect runs it on `[layers, temporalDate, selectedGeometry]`. When a scale lands, the
+runner calls itself once more to fetch the tile of the year then on screen. A layer switched on, or
+a year stepped, with the feature still selected fetches only what is missing.
 `setTemporalDate` keeps fetching the biome tile of the new year as today: it is the fallback while
 the recorte tile loads, and `pendingAnalyses` gates the results panel on it.
 
@@ -408,12 +410,15 @@ New:
 
 - `app/api/gee/scale/route.ts`
 - `lib/mapa/recorteScale.ts`
+- `lib/mapa/recorteScaleCompute.ts` — the GEE reduction of §4.2, split from the service so each
+  can be tested on its own
 - `lib/mapa/recorteScaleService.ts`
 - `lib/mapa/recorteScaleRunner.ts`
 - `lib/mapa/activeRaster.ts`
 - `lib/mapa/presentClasses.ts`
 - `tests/app/scaleRoute.test.ts`
-- `tests/lib/recorteScale.test.ts`, `activeRaster.test.ts`, `presentClasses.test.ts`,
+- `tests/lib/recorteScale.test.ts`, `recorteScaleCompute.test.ts`, `recorteScaleService.test.ts`
+  (cache and in-flight dedupe), `activeRaster.test.ts`, `presentClasses.test.ts`,
   `recorteScaleRunner.test.ts`
 
 Changed:
