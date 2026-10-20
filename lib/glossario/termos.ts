@@ -16,6 +16,15 @@ export interface Termo {
   }
   /** References in APA, in the order they are cited. */
   fontes?: string[]
+  /** A way into the platform from the term, under the animation. */
+  acesso?: { href: string; rotulo: string }
+}
+
+// Opens the platform on one layer. Through /login, which sends a visitor with
+// a session straight on and brings one without back here after logging in;
+// /mapa itself would drop the parameter on its way to the login page.
+function naPlataforma(camada: string): string {
+  return `/login?redirect=${encodeURIComponent(`/mapa?camada=${camada}`)}`
 }
 
 export const TERMOS: Termo[] = [
@@ -41,6 +50,7 @@ export const TERMOS: Termo[] = [
       titulo: 'Onde o carbono fica guardado',
       descricao: 'Paisagem de Caatinga em corte mostrando onde o carbono fica guardado: solo, parte aérea, raízes, madeira morta, serapilheira e herbáceas. Os botões destacam cada compartimento.',
     },
+    acesso: { href: naPlataforma('estoque_carbono'), rotulo: 'Acesse os dados de estoque no bioma Caatinga' },
   },
   {
     slug: 'torre-de-fluxo',

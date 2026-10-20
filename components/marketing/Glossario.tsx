@@ -63,6 +63,10 @@ export default function Glossario({ inicial }: { inicial: string }) {
                 <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
               </div>
             )}
+            {termo.acesso && (
+              // The platform is another root layout: a plain link, a full page load.
+              <a className={styles.acesso} href={termo.acesso.href}>{termo.acesso.rotulo}</a>
+            )}
             {termo.fontes && termo.fontes.length > 0 && (
               <>
                 <h4 className={styles.fontesTitulo}>Fontes</h4>
