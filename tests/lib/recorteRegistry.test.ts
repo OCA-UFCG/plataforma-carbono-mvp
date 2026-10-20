@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFeicao, listFeicoes, listRecortes } from '@/lib/mapa/recorteRegistry'
+import { getFeicao, getFeicaoByIndex, listFeicoes, listRecortes } from '@/lib/mapa/recorteRegistry'
 
 describe('listRecortes', () => {
   it('lists the vector layers that can be a report unit, with the field that names a feature', () => {
@@ -104,5 +104,23 @@ describe('getFeicao', () => {
   it('returns null for an unknown recorte or feature', () => {
     expect(getFeicao('nao-existe', 'campina-grande')).toBeNull()
     expect(getFeicao('municipios', 'nao-existe')).toBeNull()
+  })
+})
+
+describe('getFeicaoByIndex', () => {
+  it('resolves a feature by its position in the file, the id MapLibre generates', () => {
+    // The two São Domingos sit at file indices 174 and 691 (see listFeicoes).
+    expect(getFeicaoByIndex('municipios', 174)).toMatchObject({ id: 'sao-domingos', context: 'BA' })
+    expect(getFeicaoByIndex('municipios', 691)).toMatchObject({ id: 'sao-domingos-2', context: 'PB' })
+  })
+
+  it('resolves the same feature getFeicao does', () => {
+    // Bahia is the second feature of estados.geojson.
+    expect(getFeicaoByIndex('estados', 1)).toEqual(getFeicao('estados', 'bahia'))
+  })
+
+  it('returns null for a position past the end or an unknown recorte', () => {
+    expect(getFeicaoByIndex('estados', 999)).toBeNull()
+    expect(getFeicaoByIndex('nao-existe', 0)).toBeNull()
   })
 })
