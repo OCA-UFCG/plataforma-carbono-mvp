@@ -298,11 +298,26 @@ export interface LayerResult {
  * It lives here rather than in analysisRunner.ts because the store holds it and
  * the runner imports the store: a type in the runner would close that loop.
  */
+/** The feature of a Território recorte a selection came from; a drawn area has none. */
+export interface SelectedRecorte {
+  recorteId:   string
+  /** Position in the recorte GeoJSON, the id MapLibre's `generateId` gave the feature. */
+  feicaoIndex: number
+  /** The analysis label, which the legend names its scale after. */
+  name:        string
+}
+
 export interface SelectedGeometry {
   geometry:     GeoJSON.Geometry
   geometryType: 'polygon' | 'point'
   lon?:         number
   lat?:         number
+  /**
+   * Present when the selection is a feature of a Território recorte: the
+   * rasters then take that feature's color scale (lib/mapa/recorteScaleRunner.ts).
+   * It lives here so every path that drops the selection drops it too.
+   */
+  recorte?:     SelectedRecorte
 }
 
 // Basemap (raster XYZ tiles)
