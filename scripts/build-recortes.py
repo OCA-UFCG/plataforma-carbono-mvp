@@ -1,6 +1,7 @@
 # Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
 # own current exports, which geobr lags by months), keeps those that belong to
-# the Caatinga, clips them to the biome, simplifies them and writes GeoJSON into
+# the Caatinga, clips all but the municipalities to the biome, simplifies them
+# and writes GeoJSON into
 # public/data/vector. Usage: python scripts/build-recortes.py
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
@@ -13,7 +14,9 @@
 # Clipping every recorte that touched the biome used to let in crumbs of
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
-# What is kept is still clipped, so the map shows the area the analysis measures.
+# What is kept is clipped to the biome, except the municipalities: a
+# municipality is the unit of IBGE's list and stays whole (Macaúbas, BA, has
+# 40% of its area in the Cerrado).
 #
 # Indigenous lands, quilombos and settlements take a 1e-5 degree tolerance
 # (about 1 m): 0.002 degrees changed the outline of a quilombo by 68% and of an
@@ -166,9 +169,9 @@ def polygonal(geom):
     return shapely.union_all(parts) if parts else shapely.Polygon()
 
 
-def write(name, gdf, columns, tol):
+def write(name, gdf, columns, tol, clip=True):
     path = os.path.join(OUT, name + ".geojson")
-    clipped = gpd.clip(gdf, bioma_geom, sort=True)
+    clipped = gpd.clip(gdf, bioma_geom, sort=True) if clip else gdf
     clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
     clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
     clipped = clipped[columns + ["geometry"]].to_crs(4326)
@@ -236,12 +239,12 @@ def assentamentos():
 
 jobs = [
     ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
-    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
+    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004, False),
     ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 1e-5),
     ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 1e-5),
     ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], 1e-5),
 ]
 
-for name, load, columns, tol in jobs:
+for name, load, columns, tol, *clip in jobs:
     print(f"baixando {name}...", flush=True)
-    write(name, load(), columns, tol)
+    write(name, load(), columns, tol, *clip)
