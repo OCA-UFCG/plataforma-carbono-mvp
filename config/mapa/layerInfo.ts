@@ -64,8 +64,11 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     source: 'IBGE, malha territorial de 2022',
   },
   municipios: {
-    summary: 'Municípios em que a Caatinga é o bioma predominante, segundo a classificação do IBGE de 2024, 1.095 ao todo, recortados no limite do bioma.',
-    cautions: ['A Caatinga presente em outros 114 municípios, cerca de 3,4% do bioma, fica sem polígono municipal.'],
+    summary: 'Municípios em que a Caatinga é o bioma predominante, segundo a classificação do IBGE de 2024, 1.095 ao todo, com o território inteiro.',
+    cautions: [
+      'Nos municípios de borda, os valores incluem a parte fora da Caatinga.',
+      'A Caatinga presente em outros 114 municípios, cerca de 3,4% do bioma, fica sem polígono municipal.',
+    ],
     period: '2022',
     source: 'IBGE, malha municipal de 2022 e bioma predominante por município (2024)',
   },
