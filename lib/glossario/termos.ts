@@ -59,8 +59,11 @@ export const TERMOS: Termo[] = [
       id: 'torreFluxo',
       titulo: 'Como a torre mede o carbono',
       descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento vertical e o CO₂ medidos no topo mostram se a vegetação absorve ou libera carbono. Os botões escolhem o caso.',
-      nota: 'Ilustração sem escala. As diferenças de CO₂ entre o ar que sobe e o que desce estão exageradas para ficarem visíveis; cores, pontos e velocidades são escolhas de representação.',
+      nota: 'Ilustração sem escala. As diferenças de CO₂ entre o ar que sobe e o que desce estão exageradas para ficarem visíveis; cores, pontos, velocidades, a direção do vento e a forma da área medida são escolhas de representação. A área de onde vem o ar medido se estende contra o vento e fica maior com o ar estável da noite (Kljun et al., 2015).',
     },
+    fontes: [
+      'Kljun, N., Calanca, P., Rotach, M. W., & Schmid, H. P. (2015). A simple two-dimensional parameterisation for Flux Footprint Prediction (FFP). Geoscientific Model Development, 8(11), 3695-3713. https://doi.org/10.5194/gmd-8-3695-2015',
+    ],
   },
   { slug: 'fluxos-de-carbono', titulo: 'Fluxos de carbono' },
   { slug: 'eficiencia-de-uso-do-carbono', titulo: 'Eficiência de uso do carbono' },
