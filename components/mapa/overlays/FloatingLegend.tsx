@@ -2,9 +2,12 @@
 
 import { useState, type Ref } from 'react'
 import { IcList, IcChevronDown } from '../icons'
+import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
+import { activeRaster, type ActiveScale } from '@/lib/mapa/activeRaster'
+import { presentClasses } from '@/lib/mapa/presentClasses'
 import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
@@ -179,7 +182,24 @@ function VectorLegendItem({ layer, theme }: { layer: VectorLayerConfig; theme: P
 // Raster layer: name + class swatches
 
 function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: PlatformTheme }) {
+  // The same inputs MapView draws with, so the legend describes the tile on screen.
+  const state = useStore(useShallow((s) => ({
+    selectedGeometry: s.selectedGeometry,
+    temporalDate:     s.temporalDate,
+    fetchedTileUrls:  s.fetchedTileUrls,
+    temporalTileUrls: s.temporalTileUrls,
+    recorteScales:    s.recorteScales,
+    recorteTileUrls:  s.recorteTileUrls,
+  })))
+  const result = useStore((s) => s.results[layer.id])
+  const scale = activeRaster(state, layer.id).scale
+  const temporalDate = state.temporalDate[layer.id]
+
   const hasClasses = layer.classes && layer.classes.length > 0
+  // Inside a selected recorte feature, only the classes that occur there.
+  const classes = hasClasses && state.selectedGeometry?.recorte
+    ? presentClasses(layer.classes!, result, temporalDate)
+    : layer.classes
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -202,9 +222,15 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
         {layer.name}
       </span>
 
+      {scale && (
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3 }}>
+          Escala ajustada a {scale.recorteName}
+        </span>
+      )}
+
       {/* Categorical classes */}
       {hasClasses &&
-        layer.classes!.map((cls) => (
+        classes!.map((cls) => (
           <div key={cls.value} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span
               style={{
@@ -221,7 +247,7 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
 
       {/* Continuous: real palette gradient with min/max + unit */}
       {!hasClasses && layer.colorType === 'continuous' && layer.source !== 'dem' && (
-        <ContinuousLegend layer={layer} theme={theme} />
+        <ContinuousLegend layer={layer} theme={theme} scale={scale} temporalDate={temporalDate} />
       )}
     </div>
   )
@@ -229,14 +255,29 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
 
 // Continuous raster: gradient from the actual palette + min/max/unit
 
-function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: PlatformTheme }) {
+function ContinuousLegend({
+  layer,
+  theme,
+  scale,
+  temporalDate,
+}: {
+  layer: RasterLayerConfig
+  theme: PlatformTheme
+  scale: ActiveScale | null
+  temporalDate: string | undefined
+}) {
   const palette = layer.gee?.visParams?.palette
-  const min = layer.gee?.visParams?.min ?? layer.rescale?.[0]
-  const max = layer.gee?.visParams?.max ?? layer.rescale?.[1]
-  // The ends print the real extremes of the data; the bar keeps the color
-  // stretch, so values past it share the end color.
-  const temporalDate = useStore((s) => s.temporalDate[layer.id])
-  const real = dataRangeFor(layer.id, temporalDate)
+  // The bar's stretch: the selected recorte's while the map shows it, the
+  // calibrated biome one otherwise.
+  const min = scale?.stretch.min ?? layer.gee?.visParams?.min ?? layer.rescale?.[0]
+  const max = scale?.stretch.max ?? layer.gee?.visParams?.max ?? layer.rescale?.[1]
+  // The ends print the real extremes of the data -- the feature's, measured
+  // with its scale, or the biome's from dataRanges.json -- and fall back to
+  // the stretch when that year was not measured. Values past the stretch
+  // share the end color.
+  const real = scale
+    ? scale.range ? dataRangeFor(layer.id, temporalDate, { layers: { [layer.id]: scale.range } }) : null
+    : dataRangeFor(layer.id, temporalDate)
   const low = real?.min ?? min
   const high = real?.max ?? max
 
