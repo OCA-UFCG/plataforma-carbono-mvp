@@ -11,7 +11,7 @@ import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/an
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
-import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -168,6 +168,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   // seconds on its tiles, and a card that finishes meanwhile belongs in it.
   const [sheet, setSheet] = useState<{
     Sheet: typeof AnalysisSheet; mapSrc: string | null; generatedAt: Date
+    // What was on the map when the button was clicked, for the legend.
+    legendLayers: LayerConfig[]; legendDates: Record<string, string>
   } | null>(null)
   const sheetLayers: SheetLayer[] = measured.map((raster) => {
     const date = raster.gee?.temporal ? temporalDate[raster.id] : undefined
@@ -196,7 +198,11 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         setExporting(false)
         return
       }
-      setSheet({ Sheet, mapSrc, generatedAt: new Date() })
+      const { layers: current, temporalDate: dates } = useStore.getState()
+      setSheet({
+        Sheet, mapSrc, generatedAt: new Date(),
+        legendLayers: current.filter((l) => l.visible), legendDates: dates,
+      })
     } catch (err) {
       console.error('JPEG export failed', err)
       setJpegFailed(true)
@@ -288,6 +294,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         drawnLength={drawnLength}
         generatedAt={sheet.generatedAt}
         layers={sheetLayers}
+        legendLayers={sheet.legendLayers}
+        legendDates={sheet.legendDates}
       />
     </div>,
     document.querySelector('[data-cc-root]') ?? document.body,
