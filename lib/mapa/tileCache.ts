@@ -15,7 +15,10 @@ interface Entry {
 }
 
 const TTL_MS = 90 * 60 * 1000  // 90 minutes
-const MAX_ENTRIES = 200
+// Recorte-scaled tiles (one per layer, feature and year) share this cache with
+// the biome tiles that `npm run prewarm` warms; oldest-first eviction at 200
+// pushed those out after a few selections. An entry is one URL.
+const MAX_ENTRIES = 1000
 
 const cache = new Map<string, Entry>()
 
