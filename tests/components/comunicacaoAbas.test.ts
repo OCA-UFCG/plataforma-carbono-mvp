@@ -17,7 +17,7 @@ describe('ComunicacaoAbas', () => {
     const markup = html(ComunicacaoAbas, { inicial: 'conteudo', paineis })
     const tabs = markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []
 
-    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações', 'Glossário'])
+    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações', 'Glossário (teste)'])
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
     expect(markup).toContain('painel de conteúdo')
     expect(markup).toContain('painel de eventos')

@@ -6,7 +6,7 @@
 export const ABAS_COMUNICACAO = [
   { id: 'conteudo', label: 'Conteúdo' },
   { id: 'eventos', label: 'Eventos e articulações' },
-  { id: 'glossario', label: 'Glossário' },
+  { id: 'glossario', label: 'Glossário (teste)' },
 ] as const
 
 export type AbaComunicacao = (typeof ABAS_COMUNICACAO)[number]['id']
