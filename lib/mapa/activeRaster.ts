@@ -3,9 +3,10 @@
 // draws with it and the legend describes with it, so the legend never claims a
 // scale the map is not showing.
 
-import type { SelectedGeometry } from '@/types/mapa'
+import type { LayerConfig, SelectedGeometry } from '@/types/mapa'
 import {
   recorteScaleKey,
+  scalesWithRecorte,
   STATIC_KEY,
   type RecorteScaleEntry,
   type ScaleRange,
@@ -57,6 +58,31 @@ export function activeRaster(state: ActiveRasterInput, layerId: string): ActiveR
   const standIn = nearestYearTile(tiles, date)
   if (standIn) return { tileUrl: standIn, scale }
   return { tileUrl: biome, scale: null }
+}
+
+/**
+ * The feature a layer's scale is being adjusted to: from the moment it is
+ * selected until its recorte tile reaches the map, so the legend can say so at
+ * once instead of seconds later, when the scale and then the tile have
+ * answered. Null when there is nothing to wait for -- no recorte, a layer that
+ * cannot follow it, the recorte scale already on screen, or a failure that
+ * leaves the biome scale.
+ */
+export function scaleAdjustingTo(
+  state: ActiveRasterInput & { recorteFailedTiles: Record<string, true> },
+  layer: LayerConfig,
+): string | null {
+  const recorte = state.selectedGeometry?.recorte
+  if (!recorte || !scalesWithRecorte(layer, recorte.recorteId)) return null
+  if (activeRaster(state, layer.id).scale) return null
+
+  const key = recorteScaleKey(layer.id, recorte.recorteId, recorte.feicaoIndex)
+  const entry = state.recorteScales[key]
+  // No entry yet: the runner sends the request in the same render pass.
+  if (!entry || entry.status === 'loading') return recorte.name
+  if (entry.status === 'error' || !entry.stretch) return null
+  const dateKey = state.temporalDate[layer.id] ?? STATIC_KEY
+  return state.recorteFailedTiles[`${key}@${dateKey}`] ? null : recorte.name
 }
 
 function nearestYearTile(tiles: Record<string, string> | undefined, date: string | undefined): string | undefined {

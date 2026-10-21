@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { activeRaster, type ActiveRasterInput } from '@/lib/mapa/activeRaster'
+import { activeRaster, scaleAdjustingTo, type ActiveRasterInput } from '@/lib/mapa/activeRaster'
 import { recorteScaleKey } from '@/lib/mapa/recorteScale'
-import type { SelectedGeometry } from '@/types/mapa'
+import type { RasterLayerConfig, SelectedGeometry } from '@/types/mapa'
 
 const polygon = { type: 'Polygon' as const, coordinates: [[[-40, -8], [-40, -7], [-39, -7], [-40, -8]]] }
 const campina = { recorteId: 'municipios', feicaoIndex: 120, name: 'Campina Grande' }
@@ -112,5 +112,70 @@ describe('activeRaster', () => {
       recorteScales: { [key('estoque', 7)]: { status: 'ready', stretch, range: null } },
       recorteTileUrls: { [key('estoque', 7)]: { static: 'patos-static' } },
     }), 'estoque')).toEqual({ tileUrl: 'biome-static', scale: null })
+  })
+})
+
+describe('scaleAdjustingTo', () => {
+  const raster = (id: string, over: Partial<RasterLayerConfig> = {}): RasterLayerConfig => ({
+    id, name: id, type: 'raster', visible: true, opacity: 80,
+    colorType: 'continuous', source: 'gee', clipToLayerId: 'bioma',
+    gee: { asset: { type: 'image', id: `projects/x/${id}` }, visParams: { min: 0, max: 100 } },
+    ...over,
+  })
+  const estoque = raster('estoque')
+  const state = (over: Partial<ActiveRasterInput> = {}) => ({ ...input(over), recorteFailedTiles: {} })
+
+  it('names the feature from the moment it is selected, before any request has answered', () => {
+    expect(scaleAdjustingTo(state({ selectedGeometry: selected }), estoque)).toBe('Campina Grande')
+  })
+
+  it('keeps naming it while the scale loads, and while its tile is on its way', () => {
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      recorteScales: { [key('estoque')]: { status: 'loading' } },
+    }), estoque)).toBe('Campina Grande')
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      recorteScales: { [key('estoque')]: { status: 'ready', stretch, range: null } },
+    }), estoque)).toBe('Campina Grande')
+  })
+
+  it('stops once the recorte scale is on screen, a stand-in year included', () => {
+    const ready = { status: 'ready' as const, stretch, range: null }
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      recorteScales: { [key('estoque')]: ready },
+      recorteTileUrls: { [key('estoque')]: { static: 'recorte-static' } },
+    }), estoque)).toBeNull()
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      temporalDate: { gpp: '2010-01-01' },
+      recorteScales: { [key('gpp')]: ready },
+      recorteTileUrls: { [key('gpp')]: { '2024-01-01': 'recorte-2024' } },
+    }), raster('gpp'))).toBeNull()
+  })
+
+  it('stops when the biome scale stays: a failed scale, a degenerate one, or a failed tile', () => {
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      recorteScales: { [key('estoque')]: { status: 'error' } },
+    }), estoque)).toBeNull()
+    expect(scaleAdjustingTo(state({
+      selectedGeometry: selected,
+      recorteScales: { [key('estoque')]: { status: 'ready', stretch: null, range: null } },
+    }), estoque)).toBeNull()
+    expect(scaleAdjustingTo({
+      ...state({
+        selectedGeometry: selected,
+        recorteScales: { [key('estoque')]: { status: 'ready', stretch, range: null } },
+      }),
+      recorteFailedTiles: { [`${key('estoque')}@static`]: true },
+    }, estoque)).toBeNull()
+  })
+
+  it('names nothing for a drawn area, a categorical layer or the recorte the layer is clipped to', () => {
+    expect(scaleAdjustingTo(state({ selectedGeometry: drawn }), estoque)).toBeNull()
+    expect(scaleAdjustingTo(state({ selectedGeometry: selected }), raster('lulc', { colorType: 'categorical' }))).toBeNull()
+    expect(scaleAdjustingTo(state({ selectedGeometry: selected }), raster('x', { clipToLayerId: 'municipios' }))).toBeNull()
   })
 })

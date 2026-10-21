@@ -34,7 +34,7 @@ const input = (over: Partial<PendingRecorteInput> = {}): PendingRecorteInput => 
   recorteScales: {},
   recorteTileUrls: {},
   inFlightTiles: new Set<string>(),
-  failedTiles: new Set<string>(),
+  recorteFailedTiles: {},
   ...over,
 })
 
@@ -107,7 +107,7 @@ describe('pendingRecorteWork', () => {
     expect(pendingRecorteWork(input({
       layers: [raster('a')],
       recorteScales: { [keyOf('a')]: ready },
-      failedTiles: new Set([`${keyOf('a')}@static`]),
+      recorteFailedTiles: { [`${keyOf('a')}@static`]: true },
     }))).toEqual([])
   })
 
@@ -139,8 +139,8 @@ describe('runRecorteScales', () => {
       temporalDate: {},
       recorteScales: {},
       recorteTileUrls: {},
+      recorteFailedTiles: {},
     })
-    retryRecorteFailures(campina)
   })
   afterEach(() => {
     vi.unstubAllGlobals()

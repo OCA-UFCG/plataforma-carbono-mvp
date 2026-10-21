@@ -8,23 +8,13 @@
 import { useStore } from '@/lib/mapa/store'
 import {
   recorteScaleKey,
+  scalesWithRecorte,
   STATIC_KEY,
   type RecorteScaleEntry,
   type ScaleResponse,
   type Stretch,
 } from '@/lib/mapa/recorteScale'
 import type { LayerConfig, RasterLayerConfig, SelectedRecorte } from '@/types/mapa'
-
-/** A continuous GEE raster on screen whose colors can follow `recorteId`. */
-export function scalesWithRecorte(layer: LayerConfig, recorteId: string): layer is RasterLayerConfig {
-  return layer.type === 'raster'
-    && layer.visible
-    && layer.source === 'gee'
-    && layer.colorType === 'continuous'
-    && !!layer.gee?.asset
-    // The recorte the layer is clipped to already has its scale: the default one.
-    && layer.clipToLayerId !== recorteId
-}
 
 /** The stop a tile is cached under: the date of a temporal layer, STATIC_KEY otherwise. */
 export function dateKeyOf(layer: RasterLayerConfig, temporalDate: Record<string, string>): string | undefined {
@@ -53,7 +43,7 @@ export interface PendingRecorteInput {
    * re-sending a 429 at that pace would drain the per-IP limit the stats and
    * the biome tiles share.
    */
-  failedTiles:     ReadonlySet<string>
+  recorteFailedTiles: Record<string, true>
 }
 
 /**
@@ -80,14 +70,13 @@ export function pendingRecorteWork(input: PendingRecorteInput): RecorteWork[] {
     if (entry.status !== 'ready' || !entry.stretch) continue
     if (input.recorteTileUrls[key]?.[dateKey]) continue
     if (input.inFlightTiles.has(`${key}@${dateKey}`)) continue
-    if (input.failedTiles.has(`${key}@${dateKey}`)) continue
+    if (input.recorteFailedTiles[`${key}@${dateKey}`]) continue
     out.push({ layer, key, need: 'tile', dateKey, stretch: entry.stretch })
   }
   return out
 }
 
 const inFlightTiles = new Set<string>()
-const failedTiles = new Set<string>()
 
 function setScale(key: string, entry: RecorteScaleEntry) {
   useStore.setState((s) => ({ recorteScales: { ...s.recorteScales, [key]: entry } }))
@@ -137,7 +126,7 @@ async function fetchTile(layer: RasterLayerConfig, key: string, dateKey: string,
   } catch (err) {
     // An empty slot keeps the biome tile on screen.
     console.error('[recorteScale] tile', layer.id, err)
-    failedTiles.add(flight)
+    useStore.setState((s) => ({ recorteFailedTiles: { ...s.recorteFailedTiles, [flight]: true } }))
   } finally {
     inFlightTiles.delete(flight)
   }
@@ -150,12 +139,12 @@ async function fetchTile(layer: RasterLayerConfig, key: string, dateKey: string,
  */
 export function retryRecorteFailures(recorte: SelectedRecorte): void {
   const suffix = `|${recorte.recorteId}|${recorte.feicaoIndex}`
-  for (const flight of failedTiles) {
-    if (flight.slice(0, flight.lastIndexOf('@')).endsWith(suffix)) failedTiles.delete(flight)
-  }
   useStore.setState((s) => ({
     recorteScales: Object.fromEntries(Object.entries(s.recorteScales)
       .filter(([key, entry]) => !(key.endsWith(suffix) && entry.status === 'error'))),
+    recorteFailedTiles: Object.fromEntries(Object.keys(s.recorteFailedTiles)
+      .filter((flight) => !flight.slice(0, flight.lastIndexOf('@')).endsWith(suffix))
+      .map((flight) => [flight, true as const])),
   }))
 }
 
@@ -172,7 +161,7 @@ export function runRecorteScales(): void {
     recorteScales:   s.recorteScales,
     recorteTileUrls: s.recorteTileUrls,
     inFlightTiles,
-    failedTiles,
+    recorteFailedTiles: s.recorteFailedTiles,
   })) {
     if (work.need === 'scale') void fetchScale(work.layer, work.key, recorte)
     else void fetchTile(work.layer, work.key, work.dateKey, work.stretch!)

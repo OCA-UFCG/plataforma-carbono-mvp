@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
-import { activeRaster, type ActiveScale } from '@/lib/mapa/activeRaster'
+import { activeRaster, scaleAdjustingTo, type ActiveScale } from '@/lib/mapa/activeRaster'
 import { presentClasses } from '@/lib/mapa/presentClasses'
 import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
@@ -190,9 +190,13 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
     temporalTileUrls: s.temporalTileUrls,
     recorteScales:    s.recorteScales,
     recorteTileUrls:  s.recorteTileUrls,
+    recorteFailedTiles: s.recorteFailedTiles,
   })))
   const result = useStore((s) => s.results[layer.id])
   const scale = activeRaster(state, layer.id).scale
+  // Said at the selection itself: the scale and then its tile take a few
+  // seconds, and until they land the bar below still describes the biome.
+  const adjustingTo = scale ? null : scaleAdjustingTo(state, layer)
   const temporalDate = state.temporalDate[layer.id]
 
   const hasClasses = layer.classes && layer.classes.length > 0
@@ -225,6 +229,11 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
       {scale && (
         <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3 }}>
           Escala ajustada a {scale.recorteName}
+        </span>
+      )}
+      {adjustingTo && (
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3, opacity: 0.75 }}>
+          Ajustando escala a {adjustingTo}…
         </span>
       )}
 

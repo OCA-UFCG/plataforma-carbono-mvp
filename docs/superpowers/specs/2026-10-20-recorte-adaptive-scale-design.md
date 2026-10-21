@@ -37,6 +37,7 @@ Settled with the user before any code was written.
 | 5 | Compute the scale on demand or offline? | **On demand on the server**, cached per layer and feature. Precomputing thousands of features × 27 layers × years offline was rejected: hours of batch work, a very large JSON, and a rerun on every data update. |
 | 6 | Behavior details (presented as part 1 and approved) | A caption `"Escala ajustada a {nome}"` under the layer name while the recorte scale is on screen. The biome tile stays on screen until the recorte one is ready. Any failure falls back silently to the biome scale. `hillshade_fabdem` adapts like any other continuous GEE layer. |
 | 7 | On a year step, what shows until the new year's recorte tile arrives? (settled after the final review) | **The nearest year's recorte tile.** The stretch is the same for every year, so the recorte colors stay on screen instead of flashing the biome scale on every step. The biome tile is shown only before the first recorte tile of a selection arrives. |
+| 8 | When does the legend react to a selection? (settled while testing the branch) | **At once.** From the click until the recorte tile reaches the map (the scale, then the tile: about 3.5–4.5 s, against 1–2.7 s for the results), the legend says `"Ajustando escala a {nome}…"` over the biome bar still on screen, then switches to `"Escala ajustada a {nome}"` with the tile. A failure ends the notice and leaves the biome scale. |
 
 ## 3. Behavior
 
@@ -53,7 +54,8 @@ path that fills the results panel):
 - **Caption.** `"Escala ajustada a {nome}"` sits under the layer name, `{nome}` being the
   analysis label (the feature's name).
 - **While loading.** On a new selection the biome tile stays on screen until the recorte tile is
-  ready; the tile and the legend switch together. On a year step after that, the nearest year's
+  ready; the tile and the legend switch together. Meanwhile, from the click on, the legend says
+  `"Ajustando escala a {nome}…"` (decision 8). On a year step after that, the nearest year's
   recorte tile stands in until the new year's arrives (decision 7), so the colors never flash back
   to the biome scale.
 - **Signed flux (`gfw_netflux`).** The palette puts its white (`#f7f7f7`) at 1/4 of the bar, which

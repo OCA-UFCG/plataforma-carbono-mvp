@@ -126,6 +126,7 @@ interface MapaStore {
   // answer for a feature the user has left only lands in the cache. Not persisted.
   recorteScales:    Record<string, RecorteScaleEntry>
   recorteTileUrls:  Record<string, Record<string, string>>  // key -> { dateKey -> tileUrl }
+  recorteFailedTiles: Record<string, true>                  // `${key}@${dateKey}` of tiles that failed
 
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
@@ -219,6 +220,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   temporalDate:     restaurado?.temporalDate ?? {},
   recorteScales:    {},
   recorteTileUrls:  {},
+  recorteFailedTiles: {},
   statsCache:       {},
   pixelCache:       {},
 

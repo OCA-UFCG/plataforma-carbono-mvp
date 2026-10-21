@@ -4,6 +4,7 @@
 // and the client keys its caches with the same `recorteScaleKey`.
 
 import type { DataRange } from '@/lib/mapa/dataRange'
+import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 export interface Stretch { min: number; max: number }
 
@@ -30,6 +31,17 @@ export const STATIC_KEY = 'static'
 
 export function recorteScaleKey(layerId: string, recorteId: string, feicaoIndex: number): string {
   return `${layerId}|${recorteId}|${feicaoIndex}`
+}
+
+/** A continuous GEE raster on screen whose colors can follow `recorteId`. */
+export function scalesWithRecorte(layer: LayerConfig, recorteId: string): layer is RasterLayerConfig {
+  return layer.type === 'raster'
+    && layer.visible
+    && layer.source === 'gee'
+    && layer.colorType === 'continuous'
+    && !!layer.gee?.asset
+    // The recorte the layer is clipped to already has its scale: the default one.
+    && layer.clipToLayerId !== recorteId
 }
 
 /** Band name of a year in the stacked image; a band name cannot start with a digit. */
