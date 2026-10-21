@@ -5,7 +5,8 @@ import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
-import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
+import { choroplethPending, choroplethView, type ChoroplethRange } from '@/lib/mapa/choropleth'
+import type { LayerConfig, PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
@@ -131,7 +132,7 @@ export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
             if (layer.type === 'vector') {
               return <VectorLegendItem key={layer.id} layer={layer as VectorLayerConfig} theme={theme} />
             }
-            return <RasterLegendItem key={layer.id} layer={layer as RasterLayerConfig} theme={theme} />
+            return <RasterLegendItem key={layer.id} layer={layer as RasterLayerConfig} layers={layers} theme={theme} />
           })
         )}
       </div>
@@ -178,8 +179,23 @@ function VectorLegendItem({ layer, theme }: { layer: VectorLayerConfig; theme: P
 
 // Raster layer: name + class swatches
 
-function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: PlatformTheme }) {
+function RasterLegendItem({
+  layer,
+  layers,
+  theme,
+}: {
+  layer: RasterLayerConfig
+  layers: LayerConfig[]
+  theme: PlatformTheme
+}) {
   const hasClasses = layer.classes && layer.classes.length > 0
+  // The same rule MapView draws with, so the legend describes the map on screen.
+  const choropleths = useStore((s) => s.choropleths)
+  const temporalDate = useStore((s) => s.temporalDate[layer.id])
+  const view = choroplethView(layers, layer, choropleths, temporalDate)
+  // Said from the moment the recorte is on: the values take a few seconds,
+  // and until they land the bar below still describes the pixels.
+  const pending = view ? null : choroplethPending(layers, layer, choropleths)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -202,6 +218,14 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
         {layer.name}
       </span>
 
+      {(view || pending) && (
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3, opacity: view ? 1 : 0.75 }}>
+          {view
+            ? view.caption
+            : `Calculando ${pending!.charAt(0).toLowerCase()}${pending!.slice(1)}…`}
+        </span>
+      )}
+
       {/* Categorical classes */}
       {hasClasses &&
         layer.classes!.map((cls) => (
@@ -221,7 +245,7 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
 
       {/* Continuous: real palette gradient with min/max + unit */}
       {!hasClasses && layer.colorType === 'continuous' && layer.source !== 'dem' && (
-        <ContinuousLegend layer={layer} theme={theme} />
+        <ContinuousLegend layer={layer} theme={theme} range={view?.range ?? null} />
       )}
     </div>
   )
@@ -229,14 +253,24 @@ function RasterLegendItem({ layer, theme }: { layer: RasterLayerConfig; theme: P
 
 // Continuous raster: gradient from the actual palette + min/max/unit
 
-function ContinuousLegend({ layer, theme }: { layer: RasterLayerConfig; theme: PlatformTheme }) {
+function ContinuousLegend({
+  layer,
+  theme,
+  range,
+}: {
+  layer: RasterLayerConfig
+  theme: PlatformTheme
+  /** The map by feature's range, when the layer is drawn by feature. */
+  range: ChoroplethRange | null
+}) {
   const palette = layer.gee?.visParams?.palette
-  const min = layer.gee?.visParams?.min ?? layer.rescale?.[0]
-  const max = layer.gee?.visParams?.max ?? layer.rescale?.[1]
-  // The ends print the real extremes of the data; the bar keeps the color
-  // stretch, so values past it share the end color.
+  const min = range?.min ?? layer.gee?.visParams?.min ?? layer.rescale?.[0]
+  const max = range?.max ?? layer.gee?.visParams?.max ?? layer.rescale?.[1]
+  // Drawn by feature, the bar runs over the features' values and its ends say
+  // so. In pixels, the ends print the real extremes of the data while the bar
+  // keeps the color stretch, so values past it share the end color.
   const temporalDate = useStore((s) => s.temporalDate[layer.id])
-  const real = dataRangeFor(layer.id, temporalDate)
+  const real = range ? null : dataRangeFor(layer.id, temporalDate)
   const low = real?.min ?? min
   const high = real?.max ?? max
 
