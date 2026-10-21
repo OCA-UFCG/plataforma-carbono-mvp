@@ -82,3 +82,18 @@ describe('computeChoropleth', () => {
     expect(mocks.reduce).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('the cache across module instances', () => {
+  it('is one per process, so what the startup warm-up computes reaches the route', async () => {
+    const layer = getChoroplethLayer('npp_modis')!
+    const key = choroplethKey(layer.id, 'estados')
+    mocks.reduce.mockResolvedValueOnce([[1, 2]])
+    await computeChoropleth(key, layer, 'estados')
+
+    // Next may load the service once for instrumentation.ts and once for the route.
+    vi.resetModules()
+    const again = await import('@/lib/mapa/choroplethService')
+
+    expect(again.cachedChoropleth(key)).toMatchObject({ range: { min: 1, max: 2 } })
+  })
+})

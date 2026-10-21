@@ -28,8 +28,17 @@ export function isChoroplethRecorte(recorteId: string): boolean {
 }
 
 const TTL_MS = 24 * 60 * 60 * 1000
-const cache = new Map<string, { value: ChoroplethResponse; expires: number }>()
-const inFlight = new Map<string, Promise<ChoroplethResponse>>()
+
+// On globalThis rather than in module scope: instrumentation.ts warms this
+// cache at startup, and Next may load this module once for it and once more
+// for the route; one process-wide store is what lets the route read what the
+// warm-up computed.
+const store = globalThis as typeof globalThis & {
+  __choroplethCache?:    Map<string, { value: ChoroplethResponse; expires: number }>
+  __choroplethInFlight?: Map<string, Promise<ChoroplethResponse>>
+}
+const cache = (store.__choroplethCache ??= new Map())
+const inFlight = (store.__choroplethInFlight ??= new Map())
 
 export function cachedChoropleth(key: string): ChoroplethResponse | null {
   const hit = cache.get(key)
