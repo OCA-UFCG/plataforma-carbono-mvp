@@ -180,7 +180,10 @@ export interface TerritoryPayload {
   featureName: string
   /** State abbreviation, from the layer's contextField. */
   context?:    string
-  /** Geodesic area inside the biome boundary, in hectares. */
+  /**
+   * Geodesic area in hectares: inside the biome boundary, except for a
+   * municipality, which enters whole past it (clippedToBiome).
+   */
   areaHa:      number
   biomaAreaHa: number
   /** Its place among the territories of its type by area; null for the biome. */

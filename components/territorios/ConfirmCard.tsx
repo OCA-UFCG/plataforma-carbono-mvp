@@ -12,13 +12,15 @@ export interface ConfirmCardProps {
   unitLabel: string
   /** The state's abbreviation, when the name alone does not carry it. */
   context?:  string
+  /** The area is the whole feature, not its part inside the biome (clippedToBiome). */
+  whole?:    boolean
   onConfirm: () => void
   onCancel:  () => void
 }
 
 // A card in the chooser's column on a computer, a sheet rising from the bottom
 // edge on a phone (territorios-escolha.css); the markup is the same.
-export default function ConfirmCard({ entry, unitLabel, context, onConfirm, onCancel }: ConfirmCardProps) {
+export default function ConfirmCard({ entry, unitLabel, context, whole, onConfirm, onCancel }: ConfirmCardProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const headingId = useId()
@@ -57,7 +59,7 @@ export default function ConfirmCard({ entry, unitLabel, context, onConfirm, onCa
       <div aria-live="polite">
         <p id={nameId} className="territorios-escolha-cartao-nome">{TERRITORY_SCRIPT.title(entry.name)}</p>
         <p id={detailId} className="territorios-escolha-cartao-detalhe">
-          {CHOOSER.confirmDetail(unitLabel, context, formatArea(areaHa))}
+          {CHOOSER.confirmDetail(unitLabel, context, formatArea(areaHa), whole)}
         </p>
       </div>
       <div className="territorios-escolha-cartao-acoes">
