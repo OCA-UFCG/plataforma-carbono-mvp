@@ -99,12 +99,15 @@ One `evaluate`:
 3. **Reduction.** `image.reduceRegions({ collection, reducer: ee.Reducer.mean(), scale, tileScale: 4 })`
    with `scale = max(asset.scale, 1000)` m. A single-band image names its output `mean`, so the
    reducer gets `setOutputs([band])` then.
-4. **Compact read.** `reduceColumns(ee.Reducer.toList(bands + 1), ['i', ...bands])` — the values
-   come back without the geometries.
+4. **Compact read.** `reduced.select(['i', ...bands], null, false)` — the properties without the
+   geometries. Not a `reduceColumns(toList)`: list reducers skip null inputs, which would drop a
+   feature with any empty year.
 
-Expected cost: municípios × 40 bands at 1 km ≈ 3.4e7 pixel-bands; to be measured in the plan's
-first task (CHIRPS, 40 years; `solo_carbono`, 39 years at 30 m) against `GEE_TIMEOUT_MS`, with the
-scale coarsened for long series if needed.
+Measured (plan, Task 1): over the 1,095 municipalities, 18 s for a static layer, 21 s for
+`solo_carbono` (39 years) and 26 s for CHIRPS (40 years); over the 9 states, 6–7 s. A coarser scale,
+simplified or rounded geometries and a grouped reduction over a zone image all cost the same: the
+time is per feature inside Earth Engine. So the first request of a layer over Municípios takes
+about 20 s; afterwards the cache answers at once.
 
 ### 4.3 Response math — `lib/mapa/choropleth.ts` (pure, shared)
 
