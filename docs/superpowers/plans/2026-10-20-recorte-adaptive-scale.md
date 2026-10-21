@@ -1,5 +1,7 @@
 # Recorte-adaptive layer scale Implementation Plan
 
+> **Superseded** by `docs/superpowers/specs/2026-10-21-recorte-choropleth-design.md` (2026-10-21): the user rejected re-scaling to the selected feature; the scale follows the finest active recorte layer, drawn as a map by feature. This plan is kept as the record of that first attempt.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** When a feature of a Território recorte is selected in `/mapa`, continuous rasters are redrawn on that feature's own color scale, and the legend says so; categorical legends list only the classes present in the feature.

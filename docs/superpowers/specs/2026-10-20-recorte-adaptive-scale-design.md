@@ -1,5 +1,7 @@
 # Layer colors and legend adapt to the selected recorte — design
 
+> **Superseded** by `docs/superpowers/specs/2026-10-21-recorte-choropleth-design.md` (2026-10-21): the user rejected re-scaling to the selected feature; the scale follows the finest active recorte layer, drawn as a map by feature. This design is kept as the record of that first attempt.
+
 **Date:** 2026-10-20
 **Status:** approved in conversation, section by section, before any code was written.
 
