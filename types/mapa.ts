@@ -292,12 +292,6 @@ export interface LayerResult {
   error: string | null
 }
 
-/**
- * The geometry an analysis runs over, and how it was produced.
- *
- * It lives here rather than in analysisRunner.ts because the store holds it and
- * the runner imports the store: a type in the runner would close that loop.
- */
 /** The feature of a Território recorte a selection came from; a drawn area has none. */
 export interface SelectedRecorte {
   recorteId:   string
@@ -307,6 +301,12 @@ export interface SelectedRecorte {
   name:        string
 }
 
+/**
+ * The geometry an analysis runs over, and how it was produced.
+ *
+ * It lives here rather than in analysisRunner.ts because the store holds it and
+ * the runner imports the store: a type in the runner would close that loop.
+ */
 export interface SelectedGeometry {
   geometry:     GeoJSON.Geometry
   geometryType: 'polygon' | 'point'
