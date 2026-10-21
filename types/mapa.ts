@@ -48,6 +48,11 @@ export interface VectorLayerConfig {
   // without it the biome, which contains everything, would swallow every
   // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
   pickPriority?: number
+  // A recorte that covers the biome and can draw the continuous layers by
+  // feature: each feature filled with its mean value (lib/mapa/choropleth.ts).
+  // The finest one on (highest pickPriority) wins. `caption` names the scale
+  // under the layer in the legend ("Escala municipal").
+  choropleth?: { caption: string }
   // Native GEE FeatureCollection asset id used to clip rasters to this region
   // (server-side). When set, the tile route clips to the indexed asset (fast,
   // full detail) instead of the local GeoJSON.
