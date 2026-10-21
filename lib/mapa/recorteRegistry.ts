@@ -71,8 +71,6 @@ interface VectorEntry {
 }
 
 interface IndexedFeicao extends FeicaoInfo {
-  /** Position in the GeoJSON, which is also the id MapLibre's `generateId` gives the feature. */
-  index:    number
   geometry: Geometry
 }
 
@@ -148,7 +146,12 @@ export function listFeicoes(recorteId: string): FeicaoInfo[] {
   }))
 }
 
-function resolved(entry: RecorteIndex, found: IndexedFeicao): FeicaoResolvida {
+/** One feature's geometry, bbox and geodesic area, or null when unknown. */
+export function getFeicao(recorteId: string, feicaoId: string): FeicaoResolvida | null {
+  const entry = index(recorteId)
+  const found = entry?.feicoes.find((f) => f.id === feicaoId)
+  if (!entry || !found) return null
+
   // @turf/area returns m² on the ellipsoid. The document works in hectares, the
   // unit whoever deals with carbon and land use already thinks in.
   const areaM2 = turfArea({ type: 'Feature', geometry: found.geometry, properties: {} })
@@ -162,22 +165,4 @@ function resolved(entry: RecorteIndex, found: IndexedFeicao): FeicaoResolvida {
     areaHa:   areaM2 / 10_000,
     boundary: entry.boundary,
   }
-}
-
-/** One feature's geometry, bbox and geodesic area, or null when unknown. */
-export function getFeicao(recorteId: string, feicaoId: string): FeicaoResolvida | null {
-  const entry = index(recorteId)
-  const found = entry?.feicoes.find((f) => f.id === feicaoId)
-  return entry && found ? resolved(entry, found) : null
-}
-
-/**
- * The same, by position in the file: what a click on the map knows, since the
- * map's sources number features with `generateId`. An unlabelled feature has
- * no entry, so it resolves to null.
- */
-export function getFeicaoByIndex(recorteId: string, position: number): FeicaoResolvida | null {
-  const entry = index(recorteId)
-  const found = entry?.feicoes.find((f) => f.index === position)
-  return entry && found ? resolved(entry, found) : null
 }

@@ -8,7 +8,6 @@ import type {
   PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
-import type { RecorteScaleEntry } from '@/lib/mapa/recorteScale'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
@@ -121,13 +120,6 @@ interface MapaStore {
   temporalTileUrls: Record<string, Record<string, string>>  // layerId -> { dateKey -> tileUrl }
   temporalDate:     Record<string, string>                   // layerId -> current dateKey
 
-  // Scale of each continuous raster inside the selected recorte feature, and the
-  // tiles drawn with it. Keyed by recorteScaleKey (layer|recorte|feature), so an
-  // answer for a feature the user has left only lands in the cache. Not persisted.
-  recorteScales:    Record<string, RecorteScaleEntry>
-  recorteTileUrls:  Record<string, Record<string, string>>  // key -> { dateKey -> tileUrl }
-  recorteFailedTiles: Record<string, true>                  // `${key}@${dateKey}` of tiles that failed
-
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
   statsCache: Record<string, PanelResult>
@@ -218,9 +210,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   jenksBreaks:      {},
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
-  recorteScales:    {},
-  recorteTileUrls:  {},
-  recorteFailedTiles: {},
   statsCache:       {},
   pixelCache:       {},
 

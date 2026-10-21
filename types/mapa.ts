@@ -292,15 +292,6 @@ export interface LayerResult {
   error: string | null
 }
 
-/** The feature of a Território recorte a selection came from; a drawn area has none. */
-export interface SelectedRecorte {
-  recorteId:   string
-  /** Position in the recorte GeoJSON, the id MapLibre's `generateId` gave the feature. */
-  feicaoIndex: number
-  /** The analysis label, which the legend names its scale after. */
-  name:        string
-}
-
 /**
  * The geometry an analysis runs over, and how it was produced.
  *
@@ -312,12 +303,6 @@ export interface SelectedGeometry {
   geometryType: 'polygon' | 'point'
   lon?:         number
   lat?:         number
-  /**
-   * Present when the selection is a feature of a Território recorte: the
-   * rasters then take that feature's color scale (lib/mapa/recorteScaleRunner.ts).
-   * It lives here so every path that drops the selection drops it too.
-   */
-  recorte?:     SelectedRecorte
 }
 
 // Basemap (raster XYZ tiles)

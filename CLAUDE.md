@@ -53,9 +53,7 @@ Sensitive configuration never travels from the client: the server resolves `clip
 
 ### GEE routes
 
-`app/api/gee/{tile,stats,point,timeseries,scale}/route.ts` — all `POST`, Node runtime, `force-dynamic`. Each one: validates input (`lib/mapa/geeValidation.ts`), checks the allowlist, authenticates (`lib/mapa/geeAuth.ts`, with `setDeadline`), builds the image via `buildEeImage`, evaluates with a timeout (`lib/mapa/geeEvaluate.ts`). There is an in-memory per-IP rate limiter (`lib/mapa/rateLimit.ts`) and a server-side `tileUrl` cache with a 90 min TTL (`lib/mapa/tileCache.ts`; the `unmaskValue` flag is part of the cache key, without which the two ESA CCI layers would serve the same tile). Error messages are deliberately generic — they must not leak the credentials path.
-
-`/api/gee/scale` answers the color scale of a continuous raster inside the feature selected on the map (`{ layerId, recorteId, feicaoIndex }`, ids only: the asset comes from `layers.json`, the geometry from `lib/mapa/recorteRegistry.ts` by file position). One reduction over every year (`lib/mapa/recorteScaleCompute.ts`), cached a day per layer and feature (`lib/mapa/recorteScaleService.ts`). The client then asks `/api/gee/tile` for the same layer with only `visParams.min/max` replaced; `lib/mapa/activeRaster.ts` decides which tile and scale are on screen.
+`app/api/gee/{tile,stats,point,timeseries}/route.ts` — all `POST`, Node runtime, `force-dynamic`. Each one: validates input (`lib/mapa/geeValidation.ts`), checks the allowlist, authenticates (`lib/mapa/geeAuth.ts`, with `setDeadline`), builds the image via `buildEeImage`, evaluates with a timeout (`lib/mapa/geeEvaluate.ts`). There is an in-memory per-IP rate limiter (`lib/mapa/rateLimit.ts`) and a server-side `tileUrl` cache with a 90 min TTL (`lib/mapa/tileCache.ts`; the `unmaskValue` flag is part of the cache key, without which the two ESA CCI layers would serve the same tile). Error messages are deliberately generic — they must not leak the credentials path.
 
 `@google/earthengine` is listed in `serverExternalPackages` in `next.config.ts` (CommonJS with Node-only deps; Turbopack cannot bundle it).
 
