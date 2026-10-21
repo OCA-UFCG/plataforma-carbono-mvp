@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore } from '@/lib/mapa/store'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { LAYER_INFO } from '@/config/mapa/layerInfo'
@@ -11,7 +11,7 @@ import type { LayerConfig, PlatformTheme } from '@/types/mapa'
 /** Width of the ficha column. Mapa.tsx adds this to `leftEdge` while the ficha
  *  is open, which is what steps the left cluster aside instead of letting it
  *  overlap; the two numbers must stay in sync. */
-export const FICHA_WIDTH = 400
+export const FICHA_WIDTH = 340
 
 const LABEL: CSSProperties = {
   fontSize: 11.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', margin: '22px 0 8px',
@@ -46,7 +46,14 @@ export default function LayerInfoCard({
 }) {
   const layers = useStore((s) => s.layers)
   const toggleLayer = useStore((s) => s.toggleLayer)
-  const [copied, setCopied] = useState(false)
+  const [copyNotice, setCopyNotice] = useState<'copied' | 'failed' | null>(null)
+
+  useEffect(() => {
+    // A failure stays until the sheet changes, so there is time to read it.
+    if (copyNotice !== 'copied') return
+    const timer = setTimeout(() => setCopyNotice(null), 2000)
+    return () => clearTimeout(timer)
+  }, [copyNotice])
   const layer = layers.find((l: LayerConfig) => l.id === layerId)
   const c = theme.colors
   if (!layer) return null
@@ -68,7 +75,7 @@ export default function LayerInfoCard({
     if (unit) sheet.push(['Unidade', unit])
     if (info.license) {
       sheet.push(['Licença', (
-        <a key="licenca" href={info.license.url} target="_blank" rel="noopener noreferrer" style={{ color: c.acude, fontWeight: 600, textDecoration: 'none' }}>
+        <a key="licenca" href={info.license.url} target="_blank" rel="noopener noreferrer" style={{ color: c.text, fontWeight: 600, textDecorationColor: c.border, textUnderlineOffset: 3 }}>
           {info.license.label}
         </a>
       )])
@@ -79,9 +86,13 @@ export default function LayerInfoCard({
 
   async function copyCitation() {
     if (!citation) return
-    try { await navigator.clipboard.writeText(citation) } catch { return }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(citation)
+      setCopyNotice('copied')
+    } catch {
+      // navigator.clipboard is undefined outside a secure context.
+      setCopyNotice('failed')
+    }
   }
 
   return (
@@ -89,7 +100,7 @@ export default function LayerInfoCard({
       // Fades in over the same .3s the cluster takes to slide away, so the two
       // never occupy the same pixels, not even mid-animation.
       className="ficha-in"
-      role="dialog"
+      role="complementary"
       aria-labelledby="ficha-titulo"
       style={{
         position: 'absolute', top: 16, zIndex: 16,
@@ -171,10 +182,13 @@ export default function LayerInfoCard({
               <button
                 onClick={() => { void copyCitation() }}
                 className="ui-press"
-                style={{ flex: 'none', border: `1px solid ${copied ? c.accent : c.border}`, background: c.bgCard, color: copied ? c.accentInk : c.text, borderRadius: 8, padding: '5px 10px', font: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+                style={{ flex: 'none', border: `1px solid ${copyNotice === 'copied' ? c.accent : c.border}`, background: c.bgCard, color: copyNotice === 'copied' ? c.accentInk : c.text, borderRadius: 8, padding: '5px 10px', font: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
               >
-                {copied ? 'Copiado' : 'Copiar'}
+                {copyNotice === 'copied' ? 'Copiado' : 'Copiar'}
               </button>
+            </div>
+            <div role="status" style={{ fontSize: 12.5, color: c.terracota, marginTop: copyNotice === 'failed' ? 6 : 0 }}>
+              {copyNotice === 'failed' ? 'Não foi possível copiar. Selecione o texto e copie.' : ''}
             </div>
           </>
         )}
@@ -204,10 +218,10 @@ export default function LayerInfoCard({
         ) : (
           // Every layer will get a Comunicação page; until its own exists, the
           // place is held so the sheet does not change shape when it arrives.
-          <span aria-disabled="true" style={{ ...LEARN_MORE, border: `1.5px dashed ${c.border}`, color: c.dim, cursor: 'default' }}>
+          <button disabled style={{ ...LEARN_MORE, background: 'transparent', border: `1.5px dashed ${c.border}`, color: c.dim, font: 'inherit', fontSize: 14.5, fontWeight: 700, cursor: 'default' }}>
             Saiba mais
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: c.caption }}>em breve</span>
-          </span>
+          </button>
         )}
       </div>
     </div>

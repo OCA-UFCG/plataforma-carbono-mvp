@@ -28,30 +28,34 @@ export interface LayerInfo {
   learnMore?: { href: string; label: string }
 }
 
-const INVENTARIO = 'Quarto Inventário Nacional de Emissões e Remoções Antrópicas de Gases de Efeito Estufa, setor LULUCF (MCTI)'
-const INVENTARIO_PRETERITA = 'Valores da vegetação natural pretérita, sem desconto do uso atual da terra.'
-const INVENTARIO_LACUNA = 'A área sem dado fica no oeste e no sudoeste do bioma.'
-const INVENTARIO_POR_CLASSE = 'Valor fixo por fitofisionomia da vegetação natural pretérita.'
+const INVENTORY_SOURCE = 'Quarto Inventário Nacional de Emissões e Remoções Antrópicas de Gases de Efeito Estufa, setor LULUCF (MCTI)'
+const INVENTORY_PAST_VEGETATION = 'Valores da vegetação natural pretérita, sem desconto do uso atual da terra.'
+const INVENTORY_GAP = 'A área sem dado fica no oeste e no sudoeste do bioma.'
+const INVENTORY_PER_CLASS = 'Valor fixo por fitofisionomia da vegetação natural pretérita.'
 const CC_BY_NC_SA = { label: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br' }
-const FABDEM_LICENCA = 'A licença CC BY-NC-SA 4.0 restringe o uso a fins não comerciais e exige a mesma licença para dados derivados.'
+const FABDEM_LICENSE_NOTE = 'A licença CC BY-NC-SA 4.0 restringe o uso a fins não comerciais e exige a mesma licença para dados derivados.'
 const CC_BY = { label: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/deed.pt-br' }
 // NASA's data use guidance puts the data of its missions under CC0.
 const CC0 = { label: 'CC0 1.0', url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.pt-br' }
 const COPERNICUS_DEM = 'produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.'
-const INVENTARIO_CITACAO = 'Brasil. Ministério da Ciência, Tecnologia e Inovações (2020). Quarto Inventário Nacional de Emissões e Remoções Antrópicas de Gases de Efeito Estufa, Relatório de Referência, Setor Uso da Terra, Mudança do Uso da Terra e Florestas. Brasília: MCTI.'
-const MOD17_CITACAO = 'Running, S., & Zhao, M. (2021). MODIS/Terra Net Primary Production Gap-Filled Yearly L4 Global 500m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD17A3HGF.061'
-const MOD13_CITACAO = 'Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061'
-const ESA_CITACAO = 'Santoro, M., & Cartus, O. (2025). ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the years 2007, 2010, 2015, 2016, 2017, 2018, 2019, 2020, 2021 and 2022, v6.0. NERC EDS Centre for Environmental Data Analysis. https://doi.org/10.5285/95913ffb6467447ca72c4e9d8cf30501'
-const ESA_LICENCA = { label: 'Termos ESA CCI', url: 'https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_biomass_terms_and_conditions_v2.pdf' }
-const GFW_CITACAO = 'Harris, N. L., et al. (2021). Global maps of twenty-first century forest carbon fluxes. Nature Climate Change, 11, 234-240. https://doi.org/10.1038/s41558-020-00976-6. Acessado em {acesso} pelo Global Nature Watch.'
-const FABDEM_CITACAO = 'Hawker, L., Uhe, P., Paulo, L., Sosa, J., Savage, J., Sampson, C., & Neal, J. (2022). A 30 m global map of elevation with forests and buildings removed. Environmental Research Letters, 17, 024016. https://doi.org/10.1088/1748-9326/ac4d4f. FABDEM is ' + COPERNICUS_DEM
-const MEDIA_ANUAL = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
-const GFW_FONTE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
-const GFW_EXTENSAO = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
+const INVENTORY_CITATION = 'Brasil. Ministério da Ciência, Tecnologia e Inovações (2020). Quarto Inventário Nacional de Emissões e Remoções Antrópicas de Gases de Efeito Estufa, Relatório de Referência, Setor Uso da Terra, Mudança do Uso da Terra e Florestas. Brasília: MCTI.'
+const MOD17_CITATION = 'Running, S., & Zhao, M. (2021). MODIS/Terra Net Primary Production Gap-Filled Yearly L4 Global 500m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD17A3HGF.061'
+const MOD13_CITATION = 'Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA Land Processes Distributed Active Archive Center. https://doi.org/10.5067/MODIS/MOD13Q1.061'
+const ESA_CITATION = 'Santoro, M., & Cartus, O. (2025). ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the years 2007, 2010, 2015, 2016, 2017, 2018, 2019, 2020, 2021 and 2022, v6.0. NERC EDS Centre for Environmental Data Analysis. https://doi.org/10.5285/95913ffb6467447ca72c4e9d8cf30501'
+const ESA_LICENSE = { label: 'Termos ESA CCI', url: 'https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_biomass_terms_and_conditions_v2.pdf' }
+const GFW_CITATION = 'Harris, N. L., et al. (2021). Global maps of twenty-first century forest carbon fluxes. Nature Climate Change, 11, 234-240. https://doi.org/10.1038/s41558-020-00976-6. Acessado em {acesso} pelo Global Nature Watch.'
+const FABDEM_CITATION = 'Hawker, L., Uhe, P., Paulo, L., Sosa, J., Savage, J., Sampson, C., & Neal, J. (2022). A 30 m global map of elevation with forests and buildings removed. Environmental Research Letters, 17, 024016. https://doi.org/10.1088/1748-9326/ac4d4f. FABDEM is ' + COPERNICUS_DEM
+const INVENTORY_LAYER = {
+  period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTORY_SOURCE, citation: INVENTORY_CITATION,
+}
+const INVENTORY_POOL_CAUTIONS = [INVENTORY_PER_CLASS, INVENTORY_PAST_VEGETATION, INVENTORY_GAP]
+const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
+const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
+const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
 
 export const LAYER_INFO: Record<string, LayerInfo> = {
   bioma: {
-    summary: 'Limite oficial do bioma Caatinga, com 862.640 km², do mapeamento de biomas do IBGE na escala 1:250.000.',
+    summary: 'Limite oficial do bioma Caatinga, com 862.818 km², do mapeamento de biomas do IBGE na escala 1:250.000.',
     period: '2019',
     resolution: '1:250.000',
     source: 'IBGE, Biomas e Sistema Costeiro-Marinho do Brasil (2019)',
@@ -98,49 +102,40 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
   },
 
   estoque_carbono: {
+    ...INVENTORY_LAYER,
     summary: 'Carbono somado dos cinco reservatórios do Quarto Inventário Nacional: biomassa aérea e subterrânea, madeira morta, serrapilheira e solo a 0-30 cm.',
-    cautions: [INVENTARIO_PRETERITA, 'O solo responde por 44% do total.', INVENTARIO_LACUNA],
-    period: 'Mapa único',
-    resolution: '100 m',
-    coverage: 96,
-    source: INVENTARIO,
+    cautions: [INVENTORY_PAST_VEGETATION, 'O solo responde por 46% do total.', INVENTORY_GAP],
     method: 'Valor fixo por fitofisionomia nos reservatórios da vegetação; no solo, por combinação de tipo de solo e vegetação nativa (Bernoux et al., 2002).',
-    citation: INVENTARIO_CITACAO,
   },
   estoque_c_agb: {
-    citation: INVENTARIO_CITACAO,
+    ...INVENTORY_LAYER,
     summary: 'Carbono na biomassa viva acima do solo.',
-    cautions: [INVENTARIO_POR_CLASSE, INVENTARIO_PRETERITA, INVENTARIO_LACUNA],
-    period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTARIO,
+    cautions: INVENTORY_POOL_CAUTIONS,
   },
   estoque_c_bgb: {
-    citation: INVENTARIO_CITACAO,
+    ...INVENTORY_LAYER,
     summary: 'Carbono nas raízes vivas.',
-    cautions: [INVENTARIO_POR_CLASSE, INVENTARIO_PRETERITA, INVENTARIO_LACUNA],
-    period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTARIO,
+    cautions: INVENTORY_POOL_CAUTIONS,
   },
   estoque_c_dw: {
-    citation: INVENTARIO_CITACAO,
+    ...INVENTORY_LAYER,
     summary: 'Carbono em troncos e galhos mortos, em pé ou caídos.',
-    cautions: [INVENTARIO_POR_CLASSE, INVENTARIO_PRETERITA, INVENTARIO_LACUNA],
-    period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTARIO,
+    cautions: INVENTORY_POOL_CAUTIONS,
   },
   estoque_c_litter: {
-    citation: INVENTARIO_CITACAO,
+    ...INVENTORY_LAYER,
     summary: 'Carbono na camada de folhas, galhos finos e outros restos vegetais sobre o solo.',
-    cautions: [INVENTARIO_POR_CLASSE, INVENTARIO_PRETERITA, INVENTARIO_LACUNA],
-    period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTARIO,
+    cautions: INVENTORY_POOL_CAUTIONS,
   },
   estoque_c_solo: {
+    ...INVENTORY_LAYER,
     summary: 'Carbono orgânico do solo a 0-30 cm, com valor de referência fixo por combinação de tipo de solo e vegetação nativa.',
     cautions: [
       'Sem desconto do uso atual da terra.',
       'Estima o mesmo reservatório que a camada do MapBiomas, por outro método, e as duas não se somam.',
-      INVENTARIO_LACUNA,
+      INVENTORY_GAP,
     ],
-    period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTARIO,
     method: 'Medianas de Bernoux et al. (2002) por tipo de solo e vegetação.',
-    citation: INVENTARIO_CITACAO,
   },
   solo_carbono: {
     summary: 'Carbono orgânico do solo a 0-30 cm, um mapa por ano de 1985 a 2023.',
@@ -153,7 +148,7 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
   solo_carbono_embrapa: {
     summary: 'Teor de carbono orgânico do solo, em gramas por quilo de solo.',
     cautions: ['Convertê-lo em estoque exigiria a densidade do solo e a espessura da camada, que o produto não traz, por isso o valor não se compara diretamente aos mapas em t C/ha.'],
-    resolution: '1 km',
+    resolution: '928 m',
     source: 'Embrapa',
   },
 
@@ -175,8 +170,8 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     coverage: 68,
     source: 'ESA Climate Change Initiative, Biomass v6.0',
     method: 'Radar de satélite calibrado com lidar.',
-    license: ESA_LICENCA,
-    citation: ESA_CITACAO,
+    license: ESA_LICENSE,
+    citation: ESA_CITATION,
   },
   biomassa_esa_territorial: {
     summary: 'Biomassa aérea seca da camada ESA CCI de vegetação lenhosa, com valor zero onde o produto estima biomassa zero, um mapa por ano em 2007, 2010 e de 2015 a 2022.',
@@ -184,8 +179,8 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     period: '2007, 2010, 2015-2022',
     resolution: '100 m',
     source: 'ESA Climate Change Initiative, Biomass v6.0',
-    license: ESA_LICENCA,
-    citation: ESA_CITACAO,
+    license: ESA_LICENSE,
+    citation: ESA_CITATION,
   },
   biomassa_spawn: {
     summary: 'Carbono na biomassa aérea viva, lenhosa e herbácea, em 2010, de um mapa global que harmoniza mapas de biomassa de árvores, campos e lavouras.',
@@ -198,7 +193,10 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
   },
   altura_dossel: {
     summary: 'Altura da vegetação acima do solo, estimada por rede neural a partir de imagens de satélite de alta resolução, 80% delas de 2018 a 2020.',
-    cautions: ['O erro absoluto médio reportado é de 2,8 m e chega a 5,1 m no teste em São Paulo, o que pesa na vegetação baixa da Caatinga.'],
+    cautions: [
+      'O erro absoluto médio reportado é de 2,8 m e chega a 5,1 m no teste em São Paulo, o que pesa na vegetação baixa da Caatinga.',
+      'A plataforma calcula as estatísticas com a média em células de 30 m.',
+    ],
     period: '2018-2020',
     resolution: '1 m',
     source: 'Meta e World Resources Institute (Tolan et al., 2024), Remote Sensing of Environment 300, 113888',
@@ -215,7 +213,7 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     source: 'NASA MODIS, MOD17A3HGF v6.1',
     method: 'Modelo de eficiência no uso da luz (MOD17).',
     license: CC0,
-    citation: MOD17_CITACAO,
+    citation: MOD17_CITATION,
   },
   gpp_pml: {
     summary: 'Carbono absorvido pela fotossíntese ao longo do ano, antes de descontar a respiração das plantas, um mapa por ano de 2001 a 2023.',
@@ -235,17 +233,17 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     source: 'NASA MODIS, MOD17A3HGF v6.1',
     method: 'Modelo de eficiência no uso da luz (MOD17).',
     license: CC0,
-    citation: MOD17_CITACAO,
+    citation: MOD17_CITATION,
   },
   gfw_netflux: {
     summary: 'Saldo entre emissões e remoções de carbono em áreas florestais, acumulado de 2001 a 2024, em que valores positivos indicam emissão líquida e negativos, remoção líquida.',
-    cautions: [GFW_EXTENSAO],
+    cautions: [GFW_EXTENT],
     period: '2001-2024',
     resolution: '30 m',
     coverage: 26,
-    source: GFW_FONTE,
+    source: GFW_SOURCE,
     license: CC_BY,
-    citation: GFW_CITACAO,
+    citation: GFW_CITATION,
   },
   gfw_emissions: {
     summary: 'Emissões de CO2, CH4 e N2O, em CO2 equivalente, da perda de cobertura arbórea por desmatamento, fogo e outras perturbações que eliminam o dossel, acumuladas de 2001 a 2024.',
@@ -253,20 +251,20 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     period: '2001-2024',
     resolution: '30 m',
     coverage: 4,
-    source: GFW_FONTE,
+    source: GFW_SOURCE,
     license: CC_BY,
-    citation: GFW_CITACAO,
+    citation: GFW_CITATION,
   },
   gfw_removals: {
     summary: 'Remoções de CO2 da atmosfera pelo crescimento e pela rebrota da vegetação florestal, na biomassa aérea e nas raízes, acumuladas de 2001 a 2024.',
-    cautions: [GFW_EXTENSAO, 'A incerteza é maior que a das emissões.'],
+    cautions: [GFW_EXTENT, 'A incerteza é maior que a das emissões.'],
     period: '2001-2024',
     resolution: '30 m',
     coverage: 26,
-    source: GFW_FONTE,
+    source: GFW_SOURCE,
     method: 'Taxas que dependem do tipo de floresta, em geral padrões do IPCC por zona ecológica.',
     license: CC_BY,
-    citation: GFW_CITACAO,
+    citation: GFW_CITATION,
   },
 
   lulc_mapbiomas: {
@@ -299,23 +297,23 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
 
   ndvi_modis: {
     summary: 'Índice de verdor da vegetação, de -0,2 a 1 neste produto, um mapa por ano de 2001 a 2024. Valores mais altos indicam vegetação mais densa e fotossinteticamente ativa.',
-    cautions: [MEDIA_ANUAL],
+    cautions: [ANNUAL_MEAN],
     period: '2001-2024',
     resolution: '250 m',
     source: 'NASA MODIS, MOD13Q1 v6.1',
     method: 'Média anual das composições de 16 dias.',
     license: CC0,
-    citation: MOD13_CITACAO,
+    citation: MOD13_CITATION,
   },
   evi_modis: {
     summary: 'Índice de verdor semelhante ao NDVI, com correção para a atmosfera e o fundo de solo e menor saturação em vegetação densa, um mapa por ano de 2001 a 2024.',
-    cautions: [MEDIA_ANUAL],
+    cautions: [ANNUAL_MEAN],
     period: '2001-2024',
     resolution: '250 m',
     source: 'NASA MODIS, MOD13Q1 v6.1',
     method: 'Média anual das composições de 16 dias.',
     license: CC0,
-    citation: MOD13_CITACAO,
+    citation: MOD13_CITATION,
   },
   chirps_precip: {
     summary: 'Chuva acumulada no ano, um mapa por ano de 1985 a 2024.',
@@ -323,7 +321,7 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     resolution: '5,5 km',
     source: 'CHIRPS v2.0, Climate Hazards Center (UCSB)',
     method: 'Estimativas de satélite combinadas com dados de pluviômetros, em grade de 0,05°.',
-    license: { label: 'Domínio público', url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.pt-br' },
+    license: CC0,
     citation: 'Funk, C., Peterson, P., Landsfeld, M., Pedreros, D., Verdin, J., Shukla, S., Husak, G., Rowland, J., Harrison, L., Hoell, A., & Michaelsen, J. (2015). The climate hazards infrared precipitation with stations, a new environmental record for monitoring extremes. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66',
   },
   lst_modis: {
@@ -342,27 +340,27 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
 
   altitude_fabdem: {
     summary: 'Altitude do terreno, em metros, do FABDEM, que parte do Copernicus GLO-30 e remove árvores e edificações por aprendizado de máquina, aproximando a superfície do solo.',
-    cautions: [FABDEM_LICENCA],
+    cautions: [FABDEM_LICENSE_NOTE],
     resolution: '30 m',
     source: 'FABDEM v1.2 (Hawker et al., 2022)',
     license: CC_BY_NC_SA,
-    citation: FABDEM_CITACAO,
+    citation: FABDEM_CITATION,
   },
   declividade_fabdem: {
     summary: 'Inclinação do terreno, em porcentagem, calculada a partir do FABDEM.',
-    cautions: [FABDEM_LICENCA],
+    cautions: [FABDEM_LICENSE_NOTE],
     resolution: '30 m',
     source: 'FABDEM v1.2 (Hawker et al., 2022)',
     license: CC_BY_NC_SA,
-    citation: FABDEM_CITACAO,
+    citation: FABDEM_CITATION,
   },
   hillshade_fabdem: {
     summary: 'Relevo sombreado do FABDEM, com iluminação simulada vinda do noroeste (azimute de 315°) a 45° de altura, sem exagero vertical e sem valor físico.',
-    cautions: [FABDEM_LICENCA],
+    cautions: [FABDEM_LICENSE_NOTE],
     resolution: '30 m',
     source: 'FABDEM v1.2 (Hawker et al., 2022)',
     license: CC_BY_NC_SA,
-    citation: FABDEM_CITACAO,
+    citation: FABDEM_CITATION,
   },
   sombreado_terreno: {
     summary: 'Relevo sombreado do Copernicus GLO-30, modelo de superfície obtido pela missão TanDEM-X entre 2011 e 2015, que inclui a altura da vegetação e das edificações, sem valor físico.',
