@@ -2,6 +2,8 @@
 // cards, the theme steps and the fixed facts every layer of the story shares.
 // The sentences themselves live in storyScript.ts.
 
+import appConfig from '@/config/mapa/layers.json'
+import type { LayerConfig } from '@/types/mapa'
 import type { StepId, TerritoryTypeId, ThemeId } from '@/types/territorios'
 
 export interface TerritoryType {
@@ -52,6 +54,21 @@ export const TERRITORY_TYPES: TerritoryType[] = [
 
 export function territoryTypeByRecorte(recorteId: string): TerritoryType | undefined {
   return TERRITORY_TYPES.find((t) => t.recorteId === recorteId)
+}
+
+const WHOLE_RECORTES = new Set(
+  (appConfig.layers as LayerConfig[])
+    .filter((l) => l.type === 'vector' && l.clippedToBiome === false)
+    .map((l) => l.id),
+)
+
+/**
+ * False for a type whose recorte is kept whole past the biome edge
+ * (`clippedToBiome` in layers.json): its area and figures include the part
+ * outside the Caatinga, so they are neither "na Caatinga" nor a share of it.
+ */
+export function clippedToBiome(type: TerritoryType): boolean {
+  return !WHOLE_RECORTES.has(type.recorteId)
 }
 
 export interface StoryTheme {

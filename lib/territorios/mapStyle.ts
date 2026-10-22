@@ -107,8 +107,10 @@ const CLASS_MAPS: ThemeId[] = ['uso', 'fogo', 'fluxo']
  *
  * No clipId: the Earth Engine tile clipped to the full-detail biome outline
  * took 4.4 s against 1.4 s without it (measured 2026-09-28), and the slow tiles
- * are what ran into HTTP 429. The recortes are already clipped to the biome
- * and the map dims everything outside the territory.
+ * are what ran into HTTP 429. The map dims everything outside the territory,
+ * and inside it the raster covers what the theme measures: every recorte but
+ * the municipalities is clipped to the biome, and a municipality's figures
+ * include its part outside it (clippedToBiome).
  */
 export function themeRaster(themeId: ThemeId, year?: string): ThemeRaster {
   const layer = storyLayer(themeId)

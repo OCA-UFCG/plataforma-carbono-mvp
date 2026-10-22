@@ -11,7 +11,7 @@ import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
-import { STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
+import { clippedToBiome, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { sectionId } from '@/lib/territorios/storyTabs'
 import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
@@ -89,7 +89,7 @@ export default function StorySummary({
         <p className="territorios-ficha-nome">{title}</p>
         <p className="territorios-ficha-detalhe">
           {/* The title above already carries the state. */}
-          {CHOOSER.confirmDetail(type.unitLabel, undefined, formatArea(territory.areaHa), type.id === 'bioma')}
+          {CHOOSER.confirmDetail(type.unitLabel, undefined, formatArea(territory.areaHa), type.id === 'bioma' || !clippedToBiome(type))}
         </p>
       </header>
 

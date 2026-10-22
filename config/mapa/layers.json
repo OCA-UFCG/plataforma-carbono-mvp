@@ -49,6 +49,7 @@
       "hoverLabelField": "name_muni",
       "contextField": "abbrev_state",
       "pickPriority": 20,
+      "clippedToBiome": false,
       "theme": "territorio",
       "subtheme": "limites"
     },

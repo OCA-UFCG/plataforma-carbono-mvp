@@ -59,9 +59,10 @@ export const CHOOSER = {
   confirmTitle:  'É este território?',
   // The recorte files are clipped to the biome, so the area is only the part
   // inside it; without "na Caatinga" a state's figure would read as its whole
-  // area. The biome's own detail leaves it out.
-  confirmDetail: (unitLabel: string, context: string | undefined, area: string, biome = false) =>
-    [unitLabel, context, biome ? area : `${area} na Caatinga`].filter(Boolean).join(', '),
+  // area. `whole` leaves it out: the biome's own detail, and a municipality's,
+  // which enters whole past the biome edge (clippedToBiome).
+  confirmDetail: (unitLabel: string, context: string | undefined, area: string, whole = false) =>
+    [unitLabel, context, whole ? area : `${area} na Caatinga`].filter(Boolean).join(', '),
   confirm:       'Sim, conhecer',
   chooseAnother: 'Escolher outro',
 }
