@@ -185,7 +185,7 @@ describe('ThemeStep', () => {
     expect(markup).toContain('/images/territorios/icones/territorio.svg')
     expect(markup).toContain('Onde fica e qual é o tamanho?')
     expect(markup).toContain('>6.720<')
-    expect(markup).toContain('Área dentro da Caatinga, na Bahia.')
+    expect(markup).toContain('Área do município inteiro, na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
     expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Estoque'])

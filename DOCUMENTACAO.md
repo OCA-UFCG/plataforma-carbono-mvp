@@ -96,7 +96,7 @@ scripts/
 ├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
-└ build-recortes.py            # baixa e recorta os recortes ao bioma
+└ build-recortes.py            # baixa os recortes e os recorta ao bioma (menos os municípios)
 next.config.ts                 # serverExternalPackages + Cache-Control dos GeoJSON
 render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
@@ -607,7 +607,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
-- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
+- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas (menos os municípios, que entram inteiros porque a lista do IBGE classifica o município todo; a camada declara isso com `"clippedToBiome": false` em `layers.json`, que o script e a história de Territórios leem), simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
 
 ## Deploy
 

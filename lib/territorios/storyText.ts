@@ -8,7 +8,7 @@
 // variants drop the comparisons with the biome, which would compare the
 // Caatinga with itself.
 
-import { STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
+import { clippedToBiome, STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
 import { FEMININE_TYPES, STATE_LOCATIVE, TERRITORY_SCRIPT, type StoryScript } from '@/config/territorios/storyScript'
 import {
   areaParts,
@@ -113,8 +113,9 @@ function territoryAnswer({ territory, type, script }: StepInput): Answer {
     // A state is the one type whose share of the biome is not "menos de 0,1%".
     sentence = s.state(formatPercent(biomeAreaSharePct(territory)))
   } else {
+    const [located, plain] = clippedToBiome(type) ? [s.located, s.plain] : [s.wholeLocated, s.wholePlain]
     const where = stateLocative(territory.context)
-    sentence = where ? s.located(where) : s.plain
+    sentence = where ? located(where) : plain
   }
   return { headline: areaParts(territory.areaHa), sentence }
 }
@@ -125,15 +126,16 @@ const SHARE_CARD_MIN_PCT = 0.1
 /**
  * The cards under the territory's area (Figma 19254:37459): its share of the
  * biome, from 0,1% up, and its rank by area among the territories of its type.
- * None for the biome, which is the whole. Most municipalities and every
- * smaller type fall under 0,1% and keep the rank alone.
+ * None for the biome, which is the whole. A municipality enters whole, past
+ * the biome edge, so its area is no share of the biome; it and every type that
+ * falls under 0,1% keep the rank alone.
  */
 export function territoryIndicators(
   { territory, type, script }: { territory: TerritoryPayload; type: TerritoryType; script: StoryScript },
 ): Indicator[] {
   if (isBioma(type)) return []
   const s = script.territory
-  const share = biomeAreaSharePct(territory)
+  const share = clippedToBiome(type) ? biomeAreaSharePct(territory) : 0
   const items: Indicator[] = share >= SHARE_CARD_MIN_PCT ? [{ value: formatPercent(share), text: s.biomeShare }] : []
   const rank = territory.areaRank
   if (rank && type.plural) {
@@ -427,7 +429,7 @@ export function aboutItems(input: SummaryInput): AboutItem[] {
   const stockGap = coverage !== null && coverage < STOCK_FULL_COVERAGE ? formatPercent(coverage * 100) : null
 
   const items: AboutItem[] = [
-    a.territorio,
+    { title: a.territorio.title, text: clippedToBiome(type) ? a.territorio.text : a.territorio.whole },
     { title: a.estoque.title, text: qualified('estoque', joinSentences(a.estoque.text, stockGap && a.estoque.coverage(stockGap))) },
     { title: a.fluxo.title, text: qualified('fluxo', a.fluxo.text) },
     { title: a.uso.title, text: qualified('uso', a.uso.text) },
