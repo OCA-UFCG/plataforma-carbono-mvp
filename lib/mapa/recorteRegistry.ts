@@ -71,6 +71,8 @@ interface VectorEntry {
 }
 
 interface IndexedFeicao extends FeicaoInfo {
+  /** Position in the GeoJSON, which is also the id MapLibre's `generateId` gives the feature. */
+  index:    number
   geometry: Geometry
 }
 
@@ -165,4 +167,14 @@ export function getFeicao(recorteId: string, feicaoId: string): FeicaoResolvida 
     areaHa:   areaM2 / 10_000,
     boundary: entry.boundary,
   }
+}
+
+/**
+ * Every labelled feature of a recorte with its file position, for the map by
+ * feature (lib/mapa/choroplethCompute.ts): the browser numbers the same
+ * features by the same position, so the values land on the right polygons.
+ */
+export function featureGeometries(recorteId: string): { index: number; geometry: Geometry }[] | null {
+  const entry = index(recorteId)
+  return entry ? entry.feicoes.map((f) => ({ index: f.index, geometry: f.geometry })) : null
 }

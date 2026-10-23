@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
-import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
+import { choroplethPending, choroplethView, type ChoroplethEntry, type ChoroplethRange } from '@/lib/mapa/choropleth'
+import type { LayerConfig, PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 // Legend entries shared by the floating legend and the JPEG's sheet. They take
 // everything from props, store included, so the off-screen sheet renders the
@@ -55,14 +56,22 @@ export function VectorLegendItem({
 // Raster layer: name + class swatches
 
 export function RasterLegendItem({
-  layer, theme, temporalDate,
+  layer, theme, temporalDate, layers = [], choropleths = {},
 }: {
   layer: RasterLayerConfig
   theme: PlatformTheme
   /** Temporal stop on the map; picks the year's data range. Undefined for a static layer. */
   temporalDate?: string
+  /** The layers on the map and the values by feature, to tell whether this layer is drawn by feature. */
+  layers?: LayerConfig[]
+  choropleths?: Record<string, ChoroplethEntry>
 }) {
   const hasClasses = layer.classes && layer.classes.length > 0
+  // The same rule MapView draws with, so the legend describes the map on screen.
+  const view = choroplethView(layers, layer, choropleths, temporalDate)
+  // Said from the moment the recorte is on: the values take a few seconds,
+  // and until they land the bar below still describes the pixels.
+  const pending = view ? null : choroplethPending(layers, layer, choropleths)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -85,6 +94,14 @@ export function RasterLegendItem({
         {layer.name}
       </span>
 
+      {(view || pending) && (
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3, opacity: view ? 1 : 0.75 }}>
+          {view
+            ? view.caption
+            : `Calculando ${pending!.charAt(0).toLowerCase()}${pending!.slice(1)}…`}
+        </span>
+      )}
+
       {/* Categorical classes */}
       {hasClasses &&
         layer.classes!.map((cls) => (
@@ -104,7 +121,7 @@ export function RasterLegendItem({
 
       {/* Continuous: real palette gradient with min/max + unit */}
       {!hasClasses && layer.colorType === 'continuous' && layer.source !== 'dem' && (
-        <ContinuousLegend layer={layer} theme={theme} temporalDate={temporalDate} />
+        <ContinuousLegend layer={layer} theme={theme} temporalDate={temporalDate} range={view?.range ?? null} />
       )}
     </div>
   )
@@ -113,18 +130,21 @@ export function RasterLegendItem({
 // Continuous raster: gradient from the actual palette + min/max/unit
 
 function ContinuousLegend({
-  layer, theme, temporalDate,
+  layer, theme, temporalDate, range,
 }: {
   layer: RasterLayerConfig
   theme: PlatformTheme
   temporalDate?: string
+  /** The map by feature's range, when the layer is drawn by feature. */
+  range: ChoroplethRange | null
 }) {
   const palette = layer.gee?.visParams?.palette
-  const min = layer.gee?.visParams?.min ?? layer.rescale?.[0]
-  const max = layer.gee?.visParams?.max ?? layer.rescale?.[1]
-  // The ends print the real extremes of the data; the bar keeps the color
-  // stretch, so values past it share the end color.
-  const real = dataRangeFor(layer.id, temporalDate)
+  const min = range?.min ?? layer.gee?.visParams?.min ?? layer.rescale?.[0]
+  const max = range?.max ?? layer.gee?.visParams?.max ?? layer.rescale?.[1]
+  // Drawn by feature, the bar runs over the features' values and its ends say
+  // so. In pixels, the ends print the real extremes of the data while the bar
+  // keeps the color stretch, so values past it share the end color.
+  const real = range ? null : dataRangeFor(layer.id, temporalDate)
   const low = real?.min ?? min
   const high = real?.max ?? max
 

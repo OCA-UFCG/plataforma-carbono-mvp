@@ -34,6 +34,7 @@
       "hoverLabelField": "name_state",
       "contextField": "abbrev_state",
       "pickPriority": 10,
+      "choropleth": { "caption": "Escala estadual" },
       "theme": "territorio",
       "subtheme": "limites"
     },
@@ -50,6 +51,7 @@
       "contextField": "abbrev_state",
       "pickPriority": 20,
       "clippedToBiome": false,
+      "choropleth": { "caption": "Escala municipal" },
       "theme": "territorio",
       "subtheme": "limites"
     },
