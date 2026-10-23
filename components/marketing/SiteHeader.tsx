@@ -12,8 +12,8 @@ import styles from "./SiteHeader.module.css";
 // `.actions` are 188 + 584 + 107px with 16px gaps between them (911px),
 // none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
 // (80px, still 80 in this range — it only drops to 24 at <=768px) on both
-// sides.
-// 911 + 160 = 1071px is the narrowest viewport the inline header fits at;
+// sides. The wordmark overruns `.brand` by 18px, 2px more than the gap.
+// 911 + 2 + 160 = 1073px is the narrowest viewport the inline header fits at;
 // 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
@@ -97,7 +97,7 @@ export default function SiteHeader() {
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
           {/* Decorative: the link's aria-label already names the brand. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo */}
-          <img src="/logos/caativar.svg" alt="" width={150} height={48} className={styles.brandLogo} />
+          <img src="/logos/caativar-cabecalho.svg" alt="" width={232} height={95} className={styles.brandLogo} />
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">
