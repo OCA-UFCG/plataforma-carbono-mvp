@@ -132,16 +132,13 @@ export default function AnalysisSheet({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
           {/* Bare marks, no chip: each has a variant drawn for its ground (the
-              color symbol and Sudene's black shadow disappear on a dark one). */}
+              color lockup and Sudene's black shadow disappear on a dark one). */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <img
-                src={dark ? '/logos/caativar-simbolo-branco.svg' : '/logos/caativar-simbolo.svg'}
-                alt=""
-                style={{ height: 36, width: 'auto', display: 'block' }}
-              />
-              <span style={{ fontSize: 18, fontWeight: 800, color: c.text }}>Caativar</span>
-            </span>
+            <img
+              src={dark ? '/logos/caativar-branco.svg' : '/logos/caativar.svg'}
+              alt="Caativar"
+              style={{ height: 36, width: 'auto', display: 'block' }}
+            />
             <img
               src={dark ? '/logos/logo_sudene_escuro.png' : '/logos/logo_sudene.png'}
               alt="Sudene"
