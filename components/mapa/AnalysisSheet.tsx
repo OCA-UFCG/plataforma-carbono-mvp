@@ -1,11 +1,16 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element */
 import type { Ref } from 'react'
 import LayerResultCard, { type CardCharts } from './LayerResultCard'
 import { StatsChartView } from './StatsChart'
 import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
-import type { LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import { luminance } from '@/lib/color'
+import { VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
+import type {
+  LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig, VectorLayerConfig,
+} from '@/types/mapa'
 
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
@@ -40,6 +45,10 @@ interface Props {
   drawnLength:   number | null
   generatedAt:   Date
   layers:        SheetLayer[]
+  /** Layers that were on the map, in the legend's order. */
+  legendLayers:  LayerConfig[]
+  /** Temporal stop of each layer, to pick the year's range on a ramp. */
+  legendDates:   Record<string, string>
   ref?:          Ref<HTMLDivElement>
 }
 
@@ -59,9 +68,10 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, ref,
 }: Props) {
   const c = theme.colors
+  const dark = luminance(c.bg) < 0.25
   const title = analysisLabel ?? analysisKind ?? 'Resultados'
   // A recorte with no raster measured has nothing for the results column; an
   // empty column would read as a capture that failed.
@@ -120,8 +130,24 @@ export default function AnalysisSheet({
             </span>
           )}
         </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: c.accentInk }}>Caativar</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
+          {/* Bare marks, no chip: each has a variant drawn for its ground (the
+              color symbol and Sudene's black shadow disappear on a dark one). */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <img
+                src={dark ? '/logos/caativar-simbolo-branco.svg' : '/logos/caativar-simbolo.svg'}
+                alt=""
+                style={{ height: 36, width: 'auto', display: 'block' }}
+              />
+              <span style={{ fontSize: 18, fontWeight: 800, color: c.text }}>Caativar</span>
+            </span>
+            <img
+              src={dark ? '/logos/logo_sudene_escuro.png' : '/logos/logo_sudene.png'}
+              alt="Sudene"
+              style={{ height: 36, width: 'auto', display: 'block' }}
+            />
+          </div>
           <div style={{ fontSize: 13, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
             Gerado em {generatedAt.toLocaleDateString('pt-BR')}
           </div>
@@ -131,7 +157,6 @@ export default function AnalysisSheet({
       <div style={{ display: 'flex', flexDirection: stacked ? 'column' : 'row', alignItems: 'flex-start', gap: GAP }}>
         {mapSrc && (
           // A data URL, not a remote image: next/image has nothing to optimise.
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={mapSrc}
             alt=""
@@ -161,6 +186,27 @@ export default function AnalysisSheet({
           </div>
         )}
       </div>
+
+      {legendLayers.length > 0 && (
+        <section style={{ marginTop: GAP, paddingTop: 20, borderTop: `1px solid ${c.border}` }}>
+          <h2 style={{ margin: '0 0 14px', fontSize: 12.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: c.text }}>
+            Legenda
+          </h2>
+          {/* Columns, not a grid: a long legend (MapBiomas' 30 classes) fills a
+              column while the short ramps share the next one. */}
+          <div style={{ columnWidth: 256, columnGap: GAP }}>
+            {legendLayers.map((layer) => (
+              <div key={layer.id} style={{ breakInside: 'avoid', marginBottom: 14 }}>
+                {layer.type === 'vector' ? (
+                  <VectorLegendItem layer={layer as VectorLayerConfig} theme={theme} still />
+                ) : (
+                  <RasterLegendItem layer={layer as RasterLayerConfig} theme={theme} temporalDate={legendDates[layer.id]} />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
