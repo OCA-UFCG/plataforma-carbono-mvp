@@ -17,14 +17,42 @@ permissions:
 # land close together) race: beta ends on whichever image was pushed last,
 # not necessarily the newest commit. Queued runs give way to the newest one;
 # the running one is never cancelled, as push-beta removes the container
-# before starting its replacement.
+# before starting its replacement. Runs start in the order their CI finishes,
+# not in commit order, so a slow CI on an earlier merge would deploy its older
+# commit last; check-tip skips that run.
 concurrency:
   group: deploy-beta
   cancel-in-progress: false
 
 jobs:
-  build-image:
+  # Deploys only main's tip. A run whose commit is no longer the tip is
+  # skipped: the newer commit's own CI triggers the deploy that follows. A
+  # re-run is deliberate (a rollback, or the way out when that newer CI fails),
+  # so it deploys its commit regardless.
+  check-tip:
     if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.tip.outputs.deploy }}
+
+    steps:
+      - name: Compare with main's tip
+        id: tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          tip=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$tip" = "$HEAD_SHA" ] || [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipped ${HEAD_SHA:0:7}: main is at ${tip:0:7}, whose own CI deploys it."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-image:
+    needs: check-tip
+    if: needs.check-tip.outputs.deploy == 'true'
     runs-on: ubuntu-latest
 
     steps:
