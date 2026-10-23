@@ -96,7 +96,7 @@ scripts/
 ├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
-└ build-recortes.py            # baixa e recorta os recortes ao bioma
+└ build-recortes.py            # baixa os recortes e os recorta ao bioma (menos os municípios)
 next.config.ts                 # serverExternalPackages + Cache-Control dos GeoJSON
 render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
@@ -163,7 +163,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 - O botão primário do hero amarra o preenchimento de **repouso** ao token de papel `ROLE-MarcaAncora-Hover` (nó `18862:8529`), sem token distinto para o estado de hover; implementado como desenhado, com comentário no código para não ser "corrigido" sem querer.
 - O componente genérico de "tab item" (nó `8702:53247`) pertence a outro design system (`slate/*`, `Verde Sudene #018f39`, variáveis do shadcn, nenhuma variável de tipografia).
 - Os quatro ícones dos cartões de destaque são o mesmo glifo, byte a byte idêntico — fiel à fonte no Figma, mas quatro indicadores diferentes acabam sem diferenciação visual nenhuma.
-- Resolvido: o slot da logo da Caativar no Figma era uma caixa vazia e o header reaproveitava `logo_oca.png`. Hoje o header usa a logo do componente "Menu-superior" (nó `19272:44333`): o símbolo como selo hexagonal que transborda a barra, montado com as camadas do próprio componente em `public/logos/cabecalho/` (ver `components/marketing/HeaderLogo.tsx`). A aba de todas as rotas usa o símbolo da logo atual (nó `19268:13635`, grupo `19268:13651`), `caativar-simbolo.svg` (ver `lib/favicon.ts`). O rodapé, cujo slot no Figma também é uma caixa vazia, usa o mesmo símbolo em branco, `caativar-simbolo-branco.svg`, como faz a variante monocromática de contorno do quadro de logos (nó `19083:7621`) com a árvore anterior, já que o símbolo colorido perde o tronco escuro sobre o fundo do rodapé.
+- Resolvido: o slot da logo da Caativar no Figma era uma caixa vazia e o header reaproveitava `logo_oca.png`. Hoje o header usa a logo da Caativar (`public/logos/caativar.svg`, símbolo hexagonal com a árvore e o nome), o rodapé a sua versão monocromática branca (`caativar-branco.svg`) e a aba de todas as rotas o símbolo recortado dessa logo, `caativar-simbolo.svg` (ver `lib/favicon.ts`). A versão monocromática preta, que acompanha as outras no pacote de logos, não é usada.
 - Possível terceira família tipográfica: os rótulos das abas medem como Archivo SemiBold 16px, que não é nem Rubik (corpo) nem Archivo Narrow (exibição). Não resolvido — a cota da API do Figma acabou antes de confirmar.
 - CI (`.github/workflows/ci.yml`) roda só `npm ci`, `npm run build` e `npm run contrast`; não roda `npm test` nem `npm run lint`. Tudo nesta reconstrução foi verificado localmente.
 
@@ -607,7 +607,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
-- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
+- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas (menos os municípios, que entram inteiros porque a lista do IBGE classifica o município todo; a camada declara isso com `"clippedToBiome": false` em `layers.json`, que o script e a história de Territórios leem), simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
 
 ## Deploy
 

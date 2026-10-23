@@ -45,7 +45,7 @@ export interface VectorLayerConfig {
   // Granularity of the recorte, used only to decide which layer wins a hover
   // or click when several visible ones overlap (higher = finer = wins). The
   // containment hierarchy runs bioma < estados < municipios < territories;
-  // without it the biome, which contains everything, would swallow every
+  // without it the biome, which contains nearly everything, would swallow every
   // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
   pickPriority?: number
   // A recorte that covers the biome and can draw the continuous layers by
@@ -53,6 +53,11 @@ export interface VectorLayerConfig {
   // The finest one on (highest pickPriority) wins. `caption` names the scale
   // under the layer in the legend ("Escala municipal").
   choropleth?: { caption: string }
+  // A recorte scripts/build-recortes.py keeps whole past the biome edge instead
+  // of clipping it, so its area and statistics include the part outside: the
+  // municipalities, since IBGE's list of predominant biome classifies the whole
+  // municipality. The script and the Territórios story both read it.
+  clippedToBiome?: false
   // Native GEE FeatureCollection asset id used to clip rasters to this region
   // (server-side). When set, the tile route clips to the indexed asset (fast,
   // full detail) instead of the local GeoJSON.

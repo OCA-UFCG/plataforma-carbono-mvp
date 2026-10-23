@@ -59,7 +59,7 @@ export const TERMOS: Termo[] = [
     animacao: {
       id: 'torreFluxo',
       titulo: 'Como a torre mede o carbono',
-      descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento vertical e o CO₂ medidos no topo mostram se a vegetação absorve ou libera carbono. Os botões escolhem o caso.',
+      descricao: 'Paisagem de Caatinga com a torre de fluxo: o vento em redemoinhos, os sensores no topo, o ar que sobe e desce de dia, à noite e na seca, e a área de onde vem o ar medido. Os botões avançam as etapas.',
     },
   },
   {

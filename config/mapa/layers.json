@@ -50,6 +50,7 @@
       "hoverLabelField": "name_muni",
       "contextField": "abbrev_state",
       "pickPriority": 20,
+      "clippedToBiome": false,
       "choropleth": { "caption": "Escala municipal" },
       "theme": "territorio",
       "subtheme": "limites"
