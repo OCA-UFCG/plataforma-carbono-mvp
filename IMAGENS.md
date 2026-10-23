@@ -77,9 +77,8 @@ O logo do INSA (`public/logos/logo_insa.png`) não aparece: o design credita tr�
 rodapé anterior creditava quatro. Decisão de conteúdo a confirmar.
 
 Os logos ficam sem título acima, como no design; o rótulo "Parceiros e apoio" saiu em 06/10/2026.
-Ao lado do nome "Caativar", o rodapé mostra o símbolo da Caativar em branco
-(`public/logos/caativar-simbolo-branco.svg`, o `caativar-simbolo.svg` com todas as cores trocadas
-por branco), no lugar da marca da OCA.
+O rodapé mostra a logo da Caativar na versão monocromática branca
+(`public/logos/caativar-branco.svg`), no lugar da marca da OCA.
 
 ## Formação (public/images/formacao/)
 

@@ -33,14 +33,20 @@
 }
 
 /* The design's 187.18x72 logo slot ("Rectangle 2367", 19272:44335), left side
- * of the bar. HeaderLogo positions the lockup against it and lets it overflow:
- * the badge hangs below the bar and the wordmark runs 9px past the slot. */
+ * of the bar, holding the Caativar lockup (public/logos/caativar.svg, 225x72)
+ * scaled to 48px tall, which keeps it inside the slot and the bar. */
 .brand {
-  position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
   flex: none;
   width: 187.18px;
   height: 72px;
+}
+
+.brandLogo {
+  display: block;
+  width: 150px;
+  height: 48px;
 }
 
 /* Inline nav: HEADER_LINKS, the "Resumo territorial" link + the Mapas button. */
