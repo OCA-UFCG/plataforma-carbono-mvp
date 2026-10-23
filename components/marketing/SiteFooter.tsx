@@ -3,8 +3,10 @@ import { FOOTER_LINKS } from "@/lib/marketing/nav";
 import styles from "./SiteFooter.module.css";
 
 // The three partner logos the Figma footer shows (node 18862:8583, symbol
-// 16864:138883), in the design's own order and at its own sizes: Sudene at
-// x=470 (149x60), UFCG at x=643 (191x60) and OCA at x=858 (108x60).
+// 16864:138883), at the design's own sizes: Sudene 149x60, UFCG 191x60 and
+// OCA 108x60. The render order is OCA, UFCG, Sudene, which differs from the
+// design's left-to-right order (Sudene at x=470, UFCG at x=643, OCA at x=858).
+// That reorder is deliberate; do not restore the Figma order.
 //
 // These are WHITE monochrome lockups, not the colour PNGs in public/logos/.
 // The footer sits on --bg-fundo-inverso (#000f15), and the design uses white
@@ -21,9 +23,9 @@ import styles from "./SiteFooter.module.css";
 // of the three logos this design renders — a content decision worth
 // confirming, since the pre-redesign footer credited all four institutions.
 const PARTNERS = [
-  { src: "/logos/rodape/sudene.webp", alt: "SUDENE", width: 149, height: 60 },
-  { src: "/logos/rodape/ufcg.webp", alt: "UFCG", width: 191, height: 60 },
   { src: "/logos/rodape/oca.webp", alt: "OCA", width: 108, height: 60 },
+  { src: "/logos/rodape/ufcg.webp", alt: "UFCG", width: 191, height: 60 },
+  { src: "/logos/rodape/sudene.webp", alt: "SUDENE", width: 149, height: 60 },
 ];
 
 // The site footer. Keeps rendering a bare <footer> (no id): the wrapper is
