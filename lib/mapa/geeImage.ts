@@ -100,7 +100,12 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
 
     // Per-date temporal mode: the window is the requested year, and the reducer
     // is the same as the static layer's. Using `first()` here, as it used to,
-    // would break CHIRPS, whose `sum` is what turns daily rain into a yearly total.
+    // would break CHIRPS, whose `sum` is what turns daily rain into a yearly total;
+    // a collection with one image per year, as BR-DWGD's annual asset, asks for
+    // `first`, which keeps the image's native grid. Its `scale` must then be the
+    // grid's own nominal scale (11131.78 m, a 0.09999847° cell): 11132 stretches
+    // the cells by 2e-6° from the origin, and a point read near a cell's north or
+    // west edge falls in the neighbouring cell.
     if (temporalDate) {
       const [from, to] = yearWindow(Number(temporalDate.slice(0, 4)))
       col = col.filterDate(from, to)

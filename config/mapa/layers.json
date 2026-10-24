@@ -1095,6 +1095,155 @@
       ],
       "unit": "mm/ano",
       "theme": "ambiente",
+      "subtheme": "clima",
+      "hidden": true
+    },
+    {
+      "id": "brdwgd_pr",
+      "name": "Precipitação Anual",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "pr",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 200,
+          "max": 1400,
+          "palette": [
+            "#ffffd9",
+            "#edf8b1",
+            "#c7e9b4",
+            "#7fcdbb",
+            "#41b6c4",
+            "#1d91c0",
+            "#225ea8",
+            "#0c2c84"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        200,
+        1400
+      ],
+      "unit": "mm/ano",
+      "theme": "ambiente",
+      "subtheme": "clima"
+    },
+    {
+      "id": "brdwgd_tmed",
+      "name": "Temperatura do Ar",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "tmed",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 21,
+          "max": 29,
+          "palette": [
+            "#313695",
+            "#74add1",
+            "#e0f3f8",
+            "#fee090",
+            "#f46d43",
+            "#a50026"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        21,
+        29
+      ],
+      "unit": "°C",
+      "theme": "ambiente",
+      "subtheme": "clima"
+    },
+    {
+      "id": "brdwgd_eto",
+      "name": "Evapotranspiração de Referência",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "eto",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 1300,
+          "max": 2200,
+          "palette": [
+            "#ffffe5",
+            "#fff7bc",
+            "#fee391",
+            "#fec44f",
+            "#fe9929",
+            "#ec7014",
+            "#cc4c02",
+            "#8c2d04"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        1300,
+        2200
+      ],
+      "unit": "mm/ano",
+      "theme": "ambiente",
       "subtheme": "clima"
     },
     {

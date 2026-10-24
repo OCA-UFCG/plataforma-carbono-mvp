@@ -228,9 +228,9 @@ export async function buildReportAnalysis(input: {
         region: {
           kind:     'zonal',
           geometry: feicao.geometry,
-          // A floor, never a fixed value: it can only coarsen. CHIRPS is
-          // natively 5566 m, and a literal 300 there would resample finer than
-          // the data for no gain.
+          // A floor, never a fixed value: it can only coarsen. BR-DWGD is
+          // natively 0.1° (11131.78 m), and a literal 300 there would resample
+          // finer than the data for no gain.
           scale:    Math.max(config.seriesScale ?? 0, asset.scale ?? 500),
         },
       })

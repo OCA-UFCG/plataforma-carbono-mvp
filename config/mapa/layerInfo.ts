@@ -49,6 +49,9 @@ const INVENTORY_LAYER = {
   period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTORY_SOURCE, citation: INVENTORY_CITATION,
 }
 const INVENTORY_POOL_CAUTIONS = [INVENTORY_PER_CLASS, INVENTORY_PAST_VEGETATION, INVENTORY_GAP]
+const BRDWGD_SOURCE = 'BR-DWGD, Brazilian Daily Weather Gridded Data (Xavier et al., 2022)'
+const BRDWGD_CITATION = 'Xavier, A. C., Scanlon, B. R., King, C. W., & Alves, A. I. (2022). New improved Brazilian daily weather gridded data (1961-2020). International Journal of Climatology, 42(16), 8390-8404. https://doi.org/10.1002/joc.7731'
+const BRDWGD_LAYER = { period: '1961-2025', resolution: '11 km', source: BRDWGD_SOURCE, citation: BRDWGD_CITATION, license: CC_BY }
 const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
 const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
 const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
@@ -323,6 +326,26 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     method: 'Estimativas de satélite combinadas com dados de pluviômetros, em grade de 0,05°.',
     license: CC0,
     citation: 'Funk, C., Peterson, P., Landsfeld, M., Pedreros, D., Verdin, J., Shukla, S., Husak, G., Rowland, J., Harrison, L., Hoell, A., & Michaelsen, J. (2015). The climate hazards infrared precipitation with stations, a new environmental record for monitoring extremes. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66',
+  },
+  brdwgd_pr: {
+    ...BRDWGD_LAYER,
+    summary: 'Chuva acumulada no ano, um mapa por ano de 1961 a 2025.',
+    method: 'Chuva diária interpolada das estações pluviométricas em grade de 0,1°, somada no ano.',
+  },
+  brdwgd_tmed: {
+    ...BRDWGD_LAYER,
+    summary: 'Temperatura média do ar no ano, média entre a máxima e a mínima diárias, um mapa por ano de 1961 a 2025.',
+    cautions: ['É a temperatura do ar, diferente da temperatura de superfície medida por satélite.'],
+    method: 'Temperaturas máxima e mínima diárias interpoladas das estações meteorológicas em grade de 0,1°, médias no ano.',
+  },
+  brdwgd_eto: {
+    ...BRDWGD_LAYER,
+    summary: 'Evapotranspiração de referência acumulada no ano, a demanda de água da atmosfera sobre uma grama de referência, um mapa por ano de 1961 a 2025.',
+    cautions: [
+      'Mede a demanda de água da atmosfera; quanto a vegetação de fato perde depende da água disponível no solo.',
+      'Em 1972 o vento da base está pela metade o ano inteiro, e a ETo sai cerca de 13% abaixo dos anos vizinhos.',
+    ],
+    method: 'Penman-Monteith (FAO-56) diário, a partir das variáveis interpoladas em grade de 0,1°, somado no ano.',
   },
   lst_modis: {
     summary: 'Temperatura diurna da superfície terrestre, solo e vegetação, estimada pelo MODIS do satélite Terra perto das 10h30, um mapa por ano de 2001 a 2024.',

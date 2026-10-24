@@ -21,7 +21,7 @@ describe('choroplethPrewarmJobs', () => {
 
     expect(ids).toContain('estoque_carbono|municipios')
     expect(ids).toContain('estoque_carbono|estados')
-    expect(ids).toContain('chirps_precip|municipios')
+    expect(ids).toContain('brdwgd_pr|municipios')
     // Municípios, the slow and the finest one, is warmed before any state.
     expect(jobs.findIndex((j) => j.recorteId === 'estados'))
       .toBeGreaterThan(jobs.map((j) => j.recorteId).lastIndexOf('municipios'))
@@ -34,6 +34,7 @@ describe('choroplethPrewarmJobs', () => {
     expect(layers.has('sombreado_terreno')).toBe(false)  // relief, no GEE
     expect(layers.has('hillshade_fabdem')).toBe(false)   // a rendering
     expect(layers.has('biomassa_spawn')).toBe(false)     // hidden from the panel
+    expect(layers.has('chirps_precip')).toBe(false)      // replaced by BR-DWGD
   })
 })
 

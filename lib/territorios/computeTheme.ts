@@ -218,13 +218,24 @@ async function rain(ee: any, geometry: Geometry, areaHa: number): Promise<ThemeC
     }
   }
 
-  // Above one pixel the mean can still come back null, when no 5.6 km pixel
+  // Above the threshold the mean can still come back null, when no 0.1° cell
   // reaches the minimum weight inside the polygon, so the empty series falls
   // back to the point too.
   const { lon, lat } = interiorPoint(geometry)
   const point = await computeSeries(ee, { asset, anos, region: { kind: 'point', lon, lat } })
   if (hasValue(point)) {
     return { status: 'available', origin: 'point', coarseScaleM: null, data: { theme: 'chuva', series: point } }
+  }
+  // Below the threshold, a coastal territory's interior point can fall in a
+  // cell the BR-DWGD grid leaves out over the sea (RESEX Batoque, CE), while
+  // the area-weighted mean over the polygon still finds the cells inland.
+  if (areaHa < RAIN_POINT_BELOW_HA) {
+    const zonal = await computeSeries(ee, {
+      asset, anos, region: { kind: 'zonal', geometry, scale: asset.scale },
+    })
+    if (hasValue(zonal)) {
+      return { status: 'available', origin: 'zonal', coarseScaleM: null, data: { theme: 'chuva', series: zonal } }
+    }
   }
   return noPixels('point')
 }

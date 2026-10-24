@@ -38,9 +38,9 @@ export interface ReportLayerConfig {
    * state at native resolution does not return.
    *
    * A floor, never a fixed value: the effective scale is
-   * `max(seriesScale ?? 0, asset.scale ?? 500)`, so it can only coarsen. CHIRPS
-   * is natively 5566 m, and a literal 300 there would ask Earth Engine to
-   * resample finer than the data for no gain.
+   * `max(seriesScale ?? 0, asset.scale ?? 500)`, so it can only coarsen.
+   * BR-DWGD is natively 0.1° (11131.78 m), and a literal 300 there would ask
+   * Earth Engine to resample finer than the data for no gain.
    */
   seriesScale?: number
 }
@@ -102,9 +102,9 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
     trend: { phenomenon: 'produtividade líquida', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {
-    layerId: 'chirps_precip', order: 90, sectionColor: '#2B4C7E',
+    layerId: 'brdwgd_pr', order: 90, sectionColor: '#2B4C7E',
     coverageContext: 'nesta faixa de precipitação',
-    methodology: 'Precipitação anual acumulada, CHIRPS diário somado no ano.',
+    methodology: 'Precipitação anual acumulada, BR-DWGD (Xavier et al., 2022): chuva diária interpolada das estações em grade de 0,1°, somada no ano.',
     trend: { phenomenon: 'precipitação', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {

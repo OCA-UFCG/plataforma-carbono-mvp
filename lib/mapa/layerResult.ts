@@ -283,7 +283,7 @@ async function annual(
   const v = buildEeImage(ee, asset, temporalDate).rename('v')
   const m2 = ee.Image.pixelArea()
   // The mean is weighted by the geodesic pixel area: a plain `mean` weights
-  // every pixel alike, and a degree-gridded product such as CHIRPS has pixels
+  // every pixel alike, and a degree-gridded product such as BR-DWGD has pixels
   // several percent smaller at the southern end of the biome than at the north.
   const raw = await evaluate<Record<string, unknown>>(sums(
     ee.Image.cat(v.multiply(m2).rename('vA'), m2.updateMask(v.mask()).rename('A')),

@@ -85,7 +85,7 @@ export const STORY_THEMES: StoryTheme[] = [
   { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        mapYear: null },
   { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', mapYear: '2024' },
   { id: 'fogo',       layerId: 'fogo_frequencia',  railLabel: 'Fogo',         mapYear: '2023' },
-  { id: 'chuva',      layerId: 'chirps_precip',    railLabel: 'Chuva',        mapYear: '2024' },
+  { id: 'chuva',      layerId: 'brdwgd_pr',        railLabel: 'Chuva',        mapYear: '2024' },
 ]
 
 export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva', 'resumo']
@@ -120,9 +120,13 @@ export const FLUX_COARSE_ABOVE_HA = 15_000_000
 export const FLUX_COARSE_SCALE_M = 100
 
 /**
- * One CHIRPS pixel (5.566 km) in hectares. Below it the zonal rain series
- * comes back empty or runs out of Earth Engine memory (13 ha and 25 ha
- * settlements, 2026-09-28), so the series is read at a point from the start.
+ * Below this area the rain series is read at a point from the start. It was one
+ * CHIRPS pixel (5.566 km): below it the zonal series came back empty or ran out
+ * of Earth Engine memory (13 ha and 25 ha settlements, 2026-09-28). A BR-DWGD
+ * cell is 0.1°, about 12,000 ha; a territory between the two gets the
+ * area-weighted mean of the cells it overlaps. Either way the empty series falls
+ * back to the other one (computeTheme.ts): the point above the threshold, the
+ * mean below it, for a coastal territory whose interior point is over the sea.
  */
 export const RAIN_POINT_BELOW_HA = 3_100
 
