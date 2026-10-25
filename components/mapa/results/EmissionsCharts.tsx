@@ -1,12 +1,13 @@
 'use client'
 
-// The two sector charts of the emissions card: yearly bars stacked by sign,
-// land use in the map's flux colors (emissions above zero, removals below) and
-// the other sectors in theme grays, with the slider's year marked. Kept apart
-// so recharts only loads once a card shows them.
+// The sector chart of the emissions card, for the inventory of the visible
+// layer: yearly bars stacked by sign, land use in the map's flux colors (gross
+// emissions above zero, removals below) and the other sectors in theme grays,
+// with the slider's year marked. Kept apart so recharts only loads once a card
+// shows it.
 
 import { Bar, BarChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { formatarCo2e, linhasPorSetor, SERIES_SETOR, type SerieSetor } from '@/lib/emissoes/painel'
+import { formatarCo2e, linhasPorSetor, seriesComDado, type SerieSetor } from '@/lib/emissoes/painel'
 import type { EmissoesUnidadePayload, Inventario } from '@/types/emissoes'
 import type { PlatformColors, PlatformTheme } from '@/types/mapa'
 
@@ -21,29 +22,15 @@ function escalaDe(maxAbs: number): { d: number; u: string } {
   return { d: 1, u: 't CO2e' }
 }
 
-export default function EmissionsCharts({ theme, payload, ano }: {
-  theme: PlatformTheme
-  payload: EmissoesUnidadePayload
-  ano: number
-}) {
-  return (
-    <>
-      <SectorChart theme={theme} payload={payload} inventario="seeg" ano={ano} titulo="SEEG por setor" />
-      <SectorChart theme={theme} payload={payload} inventario="ct" ano={ano} titulo="Climate TRACE por setor" />
-    </>
-  )
-}
-
-function SectorChart({ theme, payload, inventario, ano, titulo }: {
+export default function EmissionsCharts({ theme, payload, inventario, ano }: {
   theme: PlatformTheme
   payload: EmissoesUnidadePayload
   inventario: Inventario
   ano: number
-  titulo: string
 }) {
   const c = theme.colors
   const linhas = linhasPorSetor(payload, inventario)
-  const series = SERIES_SETOR[inventario]
+  const series = seriesComDado(inventario, linhas)
   const anos = payload.anos[inventario]
   const maxAbs = Math.max(0, ...linhas.flatMap((l) => {
     const valores = series.map((s) => l[s.key])
@@ -54,7 +41,7 @@ function SectorChart({ theme, payload, inventario, ano, titulo }: {
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>{titulo}</h3>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>Por setor</h3>
         <span style={{ fontSize: 13, color: c.textDim, whiteSpace: 'nowrap', fontVariantNumeric: 'lining-nums tabular-nums' }}>
           {anos[0]} a {anos[anos.length - 1]}, {escala.u}
         </span>

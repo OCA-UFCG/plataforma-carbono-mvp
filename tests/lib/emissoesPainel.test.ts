@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import emissoesJson from '@/config/emissoes/emissoes.json'
-import { formatarCo2e, linhasPorSetor, SERIES_SETOR, unidadeDaSelecao, valorDaMedida } from '@/lib/emissoes/painel'
+import {
+  formatarCo2e, linhasPorSetor, queimadasForaDoInventario, SERIES_SETOR, seriesComDado, unidadeDaSelecao, valorDaMedida,
+} from '@/lib/emissoes/painel'
 import { posicoesUsoDaTerra, unidadeDe, unidadeEmissoes } from '@/lib/emissoes/unidade'
 import type { EmissoesFile } from '@/types/emissoes'
 
@@ -60,17 +62,30 @@ describe('valorDaMedida', () => {
   })
 })
 
+describe('queimadasForaDoInventario', () => {
+  it('gives the SEEG fires outside the inventory, which neither measure holds', () => {
+    const bioma = unidadeEmissoes(data, 'bioma', 'bioma', null)!
+    // 1.41 Mt in the 1,095 municipalities in 2024, the "Fora das duas" column of the land-use table in DOCUMENTACAO.md.
+    expect(queimadasForaDoInventario(bioma, 2024)! / 1e6).toBeCloseTo(1.41, 2)
+    const brutas = valorDaMedida(bioma, { inventario: 'seeg', medida: 'brutas', escopo: 'usoDaTerra' }, 2024)!
+    expect(brutas).toBe(bioma.seeg.uso_da_terra!.emissao![bioma.anos.seeg.indexOf(2024)])
+    expect(queimadasForaDoInventario(bioma, 1989)).toBeNull()
+  })
+})
+
 describe('linhasPorSetor', () => {
-  it('splits land use so its two parts add up to the net value', () => {
+  it('draws the gross measure as the land-use emissions, and its parts add up to the net value', () => {
     for (const inventario of ['seeg', 'ct'] as const) {
       for (const linha of linhasPorSetor(campinaGrande, inventario)) {
+        const bruto = valorDaMedida(campinaGrande, { inventario, medida: 'brutas', escopo: 'usoDaTerra' }, linha.ano)!
         const liquido = valorDaMedida(campinaGrande, { inventario, medida: 'liquidas', escopo: 'usoDaTerra' }, linha.ano)!
-        expect(linha.usoEmissao + linha.usoRemocao).toBeCloseTo(liquido, 6)
+        expect(linha.usoEmissao).toBeCloseTo(bruto, 6)
+        expect(linha.usoEmissao + (linha.usoOutrasPerdas ?? 0) + (linha.usoSolo ?? 0) + linha.usoRemocao).toBeCloseTo(liquido, 6)
       }
     }
   })
 
-  it('keeps removals below zero and emissions above it, for every municipality and state', () => {
+  it('keeps removals below zero and the other land-use parts above it, for every municipality and state', () => {
     const unidades = [
       ...Object.keys(data.municipios).map((k) => unidadeEmissoes(data, 'municipios', k, null)!),
       ...Object.keys(data.estados).map((k) => unidadeEmissoes(data, 'estados', k, null)!),
@@ -78,10 +93,19 @@ describe('linhasPorSetor', () => {
     for (const u of unidades) {
       for (const linha of linhasPorSetor(u, 'ct')) {
         expect(linha.usoRemocao, u.chave).toBeLessThanOrEqual(0)
+        expect(linha.usoOutrasPerdas, u.chave).toBeGreaterThanOrEqual(0)
         expect(linha.usoEmissao, u.chave).toBeGreaterThanOrEqual(0)
       }
       for (const linha of linhasPorSetor(u, 'seeg')) expect(linha.usoRemocao, u.chave).toBeLessThanOrEqual(0)
     }
+  })
+
+  it('leaves a sector the municipality never had out of the chart and its legend', () => {
+    const code = Object.keys(data.municipios).find((k) => !data.municipios[k].seeg.processos_industriais)!
+    const u = unidadeEmissoes(data, 'municipios', code, null)!
+    const chaves = seriesComDado('seeg', linhasPorSetor(u, 'seeg')).map((s) => s.key)
+    expect(chaves).not.toContain('industria')
+    expect(chaves).toContain('usoEmissao')
   })
 
   it('stacks to the inventory total of the net measure', () => {

@@ -1,7 +1,8 @@
 // The emissions card of the results panel, as data: which unit a selection is,
-// the value of the visible layer's measure, and the yearly rows of the sector
-// charts. Pure. Land use, the sector the platform is about, is split into its
-// emissions and its removals; the other sectors only emit and stay grouped.
+// the value of the visible layer's measure, the SEEG fires left out of both
+// measures, and the yearly rows of the sector chart. Pure. Land use, the sector
+// the platform is about, is split into its gross emissions and the rest of its
+// balance; the other sectors only emit and stay grouped.
 
 import { chaveDaFeicao, RECORTE_DO_NIVEL } from '@/lib/emissoes/mapa'
 import { serieEmissoes } from '@/lib/emissoes/series'
@@ -31,6 +32,17 @@ export function valorDaMedida(p: EmissoesUnidadePayload, spec: EmissoesCamadaSpe
 }
 
 /**
+ * t CO2e of the SEEG fires on native vegetation that was not cleared ("Emissão
+ * (NCI)", the only NCI of land use) in one year: outside the national inventory,
+ * so in neither SEEG measure. Null outside the SEEG years.
+ */
+export function queimadasForaDoInventario(p: EmissoesUnidadePayload, ano: number): number | null {
+  const i = p.anos.seeg.indexOf(ano)
+  if (i === -1) return null
+  return p.seeg.uso_da_terra?.emissao_nci?.[i] ?? 0
+}
+
+/**
  * The series of one sector chart, in stacking order: land use first, in the
  * map's flux colors; the other sectors in theme grays (`tom`), so they keep
  * their contrast in dark mode.
@@ -43,13 +55,15 @@ export interface SerieSetor {
 }
 
 export const COR_USO_EMISSAO = '#d6604d'
+export const COR_USO_OUTRAS_PERDAS = '#f4a582'
+export const COR_USO_SOLO = '#8c510a'
 export const COR_USO_REMOCAO = '#1b7837'
 
 const OUTROS_TONS = { agropecuaria: 'dim', energia: 'textDim', industria: 'caption', residuos: 'body' } as const
 
 export const SERIES_SETOR: Record<Inventario, SerieSetor[]> = {
   seeg: [
-    { key: 'usoEmissao', label: 'Uso da terra, emissões', cor: COR_USO_EMISSAO },
+    { key: 'usoEmissao', label: 'Uso da terra, emissões brutas', cor: COR_USO_EMISSAO },
     { key: 'usoRemocao', label: 'Uso da terra, remoções', cor: COR_USO_REMOCAO },
     { key: 'agropecuaria', label: 'Agropecuária', tom: OUTROS_TONS.agropecuaria },
     { key: 'energia', label: 'Energia', tom: OUTROS_TONS.energia },
@@ -57,7 +71,9 @@ export const SERIES_SETOR: Record<Inventario, SerieSetor[]> = {
     { key: 'residuos', label: 'Resíduos', tom: OUTROS_TONS.residuos },
   ],
   ct: [
-    { key: 'usoEmissao', label: 'Uso da terra, emissões', cor: COR_USO_EMISSAO },
+    { key: 'usoEmissao', label: 'Uso da terra, emissões brutas', cor: COR_USO_EMISSAO },
+    { key: 'usoOutrasPerdas', label: 'Uso da terra, outras perdas de biomassa', cor: COR_USO_OUTRAS_PERDAS },
+    { key: 'usoSolo', label: 'Uso da terra, carbono do solo das lavouras', cor: COR_USO_SOLO },
     { key: 'usoRemocao', label: 'Uso da terra, remoções', cor: COR_USO_REMOCAO },
     { key: 'agropecuaria', label: 'Agropecuária', tom: OUTROS_TONS.agropecuaria },
     { key: 'energia', label: 'Energia (transporte, edificações, eletricidade, combustíveis fósseis)', tom: OUTROS_TONS.energia },
@@ -79,11 +95,12 @@ const CT_OUTROS: Record<string, CtSetorId[]> = {
 export type LinhaSetor = { ano: number } & Record<string, number>
 
 /**
- * One row per year with every series of the chart. Climate TRACE land use is
- * split so the two parts add up to its net value and keep their sign: the rest
- * of the balance after the gross emissions and reservoirs (biomass and soil
- * change minus the gross part) adds to the emissions when positive, a stock
- * loss, and is the removals when negative.
+ * One row per year with every series of the chart. Land-use emissions are the
+ * land-use gross measure in both inventories, the value a land-use layer's card
+ * shows as gross. In Climate TRACE, cropland soil is its own series, and the
+ * biomass change minus the gross part keeps its sign: below zero it is the
+ * removals (the `removals` subsector), above zero a loss of biomass the gross
+ * subsectors do not record.
  */
 export function linhasPorSetor(p: EmissoesUnidadePayload, inventario: Inventario): LinhaSetor[] {
   return p.anos[inventario].map((ano, i) => {
@@ -94,8 +111,10 @@ export function linhasPorSetor(p: EmissoesUnidadePayload, inventario: Inventario
       for (const [key, setor] of Object.entries(SEEG_OUTROS)) linha[key] = p.seeg[setor]?.emissao?.[i] ?? 0
     } else {
       const flu = p.ct.usoDaTerra
-      const resto = flu.saldos[i] + flu.solo[i] - flu.brutas[i]
-      linha.usoEmissao = flu.brutas[i] + flu.reservatorios[i] + Math.max(resto, 0)
+      const resto = flu.saldos[i] - flu.brutas[i]
+      linha.usoEmissao = flu.brutas[i] + flu.reservatorios[i]
+      linha.usoSolo = flu.solo[i]
+      linha.usoOutrasPerdas = Math.max(resto, 0)
       linha.usoRemocao = Math.min(resto, 0)
       for (const [key, setores] of Object.entries(CT_OUTROS)) {
         linha[key] = setores.reduce((a, s) => a + (p.ct.setores[s]?.[i] ?? 0), 0)
@@ -103,6 +122,11 @@ export function linhasPorSetor(p: EmissoesUnidadePayload, inventario: Inventario
     }
     return linha
   })
+}
+
+/** The series of the chart that are not zero in every year, for its bars and legend. */
+export function seriesComDado(inventario: Inventario, linhas: LinhaSetor[]): SerieSetor[] {
+  return SERIES_SETOR[inventario].filter((s) => linhas.some((l) => l[s.key] !== 0))
 }
 
 const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
