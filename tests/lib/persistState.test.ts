@@ -203,6 +203,24 @@ describe('sanitizePersisted', () => {
     expect(restored?.temporalDate).toEqual({ fogo_frequencia: '2019-01-01' })
   })
 
+  it('keeps the stored year of an emissions layer only inside its own series', () => {
+    const emissao = (id: string, dateRange: [string, string]): LayerConfig => ({
+      id, name: id, type: 'emissions', visible: true, opacity: 80, unit: 't CO2e/ha',
+      emissoes: { inventario: 'seeg', medida: 'brutas', escopo: 'total' }, temporal: { dateRange },
+    })
+    const restored = sanitizePersisted(
+      {
+        version: PERSIST_VERSION,
+        layers: [],
+        basemapId: 'carto-positron',
+        temporalDate: { seeg_x: '2003-01-01', ct_x: '2003-01-01' },
+      },
+      [...config, emissao('seeg_x', ['1990-01-01', '2025-01-01']), emissao('ct_x', ['2021-01-01', '2025-01-01'])],
+    )
+
+    expect(restored?.temporalDate).toEqual({ seeg_x: '2003-01-01' })
+  })
+
   it('drops a stored year outside the series, which would fetch an empty tile', () => {
     const restored = sanitizePersisted(
       {

@@ -7,11 +7,10 @@ import { StatsChartView } from './StatsChart'
 import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
 import { luminance } from '@/lib/color'
-import { VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
+import { EmissionsLegendItem, VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
 import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
-import type {
-  LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig, VectorLayerConfig,
-} from '@/types/mapa'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
+import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
@@ -52,6 +51,8 @@ interface Props {
   legendDates:   Record<string, string>
   /** Values by feature, so a layer drawn by feature keeps its scale in the legend. */
   legendChoropleths: Record<string, ChoroplethEntry>
+  /** Values of the emissions layers, for their classes and level. */
+  legendEmissoes: Record<string, EmissoesEntry>
   ref?:          Ref<HTMLDivElement>
 }
 
@@ -71,7 +72,7 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendChoropleths, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendChoropleths, legendEmissoes, ref,
 }: Props) {
   const c = theme.colors
   const dark = luminance(c.bg) < 0.25
@@ -198,10 +199,18 @@ export default function AnalysisSheet({
             {legendLayers.map((layer) => (
               <div key={layer.id} style={{ breakInside: 'avoid', marginBottom: 14 }}>
                 {layer.type === 'vector' ? (
-                  <VectorLegendItem layer={layer as VectorLayerConfig} theme={theme} still />
+                  <VectorLegendItem layer={layer} theme={theme} still />
+                ) : layer.type === 'emissions' ? (
+                  <EmissionsLegendItem
+                    layer={layer}
+                    theme={theme}
+                    temporalDate={legendDates[layer.id]}
+                    layers={legendLayers}
+                    emissoes={legendEmissoes}
+                  />
                 ) : (
                   <RasterLegendItem
-                    layer={layer as RasterLayerConfig}
+                    layer={layer}
                     theme={theme}
                     temporalDate={legendDates[layer.id]}
                     layers={legendLayers}

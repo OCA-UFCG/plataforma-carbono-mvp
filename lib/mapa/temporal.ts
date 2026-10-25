@@ -1,6 +1,8 @@
 // Stops of a time-navigable layer. A single source for the store, which picks
 // the opening year, and for the date control, which draws the slider.
 
+import type { LayerConfig } from '@/types/mapa'
+
 export interface TemporalConfig {
   dateRange: [string, string]
   dates?:    string[]
@@ -25,6 +27,16 @@ export function paradas(temporal: TemporalConfig): string[] {
 export function paradaInicial(temporal: TemporalConfig): string | undefined {
   const lista = paradas(temporal)
   return lista[lista.length - 1]
+}
+
+/**
+ * The time block of a layer: `gee.temporal` for the GEE rasters, `temporal`
+ * for the emissions layers, which have no GEE block.
+ */
+export function layerTemporal(layer: LayerConfig): TemporalConfig | undefined {
+  if (layer.type === 'raster') return layer.gee?.temporal
+  if (layer.type === 'emissions') return layer.temporal
+  return undefined
 }
 
 /** Label of a stop. */

@@ -1,3 +1,5 @@
+import type { EmissoesCamadaSpec } from '@/types/emissoes'
+
 // Layer configs (shape of layers.json)
 
 export interface RasterClass {
@@ -173,7 +175,28 @@ export interface RasterLayerConfig {
   }
 }
 
-export type LayerConfig = VectorLayerConfig | RasterLayerConfig
+// Municipal GHG emissions, a table and not an image: drawn as a fill over the
+// finest of the bioma, estados and municipios recortes on, from the values
+// /api/mapa/emissoes builds out of config/emissoes/emissoes.json. It sits in
+// the panel and in the raster order like a thematic raster, but has no GEE
+// asset, no tile, no pixel and no zonal statistics.
+export interface EmissionsLayerConfig {
+  id: string
+  name: string
+  type: 'emissions'
+  theme?: string
+  subtheme?: string
+  visible: boolean
+  opacity: number   // 0-100
+  hidden?: true
+  /** Which series of which inventory (lib/emissoes/series.ts). */
+  emissoes: EmissoesCamadaSpec
+  unit: string
+  /** Years of the slider, as `gee.temporal` of the rasters. */
+  temporal: { dateRange: [string, string] }
+}
+
+export type LayerConfig = VectorLayerConfig | RasterLayerConfig | EmissionsLayerConfig
 
 // App config (full layers.json shape)
 

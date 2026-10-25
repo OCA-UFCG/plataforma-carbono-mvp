@@ -53,6 +53,71 @@ const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estaçã
 const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
 const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
 
+// Municipal emissions (config/emissoes/emissoes.json). The SEEG data carry no
+// open license on the producer's pages (its platform reads "Todos os direitos
+// reservados"), so the sheet names the source and leaves the license out. The
+// access date is the day of the query the file was built from, not today.
+const SEEG_SOURCE = 'SEEG, Sistema de Estimativas de Emissões e Remoções de Gases de Efeito Estufa, coleção 14.0 (Observatório do Clima)'
+const SEEG_CITATION = 'SEEG. Sistema de Estimativas de Emissões e Remoções de Gases de Efeito Estufa, coleção 14.0. Observatório do Clima. https://plataforma.seeg.eco.br. Acessado em 25/10/2026.'
+const CT_SOURCE = 'Climate TRACE, inventário de emissões, versão 5.11.0'
+const CT_CITATION = 'Climate TRACE (2026). Climate TRACE Emissions Inventory, version 5.11.0. https://climatetrace.org. Acessado em 25/10/2026.'
+const EMISSIONS_WHOLE = 'Valores do município inteiro, mesmo onde parte dele fica fora da Caatinga, por hectare da sua área oficial (IBGE, 2022); por estado e no bioma, soma dos municípios de predominância Caatinga e das suas áreas.'
+const EMISSIONS_AR6 = 'CO2 equivalente com o potencial de aquecimento global de 100 anos do AR6; o site do SEEG mostra por padrão o do AR5.'
+const SEEG_LAYER = { period: '1990-2025', resolution: 'Município', source: SEEG_SOURCE, citation: SEEG_CITATION }
+const CT_LAYER = { period: '2021-2025', resolution: 'Município', source: CT_SOURCE, license: CC_BY, citation: CT_CITATION }
+const SEEG_NO_NCI = 'Não inclui as queimadas não associadas a desmatamento, que o SEEG contabiliza à parte.'
+const SEEG_REMOVALS = 'As remoções são as da vegetação secundária, das áreas protegidas, das mudanças de uso que aumentam o estoque e do carbono orgânico do solo.'
+const SEEG_STEPS = 'No SEEG, a energia passa a ser atribuída quase toda aos municípios em 2007, e os processos industriais aparecem em 2015, com zero em 2019 e em 2023; a série tem degraus nesses anos.'
+const SEEG_NEGATIVE_WASTE = 'O SEEG registra emissão negativa na disposição final de resíduos de alguns municípios, e em dois deles a emissão bruta total fica abaixo de zero.'
+const SEEG_2025 = 'As emissões brutas do uso da terra caem 17% de 2024 para 2025 no conjunto dos municípios, e o SEEG não informa se 2025 é preliminar.'
+const CT_FIRE = 'Inclui todo o fogo em vegetação, associado ou não a desmatamento.'
+const CT_BALANCE = 'O saldo é a variação anual do estoque de biomassa viva e é revisto a cada versão do Climate TRACE (da 5.10 para a 5.11, o de 2021 na Caatinga passou de +277 para -30 Mt CO2e).'
+const CT_EXCLUDED = 'Sem aviação e navegação internacionais e sem a produção e o transporte de petróleo e gás em terra do Brasil inteiro, que o Climate TRACE põe em Pintadas (BA).'
+const CT_UNSOURCED = 'O Climate TRACE distribui aos municípios, por critérios próprios, emissões sem fonte identificada, de 13 a 15 Mt CO2e por ano no conjunto dos 1.095.'
+
+const EMISSIONS_INFO: Record<string, LayerInfo> = {
+  emissoes_uso_brutas_seeg: {
+    summary: 'Emissões de gases de efeito estufa por mudança de uso da terra e florestas, sobretudo desmatamento, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, SEEG_NO_NCI, SEEG_2025, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_uso_liquidas_seeg: {
+    summary: 'Emissões menos remoções de gases de efeito estufa por mudança de uso da terra e florestas, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, SEEG_REMOVALS, SEEG_NO_NCI, SEEG_2025, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_uso_brutas_ct: {
+    summary: 'Emissões de gases de efeito estufa por desmatamento, degradação, fogo em vegetação e reservatórios, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, CT_FIRE],
+    ...CT_LAYER,
+  },
+  emissoes_uso_liquidas_ct: {
+    summary: 'Saldo de gases de efeito estufa do uso da terra: variação do estoque de biomassa viva, carbono do solo das lavouras e reservatórios, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, CT_BALANCE],
+    ...CT_LAYER,
+  },
+  emissoes_total_brutas_seeg: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores (agropecuária, energia, uso da terra, processos industriais e resíduos), em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, SEEG_STEPS, SEEG_NEGATIVE_WASTE, SEEG_NO_NCI, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_total_liquidas_seeg: {
+    summary: 'Emissões menos remoções de gases de efeito estufa de todos os setores, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, SEEG_STEPS, SEEG_REMOVALS, SEEG_NEGATIVE_WASTE, SEEG_NO_NCI, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_total_brutas_ct: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores, com as emissões brutas do uso da terra, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, CT_FIRE, CT_UNSOURCED, CT_EXCLUDED],
+    ...CT_LAYER,
+  },
+  emissoes_total_liquidas_ct: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores, com o saldo do uso da terra, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, CT_BALANCE, CT_UNSOURCED, CT_EXCLUDED],
+    ...CT_LAYER,
+  },
+}
+
 export const LAYER_INFO: Record<string, LayerInfo> = {
   bioma: {
     summary: 'Limite oficial do bioma Caatinga, com 862.818 km², do mapeamento de biomas do IBGE na escala 1:250.000.',
@@ -369,4 +434,5 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     license: { label: 'Licença Copernicus', url: 'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/glo30/LICENSE.pdf' },
     citation: 'Copernicus DEM GLO-30, ' + COPERNICUS_DEM + ' Acessado via Mapterhorn.',
   },
+  ...EMISSIONS_INFO,
 }

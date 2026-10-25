@@ -3,8 +3,8 @@
 import { useState, type Ref } from 'react'
 import { IcList, IcChevronDown } from '../icons'
 import { useStore } from '@/lib/mapa/store'
-import { VectorLegendItem, RasterLegendItem } from './LegendItems'
-import type { PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
+import { EmissionsLegendItem, VectorLegendItem, RasterLegendItem } from './LegendItems'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
@@ -18,6 +18,8 @@ export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)
   const temporalDate = useStore((s) => s.temporalDate)
   const choropleths = useStore((s) => s.choropleths)
+  const emissoes = useStore((s) => s.emissoes)
+  const layerErrors = useStore((s) => s.layerErrors)
   const [collapsed, setCollapsed] = useState(false)
 
   const visible = layers.filter((l) => l.visible)
@@ -130,12 +132,25 @@ export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
         ) : (
           visible.map((layer) => {
             if (layer.type === 'vector') {
-              return <VectorLegendItem key={layer.id} layer={layer as VectorLayerConfig} theme={theme} />
+              return <VectorLegendItem key={layer.id} layer={layer} theme={theme} />
+            }
+            if (layer.type === 'emissions') {
+              return (
+                <EmissionsLegendItem
+                  key={layer.id}
+                  layer={layer}
+                  theme={theme}
+                  temporalDate={temporalDate[layer.id]}
+                  layers={layers}
+                  emissoes={emissoes}
+                  layerErrors={layerErrors}
+                />
+              )
             }
             return (
               <RasterLegendItem
                 key={layer.id}
-                layer={layer as RasterLayerConfig}
+                layer={layer}
                 theme={theme}
                 temporalDate={temporalDate[layer.id]}
                 layers={layers}

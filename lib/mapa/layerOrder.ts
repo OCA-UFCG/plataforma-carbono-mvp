@@ -41,7 +41,10 @@ function rank(order: readonly string[] | undefined, id: string | undefined): num
   return index === -1 ? Number.MAX_SAFE_INTEGER : index
 }
 
-/** The draw order: vectors in catalog order, then rasters by theme, subtheme and catalog. */
+/**
+ * The draw order: vectors in catalog order, then rasters by theme, subtheme
+ * and catalog. The emissions layers are thematic and sort with the rasters.
+ */
 export function applyGroupOrder(
   layers: LayerConfig[],
   themeOrder: string[],
@@ -51,7 +54,7 @@ export function applyGroupOrder(
   const catalogIndex = new Map(catalog.map((layer, index) => [layer.id, index]))
   const byCatalog = (layer: LayerConfig) => catalogIndex.get(layer.id) ?? catalog.length
   const vectors = layers.filter((layer) => layer.type === 'vector').sort((a, b) => byCatalog(a) - byCatalog(b))
-  const rasters = layers.filter((layer) => layer.type === 'raster').sort((a, b) =>
+  const rasters = layers.filter((layer) => layer.type !== 'vector').sort((a, b) =>
     rank(themeOrder, a.theme) - rank(themeOrder, b.theme) ||
     rank(subthemeOrder[a.theme ?? ''], a.subtheme) - rank(subthemeOrder[b.theme ?? ''], b.subtheme) ||
     byCatalog(a) - byCatalog(b),

@@ -6,6 +6,36 @@
 // the sum of all of them. Each series is aligned with the inventory's year range
 // in `fontes` and holds integers. Positive is emission, negative is removal.
 
+export type Inventario = 'seeg' | 'ct'
+
+/** Gross emissions, or emissions minus removals. */
+export type Medida = 'brutas' | 'liquidas'
+
+/** Every sector, or only the land-use one. */
+export type Escopo = 'total' | 'usoDaTerra'
+
+/** What one emissions map layer shows (the `emissoes` block of layers.json). */
+export interface EmissoesCamadaSpec {
+  inventario: Inventario
+  medida: Medida
+  escopo: Escopo
+}
+
+/** The recortes an emissions layer can be drawn on: the levels the data exists at. */
+export type NivelEmissoes = 'municipios' | 'estados' | 'bioma'
+
+/**
+ * Answer of /api/mapa/emissoes for one layer: t CO2e/ha by year at each level,
+ * and the color classes shared by all of them. `valores` keys are the IBGE code
+ * (municipios), the two-letter state (estados) and 'bioma'.
+ */
+export interface EmissoesCamadaPayload {
+  anos: number[]
+  unidade: string
+  classes: { limites: number[]; cores: string[] }
+  valores: Record<NivelEmissoes, Record<string, number[]>>
+}
+
 export type SeegSetorId = 'agropecuaria' | 'energia' | 'uso_da_terra' | 'processos_industriais' | 'residuos'
 
 /** SEEG emission types: 1 "Emissão", 9 "Emissão (NCI)" and 300 "Remoção". */

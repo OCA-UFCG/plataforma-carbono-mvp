@@ -2,7 +2,8 @@ import type { CSSProperties } from 'react'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
 import { choroplethPending, choroplethView, type ChoroplethEntry, type ChoroplethRange } from '@/lib/mapa/choropleth'
-import type { LayerConfig, PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
+import { anoEmissoes, nivelEmissoes, rotulosClasses, type EmissoesEntry } from '@/lib/emissoes/mapa'
+import type { EmissionsLayerConfig, LayerConfig, PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 // Legend entries shared by the floating legend and the JPEG's sheet. They take
 // everything from props, store included, so the off-screen sheet renders the
@@ -260,5 +261,77 @@ function FluxEnd({
         <span style={{ fontSize: 11, fontWeight: 700, color: ink }}>{flux.noun}</span>
       )}
     </span>
+  )
+}
+
+// Emissions layer: name, level and year, then its fixed classes. Over the biome
+// the map is a single color, so the value itself is written out.
+
+const intensidadeFmt = new Intl.NumberFormat('pt-BR', { maximumSignificantDigits: 3 })
+
+export function EmissionsLegendItem({
+  layer, theme, temporalDate, layers, emissoes, layerErrors = {},
+}: {
+  layer: EmissionsLayerConfig
+  theme: PlatformTheme
+  temporalDate?: string
+  layers: LayerConfig[]
+  emissoes: Record<string, EmissoesEntry>
+  /** Errors of the recortes, for the one the layer is drawn on. */
+  layerErrors?: Record<string, string>
+}) {
+  const nivel = nivelEmissoes(layers)
+  const erroRecorte = nivel ? layerErrors[nivel.recorte.id] : undefined
+  const entry = emissoes[layer.id]
+  const ano = anoEmissoes(layer, temporalDate)
+  const payload = entry?.status === 'ready' ? entry.payload : null
+  const valorBioma = payload && nivel?.nivel === 'bioma'
+    ? payload.valores.bioma.bioma?.[payload.anos.indexOf(ano)]
+    : undefined
+  const caption = { fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3 }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <span
+        style={{
+          fontSize: 11.5,
+          fontWeight: 800,
+          letterSpacing: '.08em',
+          textTransform: 'uppercase',
+          color: theme.colors.textDim,
+          overflowWrap: 'anywhere',
+          lineHeight: 1.4,
+        }}
+        title={layer.name}
+      >
+        {layer.name}
+      </span>
+
+      {!nivel ? (
+        <span style={caption}>Ative Bioma Caatinga, Estados ou Municípios para ver este dado.</span>
+      ) : erroRecorte ? (
+        <span style={caption}>{erroRecorte}</span>
+      ) : entry?.status === 'error' ? (
+        <span style={caption}>Os valores não carregaram; desligue e ligue a camada para tentar de novo.</span>
+      ) : !payload ? (
+        <span style={{ ...caption, opacity: 0.75 }}>Carregando…</span>
+      ) : (
+        <>
+          <span style={caption}>{nivel.recorte.choropleth?.caption ?? nivel.recorte.name}, {ano}</span>
+          {valorBioma != null && (
+            <span style={{ fontSize: 14, fontWeight: 700, color: theme.colors.text }}>
+              {intensidadeFmt.format(valorBioma)} {layer.unit}
+            </span>
+          )}
+          {rotulosClasses(payload.classes).map((label, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 13, height: 13, borderRadius: 3, flexShrink: 0, background: payload.classes.cores[i] }} />
+              <span style={{ fontSize: 14, fontWeight: 500, color: theme.colors.text }}>{label}</span>
+            </div>
+          ))}
+          <span style={{ fontSize: 12, color: theme.colors.textDim }}>{layer.unit}</span>
+        </>
+      )}
+    </div>
   )
 }

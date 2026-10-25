@@ -1647,6 +1647,174 @@
       "theme": "uso_solo",
       "subtheme": "degradacao",
       "hidden": true
+    },
+    {
+      "id": "emissoes_uso_brutas_seeg",
+      "name": "Emissões brutas do uso da terra (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "brutas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_brutas_ct",
+      "name": "Emissões brutas do uso da terra (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "brutas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_liquidas_seeg",
+      "name": "Emissões líquidas do uso da terra (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "liquidas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_liquidas_ct",
+      "name": "Emissões líquidas do uso da terra (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "liquidas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_brutas_seeg",
+      "name": "Emissões brutas de todos os setores (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "brutas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_brutas_ct",
+      "name": "Emissões brutas de todos os setores (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "brutas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_liquidas_seeg",
+      "name": "Emissões líquidas de todos os setores (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "liquidas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_liquidas_ct",
+      "name": "Emissões líquidas de todos os setores (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "liquidas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
     }
   ]
 }

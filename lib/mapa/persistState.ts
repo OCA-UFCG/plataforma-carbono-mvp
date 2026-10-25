@@ -1,6 +1,6 @@
 import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 import { defaultBasemapId, basemaps } from '@/config/mapa/basemaps'
-import { paradas } from '@/lib/mapa/temporal'
+import { layerTemporal, paradas } from '@/lib/mapa/temporal'
 import { sanitizeSubthemeOrder, sanitizeThemeOrder } from '@/lib/mapa/layerOrder'
 
 /** Key and version of the stored state. A payload from another version is discarded. */
@@ -141,8 +141,8 @@ function restoreTemporalDate(
   for (const [layerId, date] of Object.entries(stored)) {
     if (typeof date !== 'string') continue
     const layer = config.find((l) => l.id === layerId)
-    if (!layer || !isGeeRaster(layer)) continue
-    const temporal = layer.gee?.temporal
+    if (!layer || (!isGeeRaster(layer) && layer.type !== 'emissions')) continue
+    const temporal = layerTemporal(layer)
     if (!temporal || !paradas(temporal).includes(date)) continue
     out[layerId] = date
   }

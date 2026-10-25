@@ -6,19 +6,21 @@
 // The two inventories share the metric (AR6) but not the definitions. In land
 // use, Climate TRACE gross holds every fire on vegetation, while SEEG gross
 // ("Emissão") leaves out the fires not tied to clearing ("Emissão (NCI)"); the
-// SEEG removals cover secondary vegetation and protected areas, while the
-// Climate TRACE balances are the yearly change of the whole biomass stock. The
-// two gross series, like the two net series, are not the same quantity.
+// SEEG removals cover secondary vegetation, protected areas, land-use changes
+// that add stock and soil organic carbon, while the Climate TRACE balances are
+// the yearly change of the whole biomass stock. The two gross series, like the
+// two net series, are not the same quantity.
 
-import type { CtSetorId, EmissoesFile, EmissoesUnidade, SeegSetorId, SeegTipo } from '@/types/emissoes'
-
-export type Inventario = 'seeg' | 'ct'
-
-/** Gross emissions, or emissions minus removals. */
-export type Medida = 'brutas' | 'liquidas'
-
-/** Every sector, or only the land-use one. */
-export type Escopo = 'total' | 'usoDaTerra'
+import type {
+  CtSetorId,
+  EmissoesFile,
+  EmissoesUnidade,
+  Escopo,
+  Inventario,
+  Medida,
+  SeegSetorId,
+  SeegTipo,
+} from '@/types/emissoes'
 
 export const SEEG_SETORES: Record<SeegSetorId, string> = {
   uso_da_terra: 'Mudança de Uso da Terra e Floresta',

@@ -77,11 +77,14 @@ describe('applyGroupOrder', () => {
   it('holds for config/mapa/layers.json with the default orders', () => {
     const config = appConfig.layers as LayerConfig[]
     const once = applyGroupOrder(config, DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER)
+    // No layer type is dropped: the emissions layers sort with the rasters.
+    expect(once).toHaveLength(config.length)
+    expect(once.some((layer) => layer.type === 'emissions')).toBe(true)
     const lastVector = once.map((layer) => layer.type).lastIndexOf('vector')
-    expect(once.findIndex((layer) => layer.type === 'raster')).toBe(lastVector + 1)
+    expect(once.findIndex((layer) => layer.type !== 'vector')).toBe(lastVector + 1)
     expect(applyGroupOrder(once, DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER)).toBe(once)
-    // Every raster belongs to a known group, so none is silently sorted last.
-    for (const layer of once.filter((l) => l.type === 'raster')) {
+    // Every thematic layer belongs to a known group, so none is silently sorted last.
+    for (const layer of once.filter((l) => l.type !== 'vector')) {
       expect(DEFAULT_THEME_ORDER).toContain(layer.theme)
       expect(DEFAULT_SUBTHEME_ORDER[layer.theme!]).toContain(layer.subtheme)
     }

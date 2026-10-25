@@ -9,6 +9,7 @@ import type {
   SelectedGeometry,
 } from '@/types/mapa'
 import { withoutChoroplethErrors, type ChoroplethEntry } from '@/lib/mapa/choropleth'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
@@ -125,6 +126,10 @@ interface MapaStore {
   // on, keyed by choroplethKey (layer|recorte). Not persisted.
   choropleths: Record<string, ChoroplethEntry>
 
+  // The values of each emissions layer (lib/emissoes/runner.ts), keyed by
+  // layer id. Not persisted.
+  emissoes: Record<string, EmissoesEntry>
+
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
   statsCache: Record<string, PanelResult>
@@ -216,6 +221,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
   choropleths:      {},
+  emissoes:         {},
   statsCache:       {},
   pixelCache:       {},
 
@@ -239,11 +245,14 @@ export const useStore = create<MapaStore>((set, get) => ({
       return
     }
 
-    // Turning a choropleth recorte on is how its failures are retried.
+    // Turning a choropleth recorte on is how its failures are retried, and
+    // turning an emissions layer on, how a failed fetch of its values is.
     const retries = layer?.type === 'vector' && !!layer.choropleth && !layer.visible
+    const retriesEmissoes = layer?.type === 'emissions' && !layer.visible && state.emissoes[id]?.status === 'error'
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
       ...(retries ? { choropleths: withoutChoroplethErrors(s.choropleths, id) } : {}),
+      ...(retriesEmissoes ? { emissoes: omitKey(s.emissoes, id) } : {}),
     }))
   },
 

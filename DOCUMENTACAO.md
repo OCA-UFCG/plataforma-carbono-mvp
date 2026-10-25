@@ -54,7 +54,7 @@ components/mapa/
 ├ icons.tsx                    # ícones da interface
 └ overlays/                    # busca, legenda, ferramentas, mapa base, coords
 config/mapa/
-├ layers.json                  # 32 camadas + centro/zoom do mapa
+├ layers.json                  # 45 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
 ├ basemaps.ts                  # mapas base (CARTO exige NEXT_PUBLIC_CARTO_KEY)
 └ layerMeta.ts                 # fichas das camadas
@@ -189,7 +189,7 @@ A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`
 
 ## Camadas
 
-São 32 camadas, 6 vetoriais e 26 rasters, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 45 camadas: 7 vetoriais, 30 rasters e 8 de emissões, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`); as camadas de emissões não têm imagem e são desenhadas sobre as feições dos recortes (ver "Emissões municipais").
 
 ### Recortes territoriais (vetoriais)
 
@@ -416,8 +416,11 @@ classes abaixo de 0,1% cada, por isso a rosca agrupa a cauda em "outras".
 
 ### Navegação no tempo
 
-Doze das vinte e seis camadas raster são navegáveis por ano. O que torna uma camada
-temporal é o bloco `gee.temporal` no `layers.json`, e o passo é sempre anual: a
+Doze das trinta camadas raster são navegáveis por ano, e as oito de emissões também.
+Nos rasters, o que torna uma camada temporal é o bloco `gee.temporal` no
+`layers.json`; nas de emissões, o bloco `temporal`. Os dois são lidos por
+`layerTemporal` (`lib/mapa/temporal.ts`), de que dependem a régua e o ano gravado
+na preferência. O passo é sempre anual: a
 camada num dado ano é exatamente o mesmo cálculo que a versão estática fazia,
 só com o ano variando. Por isso ligar uma camada abre no ano mais recente, e não
 no primeiro, mostrando o mesmo retrato de antes.
@@ -597,7 +600,7 @@ Composição das séries (`serieEmissoes`):
 
 As definições do SEEG são as dos destaques "Emissões brutas" e "Emissões líquidas" do próprio site; a combinação `[1,300]` com gás 8 reproduz a tabela por bioma do site sem diferença. "Emissão (NCI)" (no uso da terra, as queimadas não associadas a desmatamento) fica fora das duas, como lá, mas continua no arquivo. No Climate TRACE, as brutas já estão contidas nos saldos de biomassa; somar as duas conta o fogo e o desmatamento duas vezes. O subsetor `removals` é aproximadamente o resíduo saldos menos brutas (diferença de até 34 kt por município a partir de 2023) e não é guardado.
 
-As duas fontes usam a mesma métrica, mas não as mesmas definições. No uso da terra, as brutas do Climate TRACE incluem todo o fogo em vegetação, e as do SEEG ("Emissão") excluem as queimadas não associadas a desmatamento ("Emissão (NCI)"). As remoções do SEEG cobrem vegetação secundária e áreas protegidas, enquanto os saldos do Climate TRACE são a variação anual de todo o estoque de biomassa viva. As brutas de uma fonte e as da outra não medem a mesma grandeza, e o mesmo vale para as líquidas.
+As duas fontes usam a mesma métrica, mas não as mesmas definições. No uso da terra, as brutas do Climate TRACE incluem todo o fogo em vegetação, e as do SEEG ("Emissão") excluem as queimadas não associadas a desmatamento ("Emissão (NCI)"). As remoções do SEEG cobrem vegetação secundária, áreas protegidas, mudanças de uso que aumentam o estoque e carbono orgânico do solo, enquanto os saldos do Climate TRACE são a variação anual de todo o estoque de biomassa viva. As brutas de uma fonte e as da outra não medem a mesma grandeza, e o mesmo vale para as líquidas.
 
 O setor de uso da terra ("Mudança de Uso da Terra e Floresta" no SEEG, `forestry-and-land-use` no Climate TRACE) é o destaque da plataforma (`SETOR_DESTAQUE`); os demais setores entram como contexto.
 
@@ -616,6 +619,29 @@ Cuidados de leitura, que valem para a interface e para quem usar o arquivo:
 - O Climate TRACE revisa a série a cada versão mensal. Da 5.10 para a 5.11, o saldo de biomassa da Caatinga em 2021 passou de +277 para -30 Mt. Atualizar o arquivo exige escolher a versão do Climate TRACE e rever os valores de referência dos testes; o script recusa um arquivo cujo nome não traga a versão declarada em `FONTES`.
 - Na API v7, o Climate TRACE distribui aos municípios emissões sem fonte listada (13 a 15 Mt/ano nos 1.095), por chaves espaciais próprias.
 
+### Camadas de emissões no mapa
+
+São oito camadas `"type": "emissions"` no subtema exclusivo `emissoes` ("Emissões de gases de efeito estufa") de Uso do solo e pressões, as quatro do uso da terra antes das quatro de todos os setores. O bloco `emissoes` declara o inventário (`seeg` ou `ct`), a medida (`brutas` ou `liquidas`) e o escopo (`usoDaTerra` ou `total`), que `serieEmissoes` combina, e `temporal.dateRange` dá os anos da régua (1990 a 2025 no SEEG, 2021 a 2025 no Climate TRACE). Como nos rasters, a camada abre no último ano. Não há asset, tile, pixel nem estatística zonal.
+
+A camada não tem source própria. `MapView.tsx` a desenha como preenchimento (`<id>-emissoes`) na source do recorte mais fino ligado entre `bioma`, `estados` e `municipios`, escolhido pelo maior `pickPriority` (`nivelEmissoes`, `lib/emissoes/mapa.ts`), e escreve o valor de cada feição no feature-state `e_<id>`, pela ordem do GeoJSON (o id do `generateId`): `code_muni` nos municípios, `abbrev_state` nos estados e a feição única do bioma. Com nenhum dos três ligado, nada é desenhado e a legenda pede um. Trocar de ano ou de nível só reescreve os feature-states. O GeoJSON do recorte é lido pelo mesmo cache do clique, com um único download em andamento por arquivo; se ele não chega, o erro aparece na linha do recorte e na legenda. Na ordem de desenho, a camada entra junto dos rasters (`lib/mapa/layerOrder.ts`), abaixo de todos os vetores, e `syncZOrder` a devolve a esse lugar quando o preenchimento é criado depois da sincronização. Como nos rasters, o preenchimento cinza do recorte fica por cima e esmaece um pouco as cores.
+
+Cada camada tem um só conjunto de classes para todos os anos e os três níveis, de modo que uma cor vale o mesmo t CO2e/ha nos mapas municipal, estadual e do bioma (`classesEmissoes`, `lib/emissoes/classes.ts`). As quebras saem dos valores municipais de todos os anos, em precisão cheia. Os positivos (o zero fica de fora dos quantis e cai na primeira classe) dão os quantis de 20, 40, 60, 80 e 95%, em seis tons quentes, porque intervalos iguais pintariam quase todo município na primeira cor, com as intensidades espalhadas por duas ordens de grandeza. Quando os negativos são pelo menos 5% dos valores, os quantis de 50 e 90% das suas magnitudes dão três classes verdes; abaixo disso, todo valor negativo cai numa classe só. Os limites são arredondados ao menor número de algarismos significativos, a partir de dois, que os mantém estritamente crescentes; um limite que ainda empata com o anterior sai junto com a sua cor. As cores são as do `gfw_netflux`, com `#d9f0d3` no lugar do neutro `#f7f7f7`. No nível do bioma o mapa tem uma cor só, e a legenda escreve o valor. No arquivo atual (SEEG 14.0, Climate TRACE 5.11.0):
+
+| Camada | Classes | Limites (t CO2e/ha) |
+|---|---|---|
+| emissoes_uso_brutas_seeg | 6 | 0,16; 0,26; 0,4; 0,67; 1,3 |
+| emissoes_uso_brutas_ct | 6 | 0,0054; 0,031; 0,11; 0,37; 1,7 |
+| emissoes_uso_liquidas_seeg | 9 | -0,44; -0,16; 0; 0,088; 0,19; 0,34; 0,64; 1,4 |
+| emissoes_uso_liquidas_ct | 9 | -7,5; -1,2; 0; 0,31; 0,69; 1,3; 2,2; 4,5 |
+| emissoes_total_brutas_seeg | 7 | 0; 0,63; 0,92; 1,3; 1,9; 3,3 |
+| emissoes_total_brutas_ct | 6 | 0,82; 1,2; 1,7; 2,7; 5,7 |
+| emissoes_total_liquidas_seeg | 7 | 0; 0,43; 0,7; 1; 1,6; 3 |
+| emissoes_total_liquidas_ct | 9 | -9,5; -1,2; 0; 0,66; 1,4; 2,3; 3,8; 7,5 |
+
+A classe abaixo de zero da camada de emissões brutas de todos os setores do SEEG vem das emissões negativas de resíduos de Ceará-Mirim e Petrolina; a ficha "i" avisa.
+
+Os valores vêm de `GET /api/mapa/emissoes?camada=<id>` (ver "Rotas de API"). `lib/emissoes/runner.ts` busca uma vez cada camada visível, para todos os níveis e anos, e guarda o resultado em `store.emissoes`. Uma falha não se repete sozinha: desligar e ligar a camada a descarta.
+
 Para regenerar, a partir de `landing/`, com os dois CSV consolidados das consultas (mantidos fora do repositório, em `Documents/OCA_emissoes_municipios/`):
 
 ```bash
@@ -632,6 +658,7 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 - `POST /api/gee/tile`: recebe `{ asset, clipId, visParams, classify }` e devolve `{ tileUrl }` (e `breaks` no modo Jenks). O servidor resolve o recorte localmente pelo `clipId` e cacheia o `tileUrl` (TTL 90 min).
 - `POST /api/gee/stats`: recebe `{ asset, geometry, colorType, classify, breaks }` e devolve `{ kind: "categorical", counts }` ou `{ kind: "continuous", stats }`. Os `breaks` do bioma (vindos do tile) mantêm as classes do gráfico iguais às cores do mapa.
+- `GET /api/mapa/emissoes?camada=<id>`: valores e classes de uma camada de emissões. Exige sessão e passa pelo rate limit por IP; responde 400 a um id fora de `[a-z0-9_]{1,80}` e 404 a um id sem bloco `emissoes` no `layers.json`. O cliente manda só o id, então o `emissoes.json` não sai do servidor. A resposta (`EmissoesCamadaPayload`: `anos`, `unidade`, `classes`, `valores` por município, estado e bioma, com quatro algarismos significativos) é montada uma vez por processo (`lib/emissoes/server.ts`) e vai com `Cache-Control: private, no-cache`. Não usa o GEE.
 - `POST /api/gee/point` e `POST /api/gee/timeseries`: valor pontual e série anual. A série monta um ano por banda com o mesmo `buildEeImage` que serve o tile, e lê todas num `reduceRegion` só, de modo que o gráfico e o mapa saem na mesma unidade e com a mesma máscara.
 
 ## Identidade visual
