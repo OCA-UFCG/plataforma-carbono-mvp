@@ -571,6 +571,59 @@ indisponibilidade não derruba a seção inteira: o retrato do ano pedido já
 veio numa chamada separada, e a seção aparece sem o gráfico em vez de não
 aparecer.
 
+## Emissões municipais (SEEG e Climate TRACE)
+
+Dados tabulares, sem raster: emissões anuais de gases de efeito estufa dos 1.095 municípios de `public/data/vector/municipios.geojson`, de dois inventários, em t CO2e com o GWP100 do AR6. Ficam em `config/emissoes/emissoes.json` (cerca de 2 MB), fora de `public/`, e o contrato está em `types/emissoes.ts`. As séries que a plataforma mostra saem de `lib/emissoes/series.ts`.
+
+| Fonte | Versão e consulta | Anos | Granularidade guardada |
+|---|---|---|---|
+| SEEG | coleção 14.0, API da plataforma, 25/10/2026, gás 9 (CO2e GWP-AR6) | 1990 a 2025 | setor x tipo de emissão ("Emissão", "Emissão (NCI)", "Remoção") |
+| Climate TRACE | dados 5.11.0, API v7 (`/v7/sources/emissions?gadmId=&year=`), 25/10/2026, `co2e_100yr` | 2021 a 2025 | setor; no uso da terra, quatro séries: brutas, saldos de biomassa, solo e reservatórios |
+
+Unidades e escopo:
+
+- Todo valor é o total do município inteiro. Nas consultas usadas, os dois inventários entregam totais por município, e nada mais fino é guardado; então nada é repartido por área, e os dados não servem para recortes menores (terras indígenas, assentamentos, polígono desenhado). Por isso também não foram rasterizados.
+- Estado é a soma dos seus municípios da Caatinga; o bioma é a soma dos 1.095. Os totais do SEEG para o bioma 44 e para os estados inteiros são outra coisa: o SEEG reparte cada município entre biomas, e a soma dos 1.095 fica entre 0,92 e 0,98 do bioma 44 nas definições usadas aqui.
+- A área é a oficial do IBGE do município inteiro, na malha municipal de 2022 (API de malhas, `metadados`, com `periodo=2022` fixo), base da intensidade em t CO2e/ha. Ela não usa a área recortada no bioma.
+- AR6 e não AR5 (o padrão do site do SEEG), para que as duas fontes fiquem na mesma métrica. Em 2024, nos 1.095 municípios, o AR6 dá 2,1% a menos na agropecuária e 3,3% a menos em resíduos; uso da terra e energia quase não mudam.
+
+Composição das séries (`serieEmissoes`):
+
+| | Brutas | Líquidas |
+|---|---|---|
+| SEEG | "Emissão" | "Emissão" + "Remoção" |
+| Climate TRACE, uso da terra | brutas (desmatamento, degradação, fogo) + reservatórios | saldos de biomassa + solo + reservatórios |
+| Climate TRACE, total | uso da terra brutas + demais setores | uso da terra líquidas + demais setores |
+
+As definições do SEEG são as dos destaques "Emissões brutas" e "Emissões líquidas" do próprio site; a combinação `[1,300]` com gás 8 reproduz a tabela por bioma do site sem diferença. "Emissão (NCI)" (no uso da terra, as queimadas não associadas a desmatamento) fica fora das duas, como lá, mas continua no arquivo. No Climate TRACE, as brutas já estão contidas nos saldos de biomassa; somar as duas conta o fogo e o desmatamento duas vezes. O subsetor `removals` é aproximadamente o resíduo saldos menos brutas (diferença de até 34 kt por município a partir de 2023) e não é guardado.
+
+As duas fontes usam a mesma métrica, mas não as mesmas definições. No uso da terra, as brutas do Climate TRACE incluem todo o fogo em vegetação, e as do SEEG ("Emissão") excluem as queimadas não associadas a desmatamento ("Emissão (NCI)"). As remoções do SEEG cobrem vegetação secundária e áreas protegidas, enquanto os saldos do Climate TRACE são a variação anual de todo o estoque de biomassa viva. As brutas de uma fonte e as da outra não medem a mesma grandeza, e o mesmo vale para as líquidas.
+
+O setor de uso da terra ("Mudança de Uso da Terra e Floresta" no SEEG, `forestry-and-land-use` no Climate TRACE) é o destaque da plataforma (`SETOR_DESTAQUE`); os demais setores entram como contexto.
+
+Excluídos do Climate TRACE:
+
+- 2026, com janeiro a julho apenas e os saldos de biomassa ainda zerados.
+- Aviação e navegação internacionais (Fortaleza e os dois São Gonçalo do Amarante, no CE e no RN, concentram 98%), que os inventários nacionais reportam fora dos municípios, como o bunker do SEEG.
+- Produção e transporte de petróleo e gás em Pintadas (BA): o Climate TRACE põe num ponto do município a produção residual em terra do Brasil inteiro (cerca de 8 Mt/ano).
+
+Cuidados de leitura, que valem para a interface e para quem usar o arquivo:
+
+- No SEEG, a energia é quase toda alocada aos municípios só a partir de 2007 (no bioma, 0,64 Mt em 2006 e 11,07 Mt em 2007; antes disso, só produção de combustíveis desde 2000 e transportes em 2005 e 2006), e os processos industriais só aparecem a partir de 2015, em poucos municípios e com zero em 2019 e 2023. A série municipal tem degraus em 2007 e em 2015.
+- As emissões brutas de uso da terra do SEEG caem 17% de 2024 para 2025 nos 1.095 municípios, e não há nota metodológica publicada da coleção 14 que diga se 2025 é preliminar.
+- Na medida líquida do SEEG, 31 municípios ficam com total negativo em 2024; escalas, razões e logaritmos precisam prever valores abaixo de zero.
+- O SEEG tem "Emissão" negativa em "Disposição final" de alguns municípios (Petrolina, Caucaia, Ceará-Mirim); em 2024 dois municípios ficam com emissão bruta total negativa.
+- O Climate TRACE revisa a série a cada versão mensal. Da 5.10 para a 5.11, o saldo de biomassa da Caatinga em 2021 passou de +277 para -30 Mt. Atualizar o arquivo exige escolher a versão do Climate TRACE e rever os valores de referência dos testes; o script recusa um arquivo cujo nome não traga a versão declarada em `FONTES`.
+- Na API v7, o Climate TRACE distribui aos municípios emissões sem fonte listada (13 a 15 Mt/ano nos 1.095), por chaves espaciais próprias.
+
+Para regenerar, a partir de `landing/`, com os dois CSV consolidados das consultas (mantidos fora do repositório, em `Documents/OCA_emissoes_municipios/`):
+
+```bash
+python scripts/build-emissoes.py <seeg_caatinga_municipio_tipo_gas_categoria_ano.csv> <ct_v5.11_caatinga_municipio_subsetor_ano.csv>
+```
+
+O script falha se os códigos dos CSV não forem exatamente os de `municipios.geojson`, se um ano do Climate TRACE entre 2021 e 2025 não tiver 12 meses, se aparecer uma família de uso da terra desconhecida ou se uma exclusão não encontrar nada para excluir (subsetor renomeado). `tests/config/emissoes.test.ts` confere o casamento com o GeoJSON, que estados e bioma são somas exatas dos municípios, as exclusões, e dois valores de fora do build: SEEG brutas de 2024 nos 1.095 (128,60 Mt, consulta agregada à API) e o painel de Campina Grande em 2025 no site do Climate TRACE (810.798 t sem uso da terra). O saldo de biomassa de 2022 (-395,05 Mt) é conferido contra o script de comparação, que lê o mesmo download.
+
 ## Rotas de API
 
 As rotas de GEE (`/api/gee/*`) são todas `POST`, runtime Node, `force-dynamic`, e autenticam via `initGee()` (`lib/mapa/geeAuth.ts`); as três rotas do relatório (`/api/mapa/relatorio/{base,analise,feicoes}`) são `GET`, pelos motivos documentados em `app/api/mapa/relatorio/base/route.ts`. Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
@@ -608,6 +661,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
 - `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas (menos os municípios, que entram inteiros porque a lista do IBGE classifica o município todo; a camada declara isso com `"clippedToBiome": false` em `layers.json`, que o script e a história de Territórios leem), simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
+- `python scripts/build-emissoes.py <seeg.csv> <ct.csv>`: grava `config/emissoes/emissoes.json` com as emissões municipais do SEEG e do Climate TRACE, somadas por estado e para o bioma, e a área oficial do IBGE de cada município (ver "Emissões municipais"). Requer `pandas` e acesso à API do IBGE.
 
 ## Deploy
 
