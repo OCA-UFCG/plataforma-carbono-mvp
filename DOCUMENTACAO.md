@@ -619,6 +619,14 @@ Cuidados de leitura, que valem para a interface e para quem usar o arquivo:
 - O Climate TRACE revisa a série a cada versão mensal. Da 5.10 para a 5.11, o saldo de biomassa da Caatinga em 2021 passou de +277 para -30 Mt. Atualizar o arquivo exige escolher a versão do Climate TRACE e rever os valores de referência dos testes; o script recusa um arquivo cujo nome não traga a versão declarada em `FONTES`.
 - Na API v7, o Climate TRACE distribui aos municípios emissões sem fonte listada (13 a 15 Mt/ano nos 1.095), por chaves espaciais próprias.
 
+Para regenerar, a partir de `landing/`, com os dois CSV consolidados das consultas (mantidos fora do repositório, em `Documents/OCA_emissoes_municipios/`):
+
+```bash
+python scripts/build-emissoes.py <seeg_caatinga_municipio_tipo_gas_categoria_ano.csv> <ct_v5.11_caatinga_municipio_subsetor_ano.csv>
+```
+
+O script falha se os códigos dos CSV não forem exatamente os de `municipios.geojson`, se um ano do Climate TRACE entre 2021 e 2025 não tiver 12 meses, se aparecer uma família de uso da terra desconhecida ou se uma exclusão não encontrar nada para excluir (subsetor renomeado). `tests/config/emissoes.test.ts` confere o casamento com o GeoJSON, que estados e bioma são somas exatas dos municípios, as exclusões, e dois valores de fora do build: SEEG brutas de 2024 nos 1.095 (128,60 Mt, consulta agregada à API) e o painel de Campina Grande em 2025 no site do Climate TRACE (810.798 t sem uso da terra). O saldo de biomassa de 2022 (-395,05 Mt) é conferido contra o script de comparação, que lê o mesmo download.
+
 ### Camadas de emissões no mapa
 
 São oito camadas `"type": "emissions"` no subtema exclusivo `emissoes` ("Emissões de gases de efeito estufa") de Uso do solo e pressões, as quatro do uso da terra antes das quatro de todos os setores. O bloco `emissoes` declara o inventário (`seeg` ou `ct`), a medida (`brutas` ou `liquidas`) e o escopo (`usoDaTerra` ou `total`), que `serieEmissoes` combina, e `temporal.dateRange` dá os anos da régua (1990 a 2025 no SEEG, 2021 a 2025 no Climate TRACE). Como nos rasters, a camada abre no último ano. Não há asset, tile, pixel nem estatística zonal.
@@ -642,13 +650,13 @@ A classe abaixo de zero da camada de emissões brutas de todos os setores do SEE
 
 Os valores vêm de `GET /api/mapa/emissoes?camada=<id>` (ver "Rotas de API"). `lib/emissoes/runner.ts` busca uma vez cada camada visível, para todos os níveis e anos, e guarda o resultado em `store.emissoes`. Uma falha não se repete sozinha: desligar e ligar a camada a descarta.
 
-Para regenerar, a partir de `landing/`, com os dois CSV consolidados das consultas (mantidos fora do repositório, em `Documents/OCA_emissoes_municipios/`):
+### Cartão de emissões na aba Resultados
 
-```bash
-python scripts/build-emissoes.py <seeg_caatinga_municipio_tipo_gas_categoria_ano.csv> <ct_v5.11_caatinga_municipio_subsetor_ano.csv>
-```
+Com uma camada de emissões ligada, selecionar um município, um estado ou o bioma (clique ou busca) abre na aba Resultados o cartão "Emissões de gases de efeito estufa" (`components/mapa/results/EmissionsCard.tsx`). A seleção leva a feição do recorte (`SelectedGeometry.feature`), de onde `unidadeDaSelecao` (`lib/emissoes/painel.ts`) tira o código IBGE, a sigla ou o bioma; para qualquer outro recorte ou um desenho, o cartão diz em que níveis o dado existe.
 
-O script falha se os códigos dos CSV não forem exatamente os de `municipios.geojson`, se um ano do Climate TRACE entre 2021 e 2025 não tiver 12 meses, se aparecer uma família de uso da terra desconhecida ou se uma exclusão não encontrar nada para excluir (subsetor renomeado). `tests/config/emissoes.test.ts` confere o casamento com o GeoJSON, que estados e bioma são somas exatas dos municípios, as exclusões, e dois valores de fora do build: SEEG brutas de 2024 nos 1.095 (128,60 Mt, consulta agregada à API) e o painel de Campina Grande em 2025 no site do Climate TRACE (810.798 t sem uso da terra). O saldo de biomassa de 2022 (-395,05 Mt) é conferido contra o script de comparação, que lê o mesmo download.
+O número em destaque é a medida da camada visível (inventário, bruta ou líquida, uso da terra ou todos os setores) no ano da régua, em t CO2e escaladas para mil t ou Mt, com a intensidade ao lado. Uma medida líquida é mostrada como fluxo com sinal, como nos demais resultados de fluxo: a magnitude, com a direção (emissões ou remoções líquidas) na frase e na cor. Seguem a mesma medida no outro inventário (ou "sem dado" fora dos anos dele) e, para um município, a posição entre os 1.095 em emissões brutas do uso da terra do inventário da camada, em toneladas e não por hectare, para dizer onde estão as emissões. Os dois gráficos por setor (`EmissionsCharts.tsx`, recharts sob demanda) empilham as barras pelo sinal: o uso da terra em cor, emissões acima de zero e remoções abaixo, e os demais setores em cinza. No Climate TRACE, o uso da terra é partido de modo que as duas partes somam o líquido e mantêm o sinal: o restante do saldo depois das brutas e dos reservatórios (estoque de biomassa e solo menos as brutas) soma às emissões quando positivo, uma perda de estoque, e é a remoção quando negativo. As emissões negativas de resíduos de alguns municípios no SEEG também ficam abaixo de zero, com uma nota no cartão; os setores são agrupados em agropecuária, energia (transporte, edificações, eletricidade e combustíveis fósseis), indústria (manufatura, mineração e gases fluorados) e resíduos. A tabela final põe o uso da terra dos dois inventários lado a lado nos anos comuns (2021 a 2025). As "Emissão (NCI)" do SEEG ficam fora, como nas camadas.
+
+Os dados vêm de `GET /api/mapa/emissoes/unidade` (ver "Rotas de API"), uma requisição por unidade, guardada pelo cartão durante a página. O cartão ainda não entra no CSV nem no JPEG da análise.
 
 ## Rotas de API
 
@@ -659,6 +667,7 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 - `POST /api/gee/tile`: recebe `{ asset, clipId, visParams, classify }` e devolve `{ tileUrl }` (e `breaks` no modo Jenks). O servidor resolve o recorte localmente pelo `clipId` e cacheia o `tileUrl` (TTL 90 min).
 - `POST /api/gee/stats`: recebe `{ asset, geometry, colorType, classify, breaks }` e devolve `{ kind: "categorical", counts }` ou `{ kind: "continuous", stats }`. Os `breaks` do bioma (vindos do tile) mantêm as classes do gráfico iguais às cores do mapa.
 - `GET /api/mapa/emissoes?camada=<id>`: valores e classes de uma camada de emissões. Exige sessão e passa pelo rate limit por IP; responde 400 a um id fora de `[a-z0-9_]{1,80}` e 404 a um id sem bloco `emissoes` no `layers.json`. O cliente manda só o id, então o `emissoes.json` não sai do servidor. A resposta (`EmissoesCamadaPayload`: `anos`, `unidade`, `classes`, `valores` por município, estado e bioma, com quatro algarismos significativos) é montada uma vez por processo (`lib/emissoes/server.ts`) e vai com `Cache-Control: private, no-cache`. Não usa o GEE.
+- `GET /api/mapa/emissoes/unidade?nivel=<municipios|estados|bioma>&chave=<código>`: séries de um município (código IBGE de 7 dígitos), estado (sigla) ou do bioma (`bioma`), por setor e ano em t CO2e, e, para município, a posição anual entre os 1.095 em emissões brutas do uso da terra. Exige sessão e passa pelo rate limit; responde 400 a uma chave que não casa com o nível e 404 a uma unidade fora do arquivo. As posições são calculadas uma vez por processo.
 - `POST /api/gee/point` e `POST /api/gee/timeseries`: valor pontual e série anual. A série monta um ano por banda com o mesmo `buildEeImage` que serve o tile, e lê todas num `reduceRegion` só, de modo que o gráfico e o mapa saem na mesma unidade e com a mesma máscara.
 
 ## Identidade visual

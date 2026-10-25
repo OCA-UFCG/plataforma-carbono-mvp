@@ -336,6 +336,8 @@ export interface SelectedGeometry {
   geometryType: 'polygon' | 'point'
   lon?:         number
   lat?:         number
+  /** The recorte feature clicked or searched, absent for a drawing. */
+  feature?:     { recorteId: string; properties: Record<string, unknown> }
 }
 
 // Basemap (raster XYZ tiles)

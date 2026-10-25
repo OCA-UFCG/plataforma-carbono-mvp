@@ -1067,14 +1067,15 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // reached, on every layer toggle and every year step.
         if (belowRaster) return
 
+        const feature = { recorteId: vector.id, properties: { ...(properties ?? {}) } }
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon' }
+          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon', feature }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
         } else if (geom.type === 'Point') {
           const [lon, lat] = geom.coordinates as [number, number]
           const selected: SelectedGeometry = {
-            geometry: geom, geometryType: 'point', lon, lat,
+            geometry: geom, geometryType: 'point', lon, lat, feature,
           }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)

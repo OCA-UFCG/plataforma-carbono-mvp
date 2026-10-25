@@ -13,7 +13,6 @@
 
 import type {
   CtSetorId,
-  EmissoesFile,
   EmissoesUnidade,
   Escopo,
   Inventario,
@@ -97,7 +96,7 @@ export function serieEmissoes(
   inventario: Inventario,
   medida: Medida,
   escopo: Escopo,
-  fontes: Pick<EmissoesFile['fontes'], Inventario>,
+  fontes: Record<Inventario, { anos: [number, number] }>,
 ): number[] {
   const [primeiro, ultimo] = fontes[inventario].anos
   const n = ultimo - primeiro + 1

@@ -36,7 +36,26 @@ export interface EmissoesCamadaPayload {
   valores: Record<NivelEmissoes, Record<string, number[]>>
 }
 
-export type SeegSetorId = 'agropecuaria' | 'energia' | 'uso_da_terra' | 'processos_industriais' | 'residuos'
+/**
+ * Answer of /api/mapa/emissoes/unidade: one municipality, state or the biome,
+ * its series by sector in t CO2e, and for a municipality its rank in land-use
+ * gross emissions among all of them (`posicao`, one rank per year, 1 = largest).
+ */
+export interface EmissoesUnidadePayload {
+  nivel: NivelEmissoes
+  chave: string
+  areaHa: number
+  /** How many municipalities the unit covers (1 for a municipality). */
+  municipios: number
+  anos: { seeg: number[]; ct: number[] }
+  /** SEEG collection, Climate TRACE version and GWP of the file, for the source note. */
+  fontes: { seeg: string; ct: string; gwp: string }
+  seeg: EmissoesUnidade['seeg']
+  ct: EmissoesUnidade['ct']
+  posicao: { de: number; seeg: number[]; ct: number[] } | null
+}
+
+export type SeegSetorId ='agropecuaria' | 'energia' | 'uso_da_terra' | 'processos_industriais' | 'residuos'
 
 /** SEEG emission types: 1 "Emissão", 9 "Emissão (NCI)" and 300 "Remoção". */
 export type SeegTipo = 'emissao' | 'emissao_nci' | 'remocao'

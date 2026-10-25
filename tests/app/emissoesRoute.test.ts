@@ -16,9 +16,10 @@ vi.mock('@/lib/mapa/rateLimit', () => ({
 }))
 
 import { GET } from '@/app/api/mapa/emissoes/route'
+import { GET as getUnidade } from '@/app/api/mapa/emissoes/unidade/route'
 import emissoesJson from '@/config/emissoes/emissoes.json'
 import { anosDe } from '@/lib/emissoes/series'
-import type { EmissoesCamadaPayload, EmissoesFile } from '@/types/emissoes'
+import type { EmissoesCamadaPayload, EmissoesFile, EmissoesUnidadePayload } from '@/types/emissoes'
 
 const data = emissoesJson as unknown as EmissoesFile
 
@@ -57,5 +58,37 @@ describe('GET /api/mapa/emissoes', () => {
     expect(body.unidade).toBe('t CO2e/ha')
     expect(Object.keys(body.valores.municipios)).toHaveLength(1095)
     expect(body.valores.bioma.bioma).toHaveLength(body.anos.length)
+  })
+})
+
+describe('GET /api/mapa/emissoes/unidade', () => {
+  const reqU = (q: string) => new Request(`http://localhost/api/mapa/emissoes/unidade?${q}`)
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.getAuthenticatedRequest.mockResolvedValue({ uid: 'u' })
+    mocks.rateLimit.mockReturnValue({ ok: true, retryAfter: 0 })
+  })
+
+  it('requires an authenticated session', async () => {
+    mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
+    expect((await getUnidade(reqU('nivel=municipios&chave=2504009'))).status).toBe(401)
+  })
+
+  it('checks the key against its level and answers 404 for a unit outside the file', async () => {
+    expect((await getUnidade(reqU('nivel=municipios&chave=PB'))).status).toBe(400)
+    expect((await getUnidade(reqU('nivel=estados&chave=2504009'))).status).toBe(400)
+    expect((await getUnidade(reqU('nivel=territorios&chave=x'))).status).toBe(400)
+    expect((await getUnidade(reqU('nivel=municipios&chave=9999999'))).status).toBe(404)
+  })
+
+  it('answers a municipality with its series and its rank', async () => {
+    const res = await getUnidade(reqU('nivel=municipios&chave=2504009'))
+    expect(res.status).toBe(200)
+    const body = await res.json() as EmissoesUnidadePayload
+    expect(body.anos.seeg).toEqual(anosDe(data.fontes.seeg.anos))
+    expect(body.posicao?.de).toBe(1095)
+    expect(body.posicao?.seeg).toHaveLength(body.anos.seeg.length)
+    expect(body.ct.usoDaTerra.saldos).toHaveLength(body.anos.ct.length)
   })
 })

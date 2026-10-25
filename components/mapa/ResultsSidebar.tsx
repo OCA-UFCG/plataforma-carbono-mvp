@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
+import EmissionsCard from './results/EmissionsCard'
 import type { default as AnalysisSheet, SheetLayer } from './AnalysisSheet'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
@@ -13,7 +14,7 @@ import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
-import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import type { EmissionsLayerConfig, LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -68,6 +69,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   // One card per visible raster, in panel order (topmost first), whether or
   // not it has an answer yet: a layer still computing shows its skeleton.
   const rasters = layers.filter(isMeasuredRaster)
+  const emissionsLayer = layers.find((l): l is EmissionsLayerConfig => l.type === 'emissions' && l.visible)
   const hasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
 
   // The topmost layer opens; the rest answer from their headers until asked for.
@@ -431,6 +433,17 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         <div style={{ marginBottom: 24, flexShrink: 0 }}>
           <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
         </div>
+      )}
+
+      {/* The emissions of the selected recorte feature, while an emissions
+          layer is on: one card, whichever of the exclusive layers it is. */}
+      {selectedGeometry && emissionsLayer && (
+        <EmissionsCard
+          theme={theme}
+          layer={emissionsLayer}
+          selection={selectedGeometry}
+          temporalDate={temporalDate[emissionsLayer.id]}
+        />
       )}
 
       {/* One card per visible raster. Gated on the selection because a card with
