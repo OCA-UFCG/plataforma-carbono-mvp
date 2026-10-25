@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
+import { stepPhotoIndex } from "@/lib/marketing/heroRotation";
 import { MAPA_LINK, TERRITORIOS_LINK, type NavLink } from "@/lib/marketing/nav";
 import type { INICIO_HERO } from "@/lib/content/inicio";
 import type { Copy } from "@/lib/content/site/model";
@@ -81,8 +83,8 @@ const ROTATION_INTERVAL_MS = 10000;
 export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   const cards = heroCards(copy);
   const [index, setIndex] = useState(0);
-  // Bumped by every dot click, so a click restarts the wait in full even when
-  // it picks the photo already showing.
+  // Bumped by every dot or arrow click, so a click restarts the wait in full
+  // even when it picks the photo already showing.
   const [clicks, setClicks] = useState(0);
   // Set while keyboard focus is inside the hero, which holds the rotation: the
   // next card would make the focused button inert and drop the focus. A mouse
@@ -101,6 +103,14 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
     );
     return () => clearTimeout(id);
   }, [index, clicks, focusHeld]);
+
+  // The dots and the arrows both land here, so every manual change restarts
+  // the wait.
+  const goTo = (next: number) => {
+    setIndex(next);
+    setClicks((c) => c + 1);
+  };
+  const step = (delta: number) => goTo(stepPhotoIndex(index, delta, PHOTOS.length));
 
   const activePhoto = PHOTOS[index];
 
@@ -173,20 +183,35 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
         </div>
       </div>
 
-      <div className={`container ${styles.dots}`} role="group" aria-label="Selecionar foto de fundo">
-        {PHOTOS.map((photo, i) => (
-          <button
-            key={photo.src}
-            type="button"
-            className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
-            aria-label={`Mostrar ${photo.alt}`}
-            aria-pressed={i === index}
-            onClick={() => {
-              setIndex(i);
-              setClicks((c) => c + 1);
-            }}
-          />
-        ))}
+      <div className={`container ${styles.dots}`}>
+        <div className={styles.dotGroup} role="group" aria-label="Selecionar foto de fundo">
+          {PHOTOS.map((photo, i) => (
+            <button
+              key={photo.src}
+              type="button"
+              className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
+              aria-label={`Mostrar ${photo.alt}`}
+              aria-pressed={i === index}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          className={styles.arrow}
+          aria-label="Foto anterior"
+          onClick={() => step(-1)}
+        >
+          <MdKeyboardArrowLeft size={24} aria-hidden />
+        </button>
+        <button
+          type="button"
+          className={styles.arrow}
+          aria-label="Próxima foto"
+          onClick={() => step(1)}
+        >
+          <MdKeyboardArrowRight size={24} aria-hidden />
+        </button>
       </div>
 
       {activePhoto.credit && <p className={styles.credit}>Foto: {activePhoto.credit}</p>}

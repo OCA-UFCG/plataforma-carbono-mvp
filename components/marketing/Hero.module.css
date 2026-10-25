@@ -225,6 +225,12 @@
   padding-bottom: 29px;
 }
 
+.dotGroup {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
 .dot {
   width: 6px;
   height: 6px;
@@ -238,6 +244,41 @@
 .dotActive {
   width: 26px;
   background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
+}
+
+/* Previous/next arrows, after the dots in the same row. 40px circles outlined
+ * like .secondaryButton, which also lends the hover fill. The row's content
+ * box is only 13px (see .dots), so they overflow it evenly, up into
+ * .contentArea's bottom padding and down into the row's own. The 16px gap to
+ * the dots is the row's 9px plus 7px here, on the first arrow only. */
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--role-terciario-texto-sobre);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--role-terciario-texto-sobre);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.dotGroup + .arrow {
+  margin-left: 7px;
+}
+
+.arrow:hover {
+  background: var(--bg-overlay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
 }
 
 /* Photo credit overlay, node 18862:8536: a pill 21px above the hero's bottom
