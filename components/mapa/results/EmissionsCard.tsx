@@ -5,14 +5,15 @@
 // define gross and net differently, so the card never sets them side by side.
 // The headline is the layer's measure in the slider's year, in tonnes; below
 // come the other measure of the same inventory, the municipality's rank, the
-// inventory by sector, and notes saying what each measure holds.
+// inventory by sector, and only the notes that depend on the unit and year;
+// definitions, sources and cautions live in the layer sheet (layerInfo.ts).
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { anoEmissoes } from '@/lib/emissoes/mapa'
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
 import { formatarCo2e, queimadasForaDoInventario, unidadeDaSelecao, valorDaMedida } from '@/lib/emissoes/painel'
-import type { EmissoesUnidadePayload, Inventario } from '@/types/emissoes'
+import type { EmissoesUnidadePayload } from '@/types/emissoes'
 import type { EmissionsLayerConfig, PlatformTheme, SelectedGeometry } from '@/types/mapa'
 import { SkeletonChart } from '../StatsCards'
 import { Empty, Footnote, Hero, Pair, Stack } from './blocks'
@@ -47,15 +48,6 @@ const MEDIDA = { brutas: 'emissões brutas', liquidas: 'emissões líquidas' } a
 const OUTRA_MEDIDA = { brutas: 'liquidas', liquidas: 'brutas' } as const
 const ROTULO_MEDIDA = { brutas: 'Emissões brutas', liquidas: 'Emissões líquidas' } as const
 const ESCOPO = { usoDaTerra: 'do uso da terra', total: 'de todos os setores' } as const
-
-// What gross and net hold in each inventory's land use (SEEG 13 MUT
-// methodology note; CTrees forestry methodology, Climate TRACE 5.11; see
-// DOCUMENTACAO.md).
-const DEFINICOES: Record<Inventario, string> = {
-  seeg: 'No SEEG, as emissões brutas do uso da terra vêm da mudança para usos com menos carbono por hectare, como a conversão de vegetação nativa, da perda de carbono do solo e da queima dos resíduos do desmatamento; as remoções vêm da vegetação secundária, das áreas protegidas, das mudanças de uso que aumentam o estoque e do ganho de carbono do solo, com valores fixos por hectare do inventário nacional, e as líquidas somam as duas.',
-  ct: 'No Climate TRACE, as emissões brutas do uso da terra somam desmatamento, degradação, fogo em floresta, vegetação arbustiva e áreas úmidas (sem separar o ligado ao desmatamento) e reservatórios; as líquidas partem da variação anual do estoque de biomassa viva, que já inclui as perdas por desmatamento, degradação e fogo e o crescimento da vegetação, e somam o carbono do solo das lavouras e os reservatórios.',
-}
-const CT_CONFIANCA = 'No registro de 2025, o Climate TRACE classifica como muito baixa a confiança no saldo de biomassa em todos os municípios de uma amostra da Caatinga; esse saldo varia muito de um ano para outro e entre versões.'
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const nfHa = new Intl.NumberFormat('pt-BR', { maximumSignificantDigits: 3 })
 
@@ -140,14 +132,10 @@ export default function EmissionsCard({ theme, layer, selection, temporalDate }:
         ]} />
         <EmissionsCharts theme={theme} payload={p} inventario={spec.inventario} ano={ano} />
         <Footnote theme={theme} notes={[
-          'Valores do município inteiro; estados e bioma somam os municípios de predominância Caatinga.',
-          DEFINICOES[spec.inventario],
-          seeg
-            ? `As queimadas em vegetação nativa não desmatada (${fQueimadas ? `${fQueimadas.valor} ${fQueimadas.unidade}` : 'nenhuma registrada'} em ${ano}) ficam fora das brutas e das líquidas, porque o inventário nacional não as contabiliza; o SEEG as publica à parte.`
-            : CT_CONFIANCA,
+          fQueimadas
+            ? `Fora das brutas e das líquidas ficam ${fQueimadas.valor} ${fQueimadas.unidade} de queimadas em vegetação nativa não desmatada em ${ano}.`
+            : null,
           residuoNegativo ? 'O SEEG registra emissão negativa na disposição final de resíduos desta unidade.' : null,
-          `CO2 equivalente com o ${p.fontes.gwp}.`,
-          seeg ? `Fonte: SEEG, coleção ${p.fontes.seeg}.` : `Fonte: Climate TRACE, versão ${p.fontes.ct}.`,
         ]} />
       </Stack>
     )
