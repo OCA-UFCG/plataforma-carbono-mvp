@@ -37,8 +37,8 @@ export default async function SobrePlataformaPage() {
             <IconCard titulo={p.publicoTitulo} icone={SOBRE_PLATAFORMA_ICONES.publico} paragrafos={p.publicoTexto} />
           </div>
         </div>
+        <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} />
       </div>
-      <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} />
     </>
   );
 }
