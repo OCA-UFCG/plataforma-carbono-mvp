@@ -25,6 +25,11 @@ export function nextStep(step: StepId): StepId | null {
   return STEPS[STEPS.indexOf(step) + 1] ?? null
 }
 
+/** The tab before `step`; null on the territory's, where the report starts. */
+export function previousStep(step: StepId): StepId | null {
+  return STEPS[STEPS.indexOf(step) - 1] ?? null
+}
+
 function isTheme(step: StepId): step is ThemeId {
   return (THEME_IDS as string[]).includes(step)
 }
