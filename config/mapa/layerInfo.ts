@@ -100,7 +100,10 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
   },
   uc_uso_sustentavel: {
     summary: 'Unidades de conservação de uso sustentável do cadastro nacional (áreas de proteção ambiental, reservas particulares do patrimônio natural, áreas de relevante interesse ecológico, florestas, reservas de desenvolvimento sustentável e reservas extrativistas) com mais da metade da área no bioma, 198 ao todo, recortadas no limite dele.',
-    cautions: ['As áreas de proteção ambiental admitem ocupação humana e terras privadas, e as maiores abrangem vários municípios.'],
+    cautions: [
+      'As áreas de proteção ambiental admitem ocupação humana e terras privadas, e as maiores abrangem vários municípios.',
+      'No cadastro, 24 das 136 reservas particulares do patrimônio natural têm só um círculo com a área decretada, sem o contorno do imóvel.',
+    ],
     period: 'Agosto de 2025',
     source: 'MMA, Cadastro Nacional de Unidades de Conservação (CNUC)',
   },

@@ -18,8 +18,8 @@ function vector(id: string, pickPriority?: number): VectorLayerConfig {
   }
 }
 
-function candidate(layer: VectorLayerConfig, storeIndex: number): VectorPickCandidate<string> {
-  return { layer, storeIndex, hit: layer.id }
+function candidate(layer: VectorLayerConfig, storeIndex: number, area?: number): VectorPickCandidate<string> {
+  return { layer, storeIndex, area, hit: layer.id }
 }
 
 describe('pickMostSpecific', () => {
@@ -50,6 +50,34 @@ describe('pickMostSpecific', () => {
     const best = pickMostSpecific([candidate(assentamentos, 5), candidate(quilombolas, 4)])
 
     expect(best?.layer.id).toBe('quilombolas')
+  })
+
+  it('picks the smaller of two nested recortes of one granularity, whichever layer holds it', () => {
+    // An APA (Uso Sustentável) holds whole settlements, and a reserve
+    // (Proteção Integral) lies whole inside an indigenous land.
+    const apa = vector('uc_uso_sustentavel', 30)
+    const assentamentos = vector('assentamentos', 30)
+    const tis = vector('terras_indigenas', 30)
+    const pi = vector('uc_protecao_integral', 30)
+
+    expect(pickMostSpecific([candidate(assentamentos, 5, 1_200), candidate(apa, 7, 300_000)])?.layer.id).toBe('assentamentos')
+    expect(pickMostSpecific([candidate(tis, 3, 25_000), candidate(pi, 6, 11_000)])?.layer.id).toBe('uc_protecao_integral')
+  })
+
+  it('picks an RPPN over the APA around it in the same layer', () => {
+    const us = vector('uc_uso_sustentavel', 30)
+    const apa: VectorPickCandidate<string> = { layer: us, storeIndex: 7, area: 300_000, hit: 'apa' }
+    const rppn: VectorPickCandidate<string> = { layer: us, storeIndex: 7, area: 160, hit: 'rppn' }
+
+    expect(pickMostSpecific([apa, rppn])?.hit).toBe('rppn')
+  })
+
+  it('never lets area overrule granularity', () => {
+    // A small municipality inside a large APA is coarser, not finer.
+    const municipios = vector('municipios', 20)
+    const apa = vector('uc_uso_sustentavel', 30)
+
+    expect(pickMostSpecific([candidate(municipios, 2, 100), candidate(apa, 7, 300_000)])?.layer.id).toBe('uc_uso_sustentavel')
   })
 
   it('treats a layer without pickPriority as the coarsest', () => {
@@ -86,16 +114,11 @@ describe('layers.json pick priorities', () => {
     expect(priority('municipios')).toBeLessThan(priority('assentamentos'))
   })
 
-  it('places the conservation units where nothing they hold or lie in is hidden', () => {
+  it('ranks the territories and the conservation units at one level', () => {
     const priority = (id: string) => vectors.find((layer) => layer.id === id)?.pickPriority ?? 0
+    const level = ['terras_indigenas', 'quilombolas', 'assentamentos', 'uc_protecao_integral', 'uc_uso_sustentavel']
 
-    // RPPNs and small parks lie inside municipalities.
+    expect(new Set(level.map(priority)).size).toBe(1)
     expect(priority('municipios')).toBeLessThan(priority('uc_uso_sustentavel'))
-    // APAs hold whole settlements and quilombos; parks and reserves lie whole
-    // inside territories (REBIO de Serra Negra in TI Pipipã), never around one.
-    for (const territory of ['terras_indigenas', 'quilombolas', 'assentamentos']) {
-      expect(priority('uc_uso_sustentavel')).toBeLessThan(priority(territory))
-      expect(priority(territory)).toBeLessThan(priority('uc_protecao_integral'))
-    }
   })
 })

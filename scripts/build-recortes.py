@@ -118,6 +118,8 @@ def states_of(gdf, fallback):
 # leading "TQ" (território quilombola) and a trailing state ("Mocambo - SE") kept.
 LOWERCASE_WORDS = {"a", "o", "as", "os", "ao", "aos", "d", "de", "da", "do", "das", "dos", "e", "em", "na", "no", "nas", "nos"}
 ROMAN_NUMERAL = re.compile(r"^(?:I{1,3}|IV|VI{0,3}|IX|XI{0,3})$")
+# Acronyms kept in capitals ("RPPN SOS Caatinga").
+ACRONYMS = {"SOS"}
 UFS = {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE",
        "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}
 
@@ -129,7 +131,7 @@ def title_case(label):
 
     def word(m):
         w, low = m.group(0), m.group(0).lower()
-        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ"):
+        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ") or w in ACRONYMS:
             return w
         if w in UFS and text[:m.start()].endswith("- ") and m.end() == len(text):
             return w
@@ -273,9 +275,9 @@ def unidades_conservacao():
     abbrev = dict(zip(names["name_state"].map(slug), names["abbrev_state"]))
     fallback = g["uf"].map(lambda uf: "/".join(abbrev.get(slug(part), part) for part in str(uf).split(",")))
     g["abbrev_state"] = states_of(g, fallback)
-    # MapLibre draws a file in order and a click takes the topmost feature, so
-    # an RPPN inside an APA has to come after it. A later regeneration keeps the
-    # old order (previous_order) and puts new units at the end.
+    # Drawn in file order, so an RPPN inside an APA shows above it. A click
+    # picks the smaller feature anyway (lib/mapa/pickVector.ts), and a later
+    # regeneration keeps the old order (previous_order) for the ids.
     return g.loc[g.to_crs(EQUAL_AREA).area.sort_values(ascending=False).index]
 
 

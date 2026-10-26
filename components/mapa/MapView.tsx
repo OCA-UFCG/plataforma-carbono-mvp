@@ -877,7 +877,12 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         for (const f of feats) {
           const owner = f.layer?.id ? sublayerToVector.get(f.layer.id) : undefined
           if (!owner) continue
-          candidates.push({ layer: owner.vector, storeIndex: owner.storeIndex, hit: f })
+          // The smaller of two overlapping recortes of one granularity wins
+          // (pickVector.ts); a point has no area and keeps layer order.
+          const area = f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+            ? turfArea({ type: 'Feature', geometry: f.geometry, properties: {} })
+            : undefined
+          candidates.push({ layer: owner.vector, storeIndex: owner.storeIndex, area, hit: f })
         }
 
         const best = pickMostSpecific(candidates)

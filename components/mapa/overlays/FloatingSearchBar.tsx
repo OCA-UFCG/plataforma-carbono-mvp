@@ -425,14 +425,14 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
                 >
                   {r.unitName}
                 </div>
-                {/* Matched value */}
+                {/* Matched value. It wraps: a conservation unit's name starts with
+                    its category ("Reserva Particular do Patrimônio Natural"), and
+                    a single line cut off the name proper and the state. */}
                 <div
                   style={{
                     fontSize: 14.5,
                     color: theme.colors.text,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    overflowWrap: 'anywhere',
                   }}
                 >
                   {renderHighlighted(r.value, r.match)}

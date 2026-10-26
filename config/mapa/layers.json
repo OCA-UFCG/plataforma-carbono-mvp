@@ -109,7 +109,7 @@
       "color": "#1f6b52",
       "hoverLabelField": "nome_uc",
       "contextField": "abbrev_state",
-      "pickPriority": 35,
+      "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "unidades_conservacao"
     },
@@ -124,7 +124,7 @@
       "color": "#5b9a8b",
       "hoverLabelField": "nome_uc",
       "contextField": "abbrev_state",
-      "pickPriority": 25,
+      "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "unidades_conservacao"
     },

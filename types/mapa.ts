@@ -42,15 +42,12 @@ export interface VectorLayerConfig {
   // "Territórios Quilombolas" into "Território Quilombola", so it is declared
   // rather than derived. Falls back to `name`.
   unitName?: string
-  // Decides which layer wins a hover or click when several visible ones
-  // overlap (higher wins); without it the biome, which contains nearly
-  // everything, would swallow every click. It follows containment: bioma <
-  // estados < municipios < uc_uso_sustentavel < territories <
-  // uc_protecao_integral. Uso Sustentável sits under the territories because
-  // its APAs hold whole settlements and quilombos; Proteção Integral sits over
-  // them because some of its units lie whole inside one (REBIO de Serra Negra
-  // in TI Pipipã) and no territory lies inside one. Layer order only breaks
-  // ties. See lib/mapa/pickVector.ts.
+  // Granularity of the recorte, used only to decide which layer wins a hover
+  // or click when several visible ones overlap (higher wins); without it the
+  // biome, which contains nearly everything, would swallow every click. It
+  // runs bioma < estados < municipios < territories and conservation units,
+  // the last two at one level: they nest both ways, so between them the
+  // smaller feature under the pointer wins. See lib/mapa/pickVector.ts.
   pickPriority?: number
   // A recorte scripts/build-recortes.py keeps whole past the biome edge instead
   // of clipping it, so its area and statistics include the part outside: the
