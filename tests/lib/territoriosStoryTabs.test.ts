@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextStep, readyToPrint, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
+import { nextStep, previousStep, readyToPrint, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
 
 describe('wantedThemes', () => {
   it('asks for the next theme from the territory tab, which has none of its own', () => {
@@ -24,6 +24,14 @@ describe('nextStep', () => {
     expect(nextStep('territorio')).toBe('estoque')
     expect(nextStep('chuva')).toBe('resumo')
     expect(nextStep('resumo')).toBeNull()
+  })
+})
+
+describe('previousStep', () => {
+  it('walks the tabs back and stops at the territory tab', () => {
+    expect(previousStep('resumo')).toBe('chuva')
+    expect(previousStep('estoque')).toBe('territorio')
+    expect(previousStep('territorio')).toBeNull()
   })
 })
 

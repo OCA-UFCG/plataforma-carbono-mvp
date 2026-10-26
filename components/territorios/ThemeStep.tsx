@@ -10,7 +10,7 @@ import StepFigure from './charts/StepFigure'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { LAND_USE_YEARS, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { UI } from '@/config/territorios/storyScript'
-import { nextStep, sectionId } from '@/lib/territorios/storyTabs'
+import { nextStep, previousStep, sectionId } from '@/lib/territorios/storyTabs'
 import { stepAnswer, territoryIndicators } from '@/lib/territorios/storyText'
 import type { StepId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
 
@@ -29,10 +29,10 @@ export interface ThemeStepProps {
   /** The session is gone: a retry would only fail again, and the banner says what to do. */
   expired:   boolean
   onRetry:   () => void
-  /** "Recorte": back to the gallery of types. */
-  onBack:    () => void
-  /** Opens the tab this panel's second button names. */
-  onNext:    (step: StepId) => void
+  /** The way back from the first tab, out of the report: the chooser, or the types for the bioma, which has none. */
+  leave:     { label: string; onClick: () => void }
+  /** Opens the tab a button at the foot names. */
+  onOpen:    (step: StepId) => void
   /** The land use map's year switch; the map beside the panel follows it. */
   landUseYear?: { year: LandUseYear; onChange: (year: LandUseYear) => void }
 }
@@ -40,10 +40,10 @@ export interface ThemeStepProps {
 /**
  * One tab of the report, beside the map (Figma 19254:37447): the title with
  * its icon, the question, the answer and its chart; at the foot, the way back
- * to the types and on to the next tab.
+ * to the previous tab and on to the next one.
  */
 export default function ThemeStep({
-  step, territory, type, load, expired, onRetry, onBack, onNext, landUseYear,
+  step, territory, type, load, expired, onRetry, leave, onOpen, landUseYear,
 }: ThemeStepProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
   const script = useStoryScript()
@@ -51,6 +51,7 @@ export default function ThemeStep({
   const theme = step === 'territorio' ? null : load
   const response = theme?.kind === 'ready' ? theme.response : undefined
   const answer = stepAnswer(step, { territory, type, response, script })
+  const previous = previousStep(step)
   const next = nextStep(step)
 
   // The chart that replaces "Carregando" pushes the buttons down, and a focused
@@ -124,8 +125,8 @@ export default function ThemeStep({
         )}
       </div>
       <PanelNav
-        onBack={onBack}
-        next={next ? { label: STEP_LABELS[next], onClick: () => onNext(next) } : undefined}
+        back={previous ? { label: STEP_LABELS[previous], onClick: () => onOpen(previous) } : leave}
+        next={next ? { label: STEP_LABELS[next], onClick: () => onOpen(next) } : undefined}
       />
     </section>
   )
