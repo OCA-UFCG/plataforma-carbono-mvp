@@ -17,7 +17,6 @@ interface Props {
 export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)
   const temporalDate = useStore((s) => s.temporalDate)
-  const choropleths = useStore((s) => s.choropleths)
   const [collapsed, setCollapsed] = useState(false)
 
   const visible = layers.filter((l) => l.visible)
@@ -138,8 +137,6 @@ export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
                 layer={layer as RasterLayerConfig}
                 theme={theme}
                 temporalDate={temporalDate[layer.id]}
-                layers={layers}
-                choropleths={choropleths}
               />
             )
           })
