@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { stepPhotoIndex } from "@/lib/marketing/heroRotation";
 import { MAPA_LINK, TERRITORIOS_LINK, type NavLink } from "@/lib/marketing/nav";
 import type { INICIO_HERO } from "@/lib/content/inicio";
 import type { Copy } from "@/lib/content/site/model";
@@ -70,6 +71,30 @@ const PHOTOS: HeroPhoto[] = [
   { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
 ];
 
+// The arrow of data-nordeste-frontend's banner carousel, the sprite symbol
+// "arrow" inlined: it points up and to the right, and the arrows turn it to
+// point left or right (see .arrowIconPrevious / .arrowIconNext).
+function ArrowIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 13 12" width={8} height={8} fill="none" aria-hidden className={className}>
+      <path
+        d="M1.5 11L11.5 1"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.94434 1H11.4999V6.55556"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 // Long enough to read the longest cards (the first and the third, 27 words
 // each as shipped) after their 0.8s fade-in.
 const ROTATION_INTERVAL_MS = 10000;
@@ -81,26 +106,40 @@ const ROTATION_INTERVAL_MS = 10000;
 export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   const cards = heroCards(copy);
   const [index, setIndex] = useState(0);
-  // Bumped by every dot click, so a click restarts the wait in full even when
-  // it picks the photo already showing.
+  // Bumped by every dot or arrow click, so a click restarts the wait in full
+  // even when it picks the photo already showing.
   const [clicks, setClicks] = useState(0);
   // Set while keyboard focus is inside the hero, which holds the rotation: the
   // next card would make the focused button inert and drop the focus. A mouse
-  // click on a dot focuses it without :focus-visible, so it does not hold.
+  // click on a dot or an arrow focuses it without :focus-visible, so it does
+  // not hold.
   const [focusHeld, setFocusHeld] = useState(false);
+  // What the polite live region reads after a dot or an arrow changes the
+  // photo. Only those set it, never the timer, so the rotation does not
+  // interrupt a screen reader every 10s.
+  const [announcement, setAnnouncement] = useState("");
 
   // A timeout per photo rather than one interval, so the wait starts over
-  // whenever the photo changes, by the timer or by a dot.
+  // whenever the photo changes, by the timer, a dot or an arrow.
   useEffect(() => {
     if (PHOTOS.length < 2 || focusHeld) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
     const id = setTimeout(
-      () => setIndex((i) => (i + 1) % PHOTOS.length),
+      () => setIndex((i) => stepPhotoIndex(i, 1, PHOTOS.length)),
       ROTATION_INTERVAL_MS
     );
     return () => clearTimeout(id);
   }, [index, clicks, focusHeld]);
+
+  // The dots and the arrows both land here, so every manual change restarts
+  // the wait.
+  const goTo = (next: number) => {
+    setIndex(next);
+    setClicks((c) => c + 1);
+    setAnnouncement(`Foto ${next + 1} de ${PHOTOS.length}: ${cards[next].title}`);
+  };
+  const step = (delta: number) => goTo(stepPhotoIndex(index, delta, PHOTOS.length));
 
   const activePhoto = PHOTOS[index];
 
@@ -181,13 +220,31 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
             className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
             aria-label={`Mostrar ${photo.alt}`}
             aria-pressed={i === index}
-            onClick={() => {
-              setIndex(i);
-              setClicks((c) => c + 1);
-            }}
+            onClick={() => goTo(i)}
           />
         ))}
       </div>
+
+      <button
+        type="button"
+        className={`${styles.arrow} ${styles.arrowPrevious}`}
+        aria-label="Foto anterior"
+        onClick={() => step(-1)}
+      >
+        <ArrowIcon className={styles.arrowIconPrevious} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.arrow} ${styles.arrowNext}`}
+        aria-label="Próxima foto"
+        onClick={() => step(1)}
+      >
+        <ArrowIcon className={styles.arrowIconNext} />
+      </button>
+
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
 
       {activePhoto.credit && <p className={styles.credit}>Foto: {activePhoto.credit}</p>}
     </section>

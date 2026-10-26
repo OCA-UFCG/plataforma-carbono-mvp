@@ -240,6 +240,65 @@
   background: color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
 }
 
+/* Previous/next arrows, drawn like those of data-nordeste-frontend's banner
+ * carousel (its CarouselPrevious/CarouselNext as BannerCarousel sets them): a
+ * 32px square with its 10px `rounded-lg`, a 1px light border and the faint
+ * `shadow-xs` (here --shadow-sm, the same value), transparent until hover
+ * fills it half white, vertically centred 24px in from the hero's edges. The
+ * border is the white token at 90%, the tint of the active dot, for that
+ * carousel's untokenized #e5e5e5. Pinned to the hero's edges, not to the
+ * content column, they stay clear of the text while --gutter is 80px. */
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--role-terciario-texto-sobre) 90%, transparent);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: var(--shadow-sm);
+  color: var(--role-terciario-texto-sobre);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus gets the hover fill too, as .secondaryButton does, on top of the
+ * global outline. */
+.arrow:hover,
+.arrow:focus-visible {
+  background: color-mix(in srgb, var(--role-terciario-texto-sobre) 50%, transparent);
+}
+
+.arrowPrevious {
+  left: 24px;
+}
+
+.arrowNext {
+  right: 24px;
+}
+
+/* The glyph points up and to the right; these are the turns that carousel
+ * gives it. */
+.arrowIconPrevious {
+  transform: rotate(-135deg);
+}
+
+.arrowIconNext {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}
+
 /* Photo credit overlay, node 18862:8536: a pill 21px above the hero's bottom
  * edge and 21.62px in from its right edge — pinned to the photo's corner, not
  * to the content column. Inter Regular 11px on the 13px line box of the
@@ -272,5 +331,11 @@
   .dots {
     height: 33px;
     padding-bottom: 20px;
+  }
+
+  /* The 24px gutter would put the text under them, so the arrows go, as they
+   * do below `md` in that carousel, and the dots remain. */
+  .arrow {
+    display: none;
   }
 }
