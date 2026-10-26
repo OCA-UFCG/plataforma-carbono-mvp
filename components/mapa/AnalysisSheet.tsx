@@ -8,7 +8,6 @@ import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
 import { luminance } from '@/lib/color'
 import { VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
-import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
 import type {
   LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig, VectorLayerConfig,
 } from '@/types/mapa'
@@ -50,8 +49,6 @@ interface Props {
   legendLayers:  LayerConfig[]
   /** Temporal stop of each layer, to pick the year's range on a ramp. */
   legendDates:   Record<string, string>
-  /** Values by feature, so a layer drawn by feature keeps its scale in the legend. */
-  legendChoropleths: Record<string, ChoroplethEntry>
   ref?:          Ref<HTMLDivElement>
 }
 
@@ -71,7 +68,7 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendChoropleths, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, ref,
 }: Props) {
   const c = theme.colors
   const dark = luminance(c.bg) < 0.25
@@ -200,13 +197,7 @@ export default function AnalysisSheet({
                 {layer.type === 'vector' ? (
                   <VectorLegendItem layer={layer as VectorLayerConfig} theme={theme} still />
                 ) : (
-                  <RasterLegendItem
-                    layer={layer as RasterLayerConfig}
-                    theme={theme}
-                    temporalDate={legendDates[layer.id]}
-                    layers={legendLayers}
-                    choropleths={legendChoropleths}
-                  />
+                  <RasterLegendItem layer={layer as RasterLayerConfig} theme={theme} temporalDate={legendDates[layer.id]} />
                 )}
               </div>
             ))}
