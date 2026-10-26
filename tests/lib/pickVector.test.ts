@@ -85,4 +85,17 @@ describe('layers.json pick priorities', () => {
     expect(priority('municipios')).toBeLessThan(priority('quilombolas'))
     expect(priority('municipios')).toBeLessThan(priority('assentamentos'))
   })
+
+  it('places the conservation units where nothing they hold or lie in is hidden', () => {
+    const priority = (id: string) => vectors.find((layer) => layer.id === id)?.pickPriority ?? 0
+
+    // RPPNs and small parks lie inside municipalities.
+    expect(priority('municipios')).toBeLessThan(priority('uc_uso_sustentavel'))
+    // APAs hold whole settlements and quilombos; parks and reserves lie whole
+    // inside territories (REBIO de Serra Negra in TI Pipipã), never around one.
+    for (const territory of ['terras_indigenas', 'quilombolas', 'assentamentos']) {
+      expect(priority('uc_uso_sustentavel')).toBeLessThan(priority(territory))
+      expect(priority(territory)).toBeLessThan(priority('uc_protecao_integral'))
+    }
+  })
 })

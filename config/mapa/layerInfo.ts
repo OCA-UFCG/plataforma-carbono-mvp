@@ -93,6 +93,17 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     period: 'Outubro de 2026',
     source: 'Incra, acervo fundiário (Assentamento Brasil)',
   },
+  uc_protecao_integral: {
+    summary: 'Unidades de conservação de proteção integral do cadastro nacional (parques, monumentos naturais, refúgios de vida silvestre, estações ecológicas e reservas biológicas) com mais da metade da área no bioma, 79 ao todo, recortadas no limite dele.',
+    period: 'Agosto de 2025',
+    source: 'MMA, Cadastro Nacional de Unidades de Conservação (CNUC)',
+  },
+  uc_uso_sustentavel: {
+    summary: 'Unidades de conservação de uso sustentável do cadastro nacional (áreas de proteção ambiental, reservas particulares do patrimônio natural, áreas de relevante interesse ecológico, florestas, reservas de desenvolvimento sustentável e reservas extrativistas) com mais da metade da área no bioma, 198 ao todo, recortadas no limite dele.',
+    cautions: ['As áreas de proteção ambiental admitem ocupação humana e terras privadas, e as maiores abrangem vários municípios.'],
+    period: 'Agosto de 2025',
+    source: 'MMA, Cadastro Nacional de Unidades de Conservação (CNUC)',
+  },
   areas_monitoramento: {
     summary: 'Sítios em área de Caatinga com torre de fluxo, 5 ao todo, que mediram as trocas de CO2, água e energia entre a vegetação e a atmosfera pelo método de covariância de vórtices.',
     cautions: ['As medições foram campanhas entre 2011 e 2020.'],

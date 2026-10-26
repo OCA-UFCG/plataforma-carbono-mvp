@@ -99,6 +99,36 @@
       "subtheme": "territorios"
     },
     {
+      "id": "uc_protecao_integral",
+      "name": "Unidades de Proteção Integral",
+      "unitName": "Unidade de Proteção Integral",
+      "type": "vector",
+      "url": "/data/vector/uc_protecao_integral.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#1f6b52",
+      "hoverLabelField": "nome_uc",
+      "contextField": "abbrev_state",
+      "pickPriority": 35,
+      "theme": "territorio",
+      "subtheme": "unidades_conservacao"
+    },
+    {
+      "id": "uc_uso_sustentavel",
+      "name": "Unidades de Uso Sustentável",
+      "unitName": "Unidade de Uso Sustentável",
+      "type": "vector",
+      "url": "/data/vector/uc_uso_sustentavel.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#5b9a8b",
+      "hoverLabelField": "nome_uc",
+      "contextField": "abbrev_state",
+      "pickPriority": 25,
+      "theme": "territorio",
+      "subtheme": "unidades_conservacao"
+    },
+    {
       "id": "areas_monitoramento",
       "name": "Áreas de Monitoramento",
       "unitName": "Área de monitoramento",
