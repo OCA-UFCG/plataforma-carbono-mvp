@@ -1,83 +1,155 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import CenaAnimada from "@/components/glossario/CenaAnimada";
 import { TERMOS, TERMO_PARAM } from "@/lib/glossario/termos";
+import tabs from "./TabStrip.module.css";
 import styles from "./Glossario.module.css";
 
-// The "Glossário" panel of the Comunicação page: the terms down the left, the
-// open term on the right with its text, its animation and its sources. The
-// open term goes into the address (?aba=glossario&termo=…) with replaceState,
-// like the tabs, so a link from the platform's layer sheet opens it directly.
-// A term without a page yet is listed as "em breve".
+const PANEL_ID = "glossario-painel";
+
+function tabId(slug: string) {
+  return `glossario-tab-${slug}`;
+}
+
+// Scrolls the strip, never the page, until the whole tab shows with the
+// strip's padding beside it. focus() alone leaves a tab that already peeks
+// in at the edge where it is.
+function mostrarAba(tab: HTMLButtonElement | null | undefined) {
+  const strip = tab?.parentElement;
+  if (!tab || !strip) return;
+
+  const { paddingLeft, paddingRight } = getComputedStyle(strip);
+  const caixa = strip.getBoundingClientRect();
+  const aba = tab.getBoundingClientRect();
+  const direita = aba.right + parseFloat(paddingRight) - caixa.right;
+  const esquerda = aba.left - parseFloat(paddingLeft) - caixa.left;
+
+  if (direita > 0) strip.scrollLeft += direita;
+  else if (esquerda < 0) strip.scrollLeft += esquerda;
+}
+
+// The Glossário page's terms, Figma frames 19400:12092 to 19403:25701: a strip
+// of tabs drawn like the Comunicação ones (19400:12117, TabStrip.module.css),
+// then the open term's title, text and animation. An ARIA tablist after the
+// WAI-ARIA tabs pattern, like ComunicacaoAbas.tsx (automatic activation, arrow
+// keys, Home/End), except that only the open term is rendered: each term
+// mounts its own scene, and lib/cenas/REGRAS_CENAS.md loads one at a time, so
+// switching tabs unmounts the previous CenaAnimada, which ends its scene. The
+// one panel is labelled by the open tab, the only one that points at it. The
+// open term goes into the address (?termo=…) with replaceState: a shared link
+// opens the same term, and switching adds no history entry. Eight terms do
+// not fit 1276px at the design's spacing, so the strip scrolls sideways.
 export default function Glossario({ inicial }: { inicial: string }) {
   const [slug, setSlug] = useState(inicial);
-  const termo = TERMOS.find((t) => t.slug === slug) ?? TERMOS[0];
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  function abrir(novo: string) {
+  const activeIndex = Math.max(0, TERMOS.findIndex((t) => t.slug === slug));
+  const termo = TERMOS[activeIndex];
+
+  // A link may open a term past the strip's right edge.
+  useEffect(() => mostrarAba(tabRefs.current[inicial]), [inicial]);
+
+  function select(novo: string) {
     setSlug(novo);
+    mostrarAba(tabRefs.current[novo]);
     const url = new URL(window.location.href);
     url.searchParams.set(TERMO_PARAM, novo);
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
-  return (
-    <section className={styles.glossario} aria-labelledby="glossario-heading">
-      <div className={`container ${styles.inner}`}>
-        <h2 id="glossario-heading" className={styles.heading}>Glossário</h2>
-        <div className={styles.grade}>
-          <nav aria-label="Termos do glossário">
-            <ul className={styles.termos} role="list">
-              {TERMOS.map((t) => {
-                const aberto = t.slug === termo.slug;
-                return (
-                  <li key={t.slug}>
-                    {t.paragrafos ? (
-                      <button
-                        type="button"
-                        className={`${styles.termo}${aberto ? ` ${styles.termoAberto}` : ""}`}
-                        aria-current={aberto ? "true" : undefined}
-                        onClick={() => abrir(t.slug)}
-                      >
-                        {t.titulo}
-                      </button>
-                    ) : (
-                      <span className={`${styles.termo} ${styles.termoEmBreve}`}>
-                        {t.titulo}
-                        <span className={styles.emBreve}>em breve</span>
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+  function selectAndFocus(index: number) {
+    const { slug: novo } = TERMOS[index];
+    select(novo);
+    tabRefs.current[novo]?.focus();
+  }
 
-          <article className={styles.conteudo} aria-labelledby={`termo-${termo.slug}`}>
-            <h3 id={`termo-${termo.slug}`} className={`${styles.titulo} text-h2`}>{termo.titulo}</h3>
-            {termo.paragrafos?.map((p, i) => (
-              <p key={i} className={styles.paragrafo}>{p}</p>
-            ))}
-            {termo.animacao && (
-              <div className={styles.animacao}>
-                <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
-              </div>
-            )}
-            {termo.acesso && (
-              // The platform is another root layout: a plain link, a full page load.
-              <a className={styles.acesso} href={termo.acesso.href}>{termo.acesso.rotulo}</a>
-            )}
-            {termo.fontes && termo.fontes.length > 0 && (
-              <>
-                <h4 className={styles.fontesTitulo}>Fontes</h4>
-                <ol className={styles.fontes}>
-                  {termo.fontes.map((f) => <li key={f}>{f}</li>)}
-                </ol>
-              </>
-            )}
-          </article>
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    const count = TERMOS.length;
+
+    switch (event.key) {
+      case "ArrowRight":
+        event.preventDefault();
+        selectAndFocus((activeIndex + 1) % count);
+        break;
+      case "ArrowLeft":
+        event.preventDefault();
+        selectAndFocus((activeIndex - 1 + count) % count);
+        break;
+      case "Home":
+        event.preventDefault();
+        selectAndFocus(0);
+        break;
+      case "End":
+        event.preventDefault();
+        selectAndFocus(count - 1);
+        break;
+      default:
+        break;
+    }
+  }
+
+  return (
+    <>
+      <div className={tabs.subnav}>
+        <div className={`container ${tabs.list}`} role="tablist" aria-label="Termos do glossário">
+          {TERMOS.map((t) => {
+            const selected = t.slug === termo.slug;
+            return (
+              <button
+                key={t.slug}
+                ref={(el) => {
+                  tabRefs.current[t.slug] = el;
+                }}
+                type="button"
+                role="tab"
+                id={tabId(t.slug)}
+                aria-selected={selected}
+                aria-controls={selected ? PANEL_ID : undefined}
+                tabIndex={selected ? 0 : -1}
+                className={`${tabs.item} text-ui-tab${selected ? ` ${tabs.itemCurrent}` : ""}`}
+                onClick={() => select(t.slug)}
+                onKeyDown={handleKeyDown}
+              >
+                {t.titulo}
+              </button>
+            );
+          })}
         </div>
       </div>
-    </section>
+
+      <section
+        role="tabpanel"
+        id={PANEL_ID}
+        aria-labelledby={tabId(termo.slug)}
+        className={`${tabs.panel} ${styles.glossario}`}
+        tabIndex={0}
+      >
+        <div className={`container ${styles.inner}`}>
+          <div className={styles.texto}>
+            <h2 className={styles.titulo}>{termo.titulo}</h2>
+            {termo.paragrafos.map((p, i) => (
+              <p key={i} className={`${styles.paragrafo} text-body`}>{p}</p>
+            ))}
+          </div>
+          {termo.animacao && (
+            <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
+          )}
+          {termo.acesso && (
+            // The platform is another root layout: a plain link, a full page load.
+            <a className={styles.acesso} href={termo.acesso.href}>{termo.acesso.rotulo}</a>
+          )}
+          {termo.fontes && termo.fontes.length > 0 && (
+            <div className={styles.fontesBloco}>
+              <h3 className={styles.fontesTitulo}>Fontes</h3>
+              <ol className={styles.fontes}>
+                {termo.fontes.map((f) => <li key={f}>{f}</li>)}
+              </ol>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
