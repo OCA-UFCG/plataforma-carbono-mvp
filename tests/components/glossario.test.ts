@@ -1,14 +1,23 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+// The open term is read from the address, as Next.js hands it to the page.
+const endereco = vi.hoisted(() => ({ busca: '' }))
+
+vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(endereco.busca) }))
+
 import Glossario from '@/components/marketing/Glossario'
 import { TERMOS, parseTermo } from '@/lib/glossario/termos'
 
-const html = (inicial: string) => renderToStaticMarkup(createElement(Glossario, { inicial }))
+const html = (busca: string) => {
+  endereco.busca = busca
+  return renderToStaticMarkup(createElement(Glossario))
+}
 
 describe('Glossario', () => {
   it('renders one tab per term, in the design order with "Sequestro de carbono" last', () => {
-    const markup = html('fotossintese')
+    const markup = html('')
     const tabs = markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []
 
     expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual([
@@ -24,8 +33,8 @@ describe('Glossario', () => {
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
   })
 
-  it('opens the term it is given, and only that one', () => {
-    const markup = html('torre-de-fluxo')
+  it('opens the term the address names, and only that one', () => {
+    const markup = html('?termo=torre-de-fluxo')
 
     expect(markup).toMatch(/id="glossario-tab-torre-de-fluxo"[^>]*aria-selected="true"[^>]*tabindex="0"/)
     expect(markup).toMatch(/id="glossario-tab-fotossintese"[^>]*aria-selected="false"[^>]*tabindex="-1"/)
@@ -34,8 +43,14 @@ describe('Glossario', () => {
     expect(markup.match(/<canvas/g)).toHaveLength(1)
   })
 
+  it('opens the first term when the address names none, or an unknown one', () => {
+    for (const busca of ['', '?termo=outro', '?outra=coisa']) {
+      expect(html(busca), busca).toMatch(/id="glossario-tab-fotossintese"[^>]*aria-selected="true"/)
+    }
+  })
+
   it('points only the open tab at the panel, which it labels', () => {
-    const markup = html('degradacao')
+    const markup = html('?termo=degradacao')
     const controls = [...markup.matchAll(/aria-controls="([^"]+)"/g)].map(([, id]) => id)
 
     expect(controls).toEqual(['glossario-painel'])
@@ -43,7 +58,7 @@ describe('Glossario', () => {
   })
 
   it('links "Estoque de carbono" to its layer on the platform', () => {
-    expect(html('estoque-de-carbono')).toContain(
+    expect(html('?termo=estoque-de-carbono')).toContain(
       `href="/login?redirect=${encodeURIComponent('/mapa?camada=estoque_carbono')}"`,
     )
   })

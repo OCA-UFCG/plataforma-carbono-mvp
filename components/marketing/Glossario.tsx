@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { KeyboardEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import CenaAnimada from "@/components/glossario/CenaAnimada";
-import { TERMOS, TERMO_PARAM } from "@/lib/glossario/termos";
+import { TERMOS, TERMO_PARAM, parseTermo } from "@/lib/glossario/termos";
 import tabs from "./TabStrip.module.css";
 import styles from "./Glossario.module.css";
 
@@ -37,26 +38,28 @@ function mostrarAba(tab: HTMLButtonElement | null | undefined) {
 // keys, Home/End), except that only the open term is rendered: each term
 // mounts its own scene, and lib/cenas/REGRAS_CENAS.md loads one at a time, so
 // switching tabs unmounts the previous CenaAnimada, which ends its scene. The
-// one panel is labelled by the open tab, the only one that points at it. The
-// open term goes into the address (?termo=…) with replaceState: a shared link
-// opens the same term, and switching adds no history entry. Eight terms do
-// not fit 1276px at the design's spacing, so the strip scrolls sideways.
-export default function Glossario({ inicial }: { inicial: string }) {
-  const [slug, setSlug] = useState(inicial);
+// one panel is labelled by the open tab, the only one that points at it.
+// The open term lives in the address (?termo=…), with no state of its own: a
+// tab writes it with replaceState, which Next.js feeds back to
+// useSearchParams, so switching adds no history entry, a shared link opens
+// the same term on the server, and a link back to the bare /glossario (the
+// header's) opens the first term again even though the page stays mounted.
+// Eight terms do not fit 1276px at the design's spacing, so the strip scrolls
+// sideways.
+export default function Glossario() {
+  const termo = parseTermo(useSearchParams()?.get(TERMO_PARAM) ?? undefined);
+  const activeIndex = TERMOS.indexOf(termo);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const activeIndex = Math.max(0, TERMOS.findIndex((t) => t.slug === slug));
-  const termo = TERMOS[activeIndex];
-
   // A link may open a term past the strip's right edge.
-  useEffect(() => mostrarAba(tabRefs.current[inicial]), [inicial]);
+  useEffect(() => mostrarAba(tabRefs.current[termo.slug]), [termo.slug]);
 
+  // `null`, not window.history.state: Next.js copies its own entry state over,
+  // and skips syncing useSearchParams for a call that already carries it.
   function select(novo: string) {
-    setSlug(novo);
-    mostrarAba(tabRefs.current[novo]);
     const url = new URL(window.location.href);
     url.searchParams.set(TERMO_PARAM, novo);
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
   function selectAndFocus(index: number) {
