@@ -34,7 +34,10 @@ export default function Regua({ rotulo, min, max, passo, valor, onChange, textoV
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ "--fracao": fracao } as CSSProperties}
       />
-      <output htmlFor={id} className={`${styles.texto} ${styles.valor}`}>{textoValor}</output>
+      {/* A span, not an <output>: that is a live region, which would read the
+          date out on every step while the scene plays. The slider already
+          carries the value in aria-valuetext. */}
+      <span className={`${styles.texto} ${styles.valor}`} aria-hidden="true">{textoValor}</span>
     </div>
   );
 }
