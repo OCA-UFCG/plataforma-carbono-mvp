@@ -119,13 +119,17 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               onChange={(v) => controle.current?.velocidade(v)}
               textoValor={`${estado.velocidade.toLocaleString("pt-BR")}×`}
             />
+            {/* One step per day, the unit of the date the scene reports (day d
+                is floor(posicao × 365)): a finer step could land on the same
+                day, which the scene does not report, and the slider would snap
+                back. Mid-day keeps the position clear of the day's edges. */}
             <Regua
               rotulo="Posição no ano"
               min={0}
-              max={999}
+              max={364}
               passo={1}
-              valor={Math.round(estado.posicao * 1000)}
-              onChange={(v) => controle.current?.posicao(v / 1000)}
+              valor={Math.floor(estado.posicao * 365)}
+              onChange={(v) => controle.current?.posicao((v + 0.5) / 365)}
               textoValor={estado.data}
             />
           </div>
