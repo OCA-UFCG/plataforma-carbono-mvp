@@ -40,10 +40,14 @@
   gap: 16px 24px;
 }
 
-/* The step buttons split their row into equal parts, and wrap to a new line
- * once their labels no longer fit side by side. */
-.etapas > * {
-  flex: 1 1 0;
+/* The step buttons split their row into equal parts. Once their labels no
+ * longer fit side by side they wrap into equal columns too, so a button left
+ * alone on the last line keeps its column's width instead of spanning the row.
+ * 148px is the widest step button, "Madeira morta" with its swatch
+ * (19401:23427); seven of them still fit the 1276px column on one line. */
+.etapas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
 }
 
 /* What a scene builds in its panel, with the package's class names. */
