@@ -8,9 +8,10 @@ import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
 import { luminance } from '@/lib/color'
 import { EmissionsLegendItem, VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
-import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
-import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import type {
+  LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig,
+} from '@/types/mapa'
 
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
@@ -49,8 +50,6 @@ interface Props {
   legendLayers:  LayerConfig[]
   /** Temporal stop of each layer, to pick the year's range on a ramp. */
   legendDates:   Record<string, string>
-  /** Values by feature, so a layer drawn by feature keeps its scale in the legend. */
-  legendChoropleths: Record<string, ChoroplethEntry>
   /** Values of the emissions layers, for their classes and level. */
   legendEmissoes: Record<string, EmissoesEntry>
   ref?:          Ref<HTMLDivElement>
@@ -72,7 +71,7 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendChoropleths, legendEmissoes, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendEmissoes, ref,
 }: Props) {
   const c = theme.colors
   const dark = luminance(c.bg) < 0.25
@@ -209,13 +208,7 @@ export default function AnalysisSheet({
                     emissoes={legendEmissoes}
                   />
                 ) : (
-                  <RasterLegendItem
-                    layer={layer}
-                    theme={theme}
-                    temporalDate={legendDates[layer.id]}
-                    layers={legendLayers}
-                    choropleths={legendChoropleths}
-                  />
+                  <RasterLegendItem layer={layer as RasterLayerConfig} theme={theme} temporalDate={legendDates[layer.id]} />
                 )}
               </div>
             ))}

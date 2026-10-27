@@ -6,6 +6,10 @@ import {
 import { posicoesUsoDaTerra, unidadeDe, unidadeEmissoes } from '@/lib/emissoes/unidade'
 import type { EmissoesFile } from '@/types/emissoes'
 
+// Walks every municipality and state; under the full suite's parallel load
+// it can take longer than the 5 s default.
+const LONG_TEST_MS = 30_000
+
 const data = emissoesJson as unknown as EmissoesFile
 const posicoes = { seeg: posicoesUsoDaTerra(data, 'seeg'), ct: posicoesUsoDaTerra(data, 'ct') }
 const campinaGrande = unidadeEmissoes(data, 'municipios', '2504009', posicoes)!
@@ -98,7 +102,7 @@ describe('linhasPorSetor', () => {
       }
       for (const linha of linhasPorSetor(u, 'seeg')) expect(linha.usoRemocao, u.chave).toBeLessThanOrEqual(0)
     }
-  })
+  }, LONG_TEST_MS)
 
   it('leaves a sector the municipality never had out of the chart and its legend', () => {
     const code = Object.keys(data.municipios).find((k) => !data.municipios[k].seeg.processos_industriais)!

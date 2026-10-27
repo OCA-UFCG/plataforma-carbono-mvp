@@ -10,7 +10,6 @@ import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
-import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
@@ -174,7 +173,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     Sheet: typeof AnalysisSheet; mapSrc: string | null; generatedAt: Date
     // What was on the map when the button was clicked, for the legend.
     legendLayers: LayerConfig[]; legendDates: Record<string, string>
-    legendChoropleths: Record<string, ChoroplethEntry>
     legendEmissoes: Record<string, EmissoesEntry>
   } | null>(null)
   const sheetLayers: SheetLayer[] = measured.map((raster) => {
@@ -204,11 +202,11 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         setExporting(false)
         return
       }
-      const { layers: current, temporalDate: dates, choropleths, emissoes } = useStore.getState()
+      const { layers: current, temporalDate: dates, emissoes } = useStore.getState()
       setSheet({
         Sheet, mapSrc, generatedAt: new Date(),
         legendLayers: current.filter((l) => l.visible), legendDates: dates,
-        legendChoropleths: choropleths, legendEmissoes: emissoes,
+        legendEmissoes: emissoes,
       })
     } catch (err) {
       console.error('JPEG export failed', err)
@@ -303,7 +301,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         layers={sheetLayers}
         legendLayers={sheet.legendLayers}
         legendDates={sheet.legendDates}
-        legendChoropleths={sheet.legendChoropleths}
         legendEmissoes={sheet.legendEmissoes}
       />
     </div>,

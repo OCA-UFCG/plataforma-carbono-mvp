@@ -17,7 +17,6 @@ interface Props {
 export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)
   const temporalDate = useStore((s) => s.temporalDate)
-  const choropleths = useStore((s) => s.choropleths)
   const emissoes = useStore((s) => s.emissoes)
   const layerErrors = useStore((s) => s.layerErrors)
   const [collapsed, setCollapsed] = useState(false)
@@ -153,8 +152,6 @@ export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
                 layer={layer}
                 theme={theme}
                 temporalDate={temporalDate[layer.id]}
-                layers={layers}
-                choropleths={choropleths}
               />
             )
           })

@@ -13,11 +13,11 @@ import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { clippedToBiome, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
 import { READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
-import { sectionId } from '@/lib/territorios/storyTabs'
+import { previousStep, sectionId } from '@/lib/territorios/storyTabs'
 import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
 import { formatArea } from '@/lib/territorios/storyValues'
 import type { ThemeLoad } from './ThemeStep'
-import type { ThemeId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
+import type { StepId, ThemeId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
 
 export interface StorySummaryProps {
   /** Another tab is open; the summary stays in the page so "Baixar" can print it. */
@@ -28,8 +28,8 @@ export interface StorySummaryProps {
   /** The session is gone: the retry buttons would only fail again. */
   expired:   boolean
   onRetry:   (theme: ThemeId) => void
-  /** "Recorte": back to the gallery of types. */
-  onBack:    () => void
+  /** Opens the tab the button at the foot names, the one before the summary. */
+  onOpen:    (step: StepId) => void
 }
 
 /**
@@ -40,11 +40,12 @@ export interface StorySummaryProps {
  * name heads the sheet on paper only.
  */
 export default function StorySummary({
-  hidden, territory, type, loads, expired, onRetry, onBack,
+  hidden, territory, type, loads, expired, onRetry, onOpen,
 }: StorySummaryProps) {
   const [generatedAt] = useState(() => new Date().toLocaleDateString('pt-BR'))
   const aboutRef = useRef<HTMLDetailsElement | null>(null)
   const script = useStoryScript()
+  const previous = previousStep('resumo')
 
   // A folded <details> prints folded; the sheet prints it open and folds it
   // back afterwards if the visitor had it closed.
@@ -162,7 +163,7 @@ export default function StorySummary({
         <p className="territorios-sobre-data">{UI.generatedAt(generatedAt)}</p>
       </details>
 
-      <PanelNav onBack={onBack} />
+      {previous && <PanelNav back={{ label: STEP_LABELS[previous], onClick: () => onOpen(previous) }} />}
     </section>
   )
 }

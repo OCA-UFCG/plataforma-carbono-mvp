@@ -8,7 +8,6 @@ import type {
   PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
-import { withoutChoroplethErrors, type ChoroplethEntry } from '@/lib/mapa/choropleth'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
@@ -122,10 +121,6 @@ interface MapaStore {
   temporalTileUrls: Record<string, Record<string, string>>  // layerId -> { dateKey -> tileUrl }
   temporalDate:     Record<string, string>                   // layerId -> current dateKey
 
-  // Each continuous raster's mean by feature of the finest choropleth recorte
-  // on, keyed by choroplethKey (layer|recorte). Not persisted.
-  choropleths: Record<string, ChoroplethEntry>
-
   // The values of each emissions layer (lib/emissoes/runner.ts), keyed by
   // layer id. Not persisted.
   emissoes: Record<string, EmissoesEntry>
@@ -220,7 +215,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   jenksBreaks:      {},
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
-  choropleths:      {},
   emissoes:         {},
   statsCache:       {},
   pixelCache:       {},
@@ -245,13 +239,10 @@ export const useStore = create<MapaStore>((set, get) => ({
       return
     }
 
-    // Turning a choropleth recorte on is how its failures are retried, and
-    // turning an emissions layer on, how a failed fetch of its values is.
-    const retries = layer?.type === 'vector' && !!layer.choropleth && !layer.visible
+    // Turning an emissions layer on is how a failed fetch of its values is retried.
     const retriesEmissoes = layer?.type === 'emissions' && !layer.visible && state.emissoes[id]?.status === 'error'
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
-      ...(retries ? { choropleths: withoutChoroplethErrors(s.choropleths, id) } : {}),
       ...(retriesEmissoes ? { emissoes: omitKey(s.emissoes, id) } : {}),
     }))
   },
@@ -269,14 +260,9 @@ export const useStore = create<MapaStore>((set, get) => ({
   },
 
   showLayer: (id) =>
-    set((s) => {
-      const layer = s.layers.find((l) => l.id === id)
-      const retries = layer?.type === 'vector' && !!layer.choropleth && !layer.visible
-      return {
-        layers: setLayerVisibility(s.layers, id, true),
-        ...(retries ? { choropleths: withoutChoroplethErrors(s.choropleths, id) } : {}),
-      }
-    }),
+    set((s) => ({
+      layers: setLayerVisibility(s.layers, id, true),
+    })),
 
   // Opacity, order, chosen year and cached tiles stay, so switching a layer
   // back on is instant. Dropping the loading mark is what keeps a GEE raster

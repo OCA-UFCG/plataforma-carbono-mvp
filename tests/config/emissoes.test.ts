@@ -4,6 +4,10 @@ import emissoesJson from '@/config/emissoes/emissoes.json'
 import { CT_SETORES, SEEG_SETORES, SETOR_DESTAQUE, anosDe, intensidade, serieEmissoes } from '@/lib/emissoes/series'
 import type { EmissoesFile, EmissoesUnidade } from '@/types/emissoes'
 
+// Walks every municipality and state; under the full suite's parallel load
+// it can take longer than the 5 s default.
+const LONG_TEST_MS = 30_000
+
 const data = emissoesJson as unknown as EmissoesFile
 const SEEG_ANOS = anosDe(data.fontes.seeg.anos)
 const CT_ANOS = anosDe(data.fontes.ct.anos)
@@ -58,7 +62,7 @@ describe('config/emissoes/emissoes.json', () => {
         expect(s.every(Number.isInteger), key).toBe(true)
       }
     }
-  })
+  }, LONG_TEST_MS)
 
   it('sums each state from its municipalities and the biome from all of them', () => {
     const todos = Object.values(data.municipios)

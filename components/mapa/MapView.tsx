@@ -46,8 +46,6 @@ import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
-import { choroplethColor, choroplethView } from '@/lib/mapa/choropleth'
-import { runChoropleths } from '@/lib/mapa/choroplethRunner'
 import { anoEmissoes, corEmissoes, nivelEmissoes, valoresPorFeicao } from '@/lib/emissoes/mapa'
 import { runEmissoes } from '@/lib/emissoes/runner'
 import {
@@ -391,9 +389,8 @@ function drawnSublayers(layer: LayerConfig): string[] {
         `${layer.id}-model`,
         ...(layer.labelField ? [`${layer.id}-label`] : []),
       ]
-    // The map by feature replaces its raster in place, so it sits right above it.
     case 'raster':
-      return [`${layer.id}-raster`, `${layer.id}-choropleth`]
+      return [`${layer.id}-raster`]
     case 'emissions':
       return [`${layer.id}-emissoes`]
   }
@@ -1563,66 +1560,6 @@ useEffect(() => {
     if (!selectedGeometry) return
     runVisibleRasterAnalyses(selectedGeometry, currentAnalysisSeq())
   }, [layers, temporalDate, temporalTileUrls, fetchedTileUrls, selectedGeometry])
-
-  // The map by feature of the finest choropleth recorte on: the runner asks
-  // only for what is missing, so a re-run on an opacity drag is free.
-  useEffect(() => {
-    runChoropleths()
-  }, [layers])
-
-  // Draws each raster by feature while its values are on hand: a fill on the
-  // recorte's own GeoJSON source, colored from feature states, right above
-  // the raster, whose pixels are hidden meanwhile. A year step only rewrites
-  // the states. Declared after the layer sync, so it runs after updateLayer
-  // has reset the raster's opacity, and hides it again.
-  const choropleths = useStore((s) => s.choropleths)
-  const drawnChoropleths = useRef(new Map<string, { recorteId: string; values: (number | null)[] }>())
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady) return
-
-    for (const layer of layers) {
-      if (layer.type !== 'raster') continue
-      const rasterId = `${layer.id}-raster`
-      const fillId = `${layer.id}-choropleth`
-      const view = choroplethView(layers, layer, choropleths, temporalDate[layer.id])
-      const drawn = drawnChoropleths.current.get(layer.id)
-
-      if (!view || !map.getLayer(rasterId) || !map.getSource(view.recorte.id)) {
-        if (map.getLayer(fillId)) map.removeLayer(fillId)
-        if (drawn && map.getLayer(rasterId)) {
-          map.setPaintProperty(rasterId, 'raster-opacity', layer.visible ? layer.opacity / 100 : 0)
-        }
-        drawnChoropleths.current.delete(layer.id)
-        continue
-      }
-
-      const stateKey = `v_${layer.id}`
-      const color = choroplethColor(view.palette, view.range, stateKey)
-      if (drawn && drawn.recorteId !== view.recorte.id && map.getLayer(fillId)) map.removeLayer(fillId)
-      if (!map.getLayer(fillId)) {
-        const order = map.getStyle().layers.map((l) => l.id)
-        const above = order[order.indexOf(rasterId) + 1]
-        map.addLayer({
-          id: fillId,
-          type: 'fill',
-          source: view.recorte.id,
-          paint: { 'fill-color': color, 'fill-opacity': layer.opacity / 100 },
-        }, above)
-      } else {
-        map.setPaintProperty(fillId, 'fill-color', color)
-        map.setPaintProperty(fillId, 'fill-opacity', layer.opacity / 100)
-      }
-
-      if (!drawn || drawn.values !== view.values || drawn.recorteId !== view.recorte.id) {
-        view.values.forEach((value, id) => {
-          map.setFeatureState({ source: view.recorte.id, id }, { [stateKey]: value })
-        })
-      }
-      map.setPaintProperty(rasterId, 'raster-opacity', 0)
-      drawnChoropleths.current.set(layer.id, { recorteId: view.recorte.id, values: view.values })
-    }
-  }, [layers, choropleths, temporalDate, mapReady])
 
   // The emissions layers: their values are fetched once per layer, for every
   // level and year (lib/emissoes/runner.ts).

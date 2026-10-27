@@ -130,21 +130,22 @@ describe('ReportBand', () => {
 })
 
 describe('PanelNav', () => {
-  it('goes back to the types and on to the named tab', () => {
-    expect(buttons(html(PanelNav, { onBack: noop, next: { label: 'Estoque', onClick: noop } }))).toEqual([
-      { text: 'Recorte', disabled: false },
-      { text: 'Estoque', disabled: false },
+  it('goes back and on to the screens it names', () => {
+    const back = { label: 'Território', onClick: noop }
+    expect(buttons(html(PanelNav, { back, next: { label: 'Fluxo', onClick: noop } }))).toEqual([
+      { text: 'Território', disabled: false },
+      { text: 'Fluxo', disabled: false },
     ])
   })
 
   it('disables the way on until there is somewhere to go, with the grey arrow', () => {
-    const markup = html(PanelNav, { onBack: noop, next: { label: 'Ver relatório', onClick: null } })
+    const markup = html(PanelNav, { back: { label: 'Recorte', onClick: noop }, next: { label: 'Ver relatório', onClick: null } })
     expect(buttons(markup)[1]).toEqual({ text: 'Ver relatório', disabled: true })
     expect(markup).toContain('seta-direita-desabilitada.svg')
   })
 
   it('has only the way back on the summary', () => {
-    expect(buttons(html(PanelNav, { onBack: noop }))).toEqual([{ text: 'Recorte', disabled: false }])
+    expect(buttons(html(PanelNav, { back: { label: 'Chuva', onClick: noop } }))).toEqual([{ text: 'Chuva', disabled: false }])
   })
 })
 
@@ -175,7 +176,7 @@ const JUAZEIRO: TerritoryPayload = {
 
 const STEP = {
   territory: JUAZEIRO, type: typeOf('municipio'), load: { kind: 'loading' } as const,
-  expired: false, onRetry: noop, onBack: noop, onNext: noop,
+  expired: false, onRetry: noop, leave: { label: 'Localização', onClick: noop }, onOpen: noop,
 }
 
 describe('ThemeStep', () => {
@@ -188,12 +189,13 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Área do município inteiro, na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Estoque'])
+    // The first tab's way back leaves the report.
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Localização', 'Estoque'])
   })
 
-  it('names the summary on the last theme\'s button, and waits for its data', () => {
+  it('names the previous theme and the summary on the last theme\'s buttons, and waits for its data', () => {
     const markup = html(ThemeStep, { ...STEP, step: 'chuva' })
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte', 'Resumo'])
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Fogo', 'Resumo'])
     expect(markup).toContain('Carregando os dados')
   })
 
@@ -210,7 +212,7 @@ const LOADING_ALL = {
 
 const SUMMARY = {
   territory: JUAZEIRO, type: typeOf('municipio'), loads: LOADING_ALL,
-  expired: false, onRetry: noop, onBack: noop,
+  expired: false, onRetry: noop, onOpen: noop,
 }
 
 describe('StorySummary', () => {
@@ -226,7 +228,7 @@ describe('StorySummary', () => {
     expect(markup).toContain('<header class="territorios-ficha-cabecalho territorios-so-impressao">')
     expect(markup).toContain('Juazeiro (BA)')
     expect(markup).toContain('/images/territorios/icones/abrir.svg')
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Recorte'])
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Chuva'])
   })
 
   it('puts a card\'s title before its reading, so heading navigation lands ahead of the badge', () => {

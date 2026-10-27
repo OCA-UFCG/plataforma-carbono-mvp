@@ -17,6 +17,10 @@ import { isExclusiveSubtheme } from '@/config/mapa/groups'
 import type { EmissoesCamadaPayload, EmissoesFile } from '@/types/emissoes'
 import type { EmissionsLayerConfig, LayerConfig, VectorLayerConfig } from '@/types/mapa'
 
+// Walks every municipality and state; under the full suite's parallel load
+// it can take longer than the 5 s default.
+const LONG_TEST_MS = 30_000
+
 const data = emissoesJson as unknown as EmissoesFile
 const config = appConfig.layers as LayerConfig[]
 const emissionLayers = config.filter((l): l is EmissionsLayerConfig => l.type === 'emissions')
@@ -100,7 +104,7 @@ describe('emissions layers in layers.json', () => {
         }
       }
     }
-  })
+  }, LONG_TEST_MS)
 })
 
 describe('nivelEmissoes', () => {
