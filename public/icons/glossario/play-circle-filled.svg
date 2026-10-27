@@ -1,0 +1,15 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g clip-path="url(#clip0_0_13)">
+<use xlink:href="#stroke0_0_13" fill="white"/>
+<mask id="stroke1_0_13" fill="white">
+<use xlink:href="#stroke0_0_13"/>
+</mask>
+<path d="M8.00065 1.33331C4.32065 1.33331 1.33398 4.31998 1.33398 7.99998C1.33398 11.68 4.32065 14.6666 8.00065 14.6666C11.6807 14.6666 14.6673 11.68 14.6673 7.99998C14.6673 4.31998 11.6807 1.33331 8.00065 1.33331ZM6.66732 11V4.99998L10.6673 7.99998L6.66732 11Z" stroke-width="1.33333" stroke="white" mask="url(#stroke1_0_13)"/>
+</g>
+<defs>
+<clipPath id="clip0_0_13">
+<rect width="16" height="16" fill="white"/>
+</clipPath>
+<path id="stroke0_0_13" d="M8.00065 1.33331C4.32065 1.33331 1.33398 4.31998 1.33398 7.99998C1.33398 11.68 4.32065 14.6666 8.00065 14.6666C11.6807 14.6666 14.6673 11.68 14.6673 7.99998C14.6673 4.31998 11.6807 1.33331 8.00065 1.33331ZM6.66732 11V4.99998L10.6673 7.99998L6.66732 11Z"/>
+</defs>
+</svg>

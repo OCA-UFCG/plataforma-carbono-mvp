@@ -1,0 +1,96 @@
+/* Figma "Date-slider" (7076:46472) between its label and its value, 8px apart:
+ * a 6px track in --role-neutro-texto-desabilitado (#94a6ac), the stretch up to
+ * the thumb in --role-marca-ancora-padrao and a 20px white thumb with a 2px
+ * border in the same green. Label and value are Archivo SemiBold 16 in --am-400
+ * (19401:23366). The slider takes the room its row leaves, and drops to a line
+ * of its own on a narrow screen. */
+.regua {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: min(100%, 280px);
+}
+
+.texto {
+  flex: none;
+  font-family: var(--font-archivo, var(--font-sans, var(--font-fallback)));
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 17.408px;
+  color: var(--am-400);
+  white-space: nowrap;
+}
+
+/* Wide enough for "30 dez", so the track does not jitter while the date runs. */
+.valor {
+  min-width: 3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.trilha {
+  --trilha: 6px;
+  --polegar: 20px;
+  /* The green stretch ends under the thumb's centre, which travels between
+   * half a thumb from each end. */
+  --preenchido: calc(var(--polegar) / 2 + (100% - var(--polegar)) * var(--fracao, 0));
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--polegar);
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.trilha:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 4px;
+  border-radius: 9999px;
+}
+
+.trilha:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.trilha::-webkit-slider-runnable-track {
+  height: var(--trilha);
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--role-marca-ancora-padrao) var(--preenchido),
+    var(--role-neutro-texto-desabilitado) var(--preenchido)
+  );
+}
+
+.trilha::-moz-range-track {
+  height: var(--trilha);
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--role-marca-ancora-padrao) var(--preenchido),
+    var(--role-neutro-texto-desabilitado) var(--preenchido)
+  );
+}
+
+.trilha::-webkit-slider-thumb {
+  width: var(--polegar);
+  height: var(--polegar);
+  margin-top: calc((var(--trilha) - var(--polegar)) / 2);
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--role-primario-texto-sobre);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.trilha::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--polegar);
+  height: var(--polegar);
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--role-primario-texto-sobre);
+}

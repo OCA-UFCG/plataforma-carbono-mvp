@@ -26,10 +26,11 @@ export const inter = localFont({
 })
 
 // The landing's Plataforma tab labels, which the design sets in Archivo
-// SemiBold 16 (I18862:8546;18846:7562 and siblings): a static 600 cut, the
-// only weight in use. Declared on the marketing <body> only; the territorios
-// story has no such tabs. Not preloaded: the layout would otherwise preload it
-// on every marketing page, and only the landing draws it, below the fold.
+// SemiBold 16 (I18862:8546;18846:7562 and siblings), and the labels of the
+// Glossário's sliders (19401:23366): a static 600 cut, the only weight in use.
+// Declared on the marketing <body> only; the territorios story has neither.
+// Not preloaded: the layout would otherwise preload it on every marketing
+// page, and only those two draw it, both below the fold.
 export const archivo = localFont({
   src: './Archivo-SemiBold-latin.woff2',
   weight: '600',
