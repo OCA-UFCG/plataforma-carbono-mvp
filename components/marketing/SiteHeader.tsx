@@ -9,12 +9,12 @@ import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px),
+// `.actions` are 188 + 696 + 107px with 16px gaps between them (1023px),
 // none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
 // (80px, still 80 in this range — it only drops to 24 at <=768px) on both
 // sides. The wordmark overruns `.brand` by 18px, 2px more than the gap.
-// 911 + 2 + 160 = 1073px is the narrowest viewport the inline header fits at;
-// 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// 1023 + 2 + 160 = 1185px is the narrowest viewport the inline header fits
+// at; 1200 clears it, by 15px since "Glossário" joined the nav. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or

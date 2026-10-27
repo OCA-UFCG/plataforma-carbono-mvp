@@ -93,6 +93,7 @@ describe('marketing nav registry', () => {
     expect(FOOTER_LINKS.map((l) => l.label)).toEqual([
       'Início',
       'Sobre',
+      'Glossário',
       'Comunicação',
       'Resumo territorial',
       'Plataforma',
@@ -108,6 +109,7 @@ describe('marketing nav registry', () => {
     expect(HEADER_LINKS.map((l) => l.label)).toEqual([
       'Início',
       'Sobre',
+      'Glossário',
       'Comunicação',
     ])
     expect(SOBRE_PAGES.map((p) => p.label)).toEqual([
@@ -160,6 +162,7 @@ describe('activeNavHref', () => {
     expect(activeNavHref('/')).toBe('/')
     expect(activeNavHref('/sobre')).toBe('/sobre')
     expect(activeNavHref('/sobre/como-funciona')).toBe('/sobre')
+    expect(activeNavHref('/glossario')).toBe('/glossario')
     expect(activeNavHref('/comunicacao')).toBe('/comunicacao')
   })
 
