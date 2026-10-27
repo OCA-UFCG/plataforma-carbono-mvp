@@ -7,9 +7,10 @@ import { StatsChartView } from './StatsChart'
 import PointSeries from './results/PointSeries'
 import { Pair } from './results/blocks'
 import { luminance } from '@/lib/color'
-import { VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
+import { EmissionsLegendItem, VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import type {
-  LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig, VectorLayerConfig,
+  LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig,
 } from '@/types/mapa'
 
 const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -49,6 +50,8 @@ interface Props {
   legendLayers:  LayerConfig[]
   /** Temporal stop of each layer, to pick the year's range on a ramp. */
   legendDates:   Record<string, string>
+  /** Values of the emissions layers, for their classes and level. */
+  legendEmissoes: Record<string, EmissoesEntry>
   ref?:          Ref<HTMLDivElement>
 }
 
@@ -68,7 +71,7 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendEmissoes, ref,
 }: Props) {
   const c = theme.colors
   const dark = luminance(c.bg) < 0.25
@@ -195,7 +198,15 @@ export default function AnalysisSheet({
             {legendLayers.map((layer) => (
               <div key={layer.id} style={{ breakInside: 'avoid', marginBottom: 14 }}>
                 {layer.type === 'vector' ? (
-                  <VectorLegendItem layer={layer as VectorLayerConfig} theme={theme} still />
+                  <VectorLegendItem layer={layer} theme={theme} still />
+                ) : layer.type === 'emissions' ? (
+                  <EmissionsLegendItem
+                    layer={layer}
+                    theme={theme}
+                    temporalDate={legendDates[layer.id]}
+                    layers={legendLayers}
+                    emissoes={legendEmissoes}
+                  />
                 ) : (
                   <RasterLegendItem layer={layer as RasterLayerConfig} theme={theme} temporalDate={legendDates[layer.id]} />
                 )}

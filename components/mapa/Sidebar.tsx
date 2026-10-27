@@ -11,7 +11,7 @@ import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
-import type { LayerConfig, RasterLayerConfig, PlatformTheme } from '@/types/mapa'
+import type { LayerConfig, PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
@@ -549,7 +549,7 @@ function LayerRow({
   const errorMsg        = useStore((s) => s.layerErrors[layer.id])
 
   const c = theme.colors
-  const unit = layer.type === 'raster' ? (layer as RasterLayerConfig).unit : undefined
+  const unit = layer.type === 'vector' ? undefined : layer.unit
 
   return (
     <div

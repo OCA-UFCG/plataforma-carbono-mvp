@@ -8,6 +8,7 @@ import type {
   PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { paradaInicial } from '@/lib/mapa/temporal'
@@ -112,6 +113,10 @@ interface MapaStore {
   temporalTileUrls: Record<string, Record<string, string>>  // layerId -> { dateKey -> tileUrl }
   temporalDate:     Record<string, string>                   // layerId -> current dateKey
 
+  // The values of each emissions layer (lib/emissoes/runner.ts), keyed by
+  // layer id. Not persisted.
+  emissoes: Record<string, EmissoesEntry>
+
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
   statsCache: Record<string, PanelResult>
@@ -175,6 +180,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   jenksBreaks:      {},
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
+  emissoes:         {},
   statsCache:       {},
   pixelCache:       {},
 
@@ -198,8 +204,11 @@ export const useStore = create<MapaStore>((set, get) => ({
       return
     }
 
+    // Turning an emissions layer on is how a failed fetch of its values is retried.
+    const retriesEmissoes = layer?.type === 'emissions' && !layer.visible && state.emissoes[id]?.status === 'error'
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
+      ...(retriesEmissoes ? { emissoes: omitKey(s.emissoes, id) } : {}),
     }))
   },
 

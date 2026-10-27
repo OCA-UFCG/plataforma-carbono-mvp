@@ -54,7 +54,7 @@ components/mapa/
 ├ icons.tsx                    # ícones da interface
 └ overlays/                    # busca, legenda, ferramentas, mapa base, coords
 config/mapa/
-├ layers.json                  # 32 camadas + centro/zoom do mapa
+├ layers.json                  # 45 camadas + centro/zoom do mapa
 ├ platforms.ts                 # tema único "carbono" (verde-oliva OCA)
 ├ basemaps.ts                  # mapas base (CARTO exige NEXT_PUBLIC_CARTO_KEY)
 └ layerMeta.ts                 # fichas das camadas
@@ -189,7 +189,7 @@ A ordem de exibição é do editor, pelo campo `order` (a query pede `order_ASC`
 
 ## Camadas
 
-São 32 camadas, 6 vetoriais e 26 rasters, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`).
+São 45 camadas: 7 vetoriais, 30 rasters e 8 de emissões, organizadas nos temas e subtemas de `config/mapa/groups.ts`. Todos os rasters recortam ao bioma (`clipToLayerId: "bioma"`); as camadas de emissões não têm imagem e são desenhadas sobre as feições dos recortes (ver "Emissões municipais").
 
 ### Recortes territoriais (vetoriais)
 
@@ -416,8 +416,11 @@ classes abaixo de 0,1% cada, por isso a rosca agrupa a cauda em "outras".
 
 ### Navegação no tempo
 
-Doze das vinte e seis camadas raster são navegáveis por ano. O que torna uma camada
-temporal é o bloco `gee.temporal` no `layers.json`, e o passo é sempre anual: a
+Doze das trinta camadas raster são navegáveis por ano, e as oito de emissões também.
+Nos rasters, o que torna uma camada temporal é o bloco `gee.temporal` no
+`layers.json`; nas de emissões, o bloco `temporal`. Os dois são lidos por
+`layerTemporal` (`lib/mapa/temporal.ts`), de que dependem a régua e o ano gravado
+na preferência. O passo é sempre anual: a
 camada num dado ano é exatamente o mesmo cálculo que a versão estática fazia,
 só com o ano variando. Por isso ligar uma camada abre no ano mais recente, e não
 no primeiro, mostrando o mesmo retrato de antes.
@@ -571,6 +574,109 @@ indisponibilidade não derruba a seção inteira: o retrato do ano pedido já
 veio numa chamada separada, e a seção aparece sem o gráfico em vez de não
 aparecer.
 
+## Emissões municipais (SEEG e Climate TRACE)
+
+Dados tabulares, sem raster: emissões anuais de gases de efeito estufa dos 1.095 municípios de `public/data/vector/municipios.geojson`, de dois inventários, em t CO2e com o GWP100 do AR6. Ficam em `config/emissoes/emissoes.json` (cerca de 2 MB), fora de `public/`, e o contrato está em `types/emissoes.ts`. As séries que a plataforma mostra saem de `lib/emissoes/series.ts`.
+
+| Fonte | Versão e consulta | Anos | Granularidade guardada |
+|---|---|---|---|
+| SEEG | coleção 14.0, API da plataforma, 25/10/2026, gás 9 (CO2e GWP-AR6) | 1990 a 2025 | setor x tipo de emissão ("Emissão", "Emissão (NCI)", "Remoção") |
+| Climate TRACE | dados 5.11.0, API v7 (`/v7/sources/emissions?gadmId=&year=`), 25/10/2026, `co2e_100yr` | 2021 a 2025 | setor; no uso da terra, quatro séries: brutas, saldos de biomassa, solo e reservatórios |
+
+Unidades e escopo:
+
+- Todo valor é o total do município inteiro. Nas consultas usadas, os dois inventários entregam totais por município, e nada mais fino é guardado; então nada é repartido por área, e os dados não servem para recortes menores (terras indígenas, assentamentos, polígono desenhado). Por isso também não foram rasterizados.
+- Estado é a soma dos seus municípios da Caatinga; o bioma é a soma dos 1.095. Os totais do SEEG para o bioma 44 e para os estados inteiros são outra coisa: o SEEG reparte cada município entre biomas, e a soma dos 1.095 fica entre 0,92 e 0,98 do bioma 44 nas definições usadas aqui.
+- A área é a oficial do IBGE do município inteiro, na malha municipal de 2022 (API de malhas, `metadados`, com `periodo=2022` fixo), base da intensidade em t CO2e/ha. Ela não usa a área recortada no bioma.
+- AR6 e não AR5 (o padrão do site do SEEG), para que as duas fontes fiquem na mesma métrica. Em 2024, nos 1.095 municípios, o AR6 dá 2,1% a menos na agropecuária e 3,3% a menos em resíduos; uso da terra e energia quase não mudam.
+
+Composição das séries (`serieEmissoes`):
+
+| | Brutas | Líquidas |
+|---|---|---|
+| SEEG | "Emissão" | "Emissão" + "Remoção" |
+| Climate TRACE, uso da terra | brutas (desmatamento, degradação, fogo) + reservatórios | saldos de biomassa + solo + reservatórios |
+| Climate TRACE, total | uso da terra brutas + demais setores | uso da terra líquidas + demais setores |
+
+As definições do SEEG são as dos destaques "Emissões brutas" e "Emissões líquidas" do próprio site; a combinação `[1,300]` com gás 8 reproduz a tabela por bioma do site sem diferença. "Emissão (NCI)" (no uso da terra, as queimadas não associadas a desmatamento) fica fora das duas, como lá, mas continua no arquivo. No Climate TRACE, as brutas já estão contidas nos saldos de biomassa; somar as duas conta o fogo e o desmatamento duas vezes. O subsetor `removals` é aproximadamente o resíduo saldos menos brutas (diferença de até 34 kt por município a partir de 2023) e não é guardado.
+
+As duas fontes usam a mesma métrica, mas não as mesmas definições: as brutas de uma e as da outra não medem a mesma grandeza, e o mesmo vale para as líquidas. Por isso a interface mostra só o inventário da camada ligada.
+
+No SEEG, "Emissão" do uso da terra reúne três categorias: "Alterações de uso da terra" (o CO2 da perda de estoque na mudança para um uso com menos carbono por hectare, como a conversão de vegetação nativa, primária ou secundária, em pasto ou lavoura; entram também transições entre usos agropecuários e da silvicultura), "Carbono orgânico no solo" e "Resíduos florestais" (CH4 e N2O da queima dos restos do desmatamento, cujo CO2 já está na primeira). "Remoção" reúne vegetação secundária, áreas protegidas, mudanças de uso que aumentam o estoque e parte do carbono do solo. As de vegetação secundária e de áreas protegidas, 96% a 97% do total desde 2010 e 37% em 1990, usam taxas fixas por hectare do Quarto Inventário aplicadas às áreas mapeadas (método de incrementos e perdas); as de mudanças de uso, a diferença entre os estoques por hectare dos dois usos (duas medições de estoque ou combinação), e as do solo, fatores de alteração do inventário aplicados ao mapa de Bernoux (2002). Nenhuma depende do clima do ano; a série acompanha a extensão dessas áreas e passa de -2,5 Mt em 1990 a valores entre -31,5 e -31,9 Mt de 2021 a 2025 nos 1.095 municípios. "Emissão (NCI)", não contabilizada no inventário, tem no uso da terra uma única categoria, "Queimadas não associadas a desmatamento": fogo em vegetação nativa que não foi desmatada até o último ano da série (fogo em área desmatada depois é descartado, para não contar duas vezes). O inventário nacional (MCTI, 2024) não contabiliza CO2, CH4 nem N2O de fogo sem mudança de uso, pela dificuldade de acompanhar fogo e regeneração e de separar fogo natural de antrópico; o SEEG estima essas emissões com o MapBiomas Fogo e as publica à parte. Em floresta entram CO2, CH4 e N2O da combustão e o CO2 da mortalidade tardia; em savana, a combustão e o saldo pós-fogo; em campo e no estrato herbáceo, só CH4 e N2O, com o CO2 tratado como neutro; e 15% do fogo em savanas e campos é descontado como natural. Na Caatinga, a dinâmica pós-fogo usa parâmetros de florestas da Amazônia e de savanas do Cerrado. O fogo associado ao desmatamento já está em "Emissão". A nota metodológica da coleção 14 ainda não saiu (25/10/2026); o método descrito é o da coleção 13.
+
+No Climate TRACE, as brutas do uso da terra somam as emissões comprometidas da biomassa, lançadas no ano do evento (o carbono da biomassa viva, dos mapas de 1 km da CTrees, vezes a fração desmatada, degradada ou queimada da célula e um fator de emissão), e as dos reservatórios (CH4 de todos e CO2 dos que têm até 20 anos, Tier 1 do IPCC). O fogo em floresta, vegetação arbustiva e áreas úmidas entra sem separação entre ligado e não ligado a desmatamento (a metodologia não faz essa distinção, e a fração da célula desmatada e queimada vai para uma só categoria, por regra não documentada), só como CO2 (CH4 e N2O vêm zerados na API), com a área queimada do MODIS MCD64 e a perda florestal por fogo (Hansen/UMD) desde a versão 5.11. A queima de lavouras (`cropland-fires`) fica no setor agricultura. Os saldos (`net-forest-land`, `net-shrubgrass`, `net-wetland`) são a variação anual do estoque de biomassa viva e já contêm as brutas e o crescimento da vegetação; `removals` é o resíduo entre os dois e pode ser positivo. O solo (`net-soil-organic-carbon`) é o carbono do solo das lavouras, do modelo SALUS, e os reservatórios seguem o Tier 1 do IPCC.
+
+Uso da terra em 2024 nos 1.095 municípios, em Mt CO2e (AR6):
+
+| | Brutas | Remoções (líquidas menos brutas) | Líquidas | Fora das duas |
+|---|---|---|---|---|
+| SEEG | 46,42: alterações de uso 40,93, solo 3,56, resíduos florestais 1,93 | -31,63 | 14,79 | 1,41 de queimadas não associadas a desmatamento |
+| Climate TRACE | 31,53: fogo 23,12, desmatamento e degradação 5,75, reservatórios 2,67 | -51,89: remoções da biomassa -56,57 e solo das lavouras +4,69 | -20,36 | |
+
+Na API v7, no registro de 2025 de `/v7/sources/<id>`, o Climate TRACE dá confiança "very low" ao saldo de biomassa (`net-shrubgrass` e `net-forest-land`) em todos os 30 municípios de uma amostra da Caatinga (nomes únicos no país, um a cada 31 da lista) e em Quixeramobim, Petrolina, Campina Grande e Juazeiro, conferidos à parte. Nas brutas a confiança varia entre municípios: no fogo em vegetação arbustiva, 17 "very low", 3 "low", 9 "medium" e 1 "high" na mesma amostra. As fichas "i" e o cartão dizem isso.
+
+Fontes das definições: Instituto de Pesquisa Ambiental da Amazônia e Observatório do Clima (2025), nota metodológica SEEG 13 de Mudanças de Uso da Terra e Florestas (https://seeg.eco.br/wp-content/uploads/2026/01/SEEG13-NM-MUT-BR.pdf); Observatório do Clima (2025), relatório analítico SEEG 13 (https://seeg.eco.br/wp-content/uploads/2026/03/SEEG13-relatorio-analitico-BR.pdf); MCTI (2024), Brazil's National Inventory Report, BTR1 (https://unfccc.int/sites/default/files/resource/BRA_NIR_2024_ENG.pdf); Saatchi, Yang e Lin (2025), metodologia CTrees dos saldos de biomassa viva (https://github.com/climatetracecoalition/methodology-documents, pasta `2025/Forestry and Land Use Change`); Climate TRACE (2026), changelog 5.11.0 (mesmo repositório, `2026/CHANGELOG/09_Sep_V5.11.0`); da Costa et al. (2025), Science of The Total Environment 958, 177932 (https://doi.org/10.1016/j.scitotenv.2024.177932), que associa as remoções altas da Caatinga no Climate TRACE ao aumento de chuva e fotossíntese em 2015-2022.
+
+O setor de uso da terra ("Mudança de Uso da Terra e Floresta" no SEEG, `forestry-and-land-use` no Climate TRACE) é o destaque da plataforma (`SETOR_DESTAQUE`); os demais setores entram como contexto.
+
+Excluídos do Climate TRACE:
+
+- 2026, com janeiro a julho apenas e os saldos de biomassa ainda zerados.
+- Aviação e navegação internacionais (Fortaleza e os dois São Gonçalo do Amarante, no CE e no RN, concentram 98%), que os inventários nacionais reportam fora dos municípios, como o bunker do SEEG.
+- Produção e transporte de petróleo e gás em Pintadas (BA): o Climate TRACE põe num ponto do município a produção residual em terra do Brasil inteiro (cerca de 8 Mt/ano).
+
+Cuidados de leitura, que valem para a interface e para quem usar o arquivo:
+
+- No SEEG, a energia é quase toda alocada aos municípios só a partir de 2007 (no bioma, 0,64 Mt em 2006 e 11,07 Mt em 2007; antes disso, só produção de combustíveis desde 2000 e transportes em 2005 e 2006), e os processos industriais só aparecem a partir de 2015, em poucos municípios e com zero em 2019 e 2023. A série municipal tem degraus em 2007 e em 2015.
+- As emissões brutas de uso da terra do SEEG caem 17% de 2024 para 2025 nos 1.095 municípios, e não há nota metodológica publicada da coleção 14 que diga se 2025 é preliminar.
+- Na medida líquida do SEEG, 31 municípios ficam com total negativo em 2024; escalas, razões e logaritmos precisam prever valores abaixo de zero.
+- O SEEG tem "Emissão" negativa em "Disposição final" de alguns municípios (Petrolina, Caucaia, Ceará-Mirim); em 2024 dois municípios ficam com emissão bruta total negativa.
+- O Climate TRACE revisa a série a cada versão mensal. Da 5.10 para a 5.11, o saldo de biomassa da Caatinga em 2021 passou de +277 para -30 Mt. Atualizar o arquivo exige escolher a versão do Climate TRACE e rever os valores de referência dos testes; o script recusa um arquivo cujo nome não traga a versão declarada em `FONTES`.
+- Na API v7, o Climate TRACE distribui aos municípios emissões sem fonte listada (13 a 15 Mt/ano nos 1.095), por chaves espaciais próprias.
+
+Para regenerar, a partir de `landing/`, com os dois CSV consolidados das consultas (mantidos fora do repositório, em `Documents/OCA_emissoes_municipios/`):
+
+```bash
+python scripts/build-emissoes.py <seeg_caatinga_municipio_tipo_gas_categoria_ano.csv> <ct_v5.11_caatinga_municipio_subsetor_ano.csv>
+```
+
+O script falha se os códigos dos CSV não forem exatamente os de `municipios.geojson`, se um ano do Climate TRACE entre 2021 e 2025 não tiver 12 meses, se aparecer uma família de uso da terra desconhecida ou se uma exclusão não encontrar nada para excluir (subsetor renomeado). `tests/config/emissoes.test.ts` confere o casamento com o GeoJSON, que estados e bioma são somas exatas dos municípios, as exclusões, e dois valores de fora do build: SEEG brutas de 2024 nos 1.095 (128,60 Mt, consulta agregada à API) e o painel de Campina Grande em 2025 no site do Climate TRACE (810.798 t sem uso da terra). O saldo de biomassa de 2022 (-395,05 Mt) é conferido contra o script de comparação, que lê o mesmo download.
+
+### Camadas de emissões no mapa
+
+São oito camadas `"type": "emissions"` no subtema exclusivo `emissoes` ("Emissões de gases de efeito estufa") de Uso do solo e pressões, as quatro do uso da terra antes das quatro de todos os setores. O bloco `emissoes` declara o inventário (`seeg` ou `ct`), a medida (`brutas` ou `liquidas`) e o escopo (`usoDaTerra` ou `total`), que `serieEmissoes` combina, e `temporal.dateRange` dá os anos da régua (1990 a 2025 no SEEG, 2021 a 2025 no Climate TRACE). Como nos rasters, a camada abre no último ano. Não há asset, tile, pixel nem estatística zonal.
+
+A camada não tem source própria. `MapView.tsx` a desenha como preenchimento (`<id>-emissoes`) na source do recorte mais fino ligado entre `bioma`, `estados` e `municipios`, escolhido pelo maior `pickPriority` (`nivelEmissoes`, `lib/emissoes/mapa.ts`), e escreve o valor de cada feição no feature-state `e_<id>`, pela ordem do GeoJSON (o id do `generateId`): `code_muni` nos municípios, `abbrev_state` nos estados e a feição única do bioma. Com nenhum dos três ligado, nada é desenhado e a legenda pede um. Trocar de ano ou de nível só reescreve os feature-states. O GeoJSON do recorte é lido pelo mesmo cache do clique, com um único download em andamento por arquivo; se ele não chega, o erro aparece na linha do recorte e na legenda. Na ordem de desenho, a camada entra junto dos rasters (`lib/mapa/layerOrder.ts`), abaixo de todos os vetores, e `syncZOrder` a devolve a esse lugar quando o preenchimento é criado depois da sincronização. Como nos rasters, o preenchimento cinza do recorte fica por cima e esmaece um pouco as cores.
+
+Cada camada tem um só conjunto de classes para todos os anos e os três níveis, de modo que uma cor vale o mesmo t CO2e/ha nos mapas municipal, estadual e do bioma (`classesEmissoes`, `lib/emissoes/classes.ts`). As quebras saem dos valores municipais de todos os anos, em precisão cheia. Os positivos (o zero fica de fora dos quantis e cai na primeira classe) dão os quantis de 20, 40, 60, 80 e 95%, em seis tons quentes, porque intervalos iguais pintariam quase todo município na primeira cor, com as intensidades espalhadas por duas ordens de grandeza. Quando os negativos são pelo menos 5% dos valores, os quantis de 50 e 90% das suas magnitudes dão três classes verdes; abaixo disso, todo valor negativo cai numa classe só. Os limites são arredondados ao menor número de algarismos significativos, a partir de dois, que os mantém estritamente crescentes; um limite que ainda empata com o anterior sai junto com a sua cor. As cores são as do `gfw_netflux`, com `#d9f0d3` no lugar do neutro `#f7f7f7`. No nível do bioma o mapa tem uma cor só, e a legenda escreve o valor. No arquivo atual (SEEG 14.0, Climate TRACE 5.11.0):
+
+| Camada | Classes | Limites (t CO2e/ha) |
+|---|---|---|
+| emissoes_uso_brutas_seeg | 6 | 0,16; 0,26; 0,4; 0,67; 1,3 |
+| emissoes_uso_brutas_ct | 6 | 0,0054; 0,031; 0,11; 0,37; 1,7 |
+| emissoes_uso_liquidas_seeg | 9 | -0,44; -0,16; 0; 0,088; 0,19; 0,34; 0,64; 1,4 |
+| emissoes_uso_liquidas_ct | 9 | -7,5; -1,2; 0; 0,31; 0,69; 1,3; 2,2; 4,5 |
+| emissoes_total_brutas_seeg | 7 | 0; 0,63; 0,92; 1,3; 1,9; 3,3 |
+| emissoes_total_brutas_ct | 6 | 0,82; 1,2; 1,7; 2,7; 5,7 |
+| emissoes_total_liquidas_seeg | 7 | 0; 0,43; 0,7; 1; 1,6; 3 |
+| emissoes_total_liquidas_ct | 9 | -9,5; -1,2; 0; 0,66; 1,4; 2,3; 3,8; 7,5 |
+
+A classe abaixo de zero da camada de emissões brutas de todos os setores do SEEG vem das emissões negativas de resíduos de Ceará-Mirim e Petrolina; a ficha "i" avisa.
+
+Os valores vêm de `GET /api/mapa/emissoes?camada=<id>` (ver "Rotas de API"). `lib/emissoes/runner.ts` busca uma vez cada camada visível, para todos os níveis e anos, e guarda o resultado em `store.emissoes`. Uma falha não se repete sozinha: desligar e ligar a camada a descarta.
+
+### Cartão de emissões na aba Resultados
+
+Com uma camada de emissões ligada, selecionar um município, um estado ou o bioma (clique ou busca) abre na aba Resultados o cartão "Emissões de gases de efeito estufa" (`components/mapa/results/EmissionsCard.tsx`). A seleção leva a feição do recorte (`SelectedGeometry.feature`), de onde `unidadeDaSelecao` (`lib/emissoes/painel.ts`) tira o código IBGE, a sigla ou o bioma; para qualquer outro recorte ou um desenho, o cartão diz em que níveis o dado existe.
+
+O cartão mostra só o inventário da camada ligada. O número em destaque é a medida da camada (bruta ou líquida, uso da terra ou todos os setores) no ano da régua, em t CO2e escaladas para mil t ou Mt, com a intensidade ao lado. Uma medida líquida é mostrada como fluxo com sinal, como nos demais resultados de fluxo: a magnitude, com a direção (emissões ou remoções líquidas) na frase e na cor. Ao lado vêm a outra medida do mesmo inventário e escopo (a líquida quando a camada é bruta, e o contrário), com a mesma convenção de fluxo, e, para um município, a posição entre os 1.095 em emissões brutas do uso da terra, em toneladas e não por hectare, para dizer onde estão as emissões; para estado e bioma, quantos municípios a soma cobre.
+
+O gráfico por setor (`EmissionsCharts.tsx`, recharts sob demanda) empilha as barras pelo sinal: o uso da terra em cor e os demais setores em cinza, e só aparecem as séries que não são zero em todos os anos (`seriesComDado`). A barra vermelha do uso da terra é sempre a emissão bruta do uso da terra do inventário da camada; nas camadas de uso da terra, casa com o valor bruto do cartão. No SEEG, a verde abaixo de zero é "Remoção". No Climate TRACE, o carbono do solo das lavouras tem barra própria (`#8c510a`), e o restante do líquido (estoque de biomassa menos as brutas, o subsetor `removals`) mantém o sinal: abaixo de zero é a remoção, e acima de zero vira "outras perdas de biomassa" (`#f4a582`), uma perda que os subsetores brutos não registram; esse resto é positivo em 51 (2022) a 539 (2025) dos 1.095 municípios. As emissões negativas de resíduos de alguns municípios no SEEG também ficam abaixo de zero, com uma nota no cartão; os setores são agrupados em agropecuária, energia (transporte, edificações, eletricidade e combustíveis fósseis), indústria (manufatura, mineração e gases fluorados) e resíduos.
+
+O cartão só traz as notas que dependem da unidade e do ano: no SEEG, o valor das queimadas não associadas a desmatamento (`queimadasForaDoInventario`), que fica fora das duas medidas, quando não é zero, e a emissão negativa de resíduos da unidade. Definições, confiança, fonte e GWP ficam na ficha "i" da camada.
+
+Os dados vêm de `GET /api/mapa/emissoes/unidade` (ver "Rotas de API"), uma requisição por unidade, guardada pelo cartão durante a página. O cartão ainda não entra no CSV nem no JPEG da análise.
+
 ## Rotas de API
 
 As rotas de GEE (`/api/gee/*`) são todas `POST`, runtime Node, `force-dynamic`, e autenticam via `initGee()` (`lib/mapa/geeAuth.ts`); as três rotas do relatório (`/api/mapa/relatorio/{base,analise,feicoes}`) são `GET`, pelos motivos documentados em `app/api/mapa/relatorio/base/route.ts`. Ficam em `app/api/`, fora dos dois grupos de rotas, então não herdam layout nenhum.
@@ -579,6 +685,8 @@ Segurança: as rotas têm allowlist de assets (só os de `layers.json`), rate li
 
 - `POST /api/gee/tile`: recebe `{ asset, clipId, visParams, classify }` e devolve `{ tileUrl }` (e `breaks` no modo Jenks). O servidor resolve o recorte localmente pelo `clipId` e cacheia o `tileUrl` (TTL 90 min).
 - `POST /api/gee/stats`: recebe `{ asset, geometry, colorType, classify, breaks }` e devolve `{ kind: "categorical", counts }` ou `{ kind: "continuous", stats }`. Os `breaks` do bioma (vindos do tile) mantêm as classes do gráfico iguais às cores do mapa.
+- `GET /api/mapa/emissoes?camada=<id>`: valores e classes de uma camada de emissões. Exige sessão e passa pelo rate limit por IP; responde 400 a um id fora de `[a-z0-9_]{1,80}` e 404 a um id sem bloco `emissoes` no `layers.json`. O cliente manda só o id, então o `emissoes.json` não sai do servidor. A resposta (`EmissoesCamadaPayload`: `anos`, `unidade`, `classes`, `valores` por município, estado e bioma, com quatro algarismos significativos) é montada uma vez por processo (`lib/emissoes/server.ts`) e vai com `Cache-Control: private, no-cache`. Não usa o GEE.
+- `GET /api/mapa/emissoes/unidade?nivel=<municipios|estados|bioma>&chave=<código>`: séries de um município (código IBGE de 7 dígitos), estado (sigla) ou do bioma (`bioma`), por setor e ano em t CO2e, e, para município, a posição anual entre os 1.095 em emissões brutas do uso da terra. Exige sessão e passa pelo rate limit; responde 400 a uma chave que não casa com o nível e 404 a uma unidade fora do arquivo. As posições são calculadas uma vez por processo.
 - `POST /api/gee/point` e `POST /api/gee/timeseries`: valor pontual e série anual. A série monta um ano por banda com o mesmo `buildEeImage` que serve o tile, e lê todas num `reduceRegion` só, de modo que o gráfico e o mapa saem na mesma unidade e com a mesma máscara.
 
 ## Identidade visual
@@ -608,6 +716,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
 - `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas (menos os municípios, que entram inteiros porque a lista do IBGE classifica o município todo; a camada declara isso com `"clippedToBiome": false` em `layers.json`, que o script e a história de Territórios leem), simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
+- `python scripts/build-emissoes.py <seeg.csv> <ct.csv>`: grava `config/emissoes/emissoes.json` com as emissões municipais do SEEG e do Climate TRACE, somadas por estado e para o bioma, e a área oficial do IBGE de cada município (ver "Emissões municipais"). Requer `pandas` e acesso à API do IBGE.
 
 ## Deploy
 

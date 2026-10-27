@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from 'react'
 import { useStore } from '@/lib/mapa/store'
-import { paradas, ano } from '@/lib/mapa/temporal'
+import { ano, layerTemporal, paradas } from '@/lib/mapa/temporal'
 import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
-import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import type { PlatformTheme } from '@/types/mapa'
 
 interface Props {
   theme: PlatformTheme
@@ -32,11 +32,8 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Pr
   const c = theme.colors
 
   // First visible temporal layer, in the order the panel lists them.
-  const camada = layers.find(
-    (l): l is RasterLayerConfig =>
-      l.type === 'raster' && l.visible && !!l.gee?.temporal,
-  )
-  const temporal = camada?.gee?.temporal
+  const camada = layers.find((l) => l.visible && !!layerTemporal(l))
+  const temporal = camada ? layerTemporal(camada) : undefined
   // Without the memo, the new list on every render destabilizes the debounced commit.
   const anos = useMemo(() => (temporal ? paradas(temporal) : []), [temporal])
   const atual = camada ? temporalDate[camada.id] : undefined

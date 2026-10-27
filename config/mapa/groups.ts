@@ -45,6 +45,7 @@ export const THEMES: ThemeInfo[] = [
       { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
       { id: 'fogo', label: 'Fogo', exclusive: true },
       { id: 'degradacao', label: 'Degradação da terra', exclusive: true },
+      { id: 'emissoes', label: 'Emissões de gases de efeito estufa', exclusive: true },
     ],
   },
   {
