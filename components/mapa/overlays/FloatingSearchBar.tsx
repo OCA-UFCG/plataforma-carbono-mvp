@@ -99,8 +99,9 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
 
   // Whether any searchable layer's GeoJSON is still downloading/indexing. This
   // recomputes on each cacheVersion bump (setCacheVersion re-renders the
-  // component), so the dropdown can show "Carregando..." instead of a false
-  // "Nenhum resultado" while data is in flight.
+  // component), so the dropdown can show "Carregando..." while data is in
+  // flight: instead of a false "Nenhum resultado", or under rows that are
+  // only part of the answer.
   const loadingData = searchableVectors.some((l) => !cacheRef.current.has(l.id))
 
   // Click-outside
@@ -404,73 +405,75 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
           }}
         >
-          {results.length === 0 ? (
+          {results.map((r, i) => (
+            <div
+              key={`${r.layerId}-${r.featureIndex}-${r.fieldName}`}
+              ref={(el) => {
+                rowRefs.current[i] = el
+              }}
+              onClick={() => handleSelect(r)}
+              onMouseEnter={() => setHighlightedIdx(i)}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                background:
+                  i === highlightedIdx
+                    ? theme.colors.accentBg
+                    : 'transparent',
+                borderBottom:
+                  i < results.length - 1
+                    ? `1px solid ${theme.colors.border}`
+                    : 'none',
+                transition: 'background 0.1s',
+              }}
+            >
+              {/* What kind of territory this row is */}
+              <div
+                style={{
+                  fontSize: 11.5,
+                  color: theme.colors.textDim,
+                  marginBottom: 2,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {r.unitName}
+              </div>
+              {/* Matched value. It wraps: a conservation unit's name starts with
+                  its category ("Reserva Particular do Patrimônio Natural"), and
+                  a single line cut off the name proper and the state. */}
+              <div
+                style={{
+                  fontSize: 14.5,
+                  color: theme.colors.text,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {renderHighlighted(r.value, r.match)}
+                {r.context && (
+                  <span style={{ color: theme.colors.textDim }}>
+                    {' \u00b7 '}
+                    {r.context}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+          {/* Under rows, the notice says they are only part of the answer: a
+              layer still downloading adds its own when it arrives. */}
+          {(results.length === 0 || loadingData) && (
             <div
               style={{
                 padding: '10px 12px',
                 fontSize: 13.5,
                 color: theme.colors.textDim,
                 textAlign: 'center',
+                borderTop: results.length > 0 ? `1px solid ${theme.colors.border}` : 'none',
               }}
             >
               {loadingData ? 'Carregando dados...' : 'Nenhum resultado encontrado'}
             </div>
-          ) : (
-            results.map((r, i) => (
-              <div
-                key={`${r.layerId}-${r.featureIndex}-${r.fieldName}`}
-                ref={(el) => {
-                  rowRefs.current[i] = el
-                }}
-                onClick={() => handleSelect(r)}
-                onMouseEnter={() => setHighlightedIdx(i)}
-                style={{
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                  background:
-                    i === highlightedIdx
-                      ? theme.colors.accentBg
-                      : 'transparent',
-                  borderBottom:
-                    i < results.length - 1
-                      ? `1px solid ${theme.colors.border}`
-                      : 'none',
-                  transition: 'background 0.1s',
-                }}
-              >
-                {/* What kind of territory this row is */}
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    color: theme.colors.textDim,
-                    marginBottom: 2,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {r.unitName}
-                </div>
-                {/* Matched value. It wraps: a conservation unit's name starts with
-                    its category ("Reserva Particular do Patrimônio Natural"), and
-                    a single line cut off the name proper and the state. */}
-                <div
-                  style={{
-                    fontSize: 14.5,
-                    color: theme.colors.text,
-                    overflowWrap: 'anywhere',
-                  }}
-                >
-                  {renderHighlighted(r.value, r.match)}
-                  {r.context && (
-                    <span style={{ color: theme.colors.textDim }}>
-                      {' \u00b7 '}
-                      {r.context}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))
           )}
           {/* Search includes every configured territorial vector layer. */}
           <div
