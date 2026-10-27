@@ -143,7 +143,6 @@ export default function Mapa() {
             theme={theme}
             infoId={infoId}
             onInfo={toggleInfo}
-            onCollapse={collapsePanel}
           />
         )}
 

@@ -97,18 +97,6 @@
   border-top: 1px solid var(--bg-borda);
 }
 
-.grip {
-  flex: none;
-  display: flex;
-  border-radius: var(--radius-interno);
-  cursor: grab;
-}
-
-.grip:focus-visible {
-  outline: 2px solid var(--role-marca-ancora-foco);
-  outline-offset: 2px;
-}
-
 .body {
   flex: 1;
   min-width: 0;
@@ -189,23 +177,4 @@
   background: none;
   color: inherit;
   cursor: pointer;
-}
-
-/* Where a dragged card would land: a line on the card's edge. */
-.dropLine {
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  height: 3px;
-  border-radius: 99px;
-  background: var(--role-marca-ancora-padrao);
-  pointer-events: none;
-}
-
-.dropLine[data-edge='top'] {
-  top: -2px;
-}
-
-.dropLine[data-edge='bottom'] {
-  bottom: -2px;
 }

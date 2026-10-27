@@ -1,16 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import { useStore } from '@/lib/mapa/store'
 import { THEMES } from '@/config/mapa/groups'
-import { keepSlot, slotBefore, type DropSlot } from '@/lib/mapa/dropSlot'
 import type { LayerConfig } from '@/types/mapa'
 import { IcX } from '../icons'
 import OpacityControl from './OpacityControl'
+import { useCardDrag, type GripHandlers } from './useCardDrag'
+import cardDrag from './cardDrag.module.css'
 import styles from './ActiveLayers.module.css'
-
-// Drag payload type. Custom, so a release over a text field pastes nothing.
-const DRAG_TYPE = 'application/x-caativar-layer'
 
 const THEME_ICON = new Map(THEMES.map((theme) => [theme.id, theme.icon]))
 
@@ -36,44 +33,7 @@ export default function ActiveLayers({ infoId, onInfo }: { infoId: string | null
   // `layers` is the draw order, so these come top first.
   const active = layers.filter((layer) => layer.visible && layer.type !== 'vector')
   const n = active.length
-
-  // The card being dragged, and the slot its drop would use.
-  const [drag, setDrag] = useState<string | null>(null)
-  const [drop, setDrop] = useState<DropSlot>(null)
-  const clearDrag = () => {
-    setDrag(null)
-    setDrop(null)
-  }
-
-  const onDragOver = (event: React.DragEvent<HTMLOListElement>) => {
-    if (!drag || !event.dataTransfer.types.includes(DRAG_TYPE)) return
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    const anchors = [...event.currentTarget.querySelectorAll<HTMLElement>('[data-layer]')].map((card) => {
-      const box = card.getBoundingClientRect()
-      return { id: card.dataset.layer ?? '', mid: box.top + box.height / 2 }
-    })
-    setDrop((prev) => keepSlot(prev, slotBefore(event.clientY, anchors)))
-  }
-
-  const onDragLeave = (event: React.DragEvent<HTMLOListElement>) => {
-    if (drag && !event.currentTarget.contains(event.relatedTarget as Node | null)) setDrop(null)
-  }
-
-  const onDrop = (event: React.DragEvent<HTMLOListElement>) => {
-    if (!drag || !event.dataTransfer.types.includes(DRAG_TYPE)) return
-    event.preventDefault()
-    if (drop) moveLayer(drag, drop.before)
-    clearDrag()
-  }
-
-  // The keyboard's way: up goes in front of the card above, down in front of
-  // the card after the next one, or to the end.
-  const step = (index: number, delta: -1 | 1) => {
-    const id = active[index].id
-    if (delta === -1 && index > 0) moveLayer(id, active[index - 1].id)
-    if (delta === 1 && index < n - 1) moveLayer(id, active[index + 2]?.id ?? null)
-  }
+  const drag = useCardDrag(active.map((layer) => layer.id), moveLayer)
 
   return (
     <section className={styles.section} aria-labelledby="camadas-ativas">
@@ -98,31 +58,20 @@ export default function ActiveLayers({ infoId, onInfo }: { infoId: string | null
       {n === 0 ? (
         <p className={styles.empty}>Ative as camadas para editá-las</p>
       ) : (
-        <ol className={styles.list} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+        <ol className={styles.list} {...drag.list}>
           {active.map((layer, index) => (
             <Card
               key={layer.id}
               layer={layer}
               error={layerErrors[layer.id]}
               infoOpen={infoId === layer.id}
-              dropBefore={drop?.before === layer.id}
-              dropAfter={index === n - 1 && drop !== null && drop.before === null}
+              dropBefore={drag.dropBefore(layer.id)}
+              dropAfter={index === n - 1 && drag.dropAtEnd}
+              grip={drag.grip(layer.id)}
               onInfo={() => onInfo(layer.id)}
               onOff={() => toggleLayer(layer.id)}
               onOpacity={(value) => setOpacity(layer.id, value)}
               onDismissError={() => clearLayerError(layer.id)}
-              onDragStart={(event) => {
-                event.dataTransfer.effectAllowed = 'move'
-                event.dataTransfer.setData(DRAG_TYPE, layer.id)
-                const card = (event.currentTarget as HTMLElement).closest<HTMLElement>('[data-layer]')
-                if (card) {
-                  const box = card.getBoundingClientRect()
-                  event.dataTransfer.setDragImage(card, event.clientX - box.left, event.clientY - box.top)
-                }
-                setDrag(layer.id)
-              }}
-              onDragEnd={clearDrag}
-              onStep={(delta) => step(index, delta)}
             />
           ))}
         </ol>
@@ -133,28 +82,26 @@ export default function ActiveLayers({ infoId, onInfo }: { infoId: string | null
 
 /** One active layer (Figma "Camada", 19422:56093). */
 function Card({
-  layer, error, infoOpen, dropBefore, dropAfter,
-  onInfo, onOff, onOpacity, onDismissError, onDragStart, onDragEnd, onStep,
+  layer, error, infoOpen, dropBefore, dropAfter, grip,
+  onInfo, onOff, onOpacity, onDismissError,
 }: {
   layer: LayerConfig
   error: string | undefined
   infoOpen: boolean
   dropBefore: boolean
   dropAfter: boolean
+  grip: GripHandlers
   onInfo: () => void
   onOff: () => void
   onOpacity: (value: number) => void
   onDismissError: () => void
-  onDragStart: (event: React.DragEvent) => void
-  onDragEnd: () => void
-  onStep: (delta: -1 | 1) => void
 }) {
   const icon = THEME_ICON.get(layer.theme ?? '')
   const unit = layer.type === 'vector' ? undefined : layer.unit
 
   return (
     <li className={styles.card} data-layer={layer.id}>
-      {dropBefore && <span className={styles.dropLine} data-edge="top" />}
+      {dropBefore && <span className={cardDrag.dropLine} data-edge="top" />}
       {/* The only draggable element, so a drag never starts from the track or
           the field. A span, not a button: Firefox starts no drag from inside a
           button. The arrow keys move the card from here too. */}
@@ -162,15 +109,10 @@ function Card({
         draggable
         role="button"
         tabIndex={0}
-        className={styles.grip}
+        className={cardDrag.grip}
         aria-label={`Mover ${layer.name} na ordem do mapa (setas para cima e para baixo)`}
         title="Arraste para mudar a ordem no mapa"
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowUp') { event.preventDefault(); onStep(-1) }
-          if (event.key === 'ArrowDown') { event.preventDefault(); onStep(1) }
-        }}
+        {...grip}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
         <img src="/icons/mapa/drag-indicator.svg" alt="" width={24} height={24} />
@@ -209,7 +151,7 @@ function Card({
         {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
         <img src="/icons/mapa/close-small.svg" alt="" width={16} height={16} />
       </button>
-      {dropAfter && <span className={styles.dropLine} data-edge="bottom" />}
+      {dropAfter && <span className={cardDrag.dropLine} data-edge="bottom" />}
     </li>
   )
 }

@@ -86,8 +86,8 @@ describe('sanitizePersisted', () => {
       config,
     )
 
-    expect(restored?.layerOrder[0]).toBe('solo_carbono')
-    expect(restored?.layerOrder).not.toContain('bioma')
+    expect(restored?.layerOrder.slice(0, 2)).toEqual(['solo_carbono', 'bioma'])
+    expect(restored?.layerOrder).not.toContain('gone')
     expect(restored?.layerOrder).toHaveLength(DEFAULT_LAYER_ORDER.length)
   })
 

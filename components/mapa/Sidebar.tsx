@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { IcX, IcChevronLeft } from './icons'
+import { IcX } from './icons'
 import ActiveLayers from './panel/ActiveLayers'
+import Territory from './panel/Territory'
 import { useStore } from '@/lib/mapa/store'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { THEMES, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
+import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
 import type { LayerConfig, PlatformTheme } from '@/types/mapa'
 import styles from './Sidebar.module.css'
 
@@ -17,12 +18,15 @@ interface Props {
    *  column the ficha occupies. Toggling is the caller's business too. */
   infoId: string | null
   onInfo: (id: string) => void
-  onCollapse: () => void
 }
 
-export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
+// The themes listed under "Camadas ativas", in groups.ts order. They no longer
+// move: the draw order is the layers', set in the cards. Território is not
+// among them: its recortes have their own section above (Figma 19423:56814).
+const LISTED_THEMES = THEMES.filter((tema) => tema.id !== TERRITORY_THEME_ID)
+
+export default function Sidebar({ theme, infoId, onInfo }: Props) {
   const layers = useStore((s) => s.layers)
-  const showOnlyMunicipios = useStore((s) => s.showOnlyMunicipios)
   const [query, setQuery] = useState('')
 
   const normalizedQuery = normalizeSearch(query.trim())
@@ -36,9 +40,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
       .some((value) => normalizeSearch(value).includes(q))
   }
   const visiveis = layers.filter((l) => matchesQuery(l))
-  // The themes in groups.ts order. They no longer move: the draw order is the
-  // layers', set in "Camadas ativas".
-  const porTema = THEMES
+  const porTema = LISTED_THEMES
     .map((tema) => ({
       tema,
       subtemas: tema.subthemes
@@ -46,10 +48,9 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
         .filter(({ itens }) => itens.length > 0),
     }))
     .filter(({ subtemas }) => subtemas.length > 0)
-  const activeCount = layers.filter((l) => l.visible).length
 
   // One theme open at a time keeps the list from getting too long.
-  const [abertoTemaId, setAbertoTemaId] = useState<string | null>(THEMES[0]?.id ?? null)
+  const [abertoTemaId, setAbertoTemaId] = useState<string | null>(LISTED_THEMES[0]?.id ?? null)
 
   // Searching opens the first theme with a result, otherwise the search would
   // find layers that remain hidden in closed themes. This happens while typing,
@@ -59,7 +60,7 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
     setQuery(valor)
     const q = normalizeSearch(valor.trim())
     if (!q) return
-    const primeiro = THEMES.find((tema) => layers.some((l) => l.theme === tema.id && matchesQuery(l, q)))
+    const primeiro = LISTED_THEMES.find((tema) => layers.some((l) => l.theme === tema.id && matchesQuery(l, q)))
     setAbertoTemaId(primeiro?.id ?? null)
   }
 
@@ -102,31 +103,10 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
             : { background: c.bgCard, borderRight: `1px solid ${c.border}` }),
         }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: `1px solid ${c.border}`, flex: 'none' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.14em', color: c.dim, textTransform: 'uppercase' }}>Temas</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: c.accentInk, background: c.accentBg, borderRadius: 999, padding: '2px 8px' }}>
-            {activeCount} ativa{activeCount === 1 ? '' : 's'}
-          </span>
-          <button
-            className="ui-press"
-            onClick={showOnlyMunicipios}
-            title="Desativar todas as camadas e voltar à vista do bioma"
-            style={{
-              marginLeft: 'auto', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 999,
-              cursor: 'pointer', color: c.textDim, fontSize: 12, fontWeight: 700, padding: '2px 9px',
-            }}
-          >
-            Início
-          </button>
-          <button onClick={onCollapse} aria-label="Recolher painel" title="Recolher"
-            style={{ marginLeft: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: c.textDim, padding: 4, display: 'flex' }}>
-            <IcChevronLeft size={16} />
-          </button>
-        </div>
-
-        {/* Body: the layers on, the search and the themes scroll together. */}
+        {/* The recortes, the layers on, the search and the themes scroll
+            together; the panel's "‹" is on its edge, in Mapa.tsx. */}
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <Territory />
           <ActiveLayers infoId={infoId} onInfo={onInfo} />
 
           <div className={styles.search}>
@@ -249,7 +229,7 @@ function LayerRow({
   const errorMsg        = useStore((s) => s.layerErrors[layer.id])
 
   const unit = layer.type === 'vector' ? undefined : layer.unit
-  // A recorte has no card in "Camadas ativas": its error stays here.
+  // A vector outside Território (Localidades' points) has no card: its error stays here.
   const errorHere = errorMsg && (!layer.visible || layer.type === 'vector')
 
   return (

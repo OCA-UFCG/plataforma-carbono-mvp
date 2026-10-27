@@ -74,28 +74,36 @@ describe('clearThematicLayers', () => {
   })
 })
 
-describe('showOnlyMunicipios', () => {
+describe('clearRecortes', () => {
   const initial = useStore.getState()
-  afterEach(() => {
-    useStore.setState(initial, true)
-    vi.unstubAllGlobals()
+  afterEach(() => useStore.setState(initial, true))
+  const visible = (id: string) => useStore.getState().layers.find((layer) => layer.id === id)?.visible
+
+  it('turns off every Território layer and nothing else', () => {
+    const on = new Set(['bioma', 'municipios', 'quilombolas', 'biomassa_gedi'])
+    // A vector outside Território, as Localidades' points are: not a recorte.
+    const pontos: LayerConfig = {
+      id: 'pontos', name: 'Pontos', type: 'vector', url: '/data/pontos.geojson', visible: true, opacity: 100,
+      color: '#000', theme: 'localidades', subtheme: 'monitoramento',
+    }
+    useStore.setState((s) => ({ layers: [pontos, ...s.layers.map((layer) => ({ ...layer, visible: on.has(layer.id) }))] }))
+
+    useStore.getState().clearRecortes()
+
+    expect(visible('bioma')).toBe(false)
+    expect(visible('municipios')).toBe(false)
+    expect(visible('quilombolas')).toBe(false)
+    expect(visible('pontos')).toBe(true)
+    expect(visible('biomassa_gedi')).toBe(true)
   })
 
-  it('keeps a GEE raster that was still loading off once its tile arrives', async () => {
-    let respond!: (res: Response) => void
-    vi.stubGlobal('fetch', () => new Promise<Response>((resolve) => { respond = resolve }))
+  it('leaves the state untouched with no recorte on', () => {
+    useStore.setState((s) => ({ layers: s.layers.map((layer) => ({ ...layer, visible: false })) }))
+    const before = useStore.getState().layers
 
-    const gedi = useStore.getState().layers.find((layer) => layer.id === 'biomassa_gedi') as RasterLayerConfig
-    const activation = useStore.getState().activateDynamicLayer(gedi)
-    useStore.getState().showOnlyMunicipios()
-    respond(new Response(JSON.stringify({ tileUrl: 'https://tiles.example/gedi' })))
-    await activation
+    useStore.getState().clearRecortes()
 
-    const state = useStore.getState()
-    expect(state.layers.find((layer) => layer.id === 'biomassa_gedi')?.visible).toBe(false)
-    expect(state.layers.find((layer) => layer.id === 'municipios')?.visible).toBe(true)
-    expect(state.loadingLayers).toEqual({})
-    expect(state.fetchedTileUrls.biomassa_gedi).toBe('https://tiles.example/gedi')
+    expect(useStore.getState().layers).toBe(before)
   })
 })
 
@@ -124,6 +132,12 @@ describe('draw order by layer', () => {
 
     const thematic = order().filter((id) => useStore.getState().layerOrder.includes(id))
     expect(thematic[thematic.length - 1]).toBe('biomassa_gedi')
+  })
+
+  it('draws a recorte moved up above the recorte it was put before', () => {
+    useStore.getState().moveLayer('municipios', 'bioma')
+
+    expect(order().indexOf('municipios')).toBeLessThan(order().indexOf('bioma'))
   })
 
   it('keeps the recortes above every thematic layer whatever the order', () => {
