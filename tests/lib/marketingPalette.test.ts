@@ -114,6 +114,13 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-pressionado', '--bg-superficie'],
   ['--role-marca-ancora-padrao', '--bg-superficie'],
   ['--role-marca-ancora-hover', '--am-050'],
+  // The platform's layer sheet (Figma 19451:60761): "Saiba mais" on its
+  // container fill, a step darker than the design's -padrao (4.38:1), and
+  // the copy notices under the citation.
+  ['--role-marca-ancora-hover', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-pressionado', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-hover', '--bg-fundo'],
+  ['--ctx-negativo-padrao', '--bg-fundo'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

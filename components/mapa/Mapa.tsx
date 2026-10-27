@@ -151,7 +151,6 @@ export default function Mapa() {
           <LayerInfoCard
             // A new layer gets a new sheet, so a "Copiado" never carries over.
             key={infoId}
-            theme={theme}
             layerId={infoId}
             narrow={narrow}
             onClose={() => setInfoId(null)}
