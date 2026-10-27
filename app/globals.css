@@ -242,6 +242,14 @@ section {
   line-height: 24px;
 }
 
+/* The platform header's account e-mail (I19413:54303;19414:55014). */
+.text-ui-regular {
+  font-family: var(--font-ui, var(--font-fallback));
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 24px;
+}
+
 .text-ui-bold {
   font-family: var(--font-ui, var(--font-fallback));
   font-weight: 700;

@@ -118,12 +118,69 @@
   background: var(--role-marca-ancora-pressionado);
 }
 
-/* Language switch + session slot, right side of the bar. */
+/* The "Plataforma" button on the platform itself (Figma 19413:54915): the
+ * same button inside a 1px ring of the brand green, 2px clear of it. The
+ * design system has no token for the ring's 10px radius, so it is written
+ * out. */
+.mapaRing {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: 10px;
+}
+
+/* Language switch + session slot, right side of the bar. The only part of the
+ * bar allowed to shrink: on the platform, the account e-mail gives way (see
+ * .accountEmail) before anything else would overflow. The 16px gap is the
+ * platform's (19414:55013); the marketing pages show a single item here. */
 .actions {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The platform's session slot (19414:55016): the e-mail and "Sair", 8px
+ * apart. */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The design shows a short address; a long one truncates, with the whole
+ * address in its title. */
+.accountEmail {
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bg-texto-primario);
+}
+
+/* "Sair", Figma "button" 19414:55010: a 1px --bg-borda outline drawn inside
+ * the 58x40 box, so 7 + 1 = 8px above and 15 + 1 = 16px beside the label. The
+ * hover is the nav links' --am-100 fill. */
+.signOut {
   flex: none;
+  padding: 7px 15px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius-interno);
+  background: var(--bg-fundo);
+  color: var(--ctx-positivo-texto-sobre-container);
+  cursor: pointer;
+}
+
+.signOut:hover,
+.signOut:focus-visible {
+  background: var(--am-100);
+}
+
+.signOut:disabled {
+  cursor: progress;
 }
 
 /* Figma 19272:44342: 32px tall, each option 6px above and below its 20px
@@ -231,7 +288,8 @@
  * there for why 1200px and why the two must move together. */
 @media (max-width: 1199px) {
   .nav,
-  .actions > .language {
+  .actions > .language,
+  .actions > .account {
     display: none;
   }
 
@@ -243,6 +301,14 @@
 @media (min-width: 1200px) {
   .panel,
   .panel:not([hidden]) {
+    display: none;
+  }
+}
+
+/* Under 1280px the bar would leave the e-mail a few letters and an ellipsis,
+ * so it leaves the bar; "Sair" stays. The mobile panel keeps it. */
+@media (max-width: 1279px) {
+  .actions .accountEmail {
     display: none;
   }
 }
