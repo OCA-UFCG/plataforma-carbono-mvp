@@ -1,0 +1,106 @@
+/* The map's control stack, Figma 19428:58457, right of the map under the
+ * "Resultado" button (Mapa.tsx). */
+
+.stack {
+  position: absolute;
+  top: 82px;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+/* Zoom, locate, fullscreen and north, 8px apart (19424:58115). */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Every control: 40x40, the 16px icon on white, in a 1px green outline. */
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+}
+
+.control:hover,
+.control[aria-expanded='true'],
+.control[aria-pressed='true'] {
+  background: var(--role-marca-ancora-container);
+}
+
+/* Zoom in and out share one outlined box, 40x82, split by a rule
+ * (19429:58516). */
+.zoom {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius);
+}
+
+/* 38px inside the box's 1px outline, so the box is 40 wide like the rest. */
+.zoom .control {
+  width: 38px;
+  border: none;
+  border-radius: 0;
+}
+
+.zoom .control + .control {
+  border-top: 1px solid var(--role-marca-ancora-borda);
+}
+
+/* The north arrow turns with the map's bearing, set inline on its span. */
+.north > span {
+  transition: transform .1s linear;
+}
+
+.basemap {
+  position: relative;
+}
+
+/* Basemap choices open to the left of the button. Not in the design: a
+ * card in the legend's outline, with the panel's type. */
+.menu {
+  position: absolute;
+  top: 0;
+  right: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 176px;
+  padding: 6px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+}
+
+.option {
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--radius-interno);
+  background: transparent;
+  color: var(--bg-texto-primario);
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--am-100);
+}
+
+.option[aria-checked='true'] {
+  background: var(--role-marca-ancora-container);
+  color: var(--role-marca-ancora-hover);
+}

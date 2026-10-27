@@ -76,8 +76,6 @@ import type {
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
 import DrawToolbar from './overlays/DrawToolbar'
-import CursorCoordinates from './overlays/CursorCoordinates'
-import TemporalSlider from './overlays/TemporalSlider'
 import FloatingSearchBar from './overlays/FloatingSearchBar'
 
 // Full-feature geometry lookup
@@ -570,7 +568,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   // The floating boxes over the bottom of the map, measured at fit time so the
   // feature does not land under them.
   const legendRef = useRef<HTMLDivElement>(null)
-  const sliderRef = useRef<HTMLDivElement>(null)
   const [mapReady, setMapReady] = useState(false)
   // Draw toolbar visibility. It starts closed; the pencil in the control
   // cluster opens and closes it, and the results hint names that pencil. On a
@@ -1521,13 +1518,9 @@ useEffect(() => {
       return { width: r.width, height: r.height, bottom: box.bottom - r.bottom, right: box.right - r.right }
     }
     const legend = measure(legendRef.current)
-    const padding = spotlightPadding({ width: box.width, height: box.height }, panels, {
-      // The legend slides to the new rightOffset over .3s when the results
-      // panel opens, which is when this runs; its measured `right` is
-      // mid-slide, so it takes the offset it is sliding to.
-      legend: legend && { ...legend, right: panels.rightOffset },
-      slider: measure(sliderRef.current),
-    })
+    // The year slider rides inside the legend (FloatingLegend), so clearing
+    // the legend clears it too.
+    const padding = spotlightPadding({ width: box.width, height: box.height }, panels, { legend })
     if (fitRequest.pitch !== undefined) {
       const [w, s, e, n] = fitRequest.bbox
       map.flyTo({ center: [(w + e) / 2, (s + n) / 2], zoom: fitRequest.zoom, pitch: fitRequest.pitch, padding })
@@ -1779,7 +1772,6 @@ useEffect(() => {
           />
           <MapControls
             mapRef={mapRef}
-            theme={theme}
             rightOffset={rightOffset}
             drawOpen={drawOpen}
             onToggleDraw={() => {
@@ -1798,8 +1790,6 @@ useEffect(() => {
             onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
           />
           <FloatingLegend ref={legendRef} theme={theme} rightOffset={rightOffset} />
-          <TemporalSlider ref={sliderRef} theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
-          <CursorCoordinates mapRef={mapRef} theme={theme} />
         </>
       )}
     </div>

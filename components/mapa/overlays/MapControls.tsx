@@ -4,28 +4,30 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { useStore } from '@/lib/mapa/store'
 import { basemaps } from '@/config/mapa/basemaps'
-import {
-  IcPlus, IcMinus, IcLocate, IcMaximize, IcNorth, IcMap, IcPen,
-} from '../icons'
-import type { PlatformTheme } from '@/types/mapa'
+import { IcPen } from '../icons'
+import styles from './MapControls.module.css'
 
 interface Props {
   mapRef: RefObject<maplibregl.Map | null>
-  theme: PlatformTheme
-  /** right offset (px), 396 when Results is open, 14 when closed. */
+  /** Distance from the map's right edge (lib/mapa/layout.ts, MAP_INSET). */
   rightOffset: number
   drawOpen: boolean
   onToggleDraw: () => void
 }
 
+/** One of Figma's 16px control icons, exported to public/icons/mapa/. */
+function Icon({ name }: { name: string }) {
+  // eslint-disable-next-line @next/next/no-img-element -- static SVG icon
+  return <img src={`/icons/mapa/${name}.svg`} alt="" width={16} height={16} />
+}
+
 /**
- * Map control cluster (top-right, stacked, 38px glass pills), as in the
- * handoff: zoom group (+/-), view group (geolocate / fullscreen / north),
- * basemap selector, and the drawing button (pencil). The `right` position is
- * dynamic and transitions with the opening of the Results panel.
+ * Map control stack (Figma 19428:58457), under the "Resultado" button: zoom
+ * in and out in one box, then locate, fullscreen and north, then the basemap
+ * selector, each a 40px outlined button. The drawing button below them is not
+ * in the design; it leaves when the drawing moves into the panel (#141).
  */
-export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onToggleDraw }: Props) {
-  const c = theme.colors
+export default function MapControls({ mapRef, rightOffset, drawOpen, onToggleDraw }: Props) {
   const basemapId  = useStore((s) => s.basemapId)
   const setBasemap = useStore((s) => s.setBasemap)
 
@@ -77,111 +79,78 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
     else document.exitFullscreen?.()
   }
 
-  // Shared glass pill styles
-  const pill: React.CSSProperties = {
-    width: 38, borderRadius: 999, background: c.glassBg,
-    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-    border: `1px solid ${c.glassBd}`, boxShadow: 'var(--sh-ctrl)',
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    color: c.textDim, padding: '2px 0',
-  }
-  const cell: React.CSSProperties = {
-    height: 34, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', background: 'transparent', border: 'none', color: 'inherit', padding: 0,
-  }
-  const divider = <div style={{ width: 18, height: 1, background: c.border }} />
+  const fullscreenLabel = isFull ? 'Sair da tela cheia' : 'Tela cheia'
+  const drawLabel = drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'
 
   return (
-    <div
-      style={{
-        // Under the "Resultado" button (Mapa.tsx), 26px from the map's top and
-        // 40px tall, with 16px between them (Figma 19424:58115).
-        position: 'absolute', top: 82, right: rightOffset, zIndex: 12,
-        display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
-        transition: 'right .3s',
-      }}
-    >
-      {/* zoom */}
-      <div style={pill}>
-        <button style={cell} onClick={zoomIn} aria-label="Aproximar" title="Aproximar"><IcPlus size={15} /></button>
-        {divider}
-        <button style={cell} onClick={zoomOut} aria-label="Afastar" title="Afastar"><IcMinus size={15} /></button>
-      </div>
-
-      {/* view: geolocate / fullscreen / north */}
-      <div style={pill}>
-        <button style={cell} onClick={locate} aria-label="Minha localização" title="Minha localização"><IcLocate size={15} /></button>
-        {divider}
-        <button style={cell} onClick={toggleFullscreen} aria-label={isFull ? 'Sair da tela cheia' : 'Tela cheia'} title={isFull ? 'Sair da tela cheia' : 'Tela cheia'}><IcMaximize size={15} /></button>
-        {divider}
-        <button style={{ ...cell, transform: `rotate(${-bearing}deg)`, transition: 'transform .1s linear' }} onClick={resetNorth} aria-label="Orientar para o norte" title="Orientar para o norte"><IcNorth size={15} color="currentColor" /></button>
-      </div>
-
-      {/* basemap */}
-      <div ref={bmRef} style={{ position: 'relative' }}>
+    <div className={styles.stack} style={{ right: rightOffset }}>
+      <div className={styles.group}>
+        <div className={styles.zoom}>
+          <button type="button" className={styles.control} onClick={zoomIn} aria-label="Aproximar" title="Aproximar">
+            <Icon name="zoom-in" />
+          </button>
+          <button type="button" className={styles.control} onClick={zoomOut} aria-label="Afastar" title="Afastar">
+            <Icon name="zoom-out" />
+          </button>
+        </div>
+        <button type="button" className={styles.control} onClick={locate} aria-label="Minha localização" title="Minha localização">
+          <Icon name="target" />
+        </button>
+        <button type="button" className={styles.control} onClick={toggleFullscreen} aria-label={fullscreenLabel} title={fullscreenLabel}>
+          <Icon name="fullscreen" />
+        </button>
         <button
-          onClick={() => setBmOpen((v) => !v)}
-          aria-label="Mapa base" title="Mapa base"
-          aria-haspopup="menu" aria-expanded={bmOpen}
-          style={{
-            width: 38, height: 38, borderRadius: 999,
-            background: bmOpen ? c.accent : c.glassBg,
-            backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-            border: `1px solid ${bmOpen ? 'transparent' : c.glassBd}`, boxShadow: 'var(--sh-ctrl)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: bmOpen ? c.onAccent : c.textDim, cursor: 'pointer',
-          }}
+          type="button"
+          className={`${styles.control} ${styles.north}`}
+          onClick={resetNorth}
+          aria-label="Orientar para o norte"
+          title="Orientar para o norte"
         >
-          <IcMap size={15} />
+          <span style={{ display: 'flex', transform: `rotate(${-bearing}deg)` }}>
+            <Icon name="navigation" />
+          </span>
+        </button>
+      </div>
+
+      <div ref={bmRef} className={styles.basemap}>
+        <button
+          type="button"
+          className={styles.control}
+          onClick={() => setBmOpen((v) => !v)}
+          aria-label="Mapa base"
+          title="Mapa base"
+          aria-haspopup="menu"
+          aria-expanded={bmOpen}
+        >
+          <Icon name="map" />
         </button>
         {bmOpen && (
-          <div
-            style={{
-              position: 'absolute', top: 0, right: 46, minWidth: 176,
-              background: c.glassBg, backdropFilter: 'blur(11px)', WebkitBackdropFilter: 'blur(11px)',
-              border: `1px solid ${c.glassBd}`, borderRadius: 12, boxShadow: 'var(--sh-pop)',
-              padding: 6, display: 'flex', flexDirection: 'column', gap: 4,
-              fontFamily: 'var(--font-app), sans-serif',
-            }}
-          >
-            {Object.values(basemaps).map((b) => {
-              const active = b.id === basemapId
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => { setBasemap(b.id); setBmOpen(false) }}
-                  style={{
-                    background: active ? c.accent : 'transparent', color: active ? c.onAccent : c.text,
-                    border: 'none', borderRadius: 7, padding: '7px 10px', cursor: 'pointer',
-                    textAlign: 'left', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
-                  }}
-                >
-                  {b.name}
-                </button>
-              )
-            })}
+          <div className={styles.menu} role="menu">
+            {Object.values(basemaps).map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                role="menuitemradio"
+                aria-checked={b.id === basemapId}
+                className={`${styles.option} text-ui-medium`}
+                onClick={() => { setBasemap(b.id); setBmOpen(false) }}
+              >
+                {b.name}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* draw, active state is the fixed "ink" chip from the handoff (#26241d
-          in light; adapts via c.text/c.bg so it stays legible in dark). The
-          label follows the state: it shows the toolbar, or hides it once open. */}
       <button
+        type="button"
+        className={styles.control}
         onClick={onToggleDraw}
-        aria-label={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
-        title={drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'}
+        aria-label={drawLabel}
+        title={drawLabel}
         aria-pressed={drawOpen}
-        style={{
-          width: 38, height: 38, borderRadius: 999,
-          background: drawOpen ? c.text : c.glassBg,
-          backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-          border: `1px solid ${drawOpen ? c.text : c.glassBd}`,
-          boxShadow: 'var(--sh-ctrl)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: drawOpen ? c.bg : c.textDim, cursor: 'pointer', transition: 'background .3s',
-        }}
       >
-        <IcPen size={15} />
+        <IcPen size={16} />
       </button>
     </div>
   )
