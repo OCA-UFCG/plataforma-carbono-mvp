@@ -51,4 +51,12 @@ describe('rain series of a territory', () => {
     answer({ zonal: empty, point: empty })
     expect(await rain(600)).toEqual({ status: 'no_pixels', origin: 'point', kinds: ['point', 'zonal'] })
   })
+
+  it('lets a failed fallback read throw rather than settle on no pixels', async () => {
+    mocks.computeSeries.mockImplementation(async (_ee, input) => {
+      if (input.region.kind === 'zonal') throw new Error('Computation timed out.')
+      return empty
+    })
+    await expect(rain(600)).rejects.toThrow('Computation timed out.')
+  })
 })

@@ -124,7 +124,9 @@ export const FLUX_COARSE_SCALE_M = 100
  * CHIRPS pixel (5.566 km): below it the zonal series came back empty or ran out
  * of Earth Engine memory (13 ha and 25 ha settlements, 2026-09-28). A BR-DWGD
  * cell is 0.1°, about 12,000 ha; a territory between the two gets the
- * area-weighted mean of the cells it overlaps. Either way the empty series falls
+ * area-weighted mean of the cells it overlaps. On BR-DWGD's annual images that
+ * mean comes back empty below about 45 ha and never ran out of memory
+ * (2026-10-27), so the threshold still holds. Either way the empty series falls
  * back to the other one (computeTheme.ts): the point above the threshold, the
  * mean below it, for a coastal territory whose interior point is over the sea.
  */
