@@ -5,6 +5,7 @@ import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { CHOOSER } from '@/config/territorios/chooserScript'
 import {
+  clippedToBiome,
   LAND_USE_YEARS,
   RAIN_FIRST_YEAR,
   RAIN_LAST_YEAR,
@@ -84,6 +85,12 @@ describe('TERRITORY_TYPES', () => {
       }, type.id).toEqual({ format: 'RIFF/WEBPVP8 ', width: 811, height: 404 })
     }
   })
+
+  // IBGE's list classifies the whole municipality, so scripts/build-recortes.py
+  // keeps the municipalities whole and clips every other recorte.
+  it('keeps only the municipalities whole past the biome edge', () => {
+    expect(TERRITORY_TYPES.filter((t) => !clippedToBiome(t)).map((t) => t.id)).toEqual(['municipio'])
+  })
 })
 
 describe('CHOOSER', () => {
@@ -91,6 +98,11 @@ describe('CHOOSER', () => {
     expect(CHOOSER.distance(0.04)).toBe('a menos de 0,1 km')
     expect(CHOOSER.distance(0.1)).toBe('a 0,1 km')
     expect(CHOOSER.distance(12.4)).toBe('a 12 km')
+  })
+
+  it('says "na Caatinga" only of an area clipped to the biome', () => {
+    expect(CHOOSER.confirmDetail('Assentamento', 'PB', '52 km²')).toBe('Assentamento, PB, 52 km² na Caatinga')
+    expect(CHOOSER.confirmDetail('Município', 'BA', '2.455 km²', true)).toBe('Município, BA, 2.455 km²')
   })
 
   it('has a lead for overlapping territories on every type the chooser opens', () => {

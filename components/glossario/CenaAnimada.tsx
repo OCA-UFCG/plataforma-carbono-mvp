@@ -11,6 +11,7 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   cicloAnual: () => import("@/lib/cenas/gerado/cicloAnual"),
   torreFluxo: () => import("@/lib/cenas/gerado/torreFluxo"),
   estoques: () => import("@/lib/cenas/gerado/estoques"),
+  cisterna: () => import("@/lib/cenas/gerado/cisterna"),
   fluxos: () => import("@/lib/cenas/gerado/fluxos"),
   cue: () => import("@/lib/cenas/gerado/cue"),
   degradacao: () => import("@/lib/cenas/gerado/degradacao"),

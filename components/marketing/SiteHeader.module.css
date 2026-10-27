@@ -33,14 +33,32 @@
 }
 
 /* The design's 187.18x72 logo slot ("Rectangle 2367", 19272:44335), left side
- * of the bar. HeaderLogo positions the lockup against it and lets it overflow:
- * the badge hangs below the bar and the wordmark runs 9px past the slot. */
+ * of the bar. The logo is positioned against it and overflows it. */
 .brand {
   position: relative;
   display: block;
   flex: none;
   width: 187.18px;
   height: 72px;
+}
+
+/* The Caativar lockup of "Menu-superior" (group 19384:21619), as Figma exports
+ * it (public/logos/caativar-cabecalho.svg): the symbol as a hexagonal badge
+ * and the wordmark beside it, drawn at the export's own size. The design
+ * places it at x=54, y=3 of the 1436x76 bar, hence 26px left of the slot and
+ * 1px below its top. The badge hangs past the bar's bottom edge: the export
+ * carries its own bar-coloured mask and the halo whose outline carries the
+ * bar's border around it. The z-index keeps it over the mobile panel, which
+ * opens right under the bar and would otherwise cut it off. */
+.brandLogo {
+  position: absolute;
+  z-index: 1;
+  left: -26px;
+  top: 1px;
+  display: block;
+  width: 232px;
+  height: 95px;
+  max-width: none;
 }
 
 /* Inline nav: HEADER_LINKS, the "Resumo territorial" link + the Mapas button. */

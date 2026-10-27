@@ -13,12 +13,12 @@ export interface VectorPickCandidate<T> {
  * overlap under the pointer.
  *
  * Layer order alone is the wrong answer here: `bioma` sits at the top of the
- * list and its polygon contains every other recorte, so "topmost wins" made
- * every click inside the Caatinga resolve to the biome and left Municípios,
- * Estados and the territory layers impossible to hover or click. The finer
- * recorte wins instead, ranked by the `pickPriority` each layer declares in
- * layers.json; layer order only breaks ties between recortes of the same
- * granularity.
+ * list and its polygon contains every other recorte but the edges of the
+ * municipalities that cross it, so "topmost wins" made every click inside the
+ * Caatinga resolve to the biome and left Municípios, Estados and the territory
+ * layers impossible to hover or click. The finer recorte wins instead, ranked
+ * by the `pickPriority` each layer declares in layers.json; layer order only
+ * breaks ties between recortes of the same granularity.
  */
 export function pickMostSpecific<T>(
   candidates: VectorPickCandidate<T>[],

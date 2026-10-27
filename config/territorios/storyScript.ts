@@ -130,6 +130,9 @@ export const ANSWER_SCRIPT = {
   territorio: {
     located: (where: string) => `Área dentro da Caatinga, ${where}.`,
     plain:   'Área dentro da Caatinga.',
+    // A municipality enters whole, past the biome edge (clippedToBiome).
+    wholeLocated: (where: string) => `Área do município inteiro, ${where}.`,
+    wholePlain:   'Área do município inteiro.',
     state:   (biomePct: string) => `Área dentro da Caatinga, ${biomePct} do bioma.`,
     // Nine features in the estados layer (tests/config/territoriosStory.test.ts).
     biome:   'A Caatinga inteira, em nove estados.',
@@ -318,7 +321,12 @@ export function storyScript(copy: TerritoriosCopy) {
      */
     about: {
       title: sobre.titulo,
-      territorio: { title: territorio.sobreTitulo, text: territorio.sobreTexto },
+      territorio: {
+        title: territorio.sobreTitulo,
+        text:  territorio.sobreTexto,
+        /** In place of `text` for a recorte kept whole past the biome edge. */
+        whole: territorio.sobreTextoMunicipios,
+      },
       estoque: {
         title: estoque.sobreTitulo,
         text:  estoque.sobreTexto,

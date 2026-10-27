@@ -1,6 +1,7 @@
 # Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
 # own current exports, which geobr lags by months), keeps those that belong to
-# the Caatinga, clips them to the biome, simplifies them and writes GeoJSON into
+# the Caatinga, clips all but the municipalities to the biome, simplifies them
+# and writes GeoJSON into
 # public/data/vector. Usage: python scripts/build-recortes.py
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
@@ -13,7 +14,12 @@
 # Clipping every recorte that touched the biome used to let in crumbs of
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
-# What is kept is still clipped, so the map shows the area the analysis measures.
+# What is kept is clipped to the biome, except the municipalities: a
+# municipality is the unit of IBGE's list and stays whole (Macaúbas, BA, has
+# 40% of its area in the Cerrado). Their layer declares it with
+# "clippedToBiome": false in config/mapa/layers.json, which this script reads.
+# /mapa still clips every raster to the biome, so over a border municipality
+# the map shows only the part inside while its statistics cover all of it.
 #
 # Indigenous lands, quilombos and settlements take a 1e-5 degree tolerance
 # (about 1 m): 0.002 degrees changed the outline of a quilombo by 68% and of an
@@ -32,6 +38,7 @@ import geobr
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "data", "vector")
 BIOMA = os.path.join(OUT, "limite_caatinga.geojson")
+LAYERS = os.path.join(os.path.dirname(__file__), "..", "config", "mapa", "layers.json")
 IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/"
                    "documentos/Bioma_Predominante_por_Municipio_2024.csv")
 # Current exports of the producing agencies. mapas2.funai.gov.br sends only its
@@ -43,6 +50,11 @@ INCRA_QUILOMBOS = "https://certificacao.incra.gov.br/csv_shp/zip/%C3%81reas%20de
 INCRA_ASSENTAMENTOS = "https://certificacao.incra.gov.br/csv_shp/zip/Assentamento%20Brasil.zip"
 # South America Albers Equal Area, for the share of a territory inside the biome.
 EQUAL_AREA = "ESRI:102033"
+
+# Recortes kept whole past the biome edge, named as their files are.
+with open(LAYERS, encoding="utf-8") as layers_file:
+    WHOLE = {os.path.splitext(os.path.basename(layer["url"]))[0]
+             for layer in json.load(layers_file)["layers"] if layer.get("clippedToBiome") is False}
 
 bioma = gpd.read_file(BIOMA).to_crs(4674)
 bioma_geom = bioma.union_all() if hasattr(bioma, "union_all") else bioma.unary_union
@@ -168,25 +180,25 @@ def polygonal(geom):
 
 def write(name, gdf, columns, tol):
     path = os.path.join(OUT, name + ".geojson")
-    clipped = gpd.clip(gdf, bioma_geom, sort=True)
-    clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
-    clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
-    clipped = clipped[columns + ["geometry"]].to_crs(4326)
-    clipped["geometry"] = clipped.geometry.simplify(tol, preserve_topology=True)
+    kept = gdf if name in WHOLE else gpd.clip(gdf, bioma_geom, sort=True)
+    kept = kept[~kept.geometry.is_empty & kept.geometry.notna()]
+    kept = kept.loc[previous_order(path, kept, columns[0]).sort_values().index]
+    kept = kept[columns + ["geometry"]].to_crs(4326)
+    kept["geometry"] = kept.geometry.simplify(tol, preserve_topology=True)
     # Snapped to the 5-decimal grid (about 1 m) the file is written in, here
     # rather than by rounding the output: rounding an unsimplified outline left
     # a quarter of its vertices repeated and some rings self-intersecting.
-    clipped["geometry"] = shapely.set_precision(shapely.make_valid(clipped.geometry.values), grid_size=1e-5)
-    clipped["geometry"] = clipped.geometry.map(polygonal)
-    clipped = clipped[~clipped.geometry.is_empty]
-    clipped.to_file(path, driver="GeoJSON")
+    kept["geometry"] = shapely.set_precision(shapely.make_valid(kept.geometry.values), grid_size=1e-5)
+    kept["geometry"] = kept.geometry.map(polygonal)
+    kept = kept[~kept.geometry.is_empty]
+    kept.to_file(path, driver="GeoJSON")
     # rewrites compactly; the rounding only trims the float noise of the grid
     d = json.load(open(path, encoding="utf-8"))
     def rnd(x): return [rnd(v) for v in x] if isinstance(x, list) else round(x, 5)
     for f in d["features"]:
         f["geometry"]["coordinates"] = rnd(f["geometry"]["coordinates"])
     json.dump(d, open(path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print(f"OK {name}: n={len(clipped)} {os.path.getsize(path) // 1024}KB")
+    print(f"OK {name}: n={len(kept)} {os.path.getsize(path) // 1024}KB")
 
 
 def municipios():
