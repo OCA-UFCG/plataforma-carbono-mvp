@@ -23,22 +23,20 @@ export default async function SobrePlataformaPage() {
   const { p } = await loadSiteCopy({ p: SOBRE_PLATAFORMA });
 
   return (
-    <>
-      <div className={styles.page}>
-        <div className={`container ${styles.inner}`}>
-          <MediaText image={SOBRE_PLATAFORMA_IMAGEM.src} imageAlt={SOBRE_PLATAFORMA_IMAGEM.alt} imageSide="right">
-            <Section title={p.porQueTitulo}>
-              <Paragrafos textos={p.porQueTexto} />
-            </Section>
-          </MediaText>
+    <div className={styles.page}>
+      <div className={`container ${styles.inner}`}>
+        <MediaText image={SOBRE_PLATAFORMA_IMAGEM.src} imageAlt={SOBRE_PLATAFORMA_IMAGEM.alt} imageSide="right">
+          <Section title={p.porQueTitulo}>
+            <Paragrafos textos={p.porQueTexto} />
+          </Section>
+        </MediaText>
 
-          <div className={styles.cards}>
-            <IconCard titulo={p.missaoTitulo} icone={SOBRE_PLATAFORMA_ICONES.missao} paragrafos={p.missaoTexto} />
-            <IconCard titulo={p.publicoTitulo} icone={SOBRE_PLATAFORMA_ICONES.publico} paragrafos={p.publicoTexto} />
-          </div>
+        <div className={styles.cards}>
+          <IconCard titulo={p.missaoTitulo} icone={SOBRE_PLATAFORMA_ICONES.missao} paragrafos={p.missaoTexto} />
+          <IconCard titulo={p.publicoTitulo} icone={SOBRE_PLATAFORMA_ICONES.publico} paragrafos={p.publicoTexto} />
         </div>
-        <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} />
       </div>
-    </>
+      <PhotoBand image={SOBRE_FAIXA_IMAGEM} title={p.faixaTitulo} items={p.faixaItens} />
+    </div>
   );
 }
