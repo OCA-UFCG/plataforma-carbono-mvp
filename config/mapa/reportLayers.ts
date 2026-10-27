@@ -47,6 +47,13 @@ export interface ReportLayerConfig {
 
 export const MAX_REPORT_LAYERS = 8
 
+/**
+ * First year the report form offers: MapBiomas's first, where land use, fire
+ * and soil carbon begin. BR-DWGD's precipitation goes back to 1961, but a year
+ * before 1985 would leave every other section without data.
+ */
+export const REPORT_FIRST_YEAR = 1985
+
 export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
   {
     layerId: 'estoque_carbono', order: 10, sectionColor: '#2F5D2A',
@@ -118,4 +125,17 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
 /** The report config of a layer, or undefined when it is not eligible. */
 export function getReportLayer(layerId: string): ReportLayerConfig | undefined {
   return REPORT_LAYERS.find((entry) => entry.layerId === layerId)
+}
+
+/**
+ * Layers whose section another one took over. `chirps_precip` held the
+ * precipitation section until BR-DWGD replaced it, and a saved report URL that
+ * still names it gets the current section instead of a 400 for the whole
+ * document.
+ */
+const REPLACED_REPORT_LAYERS = new Map([['chirps_precip', 'brdwgd_pr']])
+
+/** The layer a report request means, after any replacement. */
+export function currentReportLayerId(layerId: string): string {
+  return REPLACED_REPORT_LAYERS.get(layerId) ?? layerId
 }
