@@ -1,0 +1,45 @@
+/* The donut card's ring and legend (Figma 19432:60431). */
+
+.ring {
+  display: block;
+  align-self: center;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Swatch, name and share, 6px apart (19432:60387). */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+  color: var(--bg-texto-primario);
+}
+
+.swatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share {
+  flex: none;
+  font-weight: 600;
+  color: var(--bg-texto-secundario);
+}

@@ -1,0 +1,79 @@
+/* One layer's result in the "Resultados" column: its cards, 16px apart. The
+ * heading row heads the first card (results/blocks.tsx). */
+
+.layer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* The column scrolls; without this, open cards would shrink to fit and
+   * clip instead. */
+  flex-shrink: 0;
+}
+
+/* The layer's name in capitals (Figma 19432:60316), its period, and the
+ * arrow that folds the layer to its headline. */
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--bg-texto-primario);
+  text-align: left;
+}
+
+button.heading {
+  cursor: pointer;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.period {
+  color: var(--am-400);
+  white-space: nowrap;
+}
+
+.arrow {
+  flex: none;
+  align-self: center;
+  display: flex;
+  color: var(--am-400);
+  transition: transform .15s;
+}
+
+.heading[aria-expanded='true'] .arrow {
+  transform: rotate(180deg);
+}
+
+/* Folded, the card answers with the headline alone. */
+.summary {
+  color: var(--role-categorica1-padrao);
+  overflow-wrap: anywhere;
+}
+
+.retry {
+  margin-top: 12px;
+  width: 100%;
+  padding: 7px 15px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius);
+  background: var(--role-marca-ancora-container);
+  color: var(--role-marca-ancora-hover);
+  cursor: pointer;
+}
+
+.retry:hover {
+  border-color: var(--role-marca-ancora-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}

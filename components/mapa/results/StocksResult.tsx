@@ -5,11 +5,12 @@
 // server returns the same report for all six layers; only the reading differs.
 
 import fitofisionomia from '@/config/mapa/fitofisionomia.json'
-import { COR_POOL, Rosca, formatarTc } from '../StockReportView'
+import { formatarTc } from '../StockReportView'
 import { adaptive, coverageNote, percentShort } from '@/lib/mapa/results/format'
 import { STOCK_TOTAL_BAND } from '@/lib/mapa/results/headline'
 import type { StockReport } from '@/types/mapa'
-import { BarList, Empty, Footnote, Hero, Pair, type Figure } from './blocks'
+import { BarList, Empty, Footnote, Hero, type Figure } from './blocks'
+import Donut from './Donut'
 import { sourceOf, type LayerResultViewProps } from './LayerResultView'
 
 /** The headline sentence of each pool layer. */
@@ -19,6 +20,16 @@ const POOL_CAPTION: Record<string, string> = {
   b4: 'de carbono na madeira morta',
   b5: 'de carbono na serrapilheira',
   b6: 'de carbono orgânico no solo',
+}
+
+/** Each pool's color in the donut of Figma 19432:60357. The printed report
+ *  keeps its own palette (StockReportView's COR_POOL). */
+const POOL_COLOR: Record<string, string> = {
+  b2: '#4f7a2b',
+  b3: '#6b7f32',
+  b4: '#9aaa55',
+  b5: '#d4a52f',
+  b6: '#a8692e',
 }
 
 /** Phytophysiognomies listed before the rest are grouped. */
@@ -63,23 +74,18 @@ export default function StocksResult({
 
   return (
     <>
-      <Hero theme={theme} value={hero.valor} unit={hero.unidade} caption={caption} />
-      <Pair theme={theme} items={pair} />
+      <Hero theme={theme} value={hero.valor} unit={hero.unidade} caption={caption} figures={pair} />
       {!focusPool && (
-        <Rosca
-          titulo="Estoque por compartimento"
+        <Donut
+          title="Estoque por compartimento"
           total={report.totalTc}
-          theme={theme}
-          fatias={report.pools
-            .map((p, i) => ({ nome: p.label, tc: p.tc, cor: COR_POOL[i % COR_POOL.length] }))
-            .filter((f) => f.tc > 0)
-            .sort((a, b) => b.tc - a.tc)}
+          slices={report.pools.map((p) => ({ nome: p.label, tc: p.tc, cor: POOL_COLOR[p.band] ?? theme.colors.textDim }))}
         />
       )}
       <BarList
         theme={theme}
         title="Estoque por fitofisionomia"
-        labelWidth={64}
+        labelWidth={48}
         rows={rows.map((r) => {
           const q = formatarTc(r.value)
           return { ...r, amount: `${q.valor} ${q.unidade}`, share: percentShort((r.value / headline) * 100) }
