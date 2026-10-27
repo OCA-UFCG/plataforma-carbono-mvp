@@ -42,12 +42,17 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
     if (!box || !canvas) return;
     let cancelado = false;
     let naTela = false;
+    // Set before the chunk arrives: a block that leaves and comes back while it
+    // loads would otherwise start a second scene on the same canvas, which
+    // nothing would ever end.
+    let iniciada = false;
 
     const aplicarVisibilidade = () => controle.current?.visivel(naTela && !document.hidden);
     const observer = new IntersectionObserver(
       ([entry]) => {
         naTela = entry.isIntersecting;
-        if (naTela && !controle.current) {
+        if (naTela && !iniciada) {
+          iniciada = true;
           void CENAS[id]().then(({ criarCena }) => {
             if (cancelado) return;
             controle.current = criarCena(canvas, {
