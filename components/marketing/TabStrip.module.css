@@ -1,6 +1,7 @@
 /* The strip of "tab item"s under an internal page's intro band: the Sobre
- * sub-navigation, Figma node 18988:8635 (links, SobreSubnav.tsx), and the
- * Comunicação tabs, 19254:16031 (buttons, ComunicacaoAbas.tsx), drawn alike.
+ * sub-navigation, Figma node 18988:8635 (links, SobreSubnav.tsx), the
+ * Comunicação tabs, 19254:16031 (buttons, ComunicacaoAbas.tsx), and the
+ * Glossário's terms, 19400:12117 (buttons, Glossario.tsx), drawn alike.
  * Entries 12px apart horizontally inside 16px/12px padding, 34px between
  * them, over a 1px rule in the disabled-text grey (#94a6ac,
  * --role-neutro-texto-desabilitado: the same value as the design's
@@ -12,7 +13,8 @@
 }
 
 /* Scrolls horizontally rather than wrapping at narrow widths, like the
- * landing's tab strip (Plataforma.module.css): four entries do not fit 390px. */
+ * landing's tab strip (Plataforma.module.css): four entries do not fit 390px,
+ * and the Glossário's eight do not fit even the 1276px of a desktop frame. */
 .list {
   display: flex;
   gap: 34px;
@@ -28,7 +30,7 @@
  * variable three of the four frames use (18988:8692, 18988:8794,
  * 18988:8968); the first frame's #002b39 (18988:8637) is the odd one out.
  * The border, margin, background and cursor lines are for the Comunicação
- * tabs, which are <button>s. */
+ * and Glossário tabs, which are <button>s. */
 .item {
   flex: none;
   padding: 16px 12px 14px;
@@ -63,8 +65,9 @@
     var(--am-050);
 }
 
-/* A Comunicação tab panel takes focus (tabIndex 0, as the WAI-ARIA tabs
- * pattern asks); it spans the page, so its ring is drawn inside it. */
+/* A Comunicação or Glossário tab panel takes focus (tabIndex 0, as the
+ * WAI-ARIA tabs pattern asks); it spans the page, so its ring is drawn inside
+ * it. */
 .panel:focus-visible {
   outline: 2px solid var(--role-marca-ancora-padrao);
   outline-offset: -2px;

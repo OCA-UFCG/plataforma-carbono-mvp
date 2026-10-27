@@ -3,9 +3,9 @@ import { defineCopy, line, optionalLine, paragraph } from './site/model'
 // Copy for the internal pages' shared frame: the grey intro band at the top
 // and the photo band above the footer. Taken verbatim from the Figma frames
 // "Sobre" (18988:8611, the same intro on all four Sobre pages),
-// "Comunicação" (18978:2048) and "Glossário" (19400:12092). Each page's own content lives in its own module;
-// the band at the foot of "Conheça a plataforma" is part of that page's copy
-// (lib/content/sobre/plataforma.ts).
+// "Comunicação" (18978:2048) and "Glossário" (19400:12092). Each page's own
+// content lives in its own module; the band at the foot of "Conheça a
+// plataforma" is part of that page's copy (lib/content/sobre/plataforma.ts).
 
 export type PageIntroContent = {
   eyebrow?: string

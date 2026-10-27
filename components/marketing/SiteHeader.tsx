@@ -14,8 +14,8 @@ import styles from "./SiteHeader.module.css";
 // (80px, still 80 in this range — it only drops to 24 at <=768px) on both
 // sides. The wordmark overruns `.brand` by 18px, 2px more than the gap.
 // 1023 + 2 + 160 = 1185px is the narrowest viewport the inline header fits
-// at; 1200 clears it, by 15px since "Glossário" joined the nav. This is the only JS/CSS breakpoint pair on
-// the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
+// at; 1200 clears it, by 15px since "Glossário" joined the nav. This is the
+// only JS/CSS breakpoint pair on the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or
 // both vanish.
@@ -149,8 +149,8 @@ export default function SiteHeader() {
 
       {/* Mobile panel, styled after the Figma "Menu expandido mobile"
           component (8702:48799): a white, rounded, shadowed card holding the
-          nav stacked vertically, adapted to this header's own three links
-          instead of that component's unrelated example content. */}
+          nav stacked vertically, adapted to this header's own links instead
+          of that component's unrelated example content. */}
       <div id={MOBILE_PANEL_ID} className={styles.panel} hidden={!open}>
         <nav className={styles.panelNav} aria-label="Navegação móvel">
           {HEADER_LINKS.map((link) => (
