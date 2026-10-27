@@ -52,6 +52,10 @@ html, body {
   /* temporary alias, components not migrated yet reference this var */
   --font-raleway: var(--font-app);
 
+  /* The layer switch of the panel (Figma "toggle", 19430:58769), on and off. */
+  --switch-on:  #018f39;
+  --switch-off: #dcdbdc;
+
   /* resting accent, overridden inline by the platform theme */
   --acc:     #5f7030;
   --accBg:   #ecf0e0;

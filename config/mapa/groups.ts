@@ -3,15 +3,17 @@ export interface SubthemeInfo {
   label: string
   /** A choice replaces the previous layer of this subtheme. */
   exclusive: boolean
-  /** Shows the 3D terrain switch under the subtheme's layers. */
-  terrain?: true
 }
 
 export interface ThemeInfo {
   id: string
   label: string
   color: string
-  image: string
+  /** The 24px icon of the theme's header in the layer panel, exported from
+   *  Figma (19430:58769); a theme the design does not draw has none. */
+  icon?: string
+  /** Fill of the theme's header in the layer panel (19430:58769, 58771, 58773). */
+  tint: string
   subthemes: SubthemeInfo[]
 }
 
@@ -25,14 +27,17 @@ export const TERRITORY_THEME_ID = 'territorio'
 // layers.json.
 export const THEMES: ThemeInfo[] = [
   {
-    id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', image: '/images/cards/recortes-territoriais.png',
+    // Not drawn as a theme by the design, which gives the recortes their own
+    // section; its header takes the panel's neutral fill until then (#140).
+    id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', tint: 'var(--am-050)',
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },
       { id: 'territorios', label: 'Territórios tradicionais e assentamentos', exclusive: false },
     ],
   },
   {
-    id: 'carbono', label: 'Vegetação', color: '#4F791E', image: '/images/cards/estoques-carbono.png',
+    id: 'carbono', label: 'Vegetação', color: '#4F791E',
+    icon: '/icons/mapa/grass.svg', tint: 'var(--role-marca-ancora-container)',
     subthemes: [
       { id: 'estoques', label: 'Estoques de carbono', exclusive: true },
       { id: 'estrutura', label: 'Estrutura', exclusive: true },
@@ -40,7 +45,8 @@ export const THEMES: ThemeInfo[] = [
     ],
   },
   {
-    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637', image: '/images/cards/pressoes-mudancas.png',
+    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637',
+    icon: '/icons/mapa/landslide.svg', tint: 'var(--bg-superficie-variante)',
     subthemes: [
       { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
       { id: 'fogo', label: 'Fogo', exclusive: true },
@@ -49,17 +55,19 @@ export const THEMES: ThemeInfo[] = [
     ],
   },
   {
-    id: 'ambiente', label: 'Ambiente', color: '#A78400', image: '/images/cards/clima-fenologia.png',
+    id: 'ambiente', label: 'Ambiente', color: '#A78400',
+    icon: '/icons/mapa/nature.svg', tint: 'var(--role-categorica1-container)',
     subthemes: [
       { id: 'vegetacao', label: 'Índices de vegetação', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
       // The one thematic exception, so the hillshade can be combined with
       // altitude or slope; layers.json order sets which one is drawn on top.
-      { id: 'relevo', label: 'Relevo', exclusive: false, terrain: true },
+      { id: 'relevo', label: 'Relevo', exclusive: false },
     ],
   },
   {
-    id: 'localidades', label: 'Localidades', color: '#8B5E34', image: '/images/cards/localidades.png',
+    // Not in the design, which predates it: the panel's neutral fill, no icon.
+    id: 'localidades', label: 'Localidades', color: '#8B5E34', tint: 'var(--am-050)',
     subthemes: [
       { id: 'monitoramento', label: 'Áreas de Monitoramento', exclusive: false },
     ],
