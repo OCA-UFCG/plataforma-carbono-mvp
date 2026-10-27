@@ -4,119 +4,46 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
   color-scheme: light;
 }
 
+/* The canvas keeps its own sky colour behind the drawing; the design gives it
+ * rounded corners and no border (19400:12092). */
 .tela {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
-  border: 1px solid var(--am-200);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #cfe0e6;
 }
 
-.legenda {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--bg-texto-secundario);
+/* Figma "Painel de controle glossário" (19401:22996): a white box with a
+ * border, 24px inside and 24px between its rows of 40px. The min-height is one
+ * row's, held while the scene loads. */
+.caixa {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 90px;
+  padding: 24px;
+  border: 1px solid var(--role-neutro-borda);
+  border-radius: var(--radius);
+  background: var(--role-primario-texto-sobre);
 }
 
-.controles {
+.linha {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 24px;
+  gap: 16px 24px;
 }
 
-.botao {
-  min-width: 112px;
-  padding: 8px 16px;
-  border: 1px solid var(--bg-borda);
-  border-radius: 8px;
-  background: var(--bg-fundo);
-  color: var(--bg-texto-primario);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.botao:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.campo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--bg-texto-primario);
-}
-
-.campo input {
-  width: 150px;
-  max-width: 40vw;
-  accent-color: var(--role-marca-ancora-padrao);
-}
-
-.valor {
-  min-width: 3.6em;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: var(--am-400);
-}
-
-/* Steps of a scene told in steps, the package's "chips". */
-.etapas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.etapa {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid var(--am-200);
-  border-radius: 999px;
-  background: var(--bg-fundo);
-  color: var(--bg-texto-primario);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.etapa:hover {
-  border-color: var(--bg-borda);
-}
-
-.etapa[aria-pressed="true"] {
-  border: 2px solid var(--role-marca-ancora-padrao);
-  padding: 7px 13px;
-  font-weight: 700;
-}
-
-.amostra {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-}
-
-.leitor {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+/* The step buttons split their row into equal parts, and wrap to a new line
+ * once their labels no longer fit side by side. */
+.etapas > * {
+  flex: 1 1 0;
 }
 
 /* What a scene builds in its panel, with the package's class names. */
