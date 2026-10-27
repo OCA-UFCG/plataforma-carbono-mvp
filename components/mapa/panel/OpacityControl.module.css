@@ -1,0 +1,92 @@
+/* The opacity track and its percent field (Figma 19422:55769). */
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The design's "Date-slider": a 6px track, green up to the value and grey
+ * after it (the fill is set inline as --fill), and a 20px white thumb in a
+ * 2px green ring. */
+.range {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--role-marca-ancora-padrao) var(--fill), var(--role-neutro-texto-desabilitado) var(--fill));
+}
+
+.range::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--role-marca-ancora-padrao) var(--fill), var(--role-neutro-texto-desabilitado) var(--fill));
+}
+
+.range::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--card);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Firefox sizes the thumb's content box: 16 + 2 x 2 = 20px. */
+.range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--card);
+}
+
+.range:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+/* The percent (19422:55772): a 40px box, its 1px outline drawn inside, so
+ * 7 + 1 = 8px above and 11 + 1 = 12px beside the Inter 14/24 value. */
+.box {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 7px 11px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  cursor: text;
+}
+
+.box:focus-within {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+/* Three digits wide, so "100" fits and "50" sits right-aligned beside the sign. */
+.field {
+  width: 3ch;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+}
+
+.field:focus {
+  outline: none;
+}

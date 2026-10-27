@@ -121,6 +121,11 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-pressionado', '--role-marca-ancora-container'],
   ['--role-marca-ancora-hover', '--bg-fundo'],
   ['--ctx-negativo-padrao', '--bg-fundo'],
+  // The platform's "Camadas ativas" (Figma 19430:58765): "Limpar" on the
+  // section's --am-100 header, a step darker than the design's
+  // --ctx-negativo-padrao (4.2:1), and the cards' text on their cream fill.
+  ['--role-alerta-risco-hover', '--am-100'],
+  ['--foreground', '--bg-superficie-variante'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

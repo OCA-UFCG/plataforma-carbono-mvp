@@ -99,55 +99,48 @@ describe('showOnlyMunicipios', () => {
   })
 })
 
-describe('draw order by theme and subtheme', () => {
+describe('draw order by layer', () => {
   const initial = useStore.getState()
   afterEach(() => {
     useStore.setState(initial, true)
     vi.unstubAllGlobals()
   })
   const order = () => useStore.getState().layers.map((layer) => layer.id)
-  const topOf = (theme: string) => {
-    const o = order()
-    return Math.min(...useStore.getState().layers.filter((l) => l.theme === theme).map((l) => o.indexOf(l.id)))
-  }
-
-  it('starts in the panel order: Carbono, then Uso do solo, then Ambiente', () => {
-    expect(useStore.getState().themeOrder).toEqual(['carbono', 'uso_solo', 'ambiente', 'localidades'])
+  it('starts in the order the themes gave: Carbono, then Uso do solo, then Ambiente', () => {
     expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('ndvi_modis'))
     expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('lulc_mapbiomas'))
   })
 
-  it('draws a theme moved up above the themes it passed', () => {
-    useStore.getState().moveTheme('uso_solo', 'carbono')
+  it('draws a layer moved up above the layer it was put before', () => {
+    useStore.getState().moveLayer('lulc_mapbiomas', 'biomassa_gedi')
 
-    expect(useStore.getState().themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
-    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(topOf('carbono'))
+    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('biomassa_gedi'))
+    expect(useStore.getState().layerOrder.indexOf('lulc_mapbiomas'))
+      .toBeLessThan(useStore.getState().layerOrder.indexOf('biomassa_gedi'))
   })
 
-  it('draws a subtheme moved up above its sibling', () => {
-    expect(order().indexOf('solo_carbono')).toBeLessThan(order().indexOf('biomassa_gedi'))
+  it('draws a layer moved to the end below every other', () => {
+    useStore.getState().moveLayer('biomassa_gedi', null)
 
-    useStore.getState().moveSubtheme('carbono', 'estrutura', 'estoques')
-
-    expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('solo_carbono'))
+    const thematic = order().filter((id) => useStore.getState().layerOrder.includes(id))
+    expect(thematic[thematic.length - 1]).toBe('biomassa_gedi')
   })
 
-  it('keeps the recortes above every raster whatever the order', () => {
-    useStore.getState().moveTheme('ambiente', 'carbono')
+  it('keeps the recortes above every thematic layer whatever the order', () => {
+    useStore.getState().moveLayer('ndvi_modis', 'biomassa_gedi')
     const { layers } = useStore.getState()
     const lastVector = layers.map((layer) => layer.type).lastIndexOf('vector')
-    expect(layers.findIndex((layer) => layer.type === 'raster')).toBe(lastVector + 1)
+    expect(layers.findIndex((layer) => layer.type !== 'vector')).toBe(lastVector + 1)
   })
 
   it('leaves the state untouched for a move that changes nothing', () => {
     const before = useStore.getState()
-    useStore.getState().moveTheme('carbono', 'uso_solo')
-    useStore.getState().moveSubtheme('carbono', 'estoques', 'reservatorios')
-    useStore.getState().moveSubtheme('nope', 'x', null)
+    const [first, second] = before.layerOrder
+    useStore.getState().moveLayer(first, second)
+    useStore.getState().moveLayer('nope', null)
 
     expect(useStore.getState().layers).toBe(before.layers)
-    expect(useStore.getState().themeOrder).toBe(before.themeOrder)
-    expect(useStore.getState().subthemeOrder).toBe(before.subthemeOrder)
+    expect(useStore.getState().layerOrder).toBe(before.layerOrder)
   })
 
   it('does not move a raster the user switches on', () => {
