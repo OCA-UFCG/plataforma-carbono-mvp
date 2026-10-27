@@ -46,6 +46,22 @@ interface Props {
 
 const MAX_RESULTS = 20
 
+// Register codes build-recortes.py keeps beside each name (code_muni, cd_sipra,
+// cd_cnuc). Nobody searches by them, and as text ("0000.00.0146") they would
+// answer any run of digits typed.
+const CODE_FIELD = /^(cd|code)_/i
+
+// Matches at the start of the label first, then alphabetical. One collator for
+// every comparison: a short query sorts thousands of matches.
+const collator = new Intl.Collator('pt-BR')
+
+function byRank(a: Pick<SearchResult, 'value' | 'match'>, b: Pick<SearchResult, 'value' | 'match'>) {
+  const aPrefix = a.match.start === 0
+  const bPrefix = b.match.start === 0
+  if (aPrefix !== bPrefix) return aPrefix ? -1 : 1
+  return collator.compare(a.value, b.value)
+}
+
 // Component
 
 export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSelectFeature }: Props) {
@@ -62,6 +78,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
   // Refs
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([])
   const cacheRef = useRef<
     Map<
       string,
@@ -171,7 +188,10 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
       return
     }
 
-    const found: SearchResult[] = []
+    // Every match of every layer, ranked within its layer. Stopping at a count
+    // would leave the layers late in the catalog unread: the conservation units
+    // come after 1,994 settlements.
+    const ranked: { features: GeoJSON.Feature[]; matches: Omit<SearchResult, 'bbox'>[] }[] = []
     const seen = new Set<string>() // dedupe: layerId:featureIndex:fieldName
 
     for (const layer of searchableVectors) {
@@ -181,6 +201,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
       // Property that tells homonymous features apart, shown beside the label
       // and typed as the last word of a query ("bom jesus pi").
       const contextField = layer.contextField
+      const matches: Omit<SearchResult, 'bbox'>[] = []
 
       for (let fi = 0; fi < cached.features.length; fi++) {
         const props = cached.features[fi].properties
@@ -192,7 +213,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           // The context narrows a search, it is never a result of its own:
           // listing it would put one row per municipality of a whole state
           // under the heading "abbrev_state".
-          if (key === contextField) continue
+          if (key === contextField || CODE_FIELD.test(key)) continue
           if (typeof raw !== 'string' || raw === '') continue
           const match = matchTerritory(q, raw, context, {
             contextIdentifies: cached.contextIdentifies,
@@ -203,14 +224,7 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           if (seen.has(dedupeKey)) continue
           seen.add(dedupeKey)
 
-          let bbox: [number, number, number, number]
-          try {
-            bbox = computeBbox(cached.features[fi])
-          } catch {
-            continue // skip features without valid geometry
-          }
-
-          found.push({
+          matches.push({
             layerId: layer.id,
             unitName: cached.unitName,
             fieldName: key,
@@ -218,24 +232,31 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             context,
             match,
             featureIndex: fi,
-            bbox,
           })
-
-          if (found.length >= MAX_RESULTS * 2) break // collect extra for sorting
         }
-        if (found.length >= MAX_RESULTS * 2) break
+      }
+      ranked.push({ features: cached.features, matches: matches.sort(byRank) })
+    }
+
+    // Dealt one row per layer in turn, so every layer with a match gets a share
+    // of the rows; those then take the usual order. Bounding boxes only for the
+    // rows dealt, as a two-letter query matches most features.
+    const found: SearchResult[] = []
+    for (let round = 0; found.length < MAX_RESULTS; round++) {
+      const turn = ranked.filter(({ matches }) => round < matches.length)
+      if (turn.length === 0) break
+      for (const { features, matches } of turn) {
+        if (found.length >= MAX_RESULTS) break
+        const m = matches[round]
+        try {
+          found.push({ ...m, bbox: computeBbox(features[m.featureIndex]) })
+        } catch {
+          // skip features without valid geometry
+        }
       }
     }
 
-    // Sort: matches at the start of the label first, then alphabetical
-    found.sort((a, b) => {
-      const aPrefix = a.match.start === 0
-      const bPrefix = b.match.start === 0
-      if (aPrefix !== bPrefix) return aPrefix ? -1 : 1
-      return a.value.localeCompare(b.value, 'pt-BR')
-    })
-
-    setResults(found.slice(0, MAX_RESULTS))
+    setResults(found.sort(byRank))
     setHighlightedIdx(-1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery, searchableKey, cacheVersion])
@@ -261,14 +282,16 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
         setResults([])
         return
       }
-      if (e.key === 'ArrowDown') {
+      // Rows wrap, so a few presses take the highlight past the bottom of the
+      // list; the keys scroll it along. The mouse does not, or hovering a row
+      // cut off at the edge would scroll another one under the pointer.
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
-        setHighlightedIdx((i) => Math.min(i + 1, results.length - 1))
-        return
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setHighlightedIdx((i) => Math.max(i - 1, 0))
+        const next = e.key === 'ArrowDown'
+          ? Math.min(highlightedIdx + 1, results.length - 1)
+          : Math.max(highlightedIdx - 1, 0)
+        setHighlightedIdx(next)
+        rowRefs.current[next]?.scrollIntoView({ block: 'nearest' })
         return
       }
       if (e.key === 'Enter' && highlightedIdx >= 0 && results[highlightedIdx]) {
@@ -396,6 +419,9 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
             results.map((r, i) => (
               <div
                 key={`${r.layerId}-${r.featureIndex}-${r.fieldName}`}
+                ref={(el) => {
+                  rowRefs.current[i] = el
+                }}
                 onClick={() => handleSelect(r)}
                 onMouseEnter={() => setHighlightedIdx(i)}
                 style={{
