@@ -426,7 +426,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
 
         {/* "Ver relatório" confirms the proposed territory, as "Sim, conhecer" does (19254:37409). */}
         <PanelNav
-          onBack={onBack}
+          back={{ label: REPORT.cut, onClick: onBack }}
           next={{ label: REPORT.seeReport, onClick: candidateEntry ? () => onChoose(candidateEntry.id) : null }}
         />
       </div>

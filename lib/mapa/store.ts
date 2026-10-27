@@ -8,7 +8,6 @@ import type {
   PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
-import { withoutChoroplethErrors, type ChoroplethEntry } from '@/lib/mapa/choropleth'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { isMonthPref, type MonthPref } from '@/lib/phenology'
@@ -121,10 +120,6 @@ interface MapaStore {
   temporalTileUrls: Record<string, Record<string, string>>  // layerId -> { dateKey -> tileUrl }
   temporalDate:     Record<string, string>                   // layerId -> current dateKey
 
-  // Each continuous raster's mean by feature of the finest choropleth recorte
-  // on, keyed by choroplethKey (layer|recorte). Not persisted.
-  choropleths: Record<string, ChoroplethEntry>
-
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
   statsCache: Record<string, PanelResult>
@@ -215,7 +210,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   jenksBreaks:      {},
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
-  choropleths:      {},
   statsCache:       {},
   pixelCache:       {},
 
@@ -239,11 +233,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       return
     }
 
-    // Turning a choropleth recorte on is how its failures are retried.
-    const retries = layer?.type === 'vector' && !!layer.choropleth && !layer.visible
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
-      ...(retries ? { choropleths: withoutChoroplethErrors(s.choropleths, id) } : {}),
     }))
   },
 
@@ -260,14 +251,9 @@ export const useStore = create<MapaStore>((set, get) => ({
   },
 
   showLayer: (id) =>
-    set((s) => {
-      const layer = s.layers.find((l) => l.id === id)
-      const retries = layer?.type === 'vector' && !!layer.choropleth && !layer.visible
-      return {
-        layers: setLayerVisibility(s.layers, id, true),
-        ...(retries ? { choropleths: withoutChoroplethErrors(s.choropleths, id) } : {}),
-      }
-    }),
+    set((s) => ({
+      layers: setLayerVisibility(s.layers, id, true),
+    })),
 
   // Opacity, order, chosen year and cached tiles stay, so switching a layer
   // back on is instant. Dropping the loading mark is what keeps a GEE raster

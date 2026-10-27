@@ -2,7 +2,7 @@
 // has its own page; one without is listed as "em breve". `animacao` names a
 // scene assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
 
-export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
+export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
 
 export interface Termo {
   slug: string
@@ -51,6 +51,16 @@ export const TERMOS: Termo[] = [
       descricao: 'Paisagem de Caatinga em corte mostrando onde o carbono fica guardado: solo, parte aérea, raízes, madeira morta, serapilheira e herbáceas. Os botões destacam cada compartimento.',
     },
     acesso: { href: naPlataforma('estoque_carbono'), rotulo: 'Acesse os dados de estoque no bioma Caatinga' },
+  },
+  {
+    slug: 'sequestro-de-carbono',
+    titulo: 'Sequestro de carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'cisterna',
+      titulo: 'Guardar água, guardar carbono',
+      descricao: 'Casa do sertão com uma cisterna em corte ao lado de uma Caatinga com o solo em corte, comparando a água guardada na cisterna com o carbono guardado na vegetação e no solo: o que entra, o que sai, o saldo, como proteger, o vazamento e onde a comparação para. Os botões avançam as etapas.',
+    },
   },
   {
     slug: 'torre-de-fluxo',

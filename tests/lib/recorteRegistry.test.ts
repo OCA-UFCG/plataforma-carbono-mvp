@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { featureGeometries, getFeicao, listFeicoes, listRecortes } from '@/lib/mapa/recorteRegistry'
+import { getFeicao, listFeicoes, listRecortes } from '@/lib/mapa/recorteRegistry'
 
 describe('listRecortes', () => {
   it('lists the vector layers that can be a report unit, with the field that names a feature', () => {
@@ -104,20 +104,5 @@ describe('getFeicao', () => {
   it('returns null for an unknown recorte or feature', () => {
     expect(getFeicao('nao-existe', 'campina-grande')).toBeNull()
     expect(getFeicao('municipios', 'nao-existe')).toBeNull()
-  })
-})
-
-describe('featureGeometries', () => {
-  it('lists every labelled feature with its file position, the id MapLibre generates', () => {
-    const states = featureGeometries('estados')!
-    // Bahia is the second feature of estados.geojson.
-    expect(states.map((f) => f.index)).toContain(1)
-    expect(states.find((f) => f.index === 1)?.geometry.type).toMatch(/^(Polygon|MultiPolygon)$/)
-    // The two São Domingos sit at file indices 174 and 691 (see listFeicoes).
-    expect(featureGeometries('municipios')!.map((f) => f.index)).toEqual(expect.arrayContaining([174, 691]))
-  })
-
-  it('returns null for an unknown recorte', () => {
-    expect(featureGeometries('nao-existe')).toBeNull()
   })
 })

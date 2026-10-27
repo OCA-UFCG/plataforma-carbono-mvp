@@ -107,8 +107,8 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     // the cells by 2e-6° from the origin, and a point read near a cell's north or
     // west edge falls in the neighbouring cell.
     if (temporalDate) {
-      const [from, to] = yearWindow(Number(temporalDate.slice(0, 4)))
-      col = col.filterDate(from, to)
+      const ano = Number(temporalDate.slice(0, 4))
+      col = col.filterDate(`${ano}-01-01`, `${ano + 1}-01-01`)
       if (asset.band) col = col.select(asset.band)
       if (hasValidRange) col = col.map(maskValid)
       return transform(reduzir(col))
@@ -132,14 +132,6 @@ export function buildEeImage(ee: any, asset: GeeAssetConfig, temporalDate?: stri
     img = img.select(asset.band)
   }
   return transform(maskValid(img))
-}
-
-/**
- * The dates a collection is filtered to for one year in the per-date temporal
- * mode: January 1st to the next January 1st, end exclusive.
- */
-export function yearWindow(year: number): [string, string] {
-  return [`${year}-01-01`, `${year + 1}-01-01`]
 }
 
 /**

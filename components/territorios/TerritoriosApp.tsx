@@ -367,7 +367,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   // The bioma has no chooser, so another one means another type.
   const changeTerritory = () => (type?.recorteId === BIOMA_RECORTE_ID ? changeType() : goTo(type, ''))
 
-  /** A panel's own "next" button, which unmounts with the panel. */
+  /** A panel's own button to the previous or next tab, which unmounts with the panel. */
   function openTab(step: StepId) {
     focusPanelRef.current = true
     setTab(step)
@@ -474,8 +474,8 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                       load={isTheme(tab) ? loads[tab] : LOADING}
                       expired={expired}
                       onRetry={() => { if (isTheme(tab)) retryTheme(tab) }}
-                      onBack={changeType}
-                      onNext={openTab}
+                      leave={isBioma ? { label: REPORT.cut, onClick: changeType } : { label: REPORT.location, onClick: changeTerritory }}
+                      onOpen={openTab}
                       landUseYear={tab === 'uso' ? { year: landUseYear, onChange: setLandUseYear } : undefined}
                     />
                   )}
@@ -501,7 +501,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                   loads={loads}
                   expired={expired}
                   onRetry={retryTheme}
-                  onBack={changeType}
+                  onOpen={openTab}
                 />
               </>
             )}

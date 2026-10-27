@@ -9,7 +9,6 @@ import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
-import type { ChoroplethEntry } from '@/lib/mapa/choropleth'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
 import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
@@ -171,7 +170,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     Sheet: typeof AnalysisSheet; mapSrc: string | null; generatedAt: Date
     // What was on the map when the button was clicked, for the legend.
     legendLayers: LayerConfig[]; legendDates: Record<string, string>
-    legendChoropleths: Record<string, ChoroplethEntry>
   } | null>(null)
   const sheetLayers: SheetLayer[] = measured.map((raster) => {
     const date = raster.gee?.temporal ? temporalDate[raster.id] : undefined
@@ -200,11 +198,10 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         setExporting(false)
         return
       }
-      const { layers: current, temporalDate: dates, choropleths } = useStore.getState()
+      const { layers: current, temporalDate: dates } = useStore.getState()
       setSheet({
         Sheet, mapSrc, generatedAt: new Date(),
         legendLayers: current.filter((l) => l.visible), legendDates: dates,
-        legendChoropleths: choropleths,
       })
     } catch (err) {
       console.error('JPEG export failed', err)
@@ -299,7 +296,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         layers={sheetLayers}
         legendLayers={sheet.legendLayers}
         legendDates={sheet.legendDates}
-        legendChoropleths={sheet.legendChoropleths}
       />
     </div>,
     document.querySelector('[data-cc-root]') ?? document.body,
