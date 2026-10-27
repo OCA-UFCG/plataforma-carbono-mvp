@@ -3,6 +3,8 @@
 // which the design does not draw yet, last. `animacao` names a scene
 // assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
 
+import { ABA_PARAM } from '@/lib/marketing/comunicacaoAbas'
+
 export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
 
 export interface Termo {
@@ -120,4 +122,17 @@ export const TERMO_PARAM = 'termo'
 /** The term the address names; anything else opens the first one. */
 export function parseTermo(value: string | string[] | undefined): Termo {
   return TERMOS.find((t) => t.slug === value) ?? TERMOS[0]
+}
+
+// The Glossário was a third tab of the Comunicação page while it was tested,
+// and links to it (/comunicacao?aba=glossario&termo=<slug>) went around. That
+// page sends them to /glossario, keeping the term; null for every other
+// address. Here rather than in lib/marketing/comunicacaoAbas.ts, which the
+// Comunicação tabs load on the client: importing TERMO_PARAM there pulled
+// every term's text into that page's bundle.
+export function glossarioAntigoHref(params: Record<string, string | string[] | undefined>): string | null {
+  if (params[ABA_PARAM] !== 'glossario') return null
+
+  const termo = params[TERMO_PARAM]
+  return typeof termo === 'string' ? `/glossario?${new URLSearchParams({ [TERMO_PARAM]: termo })}` : '/glossario'
 }
