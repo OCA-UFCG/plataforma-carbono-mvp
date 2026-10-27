@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { IcX, IcBarChart, IcDownload } from './icons'
+import { IcX, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
 import type { default as AnalysisSheet, SheetLayer } from './AnalysisSheet'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
+import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { ContextLine, Empty, Pair, Stack } from './results/blocks'
@@ -19,9 +20,9 @@ const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 interface Props {
   theme: PlatformTheme
-  /** Collapse state is lifted so plataforma can shift the map controls/legend. */
+  /** Collapsed by the "Resultado" button over the map (Mapa.tsx), which owns
+   *  the state because it also stands in for the panel while it is away. */
   collapsed: boolean
-  onSetCollapsed: (v: boolean) => void
   /** The header's X; the owner decides whether it drops the selection or collapses the panel. */
   onClose: () => void
   /** Snapshot of the map between the panels, for the JPEG; null when unreadable. */
@@ -41,7 +42,7 @@ function saveBlob(blob: Blob, filename: string) {
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 /**
- * Floating results panel. Appears whenever there's a measurement to show
+ * Results column, the last of Mapa.tsx's row. Appears whenever there's a measurement to show
  * (drawn geometry, or a vector feature clicked over a raster), or when a
  * raster is active but nothing was analysed yet, in which case it shows an
  * onboarding hint.
@@ -50,7 +51,7 @@ const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() 
  * one collapsible result card per visible raster; the CSV and JPEG downloads. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
-export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose, captureMap }: Props) {
+export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }: Props) {
   const drawnArea        = useStore((s) => s.drawnArea)
   const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
@@ -304,48 +305,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
   if (!hasContent && !showEmptyHint) return sheetPortal
 
-  // Collapsed: a pill at the bottom on narrow screens, a slim tab on the right
-  // edge on desktop.
-  if (collapsed) {
-    const tab = (
-      <button
-        className="ui-press"
-        onClick={() => onSetCollapsed(false)}
-        aria-label="Mostrar resultados"
-        title="Mostrar resultados"
-        style={{
-          position: 'absolute',
-          zIndex: 10,
-          background: c.glassBg,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: `1px solid ${c.glassBd}`,
-          boxShadow: 'var(--sh-ctrl)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          color: c.accent,
-          fontFamily: 'var(--font-app), sans-serif',
-          fontSize: 13.5,
-          fontWeight: 700,
-          ...(narrow
-            ? { left: '50%', bottom: 14, transform: 'translateX(-50%)', height: 38, padding: '0 16px', borderRadius: 999 }
-            : { right: 0, top: '50%', transform: 'translateY(-50%)', width: 28, height: 56, padding: 0, borderRadius: '8px 0 0 8px', borderRight: 'none' }),
-        }}
-      >
-        <IcBarChart size={14} />
-        {narrow && <span>Resultados</span>}
-      </button>
-    )
-    return (
-      <>
-        {tab}
-        {sheetPortal}
-      </>
-    )
-  }
+  // Collapsed: the column leaves the row and the map takes its width; the
+  // "Resultado" button over the map (Mapa.tsx) brings it back.
+  if (collapsed) return sheetPortal
 
   // Leftovers of an earlier analysis (a deleted drawing, a hint with nothing
   // analysed) must not name the panel.
@@ -355,22 +317,27 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     <div
       role="region"
       aria-label="Resultados"
+      id="painel-resultados"
       style={{
-        position: 'absolute',
-        // The phone drawer rises into the map controls' column (zIndex 12), which
-        // would cover its close button; it goes above them.
-        zIndex: narrow ? 13 : 10,
         ...(narrow
-          ? { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0' }
-            // Goes down to the bottom edge of the map. The controls and the legend
-            // get out of the way on their own: `rightOffset` shifts them left while
-            // the panel is open.
-          : { right: 16, top: 16, width: 368, maxHeight: 'calc(100% - 32px)', borderRadius: 16 }),
-        background: c.glassBg,
-        backdropFilter: 'blur(11px)',
-        WebkitBackdropFilter: 'blur(11px)',
-        border: `1px solid ${c.glassBd}`,
-        boxShadow: 'var(--sh-panel)',
+          ? {
+              position: 'absolute',
+              // The phone drawer rises into the map controls' column (zIndex 12),
+              // which would cover its close button; it goes above them.
+              zIndex: 13,
+              left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0',
+              background: c.glassBg,
+              backdropFilter: 'blur(11px)',
+              WebkitBackdropFilter: 'blur(11px)',
+              border: `1px solid ${c.glassBd}`,
+              boxShadow: 'var(--sh-panel)',
+            }
+            // The last column of Mapa.tsx's row, the whole height under the
+            // site header (Figma 19413:54279).
+          : {
+              position: 'relative', flex: 'none', width: COLUMN_WIDTH, height: '100%',
+              background: c.bgCard, borderLeft: `1px solid ${c.border}`,
+            }),
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'var(--font-app), sans-serif',

@@ -61,6 +61,8 @@ Sensitive configuration never travels from the client: the server resolves `clip
 
 `app/(mapa)/mapa/page.tsx` does `dynamic(..., { ssr: false })` on `components/mapa/Mapa.tsx` — MapLibre needs WebGL/`window`. Global state is Zustand (`lib/mapa/store.ts`); `MapView.tsx` owns the map, drawing (mapbox-gl-draw) and click-to-stats; results are cached under `layer:static:geometryHash`.
 
+The platform renders the site header (`SiteHeader` with `account`) and, under it, a row of columns (`Mapa.tsx`, widths in `lib/mapa/layout.ts`): the layer panel, the ficha when open, the map and the results. A column that closes leaves the row, and the map takes its width. `app/(mapa)/layout.tsx` loads `globals.css` before `mapa.css`, so the site's tokens and type classes apply there too.
+
 ### Institutional copy in Contentful
 
 The words of the marketing pages (`/`, `/sobre/*`, `/comunicacao`) come from Contentful, one content type per section or page, each holding a single entry. The types are declared in `lib/content/` with `defineCopy` (`lib/content/site/model.ts`): each field is a `line`, `paragraph`, `text` (paragraphs split on a blank line) or `list` (one item per line), and its value in the code is both the fallback and what seeds a new space. Pages read them with `loadSiteCopy` (`lib/content/site/fetch.ts`); a failed request, a missing entry or an empty required field falls back to the code, field by field. Images, their alt text, icons, links and interface labels (`"Ver mais"`, `"Plataforma"`) stay in the code, and so does the number of cards in each section.
@@ -69,9 +71,9 @@ Changing a field means changing three things together: the definition in `lib/co
 
 The Territórios story (`/territorios`) reads its copy the same way: one type per tab, plus the presentation over the gallery and the shared part of "Sobre os dados" (`lib/content/territorios.ts`). The page loads it on the server, and `StoryScriptProvider` (`components/territorios/StoryScriptContext.tsx`) turns it into the script `lib/territorios/storyText.ts` fills, through `storyScript()` in `config/territorios/storyScript.ts`; panels read it with `useStoryScript()`. A copy field may declare placeholders (`line('Pergunta', 'Como mudou a vegetação nativa desde {anoInicial}?', { anoInicial: '…' })`). An entry naming any other placeholder, or leaving a brace unpaired, falls back to the code for that field. The years of each series are always placeholders, so a data update reaches the copy. Interface labels, chart descriptions, the summary's badges and the grammar tables stay in `config/territorios/`.
 
-### Monthly theme
+### Platform theme
 
-The UI accent is the current month's color, derived from a 40-year NDFI series (`lib/phenology.ts`, `lib/ndfi-series.json`, shared by the landing page and the map module — hence `lib/` rather than `lib/mapa/`). `config/mapa/platforms.ts::buildAccent` derives the tones; the module writes the `--acc*` CSS vars inline on its root along with `data-month`. **Do not write `[data-month]` blocks in CSS** — there would be 24 of them and they would drift out of sync with the JS theme. `npm run contrast` runs `buildAccent` across 12 months × 2 modes and fails below 4.5:1.
+The platform wears the site's fixed palette, light only: `config/mapa/platforms.ts::buildSiteTheme` derives the accent tones from the site's brand green with `buildAccent`, and `Mapa.tsx` writes them as the `--acc*` CSS vars inline on its root, so the JS theme stays their single source. Until the redesign the accent was the current month's color, derived from a 40-year NDFI series (`lib/phenology.ts`, `lib/ndfi-series.json`), with a month picker and a dark mode. That machinery no longer reaches the screen, but `npm run contrast` still runs `buildAccent` across 12 months × 2 modes, and the carbon flux inks are still derived against the hardest month. The script also checks the site theme and the report theme, and fails below 4.5:1.
 
 ## Supporting documentation
 

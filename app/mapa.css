@@ -1,7 +1,8 @@
-/* Maps and analysis module styles. Loaded only by app/(mapa)/layout.tsx; the
- * marketing pages use app/globals.css. The `overflow: hidden` below is the
- * reason the two live in separate root layouts: applied to the landing page,
- * it would kill its scrolling. */
+/* Maps and analysis module styles. Loaded only by app/(mapa)/layout.tsx, after
+ * app/globals.css, whose tokens the site header reads; the rules here win
+ * where the two meet. The `overflow: hidden` below is the reason the module
+ * lives in its own root layout: applied to the landing page, it would kill its
+ * scrolling. */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -15,12 +16,10 @@ html, body {
 }
 
 /* Design tokens
- * The "mata branca" neutrals are fixed all year; only the accent (--acc*)
- * changes, and it changes every month. The values below are just the resting
- * state: what rules are the vars the module writes inline on its root, derived
- * from the month color in config/mapa/platforms.ts. Twelve months in two modes
- * would be 24 blocks here, and they would drift out of sync with the JS theme
- * on the first edit. Dark mode derives its neutrals from the same variables. */
+ * The "mata branca" neutrals are fixed. The accent (--acc*) values below are
+ * just the resting state: what rules are the vars the module writes inline on
+ * its root, derived from the site's green in config/mapa/platforms.ts, so the
+ * JS theme stays their single source. */
 :root {
   /* fixed neutrals ("mata branca") */
   --paper:     #f7f6f2;  /* paper / screen backgrounds */
@@ -47,10 +46,13 @@ html, body {
   --sh-pop:    0 24px 60px -20px rgba(30, 28, 18, .5);
   --sh-ctrl:   0 6px 20px -8px rgba(30, 28, 18, .35);
 
+  /* The map components read --font-app; the platform sets them in the site's
+     Rubik (--font-sans, declared on <html> by the layout). */
+  --font-app: var(--font-sans);
   /* temporary alias, components not migrated yet reference this var */
   --font-raleway: var(--font-app);
 
-  /* resting accent, overridden inline by the current month */
+  /* resting accent, overridden inline by the platform theme */
   --acc:     #5f7030;
   --accBg:   #ecf0e0;
   --accInk:  #3c4a1e;
@@ -58,27 +60,13 @@ html, body {
   --accGrad: linear-gradient(135deg, #5f7030, #8aa04f);
 }
 
-/* dark mode, derives the neutrals from the same structure; seasonal accent follows */
-[data-theme='dark'] {
-  --paper:     #16150f;
-  --mist:      #201e16;
-  --silver:    #34322a;
-  --dry:       #7d7a6f;
-  --trunk:     #a8a49a;
-  --ink:       #f2f0e8;
-  --body:      #d7d4c7;
-  --dim:       #9b9788;
-  --caption:   #8a8776;
-  --card:      #211f18;
-  --card-hover:#282619;
-  --border-soft:#302e24;
-  --chip:      #2a281d;
-  --glass:     rgba(28, 26, 18, .94);
-  --glass-bd:  rgba(230, 226, 210, .12);
-}
-
 body {
-  font-family: var(--font-app), 'Libre Franklin', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-app), var(--font-fallback);
+  /* globals.css sets the site's 14/24 body text; the map components were
+     drawn on the browser's 16px and normal leading, and those that do not set
+     their own metrics keep them. */
+  font-size: 16px;
+  line-height: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -136,9 +124,56 @@ body { font-feature-settings: 'lnum' 1, 'tnum' 1; }
 
 /* Opacity sliders: native, they take the inline accent-color (var(--acc)) */
 
-/* The ficha column opens instantly while the left cluster takes .3s to slide
-   clear of it. Matching that duration means the two are never both solid in
-   the same place, not even mid-animation. */
+/* The map's own buttons in the docked layout (components/mapa/Mapa.tsx).
+   The "‹" that collapses the layer panel (Figma 19442:60752), and the search
+   under it while it lasts: 40x40, flush with the panel's edge and open on that
+   side. */
+.mapa-edge-button {
+  position: absolute;
+  left: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--bg-fundo);
+  border: 1px solid var(--bg-borda);
+  border-left: none;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+}
+
+.mapa-edge-button:hover {
+  background: var(--am-100);
+}
+
+/* "Resultado" (Figma 19423:58080): a 1px border drawn inside the 125x40 box,
+   so 7 + 1 = 8px above and 15 + 1 = 16px beside the label. */
+.mapa-result-button {
+  position: absolute;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 15px;
+  background: var(--role-marca-ancora-padrao);
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius);
+  color: var(--role-marca-ancora-texto-sobre);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mapa-result-button:hover {
+  background: var(--role-marca-ancora-hover);
+  border-color: var(--role-marca-ancora-hover);
+}
+
+/* The ficha column fades in as the map gives up its width, so the sheet does
+   not pop into place at full opacity. */
 @keyframes ficha-in {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: none; }

@@ -1,7 +1,8 @@
-/* Marketing pages styles. Loaded only by app/(marketing)/layout.tsx; the maps
- * module at /mapa uses app/mapa.css, with a different reset and different
- * tokens. Nothing here applies there, and vice versa, because the two route
- * groups have sibling root layouts and Next.js splits the CSS per route. */
+/* Site styles. Loaded by app/(marketing)/layout.tsx, and first by the layouts
+ * of the Territórios story and of the maps module at /mapa, which render the
+ * site header and add their own sheets after this one (territorios.css,
+ * mapa.css). The route groups have sibling root layouts, so Next.js splits
+ * the CSS per route and nothing here reaches a group that does not load it. */
 
 :root {
   /* Design tokens from the Figma design system (file hzQi2FcgZuGSGSP6NaeLdY).

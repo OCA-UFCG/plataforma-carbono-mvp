@@ -34,6 +34,7 @@ const MAPBOX_DRAW_STYLES: object[] = [
 ]
 import { area as turfArea } from '@turf/area'
 import { useStore, mapConfig } from '@/lib/mapa/store'
+import { RESULT_BUTTON_SPAN } from '@/lib/mapa/layout'
 import {
   bumpAnalysisSeq,
   currentAnalysisSeq,
@@ -531,8 +532,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
   const terrain3d         = useStore((s) => s.terrain3d)
-  const darkMode          = useStore((s) => s.darkMode)
-  const setBasemap        = useStore((s) => s.setBasemap)
   const fetchedTileUrls   = useStore((s) => s.fetchedTileUrls)
   const temporalTileUrls  = useStore((s) => s.temporalTileUrls)
   const temporalDate      = useStore((s) => s.temporalDate)
@@ -1483,6 +1482,11 @@ useEffect(() => {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady || !fitRequest) return
+    // The map is a column of Mapa.tsx's row, and the commit that brings a
+    // selection can also open the results column beside it. MapLibre learns of
+    // the narrower canvas only on its ResizeObserver's next callback, so
+    // without this the fit would frame the old width.
+    map.resize()
     const panels = panelInsetsRef.current
     const box = map.getContainer().getBoundingClientRect()
     const measure = (el: HTMLDivElement | null): MapOverlay | null => {
@@ -1646,25 +1650,9 @@ useEffect(() => {
     )
   }, [basemapId, mapReady])
 
-  // Pair basemap with dark mode
-  // When the user TOGGLES dark mode and the current basemap is one of the two
-  // Carto options, auto-swap to the matching variant so the map reads
-  // correctly against the new UI chrome. Depends only on `darkMode` (basemapId
-  // is read imperatively) so a manual basemap choice is never reverted, in
-  // particular, picking carto-dark in light mode used to be undone instantly.
-  useEffect(() => {
-    if (!mapReady) return
-    const currentBasemap = useStore.getState().basemapId
-    if (darkMode && currentBasemap === 'carto-positron') {
-      setBasemap('carto-dark')
-    } else if (!darkMode && currentBasemap === 'carto-dark') {
-      setBasemap('carto-positron')
-    }
-  }, [darkMode, mapReady, setBasemap])
-
-  // Shift native bottom-left controls (scale + attribution) past the panel
-  // The Temas panel floats over the map's top-left; anchoring scale/attribution
-  // to `--cc-left-edge` keeps them clear of it and in sync with the panel state.
+  // Shift native bottom-left controls (scale + attribution) past the map's
+  // left inset (lib/mapa/layout.ts), the strip of the button that collapses
+  // the panel, through the `--cc-left-edge` CSS var.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -1677,10 +1665,12 @@ useEffect(() => {
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {mapReady && (
         <>
+          {/* Clear of the "Resultado" button in the top-right corner too
+              (Mapa.tsx), which the search bar would otherwise run under. */}
           <FloatingSearchBar
             theme={theme}
             leftEdge={leftEdge}
-            rightOffset={rightOffset}
+            rightOffset={rightOffset + RESULT_BUTTON_SPAN}
             onSelectFeature={(lid, fid, bbox) =>
               selectFeatureFromSearchRef.current?.(lid, fid, bbox)
             }
