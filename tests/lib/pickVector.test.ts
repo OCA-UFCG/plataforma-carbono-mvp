@@ -18,8 +18,23 @@ function vector(id: string, pickPriority?: number): VectorLayerConfig {
   }
 }
 
-function candidate(layer: VectorLayerConfig, storeIndex: number, area?: number): VectorPickCandidate<string> {
-  return { layer, storeIndex, area, hit: layer.id }
+interface Hit {
+  id: string
+  /** Area of the whole feature, as MapView reads it from the source GeoJSON. */
+  area?: number
+}
+
+function candidate(layer: VectorLayerConfig, storeIndex: number, area?: number): VectorPickCandidate<Hit> {
+  return { layer, storeIndex, hit: { id: layer.id, area } }
+}
+
+const areaOf = (c: VectorPickCandidate<Hit>) => c.hit.area
+
+function permutations<T>(items: T[]): T[][] {
+  if (items.length <= 1) return [items]
+  return items.flatMap((item, i) =>
+    permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [item, ...rest]),
+  )
 }
 
 describe('pickMostSpecific', () => {
@@ -60,16 +75,66 @@ describe('pickMostSpecific', () => {
     const tis = vector('terras_indigenas', 30)
     const pi = vector('uc_protecao_integral', 30)
 
-    expect(pickMostSpecific([candidate(assentamentos, 5, 1_200), candidate(apa, 7, 300_000)])?.layer.id).toBe('assentamentos')
-    expect(pickMostSpecific([candidate(tis, 3, 25_000), candidate(pi, 6, 11_000)])?.layer.id).toBe('uc_protecao_integral')
+    expect(pickMostSpecific([candidate(assentamentos, 5, 1_200), candidate(apa, 7, 300_000)], areaOf)?.layer.id).toBe('assentamentos')
+    expect(pickMostSpecific([candidate(tis, 3, 25_000), candidate(pi, 6, 11_000)], areaOf)?.layer.id).toBe('uc_protecao_integral')
   })
 
   it('picks an RPPN over the APA around it in the same layer', () => {
     const us = vector('uc_uso_sustentavel', 30)
-    const apa: VectorPickCandidate<string> = { layer: us, storeIndex: 7, area: 300_000, hit: 'apa' }
-    const rppn: VectorPickCandidate<string> = { layer: us, storeIndex: 7, area: 160, hit: 'rppn' }
+    const apa: VectorPickCandidate<Hit> = { layer: us, storeIndex: 7, hit: { id: 'apa', area: 300_000 } }
+    const rppn: VectorPickCandidate<Hit> = { layer: us, storeIndex: 7, hit: { id: 'rppn', area: 160 } }
 
-    expect(pickMostSpecific([apa, rppn])?.hit).toBe('rppn')
+    expect(pickMostSpecific([apa, rppn], areaOf)?.hit.id).toBe('rppn')
+  })
+
+  it('falls back to layer order between equal areas', () => {
+    const tis = vector('terras_indigenas', 30)
+    const pi = vector('uc_protecao_integral', 30)
+
+    for (const hits of permutations([candidate(tis, 3, 820_450), candidate(pi, 6, 820_450)])) {
+      expect(pickMostSpecific(hits, areaOf)?.layer.id).toBe('terras_indigenas')
+    }
+  })
+
+  it('falls back to layer order while any area of the finest level is unknown', () => {
+    // A source GeoJSON still loading: measuring only the loaded layer would let
+    // a large TI beat the reserve inside it just for being known first.
+    const tis = vector('terras_indigenas', 30)
+    const pi = vector('uc_protecao_integral', 30)
+
+    for (const hits of permutations([candidate(tis, 3, 25_000), candidate(pi, 6)])) {
+      expect(pickMostSpecific(hits, areaOf)?.layer.id).toBe('terras_indigenas')
+    }
+  })
+
+  it('is independent of the order the hits arrive in, a point among polygons', () => {
+    // MapView measures a point as 0, the smallest feature there is.
+    const towers = vector('areas_monitoramento', 30)
+    const quilombolas = vector('quilombolas', 30)
+    const assentamentos = vector('assentamentos', 30)
+    const hits = [candidate(towers, 6, 0), candidate(quilombolas, 5, 100), candidate(assentamentos, 7, 50)]
+
+    for (const order of permutations(hits)) {
+      expect(pickMostSpecific(order, areaOf)?.layer.id).toBe('areas_monitoramento')
+    }
+  })
+
+  it('measures only the candidates of the finest level, and only when several share it', () => {
+    const bioma = vector('bioma', 0)
+    const municipios = vector('municipios', 20)
+    const tis = vector('terras_indigenas', 30)
+    const pi = vector('uc_protecao_integral', 30)
+    const measured: string[] = []
+    const spy = (c: VectorPickCandidate<Hit>) => {
+      measured.push(c.hit.id)
+      return c.hit.area
+    }
+
+    pickMostSpecific([candidate(bioma, 0, 9e5), candidate(municipios, 2, 900)], spy)
+    expect(measured).toEqual([])
+
+    pickMostSpecific([candidate(bioma, 0, 9e5), candidate(tis, 3, 400), candidate(pi, 6, 100)], spy)
+    expect(measured.sort()).toEqual(['terras_indigenas', 'uc_protecao_integral'])
   })
 
   it('never lets area overrule granularity', () => {
@@ -77,7 +142,7 @@ describe('pickMostSpecific', () => {
     const municipios = vector('municipios', 20)
     const apa = vector('uc_uso_sustentavel', 30)
 
-    expect(pickMostSpecific([candidate(municipios, 2, 100), candidate(apa, 7, 300_000)])?.layer.id).toBe('uc_uso_sustentavel')
+    expect(pickMostSpecific([candidate(municipios, 2, 100), candidate(apa, 7, 300_000)], areaOf)?.layer.id).toBe('uc_uso_sustentavel')
   })
 
   it('treats a layer without pickPriority as the coarsest', () => {

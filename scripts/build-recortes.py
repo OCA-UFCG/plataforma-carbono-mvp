@@ -275,9 +275,11 @@ def unidades_conservacao():
     abbrev = dict(zip(names["name_state"].map(slug), names["abbrev_state"]))
     fallback = g["uf"].map(lambda uf: "/".join(abbrev.get(slug(part), part) for part in str(uf).split(",")))
     g["abbrev_state"] = states_of(g, fallback)
-    # Drawn in file order, so an RPPN inside an APA shows above it. A click
-    # picks the smaller feature anyway (lib/mapa/pickVector.ts), and a later
-    # regeneration keeps the old order (previous_order) for the ids.
+    # Drawn in file order, so an RPPN inside an APA shows above it. Only on
+    # the first build: a later one keeps the old order for the ids
+    # (previous_order) and puts a new unit at the end, above any it contains.
+    # Picking does not depend on it: a click compares the whole features'
+    # areas (lib/mapa/pickVector.ts).
     return g.loc[g.to_crs(EQUAL_AREA).area.sort_values(ascending=False).index]
 
 
@@ -298,7 +300,7 @@ jobs = [
 
 only = set(sys.argv[1:])
 unknown = only - {job[0] for job in jobs}
-assert not unknown, f"recorte desconhecido: {unknown}"
+assert not unknown, f"unknown recorte: {unknown}"
 for name, load, columns, tol in jobs:
     if only and name not in only:
         continue

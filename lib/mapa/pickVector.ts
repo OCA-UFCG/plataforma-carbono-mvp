@@ -5,8 +5,6 @@ export interface VectorPickCandidate<T> {
   layer: VectorLayerConfig
   /** Index in the store's `layers` array; 0 is the topmost layer. */
   storeIndex: number
-  /** Area of the hit feature, in any unit shared by all candidates. */
-  area?: number
   hit: T
 }
 
@@ -25,32 +23,31 @@ export interface VectorPickCandidate<T> {
  * order. The territories and the conservation units nest both ways (an APA
  * holds whole settlements, a park lies whole inside an indigenous land, an RPPN
  * inside an APA of its own layer), so no order of layers lets every one be
- * picked; comparing the features under the pointer does. Containment survives
- * the tile clipping of rendered features: inside one tile the clipped outline
- * of A still contains the clipped outline of B.
+ * picked; comparing the features under the pointer does.
+ *
+ * `areaOf` has to give the area of the whole feature. A rendered feature is
+ * clipped to its tile, and once a small unit fills the tile it measures exactly
+ * as much as the one around it, while two that only overlap swap places from
+ * one zoom to the next. It is asked only for the candidates of the finest
+ * level, and areas decide only when it knows every one of them: until then
+ * (the source GeoJSON still loading) layer order does, as between equal areas.
  */
 export function pickMostSpecific<T>(
   candidates: VectorPickCandidate<T>[],
+  areaOf: (candidate: VectorPickCandidate<T>) => number | undefined = () => undefined,
 ): VectorPickCandidate<T> | null {
-  let best: VectorPickCandidate<T> | null = null
-  let bestPriority = -Infinity
+  const priorityOf = (candidate: VectorPickCandidate<T>) => candidate.layer.pickPriority ?? 0
+  const top = Math.max(...candidates.map(priorityOf))
+  const finest = candidates.filter((candidate) => priorityOf(candidate) === top)
+  if (finest.length <= 1) return finest[0] ?? null
 
-  for (const candidate of candidates) {
-    const priority = candidate.layer.pickPriority ?? 0
-    if (
-      !best ||
-      priority > bestPriority ||
-      (priority === bestPriority && isFinerThan(candidate, best))
-    ) {
-      best = candidate
-      bestPriority = priority
-    }
+  const areas = finest.map(areaOf)
+  const byArea = areas.every((area) => area !== undefined)
+  let best = 0
+  for (let i = 1; i < finest.length; i++) {
+    const a = areas[i] ?? 0
+    const b = areas[best] ?? 0
+    if (byArea && a !== b ? a < b : finest[i].storeIndex < finest[best].storeIndex) best = i
   }
-
-  return best
-}
-
-function isFinerThan<T>(a: VectorPickCandidate<T>, b: VectorPickCandidate<T>): boolean {
-  if (a.area !== undefined && b.area !== undefined && a.area !== b.area) return a.area < b.area
-  return a.storeIndex < b.storeIndex
+  return finest[best]
 }
