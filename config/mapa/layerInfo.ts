@@ -51,7 +51,9 @@ const INVENTORY_LAYER = {
 const INVENTORY_POOL_CAUTIONS = [INVENTORY_PER_CLASS, INVENTORY_PAST_VEGETATION, INVENTORY_GAP]
 const BRDWGD_SOURCE = 'BR-DWGD, Brazilian Daily Weather Gridded Data (Xavier et al., 2022)'
 const BRDWGD_CITATION = 'Xavier, A. C., Scanlon, B. R., King, C. W., & Alves, A. I. (2022). New improved Brazilian daily weather gridded data (1961-2020). International Journal of Climatology, 42(16), 8390-8404. https://doi.org/10.1002/joc.7731'
-const BRDWGD_LAYER = { period: '1961-2025', resolution: '11 km', source: BRDWGD_SOURCE, citation: BRDWGD_CITATION, license: CC_BY }
+// No license: the authors' README only asks for the citation, and the CC BY 4.0
+// some catalogs list is not theirs.
+const BRDWGD_LAYER = { period: '1961-2025', resolution: '11 km', source: BRDWGD_SOURCE, citation: BRDWGD_CITATION }
 const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
 const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
 const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
