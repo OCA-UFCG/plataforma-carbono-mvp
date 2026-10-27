@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { abaHref, parseAba } from '@/lib/marketing/comunicacaoAbas'
+import { abaHref, glossarioAntigoHref, parseAba } from '@/lib/marketing/comunicacaoAbas'
 
 describe('parseAba', () => {
   it('opens the events tab only for ?aba=eventos', () => {
@@ -29,5 +29,23 @@ describe('abaHref', () => {
     expect(abaHref(new URL(`${base}?aba=eventos&utm_source=x`), 'conteudo')).toBe(
       '/comunicacao?utm_source=x',
     )
+  })
+})
+
+describe('glossarioAntigoHref', () => {
+  it('sends the former Glossário tab to its own page, keeping the term', () => {
+    expect(glossarioAntigoHref({ aba: 'glossario', termo: 'degradacao' })).toBe('/glossario?termo=degradacao')
+    expect(glossarioAntigoHref({ aba: 'glossario' })).toBe('/glossario')
+  })
+
+  it('escapes the term and drops a repeated one', () => {
+    expect(glossarioAntigoHref({ aba: 'glossario', termo: 'a&b=c' })).toBe('/glossario?termo=a%26b%3Dc')
+    expect(glossarioAntigoHref({ aba: 'glossario', termo: ['a', 'b'] })).toBe('/glossario')
+  })
+
+  it('leaves every other address on the Comunicação page', () => {
+    for (const params of [{}, { aba: 'eventos' }, { aba: 'Glossario' }, { termo: 'degradacao' }]) {
+      expect(glossarioAntigoHref(params), JSON.stringify(params)).toBeNull()
+    }
   })
 })

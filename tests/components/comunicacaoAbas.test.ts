@@ -9,7 +9,6 @@ const html = <P extends object>(component: ComponentType<P>, props: P) =>
 const paineis = {
   conteudo: createElement('p', null, 'painel de conteúdo'),
   eventos: createElement('p', null, 'painel de eventos'),
-  glossario: createElement('p', null, 'painel do glossário'),
 }
 
 describe('ComunicacaoAbas', () => {
@@ -17,11 +16,10 @@ describe('ComunicacaoAbas', () => {
     const markup = html(ComunicacaoAbas, { inicial: 'conteudo', paineis })
     const tabs = markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []
 
-    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações', 'Glossário (teste)'])
+    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações'])
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
     expect(markup).toContain('painel de conteúdo')
     expect(markup).toContain('painel de eventos')
-    expect(markup).toContain('painel do glossário')
   })
 
   it('opens the tab it is given and hides the other panel', () => {

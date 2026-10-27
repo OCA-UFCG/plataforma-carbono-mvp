@@ -1,3 +1,5 @@
+import { TERMO_PARAM } from '@/lib/glossario/termos'
+
 // The tabs of the Comunicação page (Figma 19254:16031). The open one is in
 // the address as ?aba=eventos, so a link can open the events tab and the
 // server renders it already selected; the first tab is the bare /comunicacao.
@@ -6,7 +8,6 @@
 export const ABAS_COMUNICACAO = [
   { id: 'conteudo', label: 'Conteúdo' },
   { id: 'eventos', label: 'Eventos e articulações' },
-  { id: 'glossario', label: 'Glossário (teste)' },
 ] as const
 
 export type AbaComunicacao = (typeof ABAS_COMUNICACAO)[number]['id']
@@ -27,4 +28,14 @@ export function abaHref(current: URL, aba: AbaComunicacao): string {
   else url.searchParams.set(ABA_PARAM, aba)
 
   return `${url.pathname}${url.search}${url.hash}`
+}
+
+// The Glossário was a third tab here while it was tested, and links to it
+// (?aba=glossario&termo=<slug>) went around. The page sends them to
+// /glossario, keeping the term; null for every other address.
+export function glossarioAntigoHref(params: Record<string, string | string[] | undefined>): string | null {
+  if (params[ABA_PARAM] !== 'glossario') return null
+
+  const termo = params[TERMO_PARAM]
+  return typeof termo === 'string' ? `/glossario?${new URLSearchParams({ [TERMO_PARAM]: termo })}` : '/glossario'
 }

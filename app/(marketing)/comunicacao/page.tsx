@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import PageIntro from "@/components/marketing/PageIntro";
 import ComunicacaoAbas from "@/components/marketing/ComunicacaoAbas";
 import Publicacoes from "@/components/marketing/Publicacoes";
 import Eventos from "@/components/marketing/Eventos";
-import Glossario from "@/components/marketing/Glossario";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import { COMUNICACAO_PAGINA } from "@/lib/content/paginas";
 import { getComunicacaoContent, listPublicacoes } from "@/lib/content/comunicacao";
 import { getEventos } from "@/lib/content/eventos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 import { getContentfulClient } from "@/lib/contentful";
-import { ABA_PARAM, parseAba } from "@/lib/marketing/comunicacaoAbas";
-import { TERMO_PARAM, parseTermo } from "@/lib/glossario/termos";
+import { ABA_PARAM, glossarioAntigoHref, parseAba } from "@/lib/marketing/comunicacaoAbas";
 
 export const metadata: Metadata = { title: "Comunicação" };
 
@@ -24,18 +23,22 @@ export const metadata: Metadata = { title: "Comunicação" };
 // The intro band is the same on both tabs. The design's photo band above the
 // footer, "Esse espaço está crescendo", was taken out on 2026-10-06; an "Em
 // breve" slot closes the grid instead (Publicacoes.tsx). ?aba=eventos opens
-// the second tab (lib/marketing/comunicacaoAbas.ts).
+// the second tab (lib/marketing/comunicacaoAbas.ts); ?aba=glossario, the
+// Glossário's address while it was a tab here, goes to its own page.
 export default async function ComunicacaoPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const busca = await searchParams;
+  const glossario = glossarioAntigoHref(busca);
+  if (glossario) permanentRedirect(glossario);
+
   const getContent = getContentfulClient();
-  const [conteudo, eventos, { pagina }, params] = await Promise.all([
+  const [conteudo, eventos, { pagina }] = await Promise.all([
     getComunicacaoContent(getContent),
     getEventos(getContent),
     loadSiteCopy({ pagina: COMUNICACAO_PAGINA }),
-    searchParams,
   ]);
 
   return (
@@ -44,11 +47,10 @@ export default async function ComunicacaoPage({
       <main>
         <PageIntro title={pagina.introTitulo} intro={pagina.introTexto} />
         <ComunicacaoAbas
-          inicial={parseAba(params[ABA_PARAM])}
+          inicial={parseAba(busca[ABA_PARAM])}
           paineis={{
             conteudo: <Publicacoes publicacoes={listPublicacoes(conteudo)} />,
             eventos: <Eventos eventos={eventos} />,
-            glossario: <Glossario inicial={parseTermo(params[TERMO_PARAM]).slug} />,
           }}
         />
       </main>
