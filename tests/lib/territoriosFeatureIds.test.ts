@@ -10,7 +10,7 @@ import type { VectorLayerConfig } from '@/types/mapa'
 // Reading here the file the browser downloads, not the one the registry picks,
 // is what proves the two never disagree.
 
-const RECORTES = ['bioma', 'estados', 'municipios', 'terras_indigenas', 'quilombolas', 'assentamentos']
+const RECORTES = ['bioma', 'estados', 'municipios', 'terras_indigenas', 'quilombolas', 'assentamentos', 'uc_protecao_integral', 'uc_uso_sustentavel']
 
 function layerOf(id: string): VectorLayerConfig {
   const layer = (appConfig.layers as VectorLayerConfig[]).find((l) => l.id === id && l.type === 'vector')

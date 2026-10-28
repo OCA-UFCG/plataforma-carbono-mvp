@@ -86,8 +86,9 @@ import FloatingSearchBar from './overlays/FloatingSearchBar'
 // MapLibre assigns feature.id = index in the source features array.
 
 const vectorFeatureCache = new Map<string, GeoJSON.FeatureCollection>()
-// One download per file at a time: the click, the search and the emissions
-// layers may all ask for the same recorte before the first answer lands.
+// One download per file at a time: the click, the hover, the search and the
+// emissions layers may all ask for the same recorte before the first answer
+// lands.
 const vectorFeatureInFlight = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
 
 function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
@@ -110,6 +111,33 @@ function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollec
   })()
   vectorFeatureInFlight.set(url, request)
   return request
+}
+
+// Area of the complete feature, which pickMostSpecific compares between
+// overlapping recortes of one granularity; the rendered one is clipped to its
+// tile. Synchronous, as the hover needs it: undefined until the source GeoJSON
+// has loaded, and asking starts the download. A point measures 0.
+const featureAreaCache = new WeakMap<GeoJSON.Feature, number>()
+
+function fullFeatureArea(
+  vec: VectorLayerConfig,
+  featureId: number | string | undefined,
+): number | undefined {
+  if (featureId === undefined || featureId === null || vec.source) return undefined
+  const fc = vectorFeatureCache.get(vec.url)
+  if (!fc) {
+    void loadVectorFeatureCollection(vec.url)
+    return undefined
+  }
+  const idx = Number(featureId)
+  const feature = Number.isInteger(idx) ? fc.features?.[idx] : undefined
+  if (!feature?.geometry) return undefined
+  let area = featureAreaCache.get(feature)
+  if (area === undefined) {
+    area = turfArea(feature)
+    featureAreaCache.set(feature, area)
+  }
+  return area
 }
 
 async function fullFeatureGeometry(
@@ -924,7 +952,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           candidates.push({ layer: owner.vector, storeIndex: owner.storeIndex, hit: f })
         }
 
-        const best = pickMostSpecific(candidates)
+        const best = pickMostSpecific(candidates, (c) => fullFeatureArea(c.layer, c.hit.id))
         return best ? { vector: best.layer, feature: best.hit } : null
       }
 
