@@ -102,6 +102,9 @@ describe('GET /api/territorios/territorio', () => {
     for (const query of [
       { ...territorioQuery, feicao: 'nao-existe' },
       { recorte: 'estoque_carbono', feicao: 'campina-grande' },
+      // A recorte the story does not offer yet, with a real feature: the
+      // public route must not answer for it.
+      { recorte: 'uc_protecao_integral', feicao: listFeicoes('uc_protecao_integral')[0].id },
     ]) {
       const res = await getTerritorio(req('/api/territorios/territorio', query))
       expect(res.status).toBe(404)

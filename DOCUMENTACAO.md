@@ -277,13 +277,18 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `degradacao_terra` | Índice de Degradação da Terra (2021) | `ee-arturlourenco/assets/id_2021_recode_mask_int`, banda `b1` | categórica (6 classes) | classe |
 | `ndvi_modis` | NDVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `NDVI`, ×0,0001 | contínua | NDVI |
 | `evi_modis` | EVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `EVI`, ×0,0001 | contínua | EVI |
-| `chirps_precip` | Precipitação Anual (CHIRPS 2023) | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
+| `brdwgd_pr` | Precipitação Anual (BR-DWGD) | `obscaatinga/assets/caativar/brdwgd_anual`, banda `pr`, soma do ano, 1961-2025 | contínua | mm/ano |
+| `brdwgd_tmed` | Temperatura do Ar (BR-DWGD) | idem, banda `tmed`, média de `tmax` e `tmin` no ano | contínua | °C |
+| `brdwgd_eto` | Evapotranspiração de Referência (BR-DWGD) | idem, banda `eto`, soma do ano | contínua | mm/ano |
+| `chirps_precip` | Precipitação Anual (CHIRPS), oculta (`hidden: true`) desde a troca pelo BR-DWGD | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
 | `altitude_fabdem` | Altitude (FABDEM) | `obscaatinga/assets/caativar/altitude_fabdem_m`, banda `altitude` | contínua | m |
 | `declividade_fabdem` | Declividade (FABDEM) | `obscaatinga/assets/caativar/declividade_fabdem_pct`, banda `declividade_pct` | contínua | % |
 | `hillshade_fabdem` | Relevo Sombreado (FABDEM) | `obscaatinga/assets/caativar/hillshade_fabdem`, banda `hillshade` | sem estatística (`analysis: false`) | 0 a 255 |
 
 As três camadas de relevo saem do FABDEM v1.2 (Hawker et al., 2022), o Copernicus GLO-30 com árvores e edificações removidas, recortado no limite exato da Caatinga na grade nativa de 1 segundo de arco pelo script `../gee/relevo_fabdem.py`. A licença é CC BY-NC-SA 4.0: uso não comercial, com atribuição e derivados na mesma licença. O relevo sombreado (azimute 315°, elevação 45°) é só visual e não abre cartão na aba Resultados.
+
+As três camadas de clima saem do BR-DWGD (Xavier et al., 2022), dados diários interpolados das estações em grade de 0,1°. O script `../gee/brdwgd_anual.py` agrega cada ano numa `ImageCollection` com uma imagem por ano, de 1961 a 2025, na grade original e mascarada no bioma com 12 km de folga. As camadas leem a imagem do ano com `reducer: first` e `scale: 11131.78`, a escala nominal da grade: com 11132, as células se esticam a partir da origem, e um ponto perto da borda norte ou oeste de uma célula lê a célula vizinha. Como o FABDEM, o asset fica em `projects/obscaatinga`, e a conta de serviço de cada ambiente precisa de leitura nele. No formulário do relatório (`REPORT_FIRST_YEAR`) e na etapa Chuva dos Territórios, a precipitação continua começando em 1985.
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
 
