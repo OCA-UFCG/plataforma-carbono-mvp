@@ -1,8 +1,10 @@
-# Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
-# own current exports, which geobr lags by months), keeps those that belong to
+# Downloads the territorial recortes (IBGE via geobr; FUNAI, INCRA and MMA from
+# their own current exports, which geobr lags by months), keeps those that belong to
 # the Caatinga, clips all but the municipalities to the biome, simplifies them
-# and writes GeoJSON into
-# public/data/vector. Usage: python scripts/build-recortes.py
+# and writes GeoJSON into public/data/vector.
+# Usage: python scripts/build-recortes.py [names], all recortes or only the named
+# ones (uc_protecao_integral uc_uso_sustentavel), so adding one does not
+# regenerate the others from newer exports and move their ids.
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
 #   municipios        IBGE's list of predominant biome per municipality (2024,
@@ -10,7 +12,9 @@
 #   estados           the states holding at least one of those municipalities
 #   terras_indigenas, more than half of their own area inside the biome
 #   quilombolas,
-#   assentamentos
+#   assentamentos,
+#   uc_protecao_integral, conservation units of MMA's register, one file per
+#   uc_uso_sustentavel    SNUC group (Lei 9.985/2000, art. 7)
 # Clipping every recorte that touched the biome used to let in crumbs of
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
@@ -21,7 +25,8 @@
 # /mapa still clips every raster to the biome, so over a border municipality
 # the map shows only the part inside while its statistics cover all of it.
 #
-# Indigenous lands, quilombos and settlements take a 1e-5 degree tolerance
+# Indigenous lands, quilombos, settlements and conservation units take a 1e-5
+# degree tolerance
 # (about 1 m): 0.002 degrees changed the outline of a quilombo by 68% and of an
 # indigenous land by 47%, and these are the geometries the statistics are
 # computed on. 1e-5 drops 41% of the settlement vertices and changes no
@@ -30,7 +35,7 @@
 # Homonyms take an ordinal suffix in file order (lib/territorios/featureIds.ts),
 # so features keep the order of the file being replaced and new ones go at the
 # end, in source order: a regeneration only moves the ids it cannot avoid.
-import io, os, json, re, unicodedata, urllib.request
+import functools, io, os, json, re, sys, unicodedata, urllib.request
 import pandas as pd
 import shapely
 import geopandas as gpd
@@ -48,6 +53,10 @@ IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_am
 FUNAI_TIS = "https://mapas2.funai.gov.br/portal_mapas/shapes/ti_sirgas.zip"
 INCRA_QUILOMBOS = "https://certificacao.incra.gov.br/csv_shp/zip/%C3%81reas%20de%20Quilombolas.zip"
 INCRA_ASSENTAMENTOS = "https://certificacao.incra.gov.br/csv_shp/zip/Assentamento%20Brasil.zip"
+# Cadastro Nacional de Unidades de Conservação, release of 2025-08, the newest
+# the portal links directly (later ones sit behind a SharePoint login).
+MMA_CNUC = ("https://dados.mma.gov.br/dataset/44b6dc8a-dc82-4a84-8d95-1b0da7c85dac/resource/"
+            "6ba9a557-87e8-4882-acb7-b3e0f0ea192d/download/shp_cnuc_2025_08.zip")
 # South America Albers Equal Area, for the share of a territory inside the biome.
 EQUAL_AREA = "ESRI:102033"
 
@@ -83,9 +92,9 @@ def clean_label(labels):
     return labels.str.split().str.join(" ")
 
 
-def read_zip(url, encoding):
+def read_zip(url, encoding, **read_kwargs):
     with urllib.request.urlopen(url, timeout=600) as r:
-        return gpd.read_file(io.BytesIO(r.read()), encoding=encoding)
+        return gpd.read_file(io.BytesIO(r.read()), encoding=encoding, **read_kwargs)
 
 
 def states_of(gdf, fallback):
@@ -109,6 +118,8 @@ def states_of(gdf, fallback):
 # leading "TQ" (território quilombola) and a trailing state ("Mocambo - SE") kept.
 LOWERCASE_WORDS = {"a", "o", "as", "os", "ao", "aos", "d", "de", "da", "do", "das", "dos", "e", "em", "na", "no", "nas", "nos"}
 ROMAN_NUMERAL = re.compile(r"^(?:I{1,3}|IV|VI{0,3}|IX|XI{0,3})$")
+# Acronyms kept in capitals ("RPPN SOS Caatinga").
+ACRONYMS = {"SOS"}
 UFS = {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE",
        "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}
 
@@ -120,7 +131,7 @@ def title_case(label):
 
     def word(m):
         w, low = m.group(0), m.group(0).lower()
-        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ"):
+        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ") or w in ACRONYMS:
             return w
         if w in UFS and text[:m.start()].endswith("- ") and m.end() == len(text):
             return w
@@ -246,14 +257,52 @@ def assentamentos():
     return g
 
 
+@functools.cache
+def unidades_conservacao():
+    """Both SNUC groups from one download, largest unit first."""
+    # The zip also holds a point layer; and the DBF cuts some text fields at 254
+    # bytes inside a character, so a UTF-8 read of every column fails, while
+    # the four used here are whole (the longest name has 121 bytes).
+    g = read_zip(MMA_CNUC, "utf-8", layer="cnuc_2025_08", columns=["cd_cnuc", "nome_uc", "grupo", "uf"])
+    g = g[g.geometry.notna()].to_crs(4674)  # one RPPN has no outline
+    groups = set(g["grupo"].map(slug))
+    assert groups <= {"protecao-integral", "uso-sustentavel"}, groups
+    g["nome_uc"] = g["nome_uc"].map(title_case)
+    g["geometry"] = g.geometry.make_valid().map(polygonal)
+    g = mostly_inside(g[["nome_uc", "uf", "grupo", "cd_cnuc", "geometry"]])
+    # The register names the states in full ("CEARÁ, PERNAMBUCO, PIAUÍ").
+    names = geobr.read_state(year=2022, show_progress=False)
+    abbrev = dict(zip(names["name_state"].map(slug), names["abbrev_state"]))
+    fallback = g["uf"].map(lambda uf: "/".join(abbrev.get(slug(part), part) for part in str(uf).split(",")))
+    g["abbrev_state"] = states_of(g, fallback)
+    # Drawn in file order, so an RPPN inside an APA shows above it. Only on
+    # the first build: a later one keeps the old order for the ids
+    # (previous_order) and puts a new unit at the end, above any it contains.
+    # Picking does not depend on it: a click compares the whole features'
+    # areas (lib/mapa/pickVector.ts).
+    return g.loc[g.to_crs(EQUAL_AREA).area.sort_values(ascending=False).index]
+
+
+def uc_group(group):
+    g = unidades_conservacao()
+    return g[g["grupo"].map(slug) == slug(group)]
+
+
 jobs = [
     ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
     ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
     ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 1e-5),
     ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 1e-5),
     ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], 1e-5),
+    ("uc_protecao_integral", lambda: uc_group("Proteção Integral"), ["nome_uc", "abbrev_state", "cd_cnuc"], 1e-5),
+    ("uc_uso_sustentavel",   lambda: uc_group("Uso Sustentável"),   ["nome_uc", "abbrev_state", "cd_cnuc"], 1e-5),
 ]
 
+only = set(sys.argv[1:])
+unknown = only - {job[0] for job in jobs}
+assert not unknown, f"unknown recorte: {unknown}"
 for name, load, columns, tol in jobs:
+    if only and name not in only:
+        continue
     print(f"baixando {name}...", flush=True)
     write(name, load(), columns, tol)

@@ -129,7 +129,7 @@ export const TERRITORIOS_CHUVA = defineCopy({
     sobreTitulo: line('Sobre os dados · Título', 'Chuva'),
     sobreTexto: paragraph(
       'Sobre os dados · Texto',
-      'CHIRPS, 5,6 km, de {anoInicial} a {anoFinal}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal.',
+      'BR-DWGD, 11 km, de {anoInicial} a {anoFinal}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal.',
       ANOS,
     ),
   },
