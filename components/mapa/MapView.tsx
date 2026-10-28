@@ -328,7 +328,7 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
     const l = layer as RasterLayerConfig
 
     if (l.source === 'dem' && l.dem) {
-      if (!map.getSource(l.id)) map.addSource(l.id, { type: 'raster-dem', url: l.dem.url })
+      if (!map.getSource(l.id)) map.addSource(l.id, demSource(l.dem))
       map.addLayer({
         id: `${l.id}-raster`,
         type: 'hillshade',
@@ -386,6 +386,13 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
   }
 
   return true
+}
+
+// The elevation tiles of a `dem` layer, for its hillshade and for the 3D
+// terrain. Past `maxzoom` MapLibre overzooms the deepest tiles instead of
+// requesting ones the server does not have.
+function demSource(dem: NonNullable<RasterLayerConfig['dem']>): maplibregl.RasterDEMSourceSpecification {
+  return { type: 'raster-dem', url: dem.url, ...(dem.maxzoom !== undefined ? { maxzoom: dem.maxzoom } : {}) }
 }
 
 // A hillshade has no opacity of its own: the slider sets the alpha of its
@@ -1356,7 +1363,7 @@ useEffect(() => {
         (l): l is RasterLayerConfig => l.type === 'raster' && l.source === 'dem',
       )?.dem
       if (!dem) return
-      if (!map.getSource(TERRAIN_SOURCE_ID)) map.addSource(TERRAIN_SOURCE_ID, { type: 'raster-dem', url: dem.url })
+      if (!map.getSource(TERRAIN_SOURCE_ID)) map.addSource(TERRAIN_SOURCE_ID, demSource(dem))
       // The Caatinga is mostly flat; at 1x its relief barely shows.
       map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration: 3 })
       map.easeTo({ pitch: 60, duration: 800 })

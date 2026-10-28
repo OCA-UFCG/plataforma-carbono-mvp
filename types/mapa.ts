@@ -117,7 +117,9 @@ export interface RasterLayerConfig {
   source?: 'titiler' | 'gee' | 'dem'
   // `source: 'dem'`: elevation tiles (TileJSON) that MapLibre shades by itself,
   // with no GEE request. The same tiles feed the 3D terrain.
-  dem?: { url: string }
+  // `maxzoom` is the deepest zoom the tiles exist at, for a TileJSON that does
+  // not declare it: MapLibre would assume 22 and request tiles that 404.
+  dem?: { url: string; maxzoom?: number }
   clipToLayerId?: string         // vector layer id whose bbox clips the GEE image
   gee?: {
     asset: {

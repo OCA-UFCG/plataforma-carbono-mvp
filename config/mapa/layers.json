@@ -1443,7 +1443,8 @@
       "type": "raster",
       "source": "dem",
       "dem": {
-        "url": "https://tiles.mapterhorn.com/tilejson.json"
+        "url": "https://tiles.mapterhorn.com/tilejson.json",
+        "maxzoom": 12
       },
       "visible": false,
       "opacity": 70,
