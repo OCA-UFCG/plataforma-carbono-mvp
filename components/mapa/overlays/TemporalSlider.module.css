@@ -1,0 +1,86 @@
+/* The year control, at the top of the "Legendas" card (FloatingLegend.tsx).
+ * Not in the design: it takes the legend's type, the brand green of the
+ * controls and their outlined buttons. */
+
+.year {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--am-100);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.value {
+  flex: none;
+  color: var(--role-marca-ancora-padrao);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.track input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+}
+
+/* Previous and next year: the controls' outline at 28px, with the Figma
+ * arrow (the "‹" of the panel's edge, mirrored for "›"). */
+.step {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius-interno);
+  background: var(--card);
+  cursor: pointer;
+}
+
+.step:hover:not(:disabled) {
+  background: var(--role-marca-ancora-container);
+}
+
+.step:disabled {
+  border-color: var(--am-200);
+  cursor: default;
+  opacity: .5;
+}
+
+.next img {
+  transform: scaleX(-1);
+}
+
+.ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--am-400);
+}
+
+.loading {
+  color: var(--role-marca-ancora-hover);
+}

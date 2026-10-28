@@ -4,17 +4,21 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px),
-// none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
-// (80px, still 80 in this range — it only drops to 24 at <=768px) on both
-// sides. The wordmark overruns `.brand` by 18px, 2px more than the gap.
-// 911 + 2 + 160 = 1073px is the narrowest viewport the inline header fits at;
-// 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
+// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px), plus
+// `--gutter` (80px, still 80 in this range — it only drops to 24 at <=768px)
+// on both sides. The wordmark overruns `.brand` by 18px, 2px more than the
+// gap. 911 + 2 + 160 = 1073px is the narrowest viewport the inline header
+// fits at; 1200 clears it with margin. The platform's header is wider: the
+// ring of the active "Plataforma" adds 6px to `.nav`, and the account slot
+// adds 16 + 58px of "Sair" to `.actions`, 1153px in all, still under 1200.
+// The account e-mail is not counted: it is the one thing in the bar that
+// shrinks (SiteHeader.module.css). This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
 // all move together, or the hamburger and the inline nav can both render, or
@@ -52,13 +56,55 @@ function LanguageSwitch({ className }: { className?: string }) {
   );
 }
 
+// The platform's session slot (Figma 19414:55016, in the "Menu-superior"
+// instance 19413:54303 of the platform frame): the account's e-mail and
+// "Sair". Its own component because it reads the session, which only the
+// platform's header asks for.
+function AccountSlot({ className }: { className?: string }) {
+  const { user, signOut } = useAuth();
+  const [leaving, setLeaving] = useState(false);
+
+  async function leave() {
+    setLeaving(true);
+    await signOut();
+    window.location.replace("/login");
+  }
+
+  return (
+    <div className={`${styles.account} ${className ?? ""}`}>
+      {user?.email && (
+        <span className={`${styles.accountEmail} text-ui-regular`} title={user.email}>
+          {user.email}
+        </span>
+      )}
+      <button type="button" className={`${styles.signOut} text-ui-medium`} onClick={leave} disabled={leaving}>
+        Sair
+      </button>
+    </div>
+  );
+}
+
 // The site header. Keeps rendering a bare <header> (no id): the wrapper is
 // what tests/lib/marketingNav.test.ts inspects, and Hero.tsx already owns the
 // "inicio" id on its own <section>.
-export default function SiteHeader() {
+//
+// `account` adds the session slot; the platform passes it, the marketing pages
+// and the story do not.
+export default function SiteHeader({ account = false }: { account?: boolean }) {
   const [open, setOpen] = useState(false);
   const activeHref = activeNavHref(usePathname());
   const territoriosActive = activeHref === TERRITORIOS_LINK.href;
+  const mapaActive = activeHref === MAPA_LINK.href;
+
+  const mapaLink = (
+    <a
+      href={MAPA_LINK.href}
+      className={`${styles.mapaButton} text-ui-medium`}
+      aria-current={mapaActive ? "page" : undefined}
+    >
+      {MAPA_LINK.label}
+    </a>
+  );
 
   // Auto-close the mobile panel when the viewport widens past the inline nav's
   // breakpoint, so it does not linger over the desktop layout.
@@ -118,8 +164,9 @@ export default function SiteHeader() {
             );
           })}
           {/* TERRITORIOS_LINK and MAPA_LINK cross a route group: a full page
-              load, not next/link. The story renders this header too and marks
-              its own entry (Figma 19254:37327). */}
+              load, not next/link. The story and the platform render this
+              header too and mark their own entries (Figma 19254:37327,
+              19413:54915). */}
           <a
             href={TERRITORIOS_LINK.href}
             className={`${styles.navLink} ${territoriosActive ? `text-ui-bold ${styles.navLinkActive}` : "text-ui-medium"}`}
@@ -127,13 +174,12 @@ export default function SiteHeader() {
           >
             {TERRITORIOS_LINK.label}
           </a>
-          <a href={MAPA_LINK.href} className={`${styles.mapaButton} text-ui-medium`}>
-            {MAPA_LINK.label}
-          </a>
+          {mapaActive ? <span className={styles.mapaRing}>{mapaLink}</span> : mapaLink}
         </nav>
 
         <div className={styles.actions}>
           <LanguageSwitch className={styles.language} />
+          {account && <AccountSlot />}
           <button
             type="button"
             className={styles.toggle}
@@ -175,6 +221,7 @@ export default function SiteHeader() {
           <a
             href={MAPA_LINK.href}
             className={`${styles.panelMapaButton} text-body`}
+            aria-current={mapaActive ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
             {MAPA_LINK.label}
@@ -182,6 +229,7 @@ export default function SiteHeader() {
         </nav>
         <div className={styles.panelActions}>
           <LanguageSwitch className={styles.language} />
+          {account && <AccountSlot />}
         </div>
       </div>
     </header>

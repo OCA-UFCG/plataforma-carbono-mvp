@@ -3,29 +3,35 @@ export interface SubthemeInfo {
   label: string
   /** A choice replaces the previous layer of this subtheme. */
   exclusive: boolean
-  /** Shows the 3D terrain switch under the subtheme's layers. */
-  terrain?: true
 }
 
 export interface ThemeInfo {
   id: string
   label: string
   color: string
-  image: string
+  /** The 24px icon of the theme's header in the layer panel, exported from
+   *  Figma (19430:58769); a theme the design does not draw has none. */
+  icon?: string
+  /** Fill of the theme's header in the layer panel (19430:58769, 58771, 58773). */
+  tint: string
   subthemes: SubthemeInfo[]
 }
 
-// The reference cuts (bioma, estados, municípios, territórios). "Limpar" in the
-// layer panel spares them: they frame the analysis rather than being its subject.
+// The reference cuts (bioma, estados, municípios, territórios), the recortes.
+// "Limpar" in "Camadas ativas" spares them: they frame the analysis rather
+// than being its subject.
 export const TERRITORY_THEME_ID = 'territorio'
 
-// The order of this structure is the default order of the panel and of the
-// map's rasters (themes, then subthemes); the user can drag both in the panel
-// (lib/mapa/layerOrder.ts). Layers declare only their theme and subtheme ids in
-// layers.json.
+// The order of this structure is the order of the panel's themes and of the
+// picker's recorte groups, and the default draw order of the map's rasters
+// (themes, then subthemes); the user then reorders the layers themselves in
+// the panel (lib/mapa/layerOrder.ts). Layers declare only their theme and
+// subtheme ids in layers.json.
 export const THEMES: ThemeInfo[] = [
   {
-    id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', image: '/images/cards/recortes-territoriais.png',
+    // Not listed as a theme: its subthemes group the picker of the panel's
+    // "Território" section (Figma 19431:60257), so it needs no icon or fill.
+    id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', tint: 'var(--am-050)',
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },
       { id: 'territorios', label: 'Territórios tradicionais e assentamentos', exclusive: false },
@@ -33,7 +39,8 @@ export const THEMES: ThemeInfo[] = [
     ],
   },
   {
-    id: 'carbono', label: 'Vegetação', color: '#4F791E', image: '/images/cards/estoques-carbono.png',
+    id: 'carbono', label: 'Vegetação', color: '#4F791E',
+    icon: '/icons/mapa/grass.svg', tint: 'var(--role-marca-ancora-container)',
     subthemes: [
       { id: 'estoques', label: 'Estoques de carbono', exclusive: true },
       { id: 'estrutura', label: 'Estrutura', exclusive: true },
@@ -41,25 +48,29 @@ export const THEMES: ThemeInfo[] = [
     ],
   },
   {
-    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637', image: '/images/cards/pressoes-mudancas.png',
+    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637',
+    icon: '/icons/mapa/landslide.svg', tint: 'var(--bg-superficie-variante)',
     subthemes: [
       { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
       { id: 'fogo', label: 'Fogo', exclusive: true },
       { id: 'degradacao', label: 'Degradação da terra', exclusive: true },
+      { id: 'emissoes', label: 'Emissões de gases de efeito estufa', exclusive: true },
     ],
   },
   {
-    id: 'ambiente', label: 'Ambiente', color: '#A78400', image: '/images/cards/clima-fenologia.png',
+    id: 'ambiente', label: 'Ambiente', color: '#A78400',
+    icon: '/icons/mapa/nature.svg', tint: 'var(--role-categorica1-container)',
     subthemes: [
       { id: 'vegetacao', label: 'Índices de vegetação', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
       // Altitude and slope replace each other; the hillshades are `overlay`
-      // layers, combined with either and drawn above them.
-      { id: 'relevo', label: 'Relevo', exclusive: true, terrain: true },
+      // layers, combined with either and drawn above them by default.
+      { id: 'relevo', label: 'Relevo', exclusive: true },
     ],
   },
   {
-    id: 'localidades', label: 'Localidades', color: '#8B5E34', image: '/images/cards/localidades.png',
+    // Not in the design, which predates it: the panel's neutral fill, no icon.
+    id: 'localidades', label: 'Localidades', color: '#8B5E34', tint: 'var(--am-050)',
     subthemes: [
       { id: 'monitoramento', label: 'Áreas de Monitoramento', exclusive: false },
     ],

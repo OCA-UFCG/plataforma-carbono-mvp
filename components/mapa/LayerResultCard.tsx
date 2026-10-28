@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ComponentType } from 'react'
+import type { ComponentProps, ComponentType, ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import type { StatsChartViewProps } from './StatsChart'
 import type PointSeriesView from './results/PointSeries'
@@ -8,7 +8,7 @@ import { ErrorCard, SkeletonChart } from './StatsCards'
 import { IcChevronDown } from './icons'
 import LayerResultView from './results/LayerResultView'
 import PointValue from './results/PointValue'
-import { Empty } from './results/blocks'
+import { Empty, LayerHeading, LeadCard, headingClass } from './results/blocks'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import { currentAnalysisSeq, runLayerAnalysis } from '@/lib/mapa/analysisRunner'
 import { resultSummary } from '@/lib/mapa/resultSummary'
@@ -17,6 +17,7 @@ import { layerPeriod } from '@/lib/mapa/results/period'
 import type {
   LayerResult, PlatformTheme, RasterLayerConfig, SelectedGeometry,
 } from '@/types/mapa'
+import styles from './LayerResultCard.module.css'
 
 /** The card's two charts, the only parts of it that pull in recharts. */
 export interface CardCharts {
@@ -62,145 +63,105 @@ interface Props {
 /**
  * One visible raster's result, collapsible.
  *
- * Closed, the header carries the whole answer -- layer, year and headline
+ * Folded, its card carries the whole answer -- layer, year and headline
  * number -- so three layers can be compared without opening three cards. Open,
- * the headline moves into the result below and the header keeps only the layer
- * and the year, so the number is not shown twice.
+ * the headline moves into the result below and the heading keeps only the
+ * layer and the year, so the number is not shown twice.
+ *
+ * The heading heads the result's first card, as in Figma 19432:60313: it goes
+ * down through `LayerHeading` to the result view's Hero or Empty, and the
+ * states the views do not draw (loading, error, the report's charts) put it in
+ * a LeadCard of their own.
  */
 export default function LayerResultCard({
   layer, result, date, expanded, onToggle, theme, geometry, polygonHa, still = false,
   charts = lazyCharts,
 }: Props) {
   const { StatsChartView, PointSeries } = charts
-  const c = theme.colors
   const Heading = still ? 'div' : 'button'
   const profile = getResultProfile(layer.id)
   const summary = resultSummary(layer, result)
   const loading = !result || result.status === 'loading'
   const stats = result?.status === 'ready' ? result.stats : null
 
-  // A point series covers every year, so the header names its range.
+  // A point series covers every year, so the heading names its range.
   const series = stats?.kind === 'timeseries' ? stats.series : null
   const period = series?.length
     ? `${series[0].date.slice(0, 4)} a ${series[series.length - 1].date.slice(0, 4)}`
     : profile ? layerPeriod(layer, profile, date) : date?.slice(0, 4)
 
+  const heading = (
+    <Heading
+      {...(still ? {} : { type: 'button' as const, onClick: onToggle, 'aria-expanded': expanded })}
+      className={styles.heading}
+    >
+      <span className={`${styles.title} ${headingClass}`}>{layerTitle(layer.name)}</span>
+      {period && <span className={`${styles.period} text-body`}>{period}</span>}
+      {!still && <span className={styles.arrow}><IcChevronDown size={14} /></span>}
+    </Heading>
+  )
+
+  let body: ReactNode
+  if (!expanded) {
+    body = (
+      <LeadCard>
+        <span className={`${styles.summary} text-h4`}>{summary ?? (loading ? 'Calculando' : 'Sem resultado')}</span>
+      </LeadCard>
+    )
+  } else if (loading) {
+    body = <LeadCard><SkeletonChart theme={theme} /></LeadCard>
+  } else if (result?.status === 'error') {
+    body = (
+      <LeadCard>
+        <ErrorCard theme={theme} message={result.error ?? 'Falha ao calcular o resultado.'} />
+        {geometry && !still && (
+          <button
+            type="button"
+            className={`${styles.retry} text-ui-medium`}
+            onClick={() => void runLayerAnalysis(layer, geometry, date, currentAnalysisSeq())}
+          >
+            Tentar novamente
+          </button>
+        )}
+      </LeadCard>
+    )
+  } else if (result?.status === 'ready' && result.pixelValue) {
+    body = <PointValue theme={theme} layer={layer} pixel={result.pixelValue} />
+  } else if (stats && profile && stats.kind === 'timeseries') {
+    body = <PointSeries theme={theme} layer={layer} profile={profile} series={stats.series} temporalDate={date} />
+  } else if (stats && profile && stats.kind !== 'continuous') {
+    body = (
+      <LayerResultView
+        theme={theme}
+        layer={layer}
+        profile={profile}
+        result={stats}
+        temporalDate={date}
+        polygonHa={polygonHa}
+      />
+    )
+  } else if (stats && (stats.kind === 'continuous' || stats.kind === 'categorical' || stats.kind === 'stocks' || stats.kind === 'timeseries')) {
+    // A layer without a result profile keeps the report's views.
+    body = (
+      <LeadCard>
+        <StatsChartView
+          theme={theme}
+          stats={stats}
+          classes={layer.classes}
+          unit={layer.unit}
+          signedFlux={layer.signedFlux}
+          animate={!still}
+        />
+      </LeadCard>
+    )
+  } else if (result?.status === 'ready' && !result.pixelValue && !result.stats) {
+    // A point over nodata: status is 'ready' with nothing to show, a real answer.
+    body = <Empty theme={theme} text="Sem dado neste ponto." />
+  }
+
   return (
-    <section style={{
-      paddingTop: 16,
-      borderTop: `1px solid ${c.border}`,
-      marginBottom: 24,
-      // The card sits in the panel's scrollable flex column; without this,
-      // several open cards would shrink to fit and clip instead of scrolling.
-      flexShrink: 0,
-    }}>
-      <Heading
-        {...(still ? {} : { className: 'ui-press', onClick: onToggle, 'aria-expanded': expanded })}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 12,
-          padding: 0,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-          fontFamily: 'var(--font-app), sans-serif',
-        }}
-      >
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: c.text, lineHeight: 1.3, overflowWrap: 'anywhere' }}>
-            {layerTitle(layer.name)}
-          </span>
-          {!expanded && (
-            <span style={{
-              display: 'block', marginTop: 4,
-              fontSize: 17, fontWeight: 800, color: c.text,
-              fontVariantNumeric: 'lining-nums tabular-nums', overflowWrap: 'anywhere',
-            }}>
-              {summary ?? (loading ? 'Calculando' : 'Sem resultado')}
-            </span>
-          )}
-        </span>
-        {period && (
-          <span style={{ fontSize: 14, color: c.textDim, whiteSpace: 'nowrap', fontVariantNumeric: 'lining-nums tabular-nums' }}>
-            {period}
-          </span>
-        )}
-        {!still && (
-          <span style={{
-            color: c.textDim, flexShrink: 0, marginTop: 2,
-            transform: expanded ? 'rotate(180deg)' : 'none',
-            transition: 'transform .15s',
-          }}>
-            <IcChevronDown size={14} />
-          </span>
-        )}
-      </Heading>
-
-      {expanded && (
-        <div style={{ paddingTop: 16 }}>
-          {loading && <SkeletonChart theme={theme} />}
-
-          {result?.status === 'error' && (
-            <>
-              <ErrorCard theme={theme} message={result.error ?? 'Falha ao calcular o resultado.'} />
-              {geometry && !still && (
-                <button
-                  className="ui-press"
-                  onClick={() => void runLayerAnalysis(layer, geometry, date, currentAnalysisSeq())}
-                  style={{
-                    marginTop: 12, width: '100%', height: 40,
-                    background: 'transparent', border: `1px solid ${c.border}`,
-                    borderRadius: 10, cursor: 'pointer', color: c.text,
-                    fontFamily: 'var(--font-app), sans-serif', fontSize: 14, fontWeight: 600,
-                  }}
-                >
-                  Tentar novamente
-                </button>
-              )}
-            </>
-          )}
-
-          {result?.status === 'ready' && result.pixelValue && (
-            <PointValue theme={theme} layer={layer} pixel={result.pixelValue} />
-          )}
-
-          {stats && profile && stats.kind === 'timeseries' && (
-            <PointSeries theme={theme} layer={layer} profile={profile} series={stats.series} temporalDate={date} />
-          )}
-
-          {stats && profile && stats.kind !== 'timeseries' && stats.kind !== 'continuous' && (
-            <LayerResultView
-              theme={theme}
-              layer={layer}
-              profile={profile}
-              result={stats}
-              temporalDate={date}
-              polygonHa={polygonHa}
-            />
-          )}
-
-          {/* A layer without a result profile keeps the report's views. */}
-          {stats && (!profile || stats.kind === 'continuous')
-            && (stats.kind === 'continuous' || stats.kind === 'categorical' || stats.kind === 'stocks' || stats.kind === 'timeseries') && (
-            <StatsChartView
-              theme={theme}
-              stats={stats}
-              classes={layer.classes}
-              unit={layer.unit}
-              signedFlux={layer.signedFlux}
-              animate={!still}
-            />
-          )}
-
-          {/* A point over nodata: status is 'ready' with nothing to show, a real answer. */}
-          {result?.status === 'ready' && !result.pixelValue && !result.stats && (
-            <Empty theme={theme} text="Sem dado neste ponto." />
-          )}
-        </div>
-      )}
+    <section className={styles.layer}>
+      <LayerHeading.Provider value={heading}>{body}</LayerHeading.Provider>
     </section>
   )
 }

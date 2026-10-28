@@ -6,7 +6,6 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol as PMTilesProtocol } from 'pmtiles'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
-import DrawRectangleMode from '@/lib/mapa/drawRectangleMode'
 
 // mapbox-gl-draw's default styles use `line-dasharray` expressions that
 // MapLibre v5 rejects (bare arrays are parsed as expressions, need
@@ -42,11 +41,12 @@ import {
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
-import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
 import { POINT_MODEL_MIN_ZOOM } from '@/lib/mapa/pointModelZoom'
+import { anoEmissoes, corEmissoes, nivelEmissoes, valoresPorFeicao } from '@/lib/emissoes/mapa'
+import { runEmissoes } from '@/lib/emissoes/runner'
 import {
   RETRY_TILE_PROTOCOL,
   fetchTileWithRetry,
@@ -73,10 +73,7 @@ import type {
 } from '@/types/mapa'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
-import DrawToolbar from './overlays/DrawToolbar'
-import CursorCoordinates from './overlays/CursorCoordinates'
-import TemporalSlider from './overlays/TemporalSlider'
-import FloatingSearchBar from './overlays/FloatingSearchBar'
+import DrawHint from './overlays/DrawHint'
 
 // Full-feature geometry lookup
 // map.queryRenderedFeatures returns geometry CLIPPED to the tiles under the
@@ -86,30 +83,31 @@ import FloatingSearchBar from './overlays/FloatingSearchBar'
 // MapLibre assigns feature.id = index in the source features array.
 
 const vectorFeatureCache = new Map<string, GeoJSON.FeatureCollection>()
-// Downloads in flight, so the hover asking on every frame starts only one.
-const vectorFeatureLoads = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
+// One download per file at a time: the click, the hover, the search and the
+// emissions layers may all ask for the same recorte before the first answer
+// lands.
+const vectorFeatureInFlight = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
 
-async function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
+function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
   const cached = vectorFeatureCache.get(url)
-  if (cached) return cached
-  let load = vectorFeatureLoads.get(url)
-  if (!load) {
-    load = (async () => {
-      try {
-        const res = await fetch(vectorDataUrl(url))
-        if (!res.ok) return null
-        const fc = (await res.json()) as GeoJSON.FeatureCollection
-        vectorFeatureCache.set(url, fc)
-        return fc
-      } catch {
-        return null
-      } finally {
-        vectorFeatureLoads.delete(url)
-      }
-    })()
-    vectorFeatureLoads.set(url, load)
-  }
-  return load
+  if (cached) return Promise.resolve(cached)
+  const pending = vectorFeatureInFlight.get(url)
+  if (pending) return pending
+  const request = (async () => {
+    try {
+      const res = await fetch(vectorDataUrl(url))
+      if (!res.ok) return null
+      const fc = (await res.json()) as GeoJSON.FeatureCollection
+      vectorFeatureCache.set(url, fc)
+      return fc
+    } catch {
+      return null
+    } finally {
+      vectorFeatureInFlight.delete(url)
+    }
+  })()
+  vectorFeatureInFlight.set(url, request)
+  return request
 }
 
 // Area of the complete feature, which pickMostSpecific compares between
@@ -166,37 +164,16 @@ const EMPTY_STYLE: maplibregl.StyleSpecification = {
 
 const BASEMAP_SOURCE_ID = 'basemap'
 const BASEMAP_LAYER_ID  = 'basemap'
-const TERRAIN_SOURCE_ID = 'terrain-dem'
 const PULSE_MIN_RADIUS  = 7
 const PULSE_MAX_RADIUS  = 24
 const PULSE_PERIOD_MS   = 1800
 const PULSE_STEP_MS     = 50
 
-// Toolbar tool -> mapbox-gl-draw mode name.
+// Drawing button of the panel ("Delimitar recorte", "Marcar ponto") ->
+// mapbox-gl-draw mode name.
 const MAPBOX_DRAW_MODE: Record<Exclude<DrawMode, null>, string> = {
-  polygon:    'draw_polygon',
-  rectangle:  'draw_rectangle',
-  linestring: 'draw_line_string',
-  point:      'draw_point',
-}
-
-// Geodesic length in km for a LineString (Haversine over segments)
-
-function lineStringLengthKm(coords: number[][]): number {
-  const R = 6371 // km
-  let total = 0
-  for (let i = 1; i < coords.length; i++) {
-    const [lon1, lat1] = coords[i - 1]
-    const [lon2, lat2] = coords[i]
-    const toRad = Math.PI / 180
-    const dLat = (lat2 - lat1) * toRad
-    const dLon = (lon2 - lon1) * toRad
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2
-    total += 2 * R * Math.asin(Math.sqrt(a))
-  }
-  return total
+  polygon: 'draw_polygon',
+  point:   'draw_point',
 }
 
 // Generic: add any layer to the MapLibre map
@@ -395,13 +372,15 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       },
     })
   }
+  // An emissions layer has no source of its own: the emissions effect draws it
+  // as a fill on the source of the recorte it is shown at.
 
   return true
 }
 
-// The elevation tiles of a `dem` layer, for its hillshade and for the 3D
-// terrain. Past `maxzoom` MapLibre overzooms the deepest tiles instead of
-// requesting ones the server does not have.
+// The elevation tiles of a `dem` layer, for its hillshade. Past `maxzoom`
+// MapLibre overzooms the deepest tiles instead of requesting ones the server
+// does not have.
 function demSource(dem: NonNullable<RasterLayerConfig['dem']>): maplibregl.RasterDEMSourceSpecification {
   return { type: 'raster-dem', url: dem.url, ...(dem.maxzoom !== undefined ? { maxzoom: dem.maxzoom } : {}) }
 }
@@ -417,8 +396,44 @@ function hillshadeColors(opacity: number) {
   }
 }
 
-// Update visibility / opacity for an existing layer
+// The map layers a config layer draws with, bottom first: syncZOrder moves
+// them in this order, so the last one ends up on top.
+function drawnSublayers(layer: LayerConfig): string[] {
+  switch (layer.type) {
+    case 'vector':
+      return [
+        `${layer.id}-fill`,
+        `${layer.id}-outline`,
+        `${layer.id}-pulse`,
+        `${layer.id}-circle`,
+        `${layer.id}-model`,
+        ...(layer.labelField ? [`${layer.id}-label`] : []),
+      ]
+    case 'raster':
+      return [`${layer.id}-raster`]
+    case 'emissions':
+      return [`${layer.id}-emissoes`]
+  }
+}
 
+// Puts the map layers in the order of `layers` (layers[0] = top of the list =
+// rendered on top), then the selection spotlight, which dims every user layer,
+// above them, and mapbox-gl-draw (layers prefixed "gl-draw-") above everything.
+function syncZOrder(map: maplibregl.Map, layers: LayerConfig[]) {
+  // Iterate last->first so whatever is moved last ends up topmost.
+  for (let i = layers.length - 1; i >= 0; i--) {
+    for (const lid of drawnSublayers(layers[i])) {
+      if (map.getLayer(lid)) map.moveLayer(lid)
+    }
+  }
+  raiseSpotlight(map)
+  const style = map.getStyle()
+  for (const l of style?.layers ?? []) {
+    if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
+  }
+}
+
+// Update visibility / opacity for an existing layer
 function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
   if (layer.type === 'vector') {
     const vis = layer.visible ? 'visible' : 'none'
@@ -459,39 +474,6 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
   }
 }
 
-// Stacks the map's layers in the store's draw order. Run whenever a layer lands
-// on the map, which puts it on top, including the tower models added after an
-// async load.
-function syncZOrder(map: maplibregl.Map, layers: LayerConfig[]) {
-  // layers[0] = top of the list = rendered on top. Iterate last->first so
-  // whatever is moved last ends up topmost.
-  for (let i = layers.length - 1; i >= 0; i--) {
-    const layer = layers[i]
-    const sublayers =
-      layer.type === 'vector'
-        ? [
-            `${layer.id}-fill`,
-            `${layer.id}-outline`,
-            `${layer.id}-pulse`,
-            `${layer.id}-circle`,
-            `${layer.id}-model`,
-            ...((layer as VectorLayerConfig).labelField ? [`${layer.id}-label`] : []),
-          ]
-        : [`${layer.id}-raster`]
-    for (const lid of sublayers) {
-      if (map.getLayer(lid)) map.moveLayer(lid)
-    }
-  }
-
-  // The selection spotlight dims every user layer, so it goes above them,
-  // and mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
-  raiseSpotlight(map)
-  const style = map.getStyle()
-  for (const l of style?.layers ?? []) {
-    if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
-  }
-}
-
 // How long the JPEG export waits for the tiles in view before capturing anyway.
 const CAPTURE_IDLE_TIMEOUT_MS = 15_000
 // The narrowest the JPEG's map gets, as width over height. The sheet lays the
@@ -503,15 +485,21 @@ const CAPTURE_MIN_ASPECT = 3 / 4
 
 interface MapViewProps {
   theme: PlatformTheme
-  /** left anchor (px) for panel-edge overlays (draw toolbar, scale/attr). */
+  /** left anchor (px) for panel-edge overlays (drawing hint, scale/attr). */
   leftEdge: number
   /** right offset (px) for the control cluster + legend (Results-aware). */
   rightOffset: number
   /**
    * Filled with the teardown a click on empty map runs, for the results
-   * panel's X. Returns false when there was no recorte selection to drop.
+   * panel's X and the X of the panel's card in focus. Returns false when there
+   * was no recorte selection to drop.
    */
   dismissSelectionRef: RefObject<(() => boolean) | null>
+  /**
+   * Filled with what picking a result of the panel's search does: select the
+   * feature as a click would, and bring the camera to it.
+   */
+  selectFeatureRef: RefObject<((layerId: string, featureId: number, bbox: [number, number, number, number]) => void) | null>
   /**
    * Filled with a snapshot of the map for the JPEG export: the strip between
    * the floating panels, as a PNG data URL, or null when it cannot be read.
@@ -520,7 +508,7 @@ interface MapViewProps {
   captureMapRef: RefObject<(() => Promise<string | null>) | null>
 }
 
-export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, captureMapRef }: MapViewProps) {
+export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, selectFeatureRef, captureMapRef }: MapViewProps) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -540,18 +528,17 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
     featureId: number
     bbox: [number, number, number, number]
   } | null>(null)
-  // Installs a geometry the user typed as coordinates. Assigned inside the map
-  // init effect, where the draw instance and the commit handler live, and
-  // called by the coordinate form in the draw toolbar.
-  const commitCoordinatesRef = useRef<((feature: GeoJSON.Feature) => void) | null>(null)
   // Selection teardown, assigned inside the map init effect where the draw
-  // instance lives, for the "Limpar" and "Início" effects below. The first
-  // clears the highlight and the spotlight only; the second also empties the
-  // results panel, like a click on empty map, and is what the results panel's
-  // X reaches through `dismissSelectionRef`.
+  // instance lives. The first clears the highlight and the spotlight only, for
+  // the clear-drawings effect below; the second also empties the results
+  // panel, like a click on empty map, and is what the X of the results panel
+  // and of the card in focus reach through `dismissSelectionRef`.
   const clearSelectedFeatureRef = useRef<(() => void) | null>(null)
   const dismissFeatureSelectionRef = useRef<(() => boolean) | null>(null)
   useImperativeHandle(dismissSelectionRef, () => () => dismissFeatureSelectionRef.current?.() ?? false, [])
+  useImperativeHandle(selectFeatureRef, () => (layerId, featureId, bbox) => {
+    selectFeatureFromSearchRef.current?.(layerId, featureId, bbox)
+  }, [])
   // Camera fit to a selected recorte. Requested from the init effect and run
   // by an effect, so the padding comes from the render in which the results
   // panel opened for that selection, not from the offsets before it.
@@ -607,27 +594,17 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   // The floating boxes over the bottom of the map, measured at fit time so the
   // feature does not land under them.
   const legendRef = useRef<HTMLDivElement>(null)
-  const sliderRef = useRef<HTMLDivElement>(null)
   const [mapReady, setMapReady] = useState(false)
-  // Draw toolbar visibility. It starts closed; the pencil in the control
-  // cluster opens and closes it, and the results hint names that pencil. On a
-  // narrow screen the tools wrap onto a second line once it is open.
-  const [drawOpen, setDrawOpen] = useState(false)
 
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)
   const clearSignal       = useStore((s) => s.clearSignal)
-  const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
-  const terrain3d         = useStore((s) => s.terrain3d)
-  const darkMode          = useStore((s) => s.darkMode)
-  const setBasemap        = useStore((s) => s.setBasemap)
   const fetchedTileUrls   = useStore((s) => s.fetchedTileUrls)
   const temporalTileUrls  = useStore((s) => s.temporalTileUrls)
   const temporalDate      = useStore((s) => s.temporalDate)
   const setDrawMode       = useStore((s) => s.setDrawMode)
   const setDrawnArea    = useStore((s) => s.setDrawnArea)
-  const setDrawnLength  = useStore((s) => s.setDrawnLength)
   const clearResults        = useStore((s) => s.clearResults)
   const setSelectedGeometry = useStore((s) => s.setSelectedGeometry)
   const setAnalysisLabel = useStore((s) => s.setAnalysisLabel)
@@ -737,20 +714,14 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
       // user layers as they are added.
       addSpotlightLayers(map)
 
-      // mapbox-gl-draw setup with MapLibre-compatible styles + custom
-      // rectangle mode. Default mode is 'simple_select' (the library's
-      // built-in idle mode); 'static' is NOT a default mode in v1.5.
+      // mapbox-gl-draw setup with MapLibre-compatible styles. Default mode is
+      // 'simple_select' (the library's built-in idle mode); 'static' is NOT a
+      // default mode in v1.5.
       const draw = new MapboxDraw({
         displayControlsDefault: false,
         controls: {},
         defaultMode: 'simple_select',
         styles: MAPBOX_DRAW_STYLES,
-        // Merge default modes with our custom draw_rectangle implementation
-        modes: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(MapboxDraw as any).modes,
-          draw_rectangle: DrawRectangleMode,
-        },
       })
       // mapbox-gl-draw expects a mapbox-gl-compatible map; maplibre-gl v5
       // satisfies enough of the API for draw operations.
@@ -776,7 +747,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
 
       // Drops a recorte selection and the results it filled, as a click on
       // empty map does. A drawing is left alone: it is committed user work,
-      // cleared through "Limpar". Returns whether there was a selection to drop.
+      // cleared through the X of the panel's card in focus (store
+      // `clearDrawings`). Returns whether there was a selection to drop.
       const dismissFeatureSelection = () => {
         const hasDrawing = draw.getAll().features.length > 0
         if (hasDrawing || !selectedFeatureRef.current) return false
@@ -784,7 +756,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         clearSelectedFeature()
         setSelectedGeometry(null)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         setAnalysisLabel(null)
         setAnalysisKind(null)
@@ -813,18 +784,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         const seq = bumpAnalysisSeq()
         useStore.getState().setDrawing(feature)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
-        // A typed geometry is announced as "Coordenadas", with the coordinate
-        // itself as the label. Both come off the feature's properties rather
-        // than from an argument, so a drawing restored from localStorage --
-        // which comes back as a bare GeoJSON feature -- keeps its chip.
-        const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
-        setAnalysisLabel(typed ? (feature.properties?.ccLabel ?? null) : null)
-        const drawnKind = feature.geometry.type === 'Point' ? 'Ponto desenhado'
-          : feature.geometry.type === 'LineString' ? 'Linha desenhada'
-            : 'Área desenhada'
-        setAnalysisKind(typed ? 'Coordenadas' : drawnKind)
+        setAnalysisLabel(null)
+        setAnalysisKind(feature.geometry.type === 'Point' ? 'Ponto desenhado' : 'Área desenhada')
         clearSelectedFeature()
         setSelectedGeometry(null)
 
@@ -836,9 +798,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           }
           setSelectedGeometry(geom)
           runVisibleRasterAnalyses(geom, seq)
-        } else if (feature.geometry.type === 'LineString') {
-          const coords = feature.geometry.coordinates as number[][]
-          setDrawnLength(lineStringLengthKm(coords))
         } else if (feature.geometry.type === 'Point') {
           const [lon, lat] = feature.geometry.coordinates as [number, number]
           const geom: SelectedGeometry = {
@@ -853,30 +812,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
 
       map.on('draw.create', handleDrawCommit)
       map.on('draw.update', handleDrawCommit)
-
-      // Geometry typed as coordinates instead of drawn. It enters through the
-      // same commit as a drawn shape, so the measurements, the statistics,
-      // Limpar, the persisted drawing and the recompute on a temporal change
-      // all follow without a second code path. The id comes from `draw.add`
-      // and has to travel with the feature: `handleDrawCommit` clears every
-      // other feature in the buffer by comparing ids, and would wipe this one.
-      commitCoordinatesRef.current = (feature) => {
-        draw.deleteAll()
-        const [id] = draw.add(feature)
-        void handleDrawCommit({ features: [{ ...feature, id }] })
-
-        // A typed coordinate is usually outside the current view, so unlike a
-        // drawn shape it has to bring the camera with it.
-        if (feature.geometry.type === 'Point') {
-          const [lon, lat] = feature.geometry.coordinates as [number, number]
-          map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 12) })
-        } else {
-          map.fitBounds(
-            computeBbox(feature.geometry) as maplibregl.LngLatBoundsLike,
-            { padding: 60 },
-          )
-        }
-      }
 
       // Drawing from the previous session. `draw.add` does not emit `draw.create`,
       // so the handler is called by hand: restoring and drawing go down the same
@@ -899,7 +834,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           useStore.getState().setDrawing(null)
           setSelectedGeometry(null)
           setDrawnArea(null)
-          setDrawnLength(null)
           clearResults()
         }
       })
@@ -1035,10 +969,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // Replace any existing drawing / measurement. Only the erase sits
         // behind the guard: the geometry is committed user work, while the
         // numbers describe the subject the click is replacing, and leaving
-        // them would caption the clicked feature with the drawing's length.
+        // them would caption the clicked feature with the drawing's area.
         if (measurable) eraseDrawing(draw)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         // Dropped until the complete geometry resolves below. Leaving the
         // previous feature in place would let the reactive effect measure it
@@ -1102,22 +1035,24 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // reached, on every layer toggle and every year step.
         if (belowRaster) return
 
+        const feature = { recorteId: vector.id, properties: { ...(properties ?? {}) } }
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon' }
+          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon', feature }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
         } else if (geom.type === 'Point') {
           const [lon, lat] = geom.coordinates as [number, number]
           const selected: SelectedGeometry = {
-            geometry: geom, geometryType: 'point', lon, lat,
+            geometry: geom, geometryType: 'point', lon, lat, feature,
           }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
         }
       }
 
-      // Exposed to FloatingSearchBar via a ref so it can zoom, highlight and
-      // analyse a feature from the search results dropdown.
+      // Exposed through `selectFeatureRef` to the search of the panel's
+      // Território section, so it can zoom, highlight and analyse a feature
+      // picked among its results.
       selectFeatureFromSearchRef.current = (layerId, featureId, bbox) => {
         const layer = useStore.getState().layers.find((candidate) => candidate.id === layerId)
         if (!layer || layer.type !== 'vector') return
@@ -1139,7 +1074,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         bumpAnalysisSeq()
         setSelectedGeometry(null)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         setAnalysisLabel(null)
         setAnalysisKind(null)
@@ -1236,8 +1170,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         if (!hit) {
           // Clicked on empty map. Dismiss the results sidebar + feature
           // highlight *only* if the current content came from a vector
-          // selection (not from a drawing tool). Drawings are explicitly
-          // cleared via the "Limpar" button in the drawing toolbar.
+          // selection (not from a drawing). Drawings are explicitly cleared
+          // through the X of the panel's card in focus.
           dismissFeatureSelection()
           return
         }
@@ -1305,6 +1239,7 @@ useEffect(() => {
   const orderKey = layers.map((l) => l.id).join(',')
   if (addedSomething || orderKey !== prevLayerOrderRef.current) {
     prevLayerOrderRef.current = orderKey
+
     syncZOrder(map, layers)
   }
 }, [layers, mapReady, fetchedTileUrls, temporalTileUrls, temporalDate])
@@ -1417,26 +1352,6 @@ useEffect(() => {
       map.off('zoom', loadWhenClose)
     }
   }, [layers, mapReady])
-
-  // 3D terrain from the same elevation tiles as the Relevo hillshade, in a
-  // source of its own: MapLibre renders terrain and hillshade better apart.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady) return
-    if (terrain3d) {
-      const dem = useStore.getState().layers.find(
-        (l): l is RasterLayerConfig => l.type === 'raster' && l.source === 'dem',
-      )?.dem
-      if (!dem) return
-      if (!map.getSource(TERRAIN_SOURCE_ID)) map.addSource(TERRAIN_SOURCE_ID, demSource(dem))
-      // The Caatinga is mostly flat; at 1x its relief barely shows.
-      map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration: 3 })
-      map.easeTo({ pitch: 60, duration: 800 })
-    } else if (map.getTerrain()) {
-      map.setTerrain(null)
-      map.easeTo({ pitch: 0, duration: 800 })
-    }
-  }, [terrain3d, mapReady])
 
   // WFS viewport loading
   // For layers with `source: 'wfs'`, fetch features from the configured
@@ -1571,16 +1486,6 @@ useEffect(() => {
     }
   }, [layers, mapReady])
 
-  // Back to the biome view when the sidebar resets the layers. A reset, so a
-  // recorte selection goes too: its spotlight would dim the biome the camera
-  // is flying back to.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady || homeSignal === 0) return
-    dismissFeatureSelectionRef.current?.()
-    map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom, pitch: 0, bearing: 0 })
-  }, [homeSignal, mapReady])
-
   // Latest panel offsets for the fit below. Declared before it, so within one
   // commit the fit reads the offsets of that same render.
   useEffect(() => {
@@ -1593,6 +1498,11 @@ useEffect(() => {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady || !fitRequest) return
+    // The map is a column of Mapa.tsx's row, and the commit that brings a
+    // selection can also open the results column beside it. MapLibre learns of
+    // the narrower canvas only on its ResizeObserver's next callback, so
+    // without this the fit would frame the old width.
+    map.resize()
     const panels = panelInsetsRef.current
     const box = map.getContainer().getBoundingClientRect()
     const measure = (el: HTMLDivElement | null): MapOverlay | null => {
@@ -1601,25 +1511,16 @@ useEffect(() => {
       return { width: r.width, height: r.height, bottom: box.bottom - r.bottom, right: box.right - r.right }
     }
     const legend = measure(legendRef.current)
-    const padding = spotlightPadding({ width: box.width, height: box.height }, panels, {
-      // The legend slides to the new rightOffset over .3s when the results
-      // panel opens, which is when this runs; its measured `right` is
-      // mid-slide, so it takes the offset it is sliding to.
-      legend: legend && { ...legend, right: panels.rightOffset },
-      slider: measure(sliderRef.current),
-    })
+    // The year slider rides inside the legend (FloatingLegend), so clearing
+    // the legend clears it too.
+    const padding = spotlightPadding({ width: box.width, height: box.height }, panels, { legend })
     if (fitRequest.pitch !== undefined) {
       const [w, s, e, n] = fitRequest.bbox
       map.flyTo({ center: [(w + e) / 2, (s + n) / 2], zoom: fitRequest.zoom, pitch: fitRequest.pitch, padding })
       return
     }
-    // A recorte is framed from above, so the tilt a tower fit left goes; with
-    // the 3D terrain on, the tilt is the reader's and stays.
-    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, {
-      padding,
-      maxZoom: 13,
-      ...(map.getTerrain() ? {} : { pitch: 0 }),
-    })
+    // A recorte is framed from above, so the tilt a tower fit left goes.
+    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, { padding, maxZoom: 13, pitch: 0 })
   }, [fitRequest, mapReady])
 
   // Swap temporal tile URLs when date changes
@@ -1651,6 +1552,82 @@ useEffect(() => {
     runVisibleRasterAnalyses(selectedGeometry, currentAnalysisSeq())
   }, [layers, temporalDate, temporalTileUrls, fetchedTileUrls, selectedGeometry])
 
+  // The emissions layers: their values are fetched once per layer, for every
+  // level and year (lib/emissoes/runner.ts).
+  useEffect(() => {
+    runEmissoes()
+  }, [layers])
+
+  // Draws each visible emissions layer as a fill on the source of the finest
+  // of bioma, estados and municipios that is on, colored by the layer's fixed
+  // classes from feature states written by IBGE code or state. A year step or
+  // a level change only rewrites the states. The recorte's GeoJSON is read
+  // through the same cache the click uses; `fcVersion` re-runs the effect once
+  // it has arrived.
+  const emissoes = useStore((s) => s.emissoes)
+  const [fcVersion, setFcVersion] = useState(0)
+  const drawnEmissoes = useRef(new Map<string, { recorteId: string; ano: number; payload: unknown }>())
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const nivel = nivelEmissoes(layers)
+    const fc = nivel ? vectorFeatureCache.get(nivel.recorte.url) : undefined
+    if (nivel && !fc && layers.some((l) => l.type === 'emissions' && l.visible)) {
+      // A recorte file that does not arrive is reported on the recorte, where
+      // the panel shows layer errors and the emissions legend reads it.
+      const recorteId = nivel.recorte.id
+      void loadVectorFeatureCollection(nivel.recorte.url).then((loaded) => {
+        if (loaded) {
+          useStore.getState().clearLayerError(recorteId)
+          setFcVersion((v) => v + 1)
+        } else {
+          useStore.setState((s) => ({
+            layerErrors: { ...s.layerErrors, [recorteId]: 'Os limites não carregaram; desligue e ligue a camada para tentar de novo.' },
+          }))
+        }
+      })
+    }
+
+    for (const layer of layers) {
+      if (layer.type !== 'emissions') continue
+      const fillId = `${layer.id}-emissoes`
+      const entry = emissoes[layer.id]
+      const drawn = drawnEmissoes.current.get(layer.id)
+
+      if (!layer.visible || !nivel || !fc || entry?.status !== 'ready' || !map.getSource(nivel.recorte.id)) {
+        if (map.getLayer(fillId)) map.removeLayer(fillId)
+        drawnEmissoes.current.delete(layer.id)
+        continue
+      }
+
+      const stateKey = `e_${layer.id}`
+      const color = corEmissoes(entry.payload.classes, stateKey)
+      if (drawn && drawn.recorteId !== nivel.recorte.id && map.getLayer(fillId)) map.removeLayer(fillId)
+      if (!map.getLayer(fillId)) {
+        map.addLayer({
+          id: fillId,
+          type: 'fill',
+          source: nivel.recorte.id,
+          paint: { 'fill-color': color, 'fill-opacity': layer.opacity / 100 },
+        })
+        // It arrives after the layer sync, on top of everything: back to its place.
+        syncZOrder(map, layers)
+      } else {
+        map.setPaintProperty(fillId, 'fill-color', color)
+        map.setPaintProperty(fillId, 'fill-opacity', layer.opacity / 100)
+      }
+
+      const ano = anoEmissoes(layer, temporalDate[layer.id])
+      if (!drawn || drawn.recorteId !== nivel.recorte.id || drawn.ano !== ano || drawn.payload !== entry.payload) {
+        valoresPorFeicao(entry.payload, nivel.nivel, fc.features, ano).forEach((value, id) => {
+          map.setFeatureState({ source: nivel.recorte.id, id }, { [stateKey]: value })
+        })
+      }
+      drawnEmissoes.current.set(layer.id, { recorteId: nivel.recorte.id, ano, payload: entry.payload })
+    }
+  }, [layers, emissoes, temporalDate, mapReady, fcVersion])
+
   // Sync draw mode
   // Switching to a drawing mode clears any previous feature + measurements.
   // Staying in 'select' or toggling off (null -> 'static') keeps the drawing.
@@ -1659,16 +1636,11 @@ useEffect(() => {
     const map  = mapRef.current
     if (!draw || !map) return
 
-    const isDrawingMode =
-      drawMode === 'polygon' ||
-      drawMode === 'rectangle' ||
-      drawMode === 'linestring' ||
-      drawMode === 'point'
+    const isDrawingMode = drawMode !== null
 
     if (isDrawingMode) {
       eraseDrawing(draw)
       setDrawnArea(null)
-      setDrawnLength(null)
       // Bumped with the clear: a response still in flight would otherwise land
       // in `results` with no selection behind it, and the panel would render
       // its header and footer around nothing.
@@ -1702,16 +1674,13 @@ useEffect(() => {
     // already-correct classes.
     const container = map.getContainer()
     const MOUSE_CLASSES = ['mouse-add', 'mouse-pointer', 'mouse-move', 'mouse-none', 'mouse-drag']
-    const MODE_CLASSES  = [
-      'mode-draw_polygon', 'mode-draw_rectangle', 'mode-draw_line_string',
-      'mode-draw_point',   'mode-simple_select',  'mode-direct_select',
-    ]
+    const MODE_CLASSES  = ['mode-draw_polygon', 'mode-draw_point', 'mode-simple_select', 'mode-direct_select']
     container.classList.remove(...MOUSE_CLASSES, ...MODE_CLASSES)
     container.classList.add(`mode-${mapboxMode}`)
     if (isDrawingMode) container.classList.add('mouse-add')
-  }, [drawMode, setDrawnArea, setDrawnLength, clearResults, setSelectedGeometry])
+  }, [drawMode, setDrawnArea, clearResults, setSelectedGeometry])
 
-  // React to "Clear drawings" button
+  // React to the store's `clearDrawings`: the X of the panel's card in focus
   useEffect(() => {
     if (clearSignal === 0) return
     // The store has already emptied `results`; without this bump a reduction
@@ -1762,25 +1731,9 @@ useEffect(() => {
     )
   }, [basemapId, mapReady])
 
-  // Pair basemap with dark mode
-  // When the user TOGGLES dark mode and the current basemap is one of the two
-  // Carto options, auto-swap to the matching variant so the map reads
-  // correctly against the new UI chrome. Depends only on `darkMode` (basemapId
-  // is read imperatively) so a manual basemap choice is never reverted, in
-  // particular, picking carto-dark in light mode used to be undone instantly.
-  useEffect(() => {
-    if (!mapReady) return
-    const currentBasemap = useStore.getState().basemapId
-    if (darkMode && currentBasemap === 'carto-positron') {
-      setBasemap('carto-dark')
-    } else if (!darkMode && currentBasemap === 'carto-dark') {
-      setBasemap('carto-positron')
-    }
-  }, [darkMode, mapReady, setBasemap])
-
-  // Shift native bottom-left controls (scale + attribution) past the panel
-  // The Temas panel floats over the map's top-left; anchoring scale/attribution
-  // to `--cc-left-edge` keeps them clear of it and in sync with the panel state.
+  // Shift native bottom-left controls (scale + attribution) past the map's
+  // left inset (lib/mapa/layout.ts), the strip of the button that collapses
+  // the panel, through the `--cc-left-edge` CSS var.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -1793,37 +1746,9 @@ useEffect(() => {
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {mapReady && (
         <>
-          <FloatingSearchBar
-            theme={theme}
-            leftEdge={leftEdge}
-            rightOffset={rightOffset}
-            onSelectFeature={(lid, fid, bbox) =>
-              selectFeatureFromSearchRef.current?.(lid, fid, bbox)
-            }
-          />
-          <MapControls
-            mapRef={mapRef}
-            theme={theme}
-            rightOffset={rightOffset}
-            drawOpen={drawOpen}
-            onToggleDraw={() => {
-              setDrawOpen((v) => {
-                if (v) setDrawMode(null) // closing the toolbar cancels the tool
-                return !v
-              })
-            }}
-          />
-          <DrawToolbar
-            theme={theme}
-            leftEdge={leftEdge}
-            rightOffset={rightOffset}
-            open={drawOpen}
-            onClose={() => setDrawOpen(false)}
-            onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
-          />
+          <MapControls mapRef={mapRef} rightOffset={rightOffset} />
+          <DrawHint leftEdge={leftEdge} rightOffset={rightOffset} />
           <FloatingLegend ref={legendRef} theme={theme} rightOffset={rightOffset} />
-          <TemporalSlider ref={sliderRef} theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} />
-          <CursorCoordinates mapRef={mapRef} theme={theme} />
         </>
       )}
     </div>

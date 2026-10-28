@@ -106,7 +106,7 @@ describe('analysisHint', () => {
 
     expect(hint).toContain('Nenhum recorte territorial ativo')
     expect(hint).toContain('Território')
-    expect(hint).toContain('Limites de referência')
+    expect(hint).toContain('"Escolha o recorte"')
   })
 
   it('names the single active recorte instead of promising a municipality', () => {
@@ -125,13 +125,16 @@ describe('analysisHint', () => {
     expect(analysisHint([bioma, municipios])).toContain('Bioma Caatinga ou Municípios')
   })
 
-  it('points at the pencil that opens the drawing tools', () => {
-    // The toolbar starts closed, so a hint naming where it sits would point at
-    // nothing; the pencil in the control cluster is what opens it.
+  it('points at the drawing buttons of the Território section (#141)', () => {
     for (const hint of [analysisHint([]), analysisHint([vector('bioma', true)])]) {
-      expect(hint).toContain('lápis')
-      expect(hint).toContain('Coordenadas')
+      expect(hint).toContain('"Delimitar recorte" ou "Marcar ponto", na seção Território')
+      expect(hint).not.toContain('lápis')
     }
+  })
+
+  it('sends to the picker when no recorte is on', () => {
+    expect(analysisHint([])).toContain('"Escolha o recorte"')
+    expect(analysisHint([])).not.toContain('Temas ›')
   })
 })
 

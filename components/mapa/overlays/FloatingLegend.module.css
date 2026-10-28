@@ -1,0 +1,72 @@
+/* The "Legendas" card, Figma 19428:58419: 302px wide, 24px above the map's
+ * bottom edge and as far from its right edge as the controls above it. */
+
+.legend {
+  position: absolute;
+  bottom: 24px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 302px;
+  /* Clear of the control stack, which ends at the basemap button 364px down
+   * the map, with 16px between them; a long legend scrolls instead. */
+  max-height: max(160px, calc(100% - 404px));
+  overflow: hidden;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+/* The header is the toggle: "Legendas" and the arrow that folds the card
+ * down to it (19428:58420). */
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px 7px;
+  border: none;
+  /* The design's #e5e5e5, the header's own fill to the eye: it only shows
+   * against the white content below. */
+  border-bottom: 1px solid var(--am-100);
+  background: var(--am-100);
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.header[aria-expanded='false'] {
+  padding-bottom: 8px;
+  border-bottom: none;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  letter-spacing: -0.42px;
+}
+
+.arrow {
+  flex: none;
+  transition: transform .2s ease;
+}
+
+.header[aria-expanded='false'] .arrow {
+  transform: rotate(180deg);
+}
+
+.content {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}

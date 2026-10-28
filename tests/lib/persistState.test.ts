@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { sanitizePersisted, buildPersisted, PERSIST_VERSION } from '@/lib/mapa/persistState'
 import type { LayerConfig } from '@/types/mapa'
-import { DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER } from '@/lib/mapa/layerOrder'
+import { DEFAULT_LAYER_ORDER, DEFAULT_SUBTHEME_ORDER } from '@/lib/mapa/layerOrder'
 
 const bioma: LayerConfig = {
   id: 'bioma', name: 'Bioma Caatinga', type: 'vector',
@@ -34,50 +34,61 @@ describe('sanitizePersisted', () => {
     expect(sanitizePersisted({ layers: [] }, config)).toBeNull()
   })
 
-  it('round-trips a payload built from live state, theme and subtheme order included', () => {
-    const subthemeOrder = { ...DEFAULT_SUBTHEME_ORDER, ambiente: ['clima', 'relevo', 'vegetacao'] }
+  it('round-trips a payload built from live state, the layer order included', () => {
+    const layerOrder = ['fogo_frequencia', ...DEFAULT_LAYER_ORDER.filter((id) => id !== 'fogo_frequencia')]
     const payload = buildPersisted({
       layers: config,
       basemapId: 'esri-imagery',
       temporalDate: {},
       view: null,
       drawing: null,
-      themeOrder: ['ambiente', 'carbono', 'uso_solo', 'localidades'],
-      subthemeOrder,
+      layerOrder,
     })
 
     const restored = sanitizePersisted(payload, config)
 
     expect(restored?.basemapId).toBe('esri-imagery')
     expect(restored?.layers.map((l) => l.id)).toEqual(['bioma', 'solo_carbono', 'fogo_frequencia'])
-    expect(restored?.themeOrder).toEqual(['ambiente', 'carbono', 'uso_solo', 'localidades'])
-    expect(restored?.subthemeOrder).toEqual(subthemeOrder)
+    expect(restored?.layerOrder).toEqual(layerOrder)
   })
 
-  it('gives a payload saved before the order existed the default order', () => {
+  it('gives a payload saved before any order existed the default order', () => {
     const restored = sanitizePersisted(
       { version: PERSIST_VERSION, layers: [], basemapId: 'carto-positron' },
       config,
     )
 
-    expect(restored?.themeOrder).toEqual(DEFAULT_THEME_ORDER)
-    expect(restored?.subthemeOrder).toEqual(DEFAULT_SUBTHEME_ORDER)
+    expect(restored?.layerOrder).toEqual(DEFAULT_LAYER_ORDER)
   })
 
-  it('checks a stored order against groups.ts', () => {
+  it('turns the theme and subtheme order saved before the redesign into the layer order it drew', () => {
     const restored = sanitizePersisted(
       {
         version: PERSIST_VERSION,
-        layers: [],
+        layers: [{ id: 'bioma', visible: true, opacity: 70 }],
         basemapId: 'carto-positron',
-        themeOrder: ['territorio', 'uso_solo', 'gone'],
-        subthemeOrder: { carbono: 'not a list' },
+        themeOrder: ['uso_solo', 'carbono', 'ambiente', 'localidades'],
+        subthemeOrder: DEFAULT_SUBTHEME_ORDER,
       },
       config,
     )
 
-    expect(restored?.themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
-    expect(restored?.subthemeOrder.carbono).toEqual(DEFAULT_SUBTHEME_ORDER.carbono)
+    const order = restored!.layerOrder
+    expect(order.indexOf('fogo_frequencia')).toBeLessThan(order.indexOf('solo_carbono'))
+    expect([...order].sort()).toEqual([...DEFAULT_LAYER_ORDER].sort())
+    // The layers on stay on.
+    expect(restored?.layers.find((l) => l.id === 'bioma')?.visible).toBe(true)
+  })
+
+  it('checks a stored layer order against layers.json', () => {
+    const restored = sanitizePersisted(
+      { version: PERSIST_VERSION, layers: [], basemapId: 'carto-positron', layerOrder: ['solo_carbono', 'bioma', 'gone'] },
+      config,
+    )
+
+    expect(restored?.layerOrder.slice(0, 2)).toEqual(['solo_carbono', 'bioma'])
+    expect(restored?.layerOrder).not.toContain('gone')
+    expect(restored?.layerOrder).toHaveLength(DEFAULT_LAYER_ORDER.length)
   })
 
   it('applies the stored visibility and opacity to the current config', () => {
@@ -203,6 +214,24 @@ describe('sanitizePersisted', () => {
     expect(restored?.temporalDate).toEqual({ fogo_frequencia: '2019-01-01' })
   })
 
+  it('keeps the stored year of an emissions layer only inside its own series', () => {
+    const emissao = (id: string, dateRange: [string, string]): LayerConfig => ({
+      id, name: id, type: 'emissions', visible: true, opacity: 80, unit: 't CO2e/ha',
+      emissoes: { inventario: 'seeg', medida: 'brutas', escopo: 'total' }, temporal: { dateRange },
+    })
+    const restored = sanitizePersisted(
+      {
+        version: PERSIST_VERSION,
+        layers: [],
+        basemapId: 'carto-positron',
+        temporalDate: { seeg_x: '2003-01-01', ct_x: '2003-01-01' },
+      },
+      [...config, emissao('seeg_x', ['1990-01-01', '2025-01-01']), emissao('ct_x', ['2021-01-01', '2025-01-01'])],
+    )
+
+    expect(restored?.temporalDate).toEqual({ seeg_x: '2003-01-01' })
+  })
+
   it('drops a stored year outside the series, which would fetch an empty tile', () => {
     const restored = sanitizePersisted(
       {
@@ -266,6 +295,16 @@ describe('sanitizePersisted', () => {
     )
 
     expect(restored?.drawing).toEqual(drawing)
+  })
+
+  it('discards a saved line, whose measurement left with the line tool (#136, question 2)', () => {
+    const line: GeoJSON.Feature = {
+      type: 'Feature', properties: {},
+      geometry: { type: 'LineString', coordinates: [[-38, -8], [-37, -7]] },
+    }
+    const restored = sanitizePersisted({ version: PERSIST_VERSION, layers: [], basemapId: 'carto-positron', drawing: line }, config)
+
+    expect(restored?.drawing).toBeNull()
   })
 
   it('discards a drawing that is not a GeoJSON feature with a geometry', () => {

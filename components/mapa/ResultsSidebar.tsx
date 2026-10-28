@@ -2,26 +2,28 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { IcX, IcBarChart, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
+import EmissionsCard from './results/EmissionsCard'
 import type { default as AnalysisSheet, SheetLayer } from './AnalysisSheet'
 import { useStore, hasAnalysisContent } from '@/lib/mapa/store'
 import { analysisFilename, buildAnalysisCsv, type AnalysisSnapshot } from '@/lib/mapa/exportAnalysis'
 import { analysisHint, clickableRecortes, isMeasuredRaster } from '@/lib/mapa/analysisTargets'
+import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { ContextLine, Empty, Pair, Stack } from './results/blocks'
-import type { LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
+import { Empty, LayerHeading } from './results/blocks'
+import styles from './ResultsSidebar.module.css'
+import type { EmissionsLayerConfig, LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
-const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 interface Props {
   theme: PlatformTheme
-  /** Collapse state is lifted so plataforma can shift the map controls/legend. */
+  /** Collapsed by the "Resultado" button over the map (Mapa.tsx), which owns
+   *  the state because it also stands in for the panel while it is away. */
   collapsed: boolean
-  onSetCollapsed: (v: boolean) => void
   /** The header's X; the owner decides whether it drops the selection or collapses the panel. */
   onClose: () => void
   /** Snapshot of the map between the panels, for the JPEG; null when unreadable. */
@@ -41,7 +43,7 @@ function saveBlob(blob: Blob, filename: string) {
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 /**
- * Floating results panel. Appears whenever there's a measurement to show
+ * Results column, the last of Mapa.tsx's row. Appears whenever there's a measurement to show
  * (drawn geometry, or a vector feature clicked over a raster), or when a
  * raster is active but nothing was analysed yet, in which case it shows an
  * onboarding hint.
@@ -50,9 +52,8 @@ const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() 
  * one collapsible result card per visible raster; the CSV and JPEG downloads. Below
  * 768px it becomes a bottom drawer so it never squeezes the map sideways.
  */
-export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClose, captureMap }: Props) {
+export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }: Props) {
   const drawnArea        = useStore((s) => s.drawnArea)
-  const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
   const selectedGeometry = useStore((s) => s.selectedGeometry)
   const analysisLabel    = useStore((s) => s.analysisLabel)
@@ -66,7 +67,8 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   // One card per visible raster, in panel order (topmost first), whether or
   // not it has an answer yet: a layer still computing shows its skeleton.
   const rasters = layers.filter(isMeasuredRaster)
-  const hasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
+  const emissionsLayer = layers.find((l): l is EmissionsLayerConfig => l.type === 'emissions' && l.visible)
+  const hasContent = hasAnalysisContent({ drawnArea, results, layers })
 
   // The topmost layer opens; the rest answer from their headers until asked for.
   // `null` means untouched, which is not the same as "all closed": an empty Set
@@ -140,7 +142,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
       analysisKind,
       analysisLabel,
       drawnArea,
-      drawnLength,
       generatedAt,
       layers: measured.map((raster) => ({
         layerName:    raster.name,
@@ -170,6 +171,7 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     Sheet: typeof AnalysisSheet; mapSrc: string | null; generatedAt: Date
     // What was on the map when the button was clicked, for the legend.
     legendLayers: LayerConfig[]; legendDates: Record<string, string>
+    legendEmissoes: Record<string, EmissoesEntry>
   } | null>(null)
   const sheetLayers: SheetLayer[] = measured.map((raster) => {
     const date = raster.gee?.temporal ? temporalDate[raster.id] : undefined
@@ -198,10 +200,11 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         setExporting(false)
         return
       }
-      const { layers: current, temporalDate: dates } = useStore.getState()
+      const { layers: current, temporalDate: dates, emissoes } = useStore.getState()
       setSheet({
         Sheet, mapSrc, generatedAt: new Date(),
         legendLayers: current.filter((l) => l.visible), legendDates: dates,
+        legendEmissoes: emissoes,
       })
     } catch (err) {
       console.error('JPEG export failed', err)
@@ -246,25 +249,6 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
   }, [sheet])
   const showEmptyHint = !hasContent && !!activeRaster
 
-  const downloadButton: React.CSSProperties = {
-    flex: 1,
-    minWidth: 0,
-    height: 44,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    background: c.accentInk,
-    border: 'none',
-    borderRadius: 10,
-    cursor: 'pointer',
-    color: c.bgCard,
-    fontFamily: 'var(--font-app), sans-serif',
-    fontSize: 14,
-    fontWeight: 600,
-    whiteSpace: 'nowrap',
-  }
-
   // Below 768px the panel becomes a bottom drawer over the map.
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768,
@@ -291,11 +275,11 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
         analysisKind={analysisKind}
         analysisLabel={analysisLabel}
         drawnArea={drawnArea}
-        drawnLength={drawnLength}
         generatedAt={sheet.generatedAt}
         layers={sheetLayers}
         legendLayers={sheet.legendLayers}
         legendDates={sheet.legendDates}
+        legendEmissoes={sheet.legendEmissoes}
       />
     </div>,
     document.querySelector('[data-cc-root]') ?? document.body,
@@ -304,48 +288,9 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
 
   if (!hasContent && !showEmptyHint) return sheetPortal
 
-  // Collapsed: a pill at the bottom on narrow screens, a slim tab on the right
-  // edge on desktop.
-  if (collapsed) {
-    const tab = (
-      <button
-        className="ui-press"
-        onClick={() => onSetCollapsed(false)}
-        aria-label="Mostrar resultados"
-        title="Mostrar resultados"
-        style={{
-          position: 'absolute',
-          zIndex: 10,
-          background: c.glassBg,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: `1px solid ${c.glassBd}`,
-          boxShadow: 'var(--sh-ctrl)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          color: c.accent,
-          fontFamily: 'var(--font-app), sans-serif',
-          fontSize: 13.5,
-          fontWeight: 700,
-          ...(narrow
-            ? { left: '50%', bottom: 14, transform: 'translateX(-50%)', height: 38, padding: '0 16px', borderRadius: 999 }
-            : { right: 0, top: '50%', transform: 'translateY(-50%)', width: 28, height: 56, padding: 0, borderRadius: '8px 0 0 8px', borderRight: 'none' }),
-        }}
-      >
-        <IcBarChart size={14} />
-        {narrow && <span>Resultados</span>}
-      </button>
-    )
-    return (
-      <>
-        {tab}
-        {sheetPortal}
-      </>
-    )
-  }
+  // Collapsed: the column leaves the row and the map takes its width; the
+  // "Resultado" button over the map (Mapa.tsx) brings it back.
+  if (collapsed) return sheetPortal
 
   // Leftovers of an earlier analysis (a deleted drawing, a hint with nothing
   // analysed) must not name the panel.
@@ -355,134 +300,100 @@ export default function ResultsSidebar({ theme, collapsed, onSetCollapsed, onClo
     <div
       role="region"
       aria-label="Resultados"
-      style={{
-        position: 'absolute',
-        // The phone drawer rises into the map controls' column (zIndex 12), which
-        // would cover its close button; it goes above them.
-        zIndex: narrow ? 13 : 10,
-        ...(narrow
-          ? { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0' }
-            // Goes down to the bottom edge of the map. The controls and the legend
-            // get out of the way on their own: `rightOffset` shifts them left while
-            // the panel is open.
-          : { right: 16, top: 16, width: 368, maxHeight: 'calc(100% - 32px)', borderRadius: 16 }),
-        background: c.glassBg,
-        backdropFilter: 'blur(11px)',
-        WebkitBackdropFilter: 'blur(11px)',
-        border: `1px solid ${c.glassBd}`,
-        boxShadow: 'var(--sh-panel)',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--font-app), sans-serif',
-        // The clipping lives in the container and the scrolling in the body, so the
-        // header and the feature name do not go out of sight when scrolling a long result.
-        overflow: 'hidden',
-        padding: '20px 20px',
-      }}
+      id="painel-resultados"
+      className={`${styles.panel} ${narrow ? styles.drawer : styles.docked}`}
+      style={narrow ? undefined : { width: COLUMN_WIDTH }}
     >
-      {/* Header: what was analysed and how big it is. Stays in view while the
-          results scroll. */}
-      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: '0 0 24px', flexShrink: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, paddingTop: 4 }}>
+      {/* What was analysed and how big it is (Figma 19430:60127). Stays in
+          view while the results scroll. */}
+      <header className={styles.header}>
+        <div className={styles.headText}>
           {hasContent && analysisKind && analysisLabel && analysisKind !== analysisLabel && (
-            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: c.textDim }}>
-              {analysisKind}
-            </span>
+            <span className={`${styles.chip} text-ui-badge`}>{analysisKind}</span>
           )}
-          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.01em', color: c.text, overflowWrap: 'anywhere' }}>
-            {title}
-          </h2>
+          <h2 className={`${styles.title} text-h4`}>{title}</h2>
           {drawnArea !== null && (
-            <span style={{ fontSize: 14, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
-              {nfInt.format(drawnArea * 100)} ha analisados
-            </span>
+            <span className="text-body">{nfInt.format(drawnArea * 100)} ha analisados</span>
           )}
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Ocultar resultados"
-          title="Ocultar resultados"
-          style={{
-            width: 40, height: 40, borderRadius: 999, flexShrink: 0,
-            background: c.bgCard,
-            border: `1px solid ${c.border}`,
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: c.text,
-          }}
-        >
-          <IcX size={16} />
+        <button type="button" className={styles.close} onClick={onClose} aria-label="Ocultar resultados" title="Ocultar resultados">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+          <img src="/icons/mapa/close.svg" alt="" width={24} height={24} />
         </button>
       </header>
 
-      {/* Scrollable body: the header and the download stay in view. Its children
-          must not shrink -- the body scrolls instead; `LayerResultCard` carries
-          the same guard. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-
-      {drawnLength !== null && (
-        <div style={{ marginBottom: 24, flexShrink: 0 }}>
-          <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
-        </div>
-      )}
-
-      {/* One card per visible raster. Gated on the selection because a card with
-          no result yet renders as "Calculando": with nothing selected -- or with
-          only a line drawn, which no raster is measured over -- that skeleton would
-          never resolve, and it would sit above the onboarding hint on first load. */}
-      {selectedGeometry && rasters.map((raster) => {
-        const stop = raster.gee?.temporal ? temporalDate[raster.id] : undefined
-        return (
-          <LayerResultCard
-            key={raster.id}
-            layer={raster}
-            result={cardResult(raster, stop)}
-            date={stop}
-            expanded={isExpanded(raster.id)}
-            onToggle={() => toggle(raster.id)}
+      {/* The cards scroll between the header and the downloads. */}
+      <div className={styles.body}>
+        {/* The emissions of the selected recorte feature, while an emissions
+            layer is on: one card, whichever of the exclusive layers it is. */}
+        {selectedGeometry && emissionsLayer && (
+          <EmissionsCard
             theme={theme}
-            geometry={selectedGeometry}
-            polygonHa={drawnArea !== null ? drawnArea * 100 : null}
+            layer={emissionsLayer}
+            selection={selectedGeometry}
+            temporalDate={temporalDate[emissionsLayer.id]}
           />
-        )
-      })}
+        )}
 
-      {showEmptyHint && (
-        <Stack>
-          <ContextLine theme={theme} title={activeRaster.name} />
-          <Empty theme={theme} text={analysisHint(recortes)} />
-        </Stack>
-      )}
+        {/* One card per visible raster. Gated on the selection because a card with
+            no result yet renders as "Calculando": with nothing selected -- or with
+            only a line drawn, which no raster is measured over -- that skeleton would
+            never resolve, and it would sit above the onboarding hint on first load. */}
+        {selectedGeometry && rasters.map((raster) => {
+          const stop = raster.gee?.temporal ? temporalDate[raster.id] : undefined
+          return (
+            <LayerResultCard
+              key={raster.id}
+              layer={raster}
+              result={cardResult(raster, stop)}
+              date={stop}
+              expanded={isExpanded(raster.id)}
+              onToggle={() => toggle(raster.id)}
+              theme={theme}
+              geometry={selectedGeometry}
+              polygonHa={drawnArea !== null ? drawnArea * 100 : null}
+            />
+          )
+        })}
+
+        {showEmptyHint && (
+          <LayerHeading.Provider value={<h3 className={`${styles.hintTitle} text-p-ui`}>{activeRaster.name}</h3>}>
+            <Empty theme={theme} text={analysisHint(recortes)} />
+          </LayerHeading.Provider>
+        )}
       </div>
 
       {/* Baixar a análise, pinned below the scrollable body like the header above
-          it, so the download stays in view however many cards are open. */}
+          it, so the download stays in view however many cards are open. The
+          design's label reads "Baixar CVV"; the file is a CSV. */}
       {canDownload && (
-        <div style={{ marginTop: 16, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <div className={styles.foot}>
+          <div className={styles.buttons}>
             <button
-              className="ui-press"
+              type="button"
+              className={`${styles.download} text-ui-medium`}
               onClick={handleDownload}
               title="Baixar esta análise em CSV"
-              style={downloadButton}
             >
-              <IcDownload size={16} />
               Baixar CSV
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/file-download.svg" alt="" width={16} height={16} />
             </button>
             <button
-              className="ui-press"
+              type="button"
+              className={`${styles.download} text-ui-medium`}
               onClick={() => void handleDownloadJpeg()}
               disabled={exporting}
               aria-busy={exporting}
               title="Baixar o mapa e esta análise em JPEG"
-              style={{ ...downloadButton, cursor: exporting ? 'progress' : 'pointer', opacity: exporting ? 0.7 : 1 }}
             >
-              <IcDownload size={16} />
               {exporting ? 'Gerando…' : 'Baixar JPEG'}
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/file-download.svg" alt="" width={16} height={16} />
             </button>
           </div>
           {jpegFailed && (
-            <span role="alert" style={{ fontSize: 13, color: c.textDim, textAlign: 'center' }}>
+            <span role="alert" className={`${styles.failed} text-subtle`}>
               Não foi possível gerar a imagem. Tente novamente.
             </span>
           )}
