@@ -136,19 +136,24 @@ describe('applyLayerOrder', () => {
   const b1 = raster('b1', 'B', 's1')
   const catalog = [bioma, estados, a1, a2, b1]
 
-  it('puts the vectors on top in catalog order, then the thematic layers in the layer order', () => {
-    const out = applyLayerOrder([b1, estados, a2, bioma, a1], ['b1', 'a1', 'a2'], catalog)
-    expect(ids(out)).toEqual(['bioma', 'estados', 'b1', 'a1', 'a2'])
+  it('puts the vectors on top in the layer order, then the thematic layers in it', () => {
+    const out = applyLayerOrder([b1, estados, a2, bioma, a1], ['estados', 'bioma', 'b1', 'a1', 'a2'], catalog)
+    expect(ids(out)).toEqual(['estados', 'bioma', 'b1', 'a1', 'a2'])
+  })
+
+  it('keeps the vectors on top where the order lists a thematic layer before them', () => {
+    const out = applyLayerOrder([b1, estados, a2, bioma, a1], ['b1', 'estados', 'a1', 'bioma', 'a2'], catalog)
+    expect(ids(out)).toEqual(['estados', 'bioma', 'b1', 'a1', 'a2'])
   })
 
   it('sorts a layer missing from the order after the known ones, by catalog', () => {
-    const out = applyLayerOrder([b1, a2, a1], ['b1'], catalog)
-    expect(ids(out)).toEqual(['b1', 'a1', 'a2'])
+    expect(ids(applyLayerOrder([b1, a2, a1], ['b1'], catalog))).toEqual(['b1', 'a1', 'a2'])
+    expect(ids(applyLayerOrder([estados, bioma], [], catalog))).toEqual(['bioma', 'estados'])
   })
 
   it('returns the same array when the order already holds', () => {
-    const layers = [bioma, estados, a1, a2, b1]
-    expect(applyLayerOrder(layers, ['a1', 'a2', 'b1'], catalog)).toBe(layers)
+    const layers = [estados, bioma, a1, a2, b1]
+    expect(applyLayerOrder(layers, ['estados', 'bioma', 'a1', 'a2', 'b1'], catalog)).toBe(layers)
   })
 
   it('draws config/mapa/layers.json by default as the group order did', () => {
@@ -159,11 +164,16 @@ describe('applyLayerOrder', () => {
 })
 
 describe('DEFAULT_LAYER_ORDER', () => {
-  it('lists every thematic layer of layers.json once, emissions included, and no recorte', () => {
+  it('lists every layer of layers.json once, emissions included', () => {
     const config = appConfig.layers as LayerConfig[]
-    const thematic = config.filter((layer) => layer.type !== 'vector').map((layer) => layer.id)
-    expect([...DEFAULT_LAYER_ORDER].sort()).toEqual([...thematic].sort())
+    expect([...DEFAULT_LAYER_ORDER].sort()).toEqual(config.map((layer) => layer.id).sort())
     expect(config.some((layer) => layer.type === 'emissions' && DEFAULT_LAYER_ORDER.includes(layer.id))).toBe(true)
+  })
+
+  it('starts with the recortes in catalog order, so the map opens drawn as layers.json lists them', () => {
+    const config = appConfig.layers as LayerConfig[]
+    const vectors = config.filter((layer) => layer.type === 'vector').map((layer) => layer.id)
+    expect(DEFAULT_LAYER_ORDER.slice(0, vectors.length)).toEqual(vectors)
   })
 })
 
@@ -177,6 +187,11 @@ describe('layerOrderFromGroups', () => {
   it('gives the default order when nothing was stored', () => {
     expect(layerOrderFromGroups(undefined, undefined)).toEqual(DEFAULT_LAYER_ORDER)
   })
+
+  it('keeps the recortes first, in catalog order, as that order drew them', () => {
+    const order = layerOrderFromGroups(['uso_solo', 'carbono', 'ambiente', 'localidades'], DEFAULT_SUBTHEME_ORDER)
+    expect(order.slice(0, 3)).toEqual(['bioma', 'estados', 'municipios'])
+  })
 })
 
 describe('sanitizeLayerOrder', () => {
@@ -185,13 +200,12 @@ describe('sanitizeLayerOrder', () => {
     expect(sanitizeLayerOrder(swapped)).toEqual(swapped)
   })
 
-  it('drops unknown ids, recortes and duplicates, and appends the layers missing', () => {
-    const [first, second] = DEFAULT_LAYER_ORDER
-    const out = sanitizeLayerOrder([second, 'bioma', 'gone', second, 42])
-    expect(out[0]).toBe(second)
-    expect(out).not.toContain('bioma')
+  it('drops unknown ids and duplicates, and appends the layers missing', () => {
+    const out = sanitizeLayerOrder(['municipios', 'gone', 'municipios', 42])
+    expect(out[0]).toBe('municipios')
+    expect(out).not.toContain('gone')
     expect(out).toHaveLength(DEFAULT_LAYER_ORDER.length)
-    expect(out.indexOf(first)).toBe(1)
+    expect(out.indexOf('bioma')).toBe(1)
   })
 
   it('falls back to the default for anything that is not a list', () => {

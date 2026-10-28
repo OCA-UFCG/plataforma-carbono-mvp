@@ -67,8 +67,9 @@ export function hideThematicLayers(layers: LayerConfig[]) {
 
 interface MapaStore {
   layers: LayerConfig[]
-  /** Thematic layer ids (rasters and emissions), top of the map first. The
-   *  recortes are always above them. */
+  /** Every layer id, top of the map first: the user's order of the recortes
+   *  and of the thematic layers. The recortes are drawn above the thematic
+   *  layers whatever it says. */
   layerOrder: string[]
   drawMode: DrawMode
   drawnArea: number | null
@@ -89,8 +90,6 @@ interface MapaStore {
   // rendered as the chip above the label in the results panel.
   analysisKind: string | null
   clearSignal: number
-  /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
-  homeSignal: number
   basemapId: string
   // Current viewport and drawing. They live in the store so persistence has a
   // single read point; MapView consumes them on mount and feeds them afterwards.
@@ -119,12 +118,12 @@ interface MapaStore {
   pixelCache: Record<string, PixelValueResult | null>
 
   toggleLayer:   (id: string) => void
-  /** Turns every layer off, leaves only the municipal boundaries on and returns to the biome view. */
-  showOnlyMunicipios: () => void
   showLayer:     (id: string) => void
   clearThematicLayers: () => void
+  /** Turns off every layer of the Território theme, and only those. */
+  clearRecortes: () => void
   setOpacity:    (id: string, opacity: number) => void
-  /** Moves a thematic layer in front of `beforeId` (null = the end) and redraws. */
+  /** Moves a layer in front of `beforeId` (null = the end) and redraws. */
   moveLayer:     (id: string, beforeId: string | null) => void
 
   setDrawMode:    (mode: DrawMode) => void
@@ -159,7 +158,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   analysisLabel: null,
   analysisKind: null,
   clearSignal: 0,
-  homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
 
   view:    restaurado?.view ?? null,
@@ -203,18 +201,6 @@ export const useStore = create<MapaStore>((set, get) => ({
     }))
   },
 
-  // A vector layer needs no fetch to turn on, so a plain visibility flip is
-  // enough; rasters only go off here. Every loading mark goes too, as in
-  // clearThematicLayers, or a GEE raster still being fetched would light up
-  // once its tile arrives.
-  showOnlyMunicipios: () => {
-    set((s) => ({
-      layers: s.layers.map((l) => ({ ...l, visible: l.id === 'municipios' })),
-      loadingLayers: {},
-      homeSignal: s.homeSignal + 1,
-    }))
-  },
-
   showLayer: (id) =>
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, true),
@@ -232,6 +218,15 @@ export const useStore = create<MapaStore>((set, get) => ({
         loadingLayers: Object.fromEntries(
           Object.entries(s.loadingLayers).filter(([id]) => staysOn.has(id)),
         ),
+      }
+    }),
+
+  // The recortes are vectors: nothing to fetch, so no loading mark to drop.
+  clearRecortes: () =>
+    set((s) => {
+      if (!s.layers.some((l) => l.visible && l.theme === TERRITORY_THEME_ID)) return s
+      return {
+        layers: s.layers.map((l) => (l.visible && l.theme === TERRITORY_THEME_ID ? { ...l, visible: false } : l)),
       }
     }),
 
@@ -334,8 +329,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       }
 
       // 4. Success: cache URL, flip visible, clear loading. A missing loading
-      //    mark means clearThematicLayers or showOnlyMunicipios ran while the
-      //    request was in flight: the tile is kept, but the layer stays off.
+      //    mark means clearThematicLayers ran while the request was in
+      //    flight: the tile is kept, but the layer stays off.
       const stillWanted = !!get().loadingLayers[id]
       if (temporal && temporalDate) {
         // Temporal: cache under date key, set initial date

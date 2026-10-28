@@ -604,7 +604,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)
   const clearSignal       = useStore((s) => s.clearSignal)
-  const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
   const fetchedTileUrls   = useStore((s) => s.fetchedTileUrls)
   const temporalTileUrls  = useStore((s) => s.temporalTileUrls)
@@ -1488,16 +1487,6 @@ useEffect(() => {
       wfsAbortControllersRef.current = {}
     }
   }, [layers, mapReady])
-
-  // Back to the biome view when the sidebar resets the layers. A reset, so a
-  // recorte selection goes too: its spotlight would dim the biome the camera
-  // is flying back to.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady || homeSignal === 0) return
-    dismissFeatureSelectionRef.current?.()
-    map.flyTo({ center: mapConfig.center as [number, number], zoom: mapConfig.zoom, pitch: 0, bearing: 0 })
-  }, [homeSignal, mapReady])
 
   // Latest panel offsets for the fit below. Declared before it, so within one
   // commit the fit reads the offsets of that same render.

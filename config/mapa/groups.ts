@@ -17,18 +17,20 @@ export interface ThemeInfo {
   subthemes: SubthemeInfo[]
 }
 
-// The reference cuts (bioma, estados, municípios, territórios). "Limpar" in the
-// layer panel spares them: they frame the analysis rather than being its subject.
+// The reference cuts (bioma, estados, municípios, territórios), the recortes.
+// "Limpar" in "Camadas ativas" spares them: they frame the analysis rather
+// than being its subject.
 export const TERRITORY_THEME_ID = 'territorio'
 
-// The order of this structure is the default order of the panel and of the
-// map's rasters (themes, then subthemes); the user can drag both in the panel
-// (lib/mapa/layerOrder.ts). Layers declare only their theme and subtheme ids in
-// layers.json.
+// The order of this structure is the order of the panel's themes and of the
+// picker's recorte groups, and the default draw order of the map's rasters
+// (themes, then subthemes); the user then reorders the layers themselves in
+// the panel (lib/mapa/layerOrder.ts). Layers declare only their theme and
+// subtheme ids in layers.json.
 export const THEMES: ThemeInfo[] = [
   {
-    // Not drawn as a theme by the design, which gives the recortes their own
-    // section; its header takes the panel's neutral fill until then (#140).
+    // Not listed as a theme: its subthemes group the picker of the panel's
+    // "Território" section (Figma 19431:60257), so it needs no icon or fill.
     id: TERRITORY_THEME_ID, label: 'Territórios', color: '#597636', tint: 'var(--am-050)',
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },

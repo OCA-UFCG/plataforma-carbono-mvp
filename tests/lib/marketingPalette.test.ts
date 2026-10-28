@@ -126,6 +126,12 @@ const PAIRS: [string, string][] = [
   // --ctx-negativo-padrao (4.2:1), and the cards' text on their cream fill.
   ['--role-alerta-risco-hover', '--am-100'],
   ['--foreground', '--bg-superficie-variante'],
+  // The platform's "Território" (Figma 19423:56814): "Limpar" in the
+  // design's red on the section's --am-050, a recorte ticked in the picker,
+  // and "Alterar" at rest and, a step darker, on its hover fill.
+  ['--ctx-negativo-padrao', '--am-050'],
+  ['--foreground', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-padrao', '--bg-fundo'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
