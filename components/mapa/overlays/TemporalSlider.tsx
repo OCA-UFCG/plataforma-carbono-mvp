@@ -1,19 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '@/lib/mapa/store'
-import { ano, layerTemporal, paradas } from '@/lib/mapa/temporal'
+import { ano, labelSide, layerTemporal, paradas } from '@/lib/mapa/temporal'
 import styles from './TemporalSlider.module.css'
 
 /** Wait before fetching the tile while the handle is being dragged. */
 const ESPERA_MS = 400
 
 /**
- * Year control of the time-navigable layers. It shows up on its own when
- * there is a visible temporal layer and disappears when there is none. It
- * lives at the top of the "Legendas" card (FloatingLegend), which the design
- * leaves room for in any width of the map; the design itself does not draw it
- * (issue #136, question 2, kept as an exception).
+ * Year control of the time-navigable layers, Figma's "Slider de tempo"
+ * (19481:12692): ‹ and › around a track whose year rides beside the thumb.
+ * It shows up on its own when there is a visible temporal layer and
+ * disappears when there is none. The card draws no title, so the layer it
+ * drives is named only to screen readers, in the range's label.
  */
 export default function TemporalSlider() {
   const layers         = useStore((s) => s.layers)
@@ -48,10 +48,29 @@ export default function TemporalSlider() {
   // Cancels a scheduled commit if the component unmounts before the wait elapses.
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
+  // The label's side depends on two widths: the track follows the map's
+  // column, and the label its year. Zero until measured, which keeps the
+  // label where the design puts it.
+  const shown = !!camada && anos.length >= 2
+  const trackRef = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLSpanElement>(null)
+  const [widths, setWidths] = useState({ track: 0, label: 0 })
+  useEffect(() => {
+    const track = trackRef.current
+    const label = labelRef.current
+    if (!shown || !track || !label) return
+    const observer = new ResizeObserver(() => setWidths({ track: track.clientWidth, label: label.offsetWidth }))
+    observer.observe(track)
+    observer.observe(label)
+    return () => observer.disconnect()
+  }, [shown])
+
   if (!camada || anos.length < 2) return null
 
   const indice = arrastando ?? indiceReal
   const carregando = !!loadingLayers[camada.id]
+  const fraction = indice / (anos.length - 1)
+  const side = labelSide(fraction, widths.track, widths.label)
 
   const arrastar = (i: number) => {
     setArrastando(i)
@@ -78,20 +97,16 @@ export default function TemporalSlider() {
         title={label}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
-        <img src="/icons/mapa/keyboard-arrow-left.svg" alt="" width={16} height={16} />
+        <img src="/icons/mapa/keyboard-arrow-left.svg" alt="" width={24} height={24} />
       </button>
     )
   }
 
   return (
-    <div className={styles.year}>
-      <div className={styles.head}>
-        <span className={`${styles.name} text-ui-badge`} title={camada.name}>{camada.name}</span>
-        <span className={`${styles.value} text-h4`}>{ano(anos[indice])}</span>
-      </div>
+    <div className={styles.card}>
+      {botao(true)}
 
-      <div className={styles.track}>
-        {botao(true)}
+      <div ref={trackRef} className={styles.track} style={{ '--f': fraction } as CSSProperties}>
         <input
           type="range"
           min={0}
@@ -102,14 +117,14 @@ export default function TemporalSlider() {
           aria-label={`Ano de ${camada.name}`}
           aria-valuetext={ano(anos[indice])}
         />
-        {botao(false)}
+        <span ref={labelRef} className={`${styles.label} text-ui-tab`} data-side={side} aria-hidden="true">
+          {ano(anos[indice])}
+        </span>
       </div>
 
-      <div className={`${styles.ends} text-ui-badge`}>
-        <span>{ano(anos[0])}</span>
-        <span className={styles.loading} aria-live="polite">{carregando ? 'carregando' : ''}</span>
-        <span>{ano(anos[anos.length - 1])}</span>
-      </div>
+      {botao(false)}
+
+      <span className="sr-only" aria-live="polite">{carregando ? 'carregando' : ''}</span>
     </div>
   )
 }
