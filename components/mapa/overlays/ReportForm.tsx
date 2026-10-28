@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import appConfig from '@/config/mapa/layers.json'
 import { MAX_REPORT_LAYERS, REPORT_FIRST_YEAR, REPORT_LAYERS } from '@/config/mapa/reportLayers'
 import { LAYER_META } from '@/config/mapa/layerMeta'
+import { TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
 import { ano, paradas } from '@/lib/mapa/temporal'
@@ -25,8 +26,12 @@ function feicaoLabel(f: Feicao) {
 /** How many matches the search list shows: 1210 municipalities do not fit. */
 const MAX_SUGGESTIONS = 40
 
+// The Território recortes, the only layers the server indexes for the report
+// (lib/mapa/recorteRegistry.ts); any other vector would answer with a 404.
 function recorteOptions(): VectorLayerConfig[] {
-  return (appConfig.layers as VectorLayerConfig[]).filter((l) => l.type === 'vector')
+  return (appConfig.layers as VectorLayerConfig[]).filter(
+    (l) => l.type === 'vector' && l.theme === TERRITORY_THEME_ID,
+  )
 }
 
 /**

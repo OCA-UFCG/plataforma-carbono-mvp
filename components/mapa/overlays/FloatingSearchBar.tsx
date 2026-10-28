@@ -215,6 +215,8 @@ export default function FloatingSearchBar({ theme, leftEdge, rightOffset, onSele
           // listing it would put one row per municipality of a whole state
           // under the heading "abbrev_state".
           if (key === contextField || CODE_FIELD.test(key)) continue
+          // A citation or a soil type is not a place to go to.
+          if (layer.searchFields && !layer.searchFields.includes(key)) continue
           if (typeof raw !== 'string' || raw === '') continue
           const match = matchTerritory(q, raw, context, {
             contextIdentifies: cached.contextIdentifies,

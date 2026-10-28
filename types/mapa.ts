@@ -19,6 +19,10 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // The only properties the search matches, for a layer whose features carry
+  // free text beside their name (the citations and soils of the monitoring
+  // sites). Without it the search matches every string property.
+  searchFields?: string[]
   // Point layer drawn as a sonar: a larger dot with a ring pulsing around it,
   // and a round swatch in the legend.
   pulse?: true

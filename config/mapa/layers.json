@@ -17,6 +17,9 @@
       "opacity": 100,
       "color": "#D62828",
       "hoverLabelField": "nome",
+      "searchFields": [
+        "nome"
+      ],
       "pickPriority": 60,
       "theme": "localidades",
       "subtheme": "monitoramento",
