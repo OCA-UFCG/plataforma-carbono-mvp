@@ -266,9 +266,24 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     meanLabel: 'Chuva no ano',
     unit: 'mm',
   },
+  brdwgd_pr: {
+    archetype: 'annual',
+    meanLabel: 'Chuva no ano',
+    unit: 'mm',
+  },
+  brdwgd_tmed: {
+    archetype: 'annual',
+    meanLabel: 'Temperatura média do ar',
+    unit: '°C',
+  },
+  brdwgd_eto: {
+    archetype: 'annual',
+    meanLabel: 'Evapotranspiração de referência no ano',
+    unit: 'mm',
+  },
   lst_modis: {
     archetype: 'annual',
-    meanLabel: 'Temperatura média',
+    meanLabel: 'Temperatura média da superfície',
     unit: '°C',
     note: 'Temperatura da superfície, passagem diurna; não é temperatura do ar.',
   },

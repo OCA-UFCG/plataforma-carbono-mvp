@@ -98,6 +98,14 @@ describe('buildReportShell', () => {
       .toThrow(ReportBadRequestError)
   })
 
+  it('answers a saved URL naming the CHIRPS section with the BR-DWGD one', () => {
+    const shell = buildReportShell({
+      ...base, feicaoId: 'crato', layerIds: ['chirps_precip', 'brdwgd_pr', 'solo_carbono'],
+    })
+
+    expect(shell.analyses.map((a) => a.layerId)).toEqual(['solo_carbono', 'brdwgd_pr'])
+  })
+
   it('rejects an unknown recorte or feature', () => {
     expect(() => buildReportShell({ ...base, feicaoId: 'feira-de-santana', recorteId: 'nao-existe', layerIds: ['solo_carbono'] }))
       .toThrow(ReportNotFoundError)

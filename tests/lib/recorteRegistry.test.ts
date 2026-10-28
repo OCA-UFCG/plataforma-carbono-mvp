@@ -3,11 +3,13 @@ import { getFeicao, listFeicoes, listRecortes } from '@/lib/mapa/recorteRegistry
 
 describe('listRecortes', () => {
   it('lists the vector layers that can be a report unit, with the field that names a feature', () => {
-    // No layer declares `labelField`; all six carry `hoverLabelField`.
+    // No layer declares `labelField`; every one carries `hoverLabelField`.
     expect(listRecortes()).toEqual(expect.arrayContaining([
       { layerId: 'municipios', layerName: 'Municípios', labelField: 'name_muni' },
       { layerId: 'estados', layerName: 'Estados', labelField: 'name_state' },
       { layerId: 'bioma', layerName: 'Bioma Caatinga', labelField: 'Bioma' },
+      { layerId: 'uc_protecao_integral', layerName: 'Unidades de Proteção Integral', labelField: 'nome_uc' },
+      { layerId: 'uc_uso_sustentavel', layerName: 'Unidades de Uso Sustentável', labelField: 'nome_uc' },
     ]))
   })
 
