@@ -42,6 +42,18 @@ describe('searchTerritories', () => {
     expect(searchTerritories('2504', [municipios])).toEqual([])
   })
 
+  it('matches only the declared searchFields when a layer has them', () => {
+    const sites: SearchSource = {
+      ...source('areas_monitoramento', 'Área de monitoramento', [
+        feature({ nome: 'Caatinga Campina Grande (CCG)', fontes: 'Borges et al. (2019); Moro et al. (2016)', solo: 'Neossolo Litólico' }),
+      ]),
+      searchFields: ['nome'],
+    }
+    expect(searchTerritories('moro', [sites])).toEqual([])
+    expect(searchTerritories('neossolo', [sites])).toEqual([])
+    expect(searchTerritories('campina', [sites]).map((r) => r.value)).toEqual(['Caatinga Campina Grande (CCG)'])
+  })
+
   it('deals the rows across layers, so a layer late in the catalog gets its share', () => {
     const many = source('assentamentos', 'Assentamento', Array.from({ length: 40 }, (_, i) =>
       feature({ nome: `Serra ${String(i).padStart(2, '0')}` }, i)))
