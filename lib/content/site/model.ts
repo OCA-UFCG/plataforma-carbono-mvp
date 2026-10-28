@@ -5,7 +5,7 @@
 //
 // What stays out of Contentful, on purpose: images and the text that describes
 // them (alt text, photo credits), icons, link targets, and interface labels
-// such as "Ver mais" or "Sair". The structure of each page — how many cards,
+// such as "Ver mais" or "Plataforma". The structure of each page — how many cards,
 // which photo goes where — is code; Contentful owns the words.
 //
 // No 'server-only' here: the provisioning script imports these definitions

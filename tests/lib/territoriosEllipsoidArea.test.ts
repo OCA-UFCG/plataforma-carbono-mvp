@@ -17,9 +17,9 @@ describe('ellipsoidAreaHa', () => {
     expect(turfArea({ type: 'Feature', geometry, properties: {} }) / 10_000 / ha).toBeGreaterThan(1.003)
   })
 
-  it('measures Campina Grande as Earth Engine pixelArea does (59,298.7 ha)', () => {
+  it('measures Campina Grande as Earth Engine pixelArea does (59,144.8 ha)', () => {
     const feature = features('municipios.geojson').find((f) => f.properties?.name_muni === 'Campina Grande')!
-    expect(Math.abs(ellipsoidAreaHa(extractPolygonal(feature.geometry)!) / 59_298.7 - 1)).toBeLessThan(0.002)
+    expect(Math.abs(ellipsoidAreaHa(extractPolygonal(feature.geometry)!) / 59_144.8 - 1)).toBeLessThan(0.002)
   })
 
   it('subtracts holes', () => {

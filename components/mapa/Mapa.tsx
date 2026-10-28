@@ -78,6 +78,22 @@ export default function Mapa() {
     }
   }, [])
 
+  // A link from the site (the Glossário) can name a layer to open on arrival,
+  // /mapa?camada=<id>. The parameter is dropped from the address right away,
+  // so a reload keeps whatever the visitor did afterwards. A layer coming back
+  // from the previous session is already being turned on above.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const id = url.searchParams.get('camada')
+    if (!id) return
+    url.searchParams.delete('camada')
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
+    const { layers: atuais, toggleLayer } = useStore.getState()
+    const camada = atuais.find((l) => l.id === id)
+    if (!camada || camada.visible || camadasARestaurar.includes(id)) return
+    toggleLayer(id)
+  }, [])
+
   const resultsOpen = resultsVisible && !resultsCollapsed
 
   // Open ficha. It lives here, not in Sidebar, because only this component can
@@ -180,6 +196,8 @@ export default function Mapa() {
 
         {infoId && panelOpen && (
           <LayerInfoCard
+            // A new layer gets a new sheet, so a "Copiado" never carries over.
+            key={infoId}
             theme={theme}
             layerId={infoId}
             narrow={narrow}

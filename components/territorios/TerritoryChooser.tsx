@@ -12,7 +12,7 @@ import appConfig from '@/config/mapa/layers.json'
 import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
-import type { TerritoryType } from '@/config/territorios/story'
+import { clippedToBiome, type TerritoryType } from '@/config/territorios/story'
 import { TERRITORY_SCRIPT } from '@/config/territorios/storyScript'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
 import {
@@ -360,6 +360,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
             unitLabel={type.unitLabel}
             // A state's name already says which one it is.
             context={type.id === 'estado' ? undefined : candidateEntry.context}
+            whole={!clippedToBiome(type)}
             onConfirm={() => onChoose(candidateEntry.id)}
             onCancel={chooseAnother}
           />
@@ -425,7 +426,7 @@ export default function TerritoryChooser({ type, onChoose, onBack }: TerritoryCh
 
         {/* "Ver relatório" confirms the proposed territory, as "Sim, conhecer" does (19254:37409). */}
         <PanelNav
-          onBack={onBack}
+          back={{ label: REPORT.cut, onClick: onBack }}
           next={{ label: REPORT.seeReport, onClick: candidateEntry ? () => onChoose(candidateEntry.id) : null }}
         />
       </div>

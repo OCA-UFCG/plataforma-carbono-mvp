@@ -107,8 +107,10 @@ const CLASS_MAPS: ThemeId[] = ['uso', 'fogo', 'fluxo']
  *
  * No clipId: the Earth Engine tile clipped to the full-detail biome outline
  * took 4.4 s against 1.4 s without it (measured 2026-09-28), and the slow tiles
- * are what ran into HTTP 429. The recortes are already clipped to the biome
- * and the map dims everything outside the territory.
+ * are what ran into HTTP 429. The map dims everything outside the territory,
+ * and inside it the raster covers what the theme measures: every recorte but
+ * the municipalities is clipped to the biome, and a municipality's figures
+ * include its part outside it (clippedToBiome).
  */
 export function themeRaster(themeId: ThemeId, year?: string): ThemeRaster {
   const layer = storyLayer(themeId)
@@ -191,9 +193,9 @@ export function themeLegend(themeId: ThemeId): Legend {
 export const CAATINGA_BBOX: Bbox = [-45.07658, -16.71049, -35.07258, -2.74849]
 
 /**
- * Narrowest view of the rain step, in degrees: CHIRPS pixels are 0.05°, so the
- * view holds at least 30 of them across, where a small municipality alone
- * would sit on two or three.
+ * Narrowest view of the rain step, in degrees: BR-DWGD cells are 0.1°, so the
+ * view holds at least 15 of them across, where a small municipality alone
+ * would sit on one or two.
  */
 export const RAIN_MIN_SPAN_DEG = 1.5
 

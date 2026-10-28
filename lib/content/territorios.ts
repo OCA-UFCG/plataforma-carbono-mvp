@@ -39,11 +39,15 @@ export const TERRITORIOS_APRESENTACAO = defineCopy({
 export const TERRITORIOS_TERRITORIO = defineCopy({
   id: 'territoriosTerritorio',
   name: 'Territórios · Território',
-  description: `Aba "Território" do resumo territorial (/territorios): a pergunta e a fonte do limite do bioma em "Sobre os dados". ${ONE_ENTRY}`,
+  description: `Aba "Território" do resumo territorial (/territorios): a pergunta e, em "Sobre os dados", a fonte do limite do bioma e a dos municípios, que entram inteiros. ${ONE_ENTRY}`,
   fields: {
     pergunta: line('Pergunta', 'Onde fica e qual é o tamanho?'),
     sobreTitulo: line('Sobre os dados · Título', 'Território'),
     sobreTexto: paragraph('Sobre os dados · Texto', 'Área dentro do limite da Caatinga, segundo o IBGE (2019).'),
+    sobreTextoMunicipios: paragraph(
+      'Sobre os dados · Texto dos municípios',
+      'Município inteiro, segundo o IBGE (2022), inclusive fora da Caatinga.',
+    ),
   },
 })
 
@@ -125,7 +129,7 @@ export const TERRITORIOS_CHUVA = defineCopy({
     sobreTitulo: line('Sobre os dados · Título', 'Chuva'),
     sobreTexto: paragraph(
       'Sobre os dados · Texto',
-      'CHIRPS, 5,6 km, de {anoInicial} a {anoFinal}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal.',
+      'BR-DWGD, 11 km, de {anoInicial} a {anoFinal}. Ano seco ou chuvoso: 10% ou mais abaixo ou acima da média do próprio território; entre os dois, normal.',
       ANOS,
     ),
   },

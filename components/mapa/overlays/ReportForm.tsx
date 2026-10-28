@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import appConfig from '@/config/mapa/layers.json'
-import { MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
+import { MAX_REPORT_LAYERS, REPORT_FIRST_YEAR, REPORT_LAYERS } from '@/config/mapa/reportLayers'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
 import { contextIsUnique, matchTerritory } from '@/lib/mapa/searchMatch'
@@ -30,7 +30,8 @@ function recorteOptions(): VectorLayerConfig[] {
 }
 
 /**
- * Years any curated layer can be asked for, newest first.
+ * Years any curated layer can be asked for, from REPORT_FIRST_YEAR on, newest
+ * first.
  *
  * The union rather than the intersection: the intersection of ten series is
  * often empty, and a layer that lacks the chosen year says so in its own
@@ -41,7 +42,8 @@ function yearOptions(): string[] {
   for (const entry of REPORT_LAYERS) {
     const layer = (appConfig.layers as RasterLayerConfig[]).find((l) => l.id === entry.layerId)
     for (const stop of layer?.gee?.temporal ? paradas(layer.gee.temporal) : []) {
-      years.add(ano(stop))
+      const year = ano(stop)
+      if (Number(year) >= REPORT_FIRST_YEAR) years.add(year)
     }
   }
   return [...years].sort().reverse()

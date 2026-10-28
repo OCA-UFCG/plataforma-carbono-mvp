@@ -33,14 +33,32 @@
 }
 
 /* The design's 187.18x72 logo slot ("Rectangle 2367", 19272:44335), left side
- * of the bar. HeaderLogo positions the lockup against it and lets it overflow:
- * the badge hangs below the bar and the wordmark runs 9px past the slot. */
+ * of the bar. The logo is positioned against it and overflows it. */
 .brand {
   position: relative;
   display: block;
   flex: none;
   width: 187.18px;
   height: 72px;
+}
+
+/* The Caativar lockup of "Menu-superior" (group 19384:21619), as Figma exports
+ * it (public/logos/caativar-cabecalho.svg): the symbol as a hexagonal badge
+ * and the wordmark beside it, drawn at the export's own size. The design
+ * places it at x=54, y=3 of the 1436x76 bar, hence 26px left of the slot and
+ * 1px below its top. The badge hangs past the bar's bottom edge: the export
+ * carries its own bar-coloured mask and the halo whose outline carries the
+ * bar's border around it. The z-index keeps it over the mobile panel, which
+ * opens right under the bar and would otherwise cut it off. */
+.brandLogo {
+  position: absolute;
+  z-index: 1;
+  left: -26px;
+  top: 1px;
+  display: block;
+  width: 232px;
+  height: 95px;
+  max-width: none;
 }
 
 /* Inline nav: HEADER_LINKS, the "Resumo territorial" link + the Mapas button. */
@@ -142,29 +160,6 @@
 /* Figma's "Entrar" button (I18862:8515;2810:3921, 97x40 around its label and
  * icon): a 1px border drawn inside the box, so 7 + 1 = 8px above and 15 + 1 =
  * 16px beside the 24px label line, 40px tall, hugging the label. */
-.sessionButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 15px;
-  border-radius: var(--radius-interno);
-  border: 1px solid var(--role-categorica1-padrao);
-  background: var(--bg-fundo);
-  color: var(--role-categorica1-padrao);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.sessionButton:hover,
-.sessionButton:focus-visible {
-  background: var(--am-100);
-}
-
-.sessionButton:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
 /* Hamburger, hidden on desktop. */
 .toggle {
   display: none;
@@ -236,8 +231,7 @@
  * there for why 1200px and why the two must move together. */
 @media (max-width: 1199px) {
   .nav,
-  .actions > .language,
-  .actions > .sessionButton {
+  .actions > .language {
     display: none;
   }
 

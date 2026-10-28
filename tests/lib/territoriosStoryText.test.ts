@@ -205,7 +205,7 @@ describe('stepAnswer', () => {
       territorio: {
         question: 'Onde fica e qual é o tamanho?',
         headline: { value: '596', unit: 'km²' },
-        sentence: 'Área dentro da Caatinga, na Paraíba.',
+        sentence: 'Área do município inteiro, na Paraíba.',
       },
       estoque: {
         question: 'Quanto carbono a vegetação original guardaria aqui?',
@@ -264,7 +264,7 @@ describe('stepAnswer', () => {
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
       fogo:       'O ano com mais fogo aqui foi 2021.',
-      chuva:      'Perto da média daqui (701 mm).',
+      chuva:      'Chuvoso, 15% acima da média daqui (692 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
@@ -281,10 +281,15 @@ describe('stepAnswer', () => {
     expect(items.find((i) => i.title === 'Estoque')?.text).toMatch(/O inventário cobre 87% desta área; o total vale só para essa parte\.$/)
   })
 
+  it('says a municipality enters whole, past the biome edge', () => {
+    expect(step('territorio', payload({ context: 'BA' }), municipio).sentence).toBe('Área do município inteiro, na Bahia.')
+    expect(step('territorio', payload({ context: 'XX' }), municipio).sentence).toBe('Área do município inteiro.')
+  })
+
   it('places the territory in its states, or in the biome for a state', () => {
     expect(step('territorio', payload({ context: 'SE/BA' }), assentamento).sentence)
       .toBe('Área dentro da Caatinga, em Sergipe e na Bahia.')
-    expect(step('territorio', payload({ context: 'XX' }), municipio).sentence).toBe('Área dentro da Caatinga.')
+    expect(step('territorio', payload({ context: 'XX' }), assentamento).sentence).toBe('Área dentro da Caatinga.')
     expect(step('territorio', payload({ recorteId: 'estados', areaHa: 5_210_000 }), typeOf('estado')).sentence)
       .toBe('Área dentro da Caatinga, 6,0% do bioma.')
     expect(step('territorio', payload({ areaHa: 0.4 }), municipio).headline).toEqual({ value: 'menos de 1', unit: 'ha' })
@@ -454,6 +459,12 @@ describe('aboutItems', () => {
     )
   })
 
+  it('gives a municipality the source of its whole outline, and a territory the biome limit', () => {
+    const territorio = (type: TerritoryType) => about({ responses: CG_ANSWERS, territory: CG, type }).find((i) => i.title === 'Território')?.text
+    expect(territorio(municipio)).toBe('Município inteiro, segundo o IBGE (2022), inclusive fora da Caatinga.')
+    expect(territorio(assentamento)).toBe('Área dentro do limite da Caatinga, segundo o IBGE (2019).')
+  })
+
   it('stays within 250 words with every conditional sentence in', () => {
     const pointRain = answer({ theme: 'chuva', series: annual([500, 600]) }, { origin: 'point' })
     const coarse = (r: ThemeResponse) => ({ ...r, coarseScaleM: 100 })
@@ -512,9 +523,15 @@ describe('territoryIndicators', () => {
     areaRank: { position: 40, total: 1210 },
   })
 
-  it('gives a municipality its share of the biome and its rank by area (Figma 19254:37459)', () => {
-    expect(territoryIndicators({ territory: JUAZEIRO, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([
+  it('gives a territory its share of the biome and its rank by area (Figma 19254:37459)', () => {
+    expect(territoryIndicators({ territory: JUAZEIRO, type: assentamento, script: SHIPPED_STORY_SCRIPT })).toEqual([
       { value: '0,8%', text: 'da área da Caatinga' },
+      { value: '40º', text: 'maior entre os 1.210 assentamentos' },
+    ])
+  })
+
+  it('gives a municipality its rank alone, since it enters whole past the biome edge', () => {
+    expect(territoryIndicators({ territory: JUAZEIRO, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([
       { value: '40º', text: 'maior entre os 1.210 municípios' },
     ])
   })
@@ -530,14 +547,14 @@ describe('territoryIndicators', () => {
   })
 
   it('leaves out a share under 0,1%, which would only read "menos de 0,1%"', () => {
-    // Campina Grande: 59.553 ha of 86,6 million, 0,07% of the biome.
-    expect(territoryIndicators({ territory: payload({ areaRank: { position: 120, total: 1210 } }), type: municipio, script: SHIPPED_STORY_SCRIPT }))
-      .toEqual([{ value: '120º', text: 'maior entre os 1.210 municípios' }])
-    expect(territoryIndicators({ territory: CG, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([])
+    // Campina Grande's 59.553 ha, of 86,6 million: 0,07% of the biome.
+    expect(territoryIndicators({ territory: payload({ areaRank: { position: 120, total: 1210 } }), type: assentamento, script: SHIPPED_STORY_SCRIPT }))
+      .toEqual([{ value: '120º', text: 'maior entre os 1.210 assentamentos' }])
+    expect(territoryIndicators({ territory: CG, type: assentamento, script: SHIPPED_STORY_SCRIPT })).toEqual([])
   })
 
   it('shows a share from 0,1% up', () => {
     const tenth = payload({ areaHa: 86_000, biomaAreaHa: 86_000_000 })
-    expect(territoryIndicators({ territory: tenth, type: municipio, script: SHIPPED_STORY_SCRIPT })).toEqual([{ value: '0,1%', text: 'da área da Caatinga' }])
+    expect(territoryIndicators({ territory: tenth, type: assentamento, script: SHIPPED_STORY_SCRIPT })).toEqual([{ value: '0,1%', text: 'da área da Caatinga' }])
   })
 })

@@ -4,19 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaBars, FaXmark } from "react-icons/fa6";
-import { signOut as firebaseSignOut } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
-import HeaderLogo from "./HeaderLogo";
 import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 188 + 584 + 189px with 16px gaps between them (993px),
+// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px),
 // none of it allowed to shrink (`flex: none` on all three), plus `--gutter`
 // (80px, still 80 in this range — it only drops to 24 at <=768px) on both
-// sides. The wordmark overruns `.brand` by 9px, inside the 16px gap.
-// 993 + 160 = 1153px is the narrowest viewport the inline header fits at;
+// sides. The wordmark overruns `.brand` by 18px, 2px more than the gap.
+// 911 + 2 + 160 = 1073px is the narrowest viewport the inline header fits at;
 // 1200 clears it with margin. This is the only JS/CSS breakpoint pair on
 // the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
 // in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
@@ -25,49 +22,6 @@ import styles from "./SiteHeader.module.css";
 const DESKTOP_QUERY = "(min-width: 1200px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
-
-// The session slot. It stood in for an "Entrar" button the design used to
-// have (I18862:8515;2810:3921), which the current header (19272:44333) no
-// longer draws: the language switch is alone on the right there. The marketing
-// layout redirects unauthenticated visitors to /login
-// (app/(marketing)/layout.tsx), so anyone who reaches this header is signed in
-// and "Entrar" could never have been the right label; "Sair" stays, as the
-// only way out of the session from these pages, in that button's style: 1px
-// border, 6px radius, 16px side padding, hugging its label.
-//
-// This is a plain client component, not AuthProvider: the marketing route group
-// deliberately does not mount AuthProvider (it is the one group that doesn't),
-// and only the logout action is needed here, not the user object. The two-step
-// sequence mirrors components/auth/AuthProvider.tsx's signOut (cookie first,
-// then Firebase client state), with the same try/finally discipline so a failed
-// fetch still clears client state.
-function SessionAction({ className }: { className?: string }) {
-  const [pending, setPending] = useState(false);
-
-  async function handleSignOut() {
-    setPending(true);
-    try {
-      await fetch("/api/session", { method: "DELETE" });
-    } finally {
-      try {
-        await firebaseSignOut(getFirebaseAuth());
-      } finally {
-        window.location.replace("/login");
-      }
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className={className}
-      onClick={() => void handleSignOut()}
-      disabled={pending}
-    >
-      Sair
-    </button>
-  );
-}
 
 // The PT-BR / En control from the Figma design (19272:44342),
 // rendered as designed but inert: internationalisation is out of scope, so
@@ -141,7 +95,9 @@ export default function SiteHeader() {
     <header className={styles.siteHeader} aria-label="Cabeçalho">
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
-          <HeaderLogo />
+          {/* Decorative: the link's aria-label already names the brand. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo */}
+          <img src="/logos/caativar-cabecalho.svg" alt="" width={232} height={95} className={styles.brandLogo} />
         </Link>
 
         <nav className={styles.nav} aria-label="Navegação principal">
@@ -178,8 +134,6 @@ export default function SiteHeader() {
 
         <div className={styles.actions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
-
           <button
             type="button"
             className={styles.toggle}
@@ -228,7 +182,6 @@ export default function SiteHeader() {
         </nav>
         <div className={styles.panelActions}>
           <LanguageSwitch className={styles.language} />
-          <SessionAction className={`${styles.sessionButton} text-ui-medium`} />
         </div>
       </div>
     </header>

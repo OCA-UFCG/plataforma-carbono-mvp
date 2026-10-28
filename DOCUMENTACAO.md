@@ -36,7 +36,7 @@ app/
 ├ globals.css                  # estilos das páginas de marketing
 └ mapa.css                     # estilos do módulo de mapas
 components/marketing/          # landing redesenhada a partir do Figma (ver seção própria abaixo)
-├ SiteHeader.tsx               # menu superior, âncoras de seção, slot de sessão
+├ SiteHeader.tsx               # menu superior, âncoras de seção
 ├ Hero.tsx                     # capa com carrossel de fotos
 ├ Destaques.tsx                # cartões de números
 ├ Plataforma.tsx               # abas "Conheça a plataforma"
@@ -96,8 +96,7 @@ scripts/
 ├ compute-breaks.mjs           # Jenks offline, grava em config/mapa/layers.json
 ├ simplify-clip.mjs            # gera os recortes simplificados
 ├ prewarm.mjs                  # aquece o cache de tile do servidor
-├ build-recortes.py            # baixa e recorta os recortes ao bioma
-└ enrich-uf.py                 # grava a UF de cada feição dos recortes
+└ build-recortes.py            # baixa os recortes e os recorta ao bioma (menos os municípios)
 next.config.ts                 # serverExternalPackages + Cache-Control dos GeoJSON
 render.yaml                    # Web Service Node
 .env.local                     # GOOGLE_APPLICATION_CREDENTIALS (não versionar)
@@ -148,7 +147,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 
 ### Decisões e pendências abertas
 
-- **"Entrar" vira "Sair".** O Figma mostra um botão "Entrar" no header, mas `app/(marketing)/layout.tsx` já redireciona todo visitante não autenticado para `/login` — quem vê a landing já está logado. O slot mostra "Sair" e executa as duas etapas do logout já estabelecido (`DELETE /api/session`, depois `firebaseSignOut`) antes de redirecionar.
+- **Sem botão de sessão no header.** As páginas institucionais e o `/territorios` são públicos; o login só abre a plataforma, pelo botão "Plataforma". O header não tem "Entrar" nem "Sair", como o Menu-superior do Figma atual (`19253:14746`), e o logout fica no header do mapa (`components/mapa/Header.tsx`).
 - **PT-BR / En não funciona.** O seletor de idioma é renderizado mas inerte; internacionalização está fora do escopo desta reconstrução.
 - **"Ver mais" leva às páginas internas.** O de "Conheça a plataforma" abre `/sobre` e o de "Comunicação" abre `/comunicacao` (issue #52); antes dessas páginas existirem, os dois eram inertes.
 - **As quatro abas de "Conheça a plataforma" têm conteúdo.** Na primeira reconstrução só "O que é a Caativar?" estava desenhada e as outras três mostravam "Conteúdo em preparação."; a atualização do Figma de setembro de 2026 trouxe o texto e a foto das três (PR #43), e o estado vazio foi removido.
@@ -164,7 +163,7 @@ A landing antiga tinha nove seções; a nova, seis. `Sazonalidade` (a paleta men
 - O botão primário do hero amarra o preenchimento de **repouso** ao token de papel `ROLE-MarcaAncora-Hover` (nó `18862:8529`), sem token distinto para o estado de hover; implementado como desenhado, com comentário no código para não ser "corrigido" sem querer.
 - O componente genérico de "tab item" (nó `8702:53247`) pertence a outro design system (`slate/*`, `Verde Sudene #018f39`, variáveis do shadcn, nenhuma variável de tipografia).
 - Os quatro ícones dos cartões de destaque são o mesmo glifo, byte a byte idêntico — fiel à fonte no Figma, mas quatro indicadores diferentes acabam sem diferenciação visual nenhuma.
-- Resolvido: o slot da logo da Caativar no Figma era uma caixa vazia e o header reaproveitava `logo_oca.png`. Hoje o header usa a logo do componente "Menu-superior" (nó `19272:44333`): o símbolo como selo hexagonal que transborda a barra, montado com as camadas do próprio componente em `public/logos/cabecalho/` (ver `components/marketing/HeaderLogo.tsx`). A aba de todas as rotas usa o símbolo da logo atual (nó `19268:13635`, grupo `19268:13651`), `caativar-simbolo.svg` (ver `lib/favicon.ts`). O rodapé, cujo slot no Figma também é uma caixa vazia, usa o mesmo símbolo em branco, `caativar-simbolo-branco.svg`, como faz a variante monocromática de contorno do quadro de logos (nó `19083:7621`) com a árvore anterior, já que o símbolo colorido perde o tronco escuro sobre o fundo do rodapé.
+- Resolvido: o slot da logo da Caativar no Figma era uma caixa vazia e o header reaproveitava `logo_oca.png`. Hoje o header usa a logo do componente "Menu-superior" (grupo `19384:21619`), exportada do Figma como `public/logos/caativar-cabecalho.svg`: o símbolo hexagonal com a árvore, como selo que transborda a barra, e o nome ao lado. A logo do pacote (`public/logos/caativar.svg`) fica na ficha de análise do mapa; o rodapé usa a sua versão monocromática branca (`caativar-branco.svg`) e a aba de todas as rotas o símbolo recortado dessa logo, `caativar-simbolo.svg` (ver `lib/favicon.ts`). A versão monocromática preta, que acompanha as outras no pacote de logos, não é usada.
 - Possível terceira família tipográfica: os rótulos das abas medem como Archivo SemiBold 16px, que não é nem Rubik (corpo) nem Archivo Narrow (exibição). Não resolvido — a cota da API do Figma acabou antes de confirmar.
 - CI (`.github/workflows/ci.yml`) roda só `npm ci`, `npm run build` e `npm run contrast`; não roda `npm test` nem `npm run lint`. Tudo nesta reconstrução foi verificado localmente.
 
@@ -197,11 +196,11 @@ São 32 camadas, 6 vetoriais e 26 rasters, organizadas nos temas e subtemas de `
 | id | Nome | Unidade | Rótulo (hover) | Contexto | Origem | Feições |
 |---|---|---|---|---|---|---|
 | `bioma` | Bioma Caatinga | Bioma | `Bioma` | — | `../vectors/limite_caatinga.geojson` | 1 |
-| `estados` | Estados | Estado | `name_state` | `abbrev_state` | IBGE via geobr | 10 |
-| `municipios` | Municípios | Município | `name_muni` | `abbrev_state` | IBGE via geobr | 1210 |
-| `terras_indigenas` | Terras Indígenas | Terra Indígena | `name_indigenous_land` | `abbrev_state` | FUNAI via geobr | 50 |
-| `quilombolas` | Territórios Quilombolas | Território Quilombola | `name_quilombo` | `abbrev_state` | INCRA via geobr | 86 |
-| `assentamentos` | Assentamentos (INCRA) | Assentamento | `nome_proje` | `abbrev_state` | INSA (assentamentos SAB) | 1923 |
+| `estados` | Estados | Estado | `name_state` | `abbrev_state` | IBGE via geobr, malha 2022 | 9 |
+| `municipios` | Municípios | Município | `name_muni` | `abbrev_state` | IBGE via geobr, malha 2022; bioma predominante 2024 | 1095 |
+| `terras_indigenas` | Terras Indígenas | Terra Indígena | `name_indigenous_land` | `abbrev_state` | Funai (`ti_sirgas.zip`) | 46 |
+| `quilombolas` | Territórios Quilombolas | Território Quilombola | `name_quilombo` | `abbrev_state` | Incra ("Áreas de Quilombolas") | 84 |
+| `assentamentos` | Assentamentos | Assentamento | `nome_proje` | `abbrev_state` | Incra ("Assentamento Brasil") | 1994 |
 
 Os vetores ficam acima dos rasters na ordem do `layers.json`, condição para o clique em uma feição computar a estatística do raster abaixo.
 
@@ -212,9 +211,10 @@ resultado próprio, acompanha o rótulo e pode ser digitada junto dele. Ver
 "Busca de territórios".
 
 O contexto não vinha nos GeoJSONs originais, porque o `build-recortes.py`
-guardava só a coluna do rótulo. Quem o grava é `scripts/enrich-uf.py`. O
-`build-recortes.py` hoje preserva `abbrev_state` e `code_muni`, então uma
-regeração não desfaz mais isso.
+guardava só a coluna do rótulo, e um `scripts/enrich-uf.py` o deduzia da
+geometria. Hoje o `build-recortes.py` grava `abbrev_state` direto: a UF do IBGE
+e da Funai, e, nos quilombos e assentamentos, os estados com pelo menos 20% da
+área, porque o Incra registra um só.
 
 #### Entrega dos GeoJSON e cache do navegador
 
@@ -277,13 +277,18 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `degradacao_terra` | Índice de Degradação da Terra (2021) | `ee-arturlourenco/assets/id_2021_recode_mask_int`, banda `b1` | categórica (6 classes) | classe |
 | `ndvi_modis` | NDVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `NDVI`, ×0,0001 | contínua | NDVI |
 | `evi_modis` | EVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `EVI`, ×0,0001 | contínua | EVI |
-| `chirps_precip` | Precipitação Anual (CHIRPS 2023) | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
+| `brdwgd_pr` | Precipitação Anual (BR-DWGD) | `obscaatinga/assets/caativar/brdwgd_anual`, banda `pr`, soma do ano, 1961-2025 | contínua | mm/ano |
+| `brdwgd_tmed` | Temperatura do Ar (BR-DWGD) | idem, banda `tmed`, média de `tmax` e `tmin` no ano | contínua | °C |
+| `brdwgd_eto` | Evapotranspiração de Referência (BR-DWGD) | idem, banda `eto`, soma do ano | contínua | mm/ano |
+| `chirps_precip` | Precipitação Anual (CHIRPS), oculta (`hidden: true`) desde a troca pelo BR-DWGD | `UCSB-CHG/CHIRPS/DAILY`, banda `precipitation`, soma anual | contínua | mm/ano |
 | `lst_modis` | Temperatura de Superfície (MODIS 2023) | `MODIS/061/MOD11A2`, banda `LST_Day_1km`, ×0,02 − 273,15 | contínua | °C |
 | `altitude_fabdem` | Altitude (FABDEM) | `obscaatinga/assets/caativar/altitude_fabdem_m`, banda `altitude` | contínua | m |
 | `declividade_fabdem` | Declividade (FABDEM) | `obscaatinga/assets/caativar/declividade_fabdem_pct`, banda `declividade_pct` | contínua | % |
 | `hillshade_fabdem` | Relevo Sombreado (FABDEM) | `obscaatinga/assets/caativar/hillshade_fabdem`, banda `hillshade` | sem estatística (`analysis: false`) | 0 a 255 |
 
 As três camadas de relevo saem do FABDEM v1.2 (Hawker et al., 2022), o Copernicus GLO-30 com árvores e edificações removidas, recortado no limite exato da Caatinga na grade nativa de 1 segundo de arco pelo script `../gee/relevo_fabdem.py`. A licença é CC BY-NC-SA 4.0: uso não comercial, com atribuição e derivados na mesma licença. O relevo sombreado (azimute 315°, elevação 45°) é só visual e não abre cartão na aba Resultados.
+
+As três camadas de clima saem do BR-DWGD (Xavier et al., 2022), dados diários interpolados das estações em grade de 0,1°. O script `../gee/brdwgd_anual.py` agrega cada ano numa `ImageCollection` com uma imagem por ano, de 1961 a 2025, na grade original e mascarada no bioma com 12 km de folga. As camadas leem a imagem do ano com `reducer: first` e `scale: 11131.78`, a escala nominal da grade: com 11132, as células se esticam a partir da origem, e um ponto perto da borda norte ou oeste de uma célula lê a célula vizinha. Como o FABDEM, o asset fica em `projects/obscaatinga`, e a conta de serviço de cada ambiente precisa de leitura nele. No formulário do relatório (`REPORT_FIRST_YEAR`) e na etapa Chuva dos Territórios, a precipitação continua começando em 1985.
 
 As camadas de índices/fenologia (NDVI, EVI) e clima (precipitação, temperatura) vêm do inventário `../Inventario_Camadas_Carbono_GEE_Caatinga.md`. Escala física via `multiplier`/`offset` no asset (aplicados à imagem, então tiles, estatística e valor pontual saem todos em unidade física). Faixas de min/máx calibradas medindo o dado real sobre a Caatinga.
 
@@ -607,8 +612,7 @@ A landing redesenhada não explica mais essa paleta em lugar nenhum: a seção q
 - `npm run trim`: arredonda as coordenadas dos GeoJSON para 5 casas decimais (~1,1 m, abaixo de um pixel em qualquer zoom do mapa). Não remove vértice nenhum, então o traço na tela não muda; o recorte do bioma caiu de 736 KB para 610 KB comprimido.
 - `npm run contentful:provision`: imprime o modelo de conteúdo da landing e, com `CONTENTFUL_MANAGEMENT_TOKEN` no ambiente, compara com o space. Com `-- --apply` cria ou atualiza os três content types e os publica.
 - `npm run contrast`: confere o contraste WCAG dos acentos gerados para os 12 meses nos 2 modos, e sai com erro se algum par ficar abaixo de 4,5:1.
-- `python scripts/build-recortes.py`: baixa os recortes (IBGE, FUNAI, INCRA via geobr), recorta ao bioma com geopandas, simplifica e grava em `public/data/vector`. Preserva `abbrev_state` e `code_muni` quando a fonte os traz. Requer `pip install geobr geopandas`.
-- `python scripts/enrich-uf.py`: grava a UF de cada feição dos recortes (`abbrev_state`) e o nome por extenso dos estados (`name_state`). Deriva a UF da geometria já em disco — cada feição vota com uma grade de pontos interiores contra `estados.geojson`, medindo área e não contorno, porque um vértice de feição de divisa É o contorno do estado, onde o ray cast é cara-ou-coroa. Para municípios a lista oficial do IBGE arbitra: nome registrado num único estado leva aquele estado, e nome que ela não conhece aborta a execução, porque UF errada é pior que UF nenhuma. Oito feições atravessam divisa de verdade e ficam como `PE/PB`; a busca aceita qualquer um dos lados. Só biblioteca padrão, mas precisa de rede. Idempotente: rodar de novo não muda os arquivos já enriquecidos.
+- `python scripts/build-recortes.py`: baixa os recortes (estados e municípios do IBGE via geobr; terras indígenas da Funai; quilombos e assentamentos do Incra), mantém os da Caatinga, recorta ao bioma com geopandas (menos os municípios, que entram inteiros porque a lista do IBGE classifica o município todo; a camada declara isso com `"clippedToBiome": false` em `layers.json`, que o script e a história de Territórios leem), simplifica e grava em `public/data/vector`, com `abbrev_state` e o código oficial de cada feição. Estados e municípios usam tolerância de 0,002° e 0,004°; terras indígenas, quilombos e assentamentos, 1e-5° (cerca de 1 m). A ordem do arquivo anterior é preservada para não mover ids de homônimos. Requer `pip install geobr geopandas`.
 
 ## Deploy
 

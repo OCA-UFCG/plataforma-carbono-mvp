@@ -30,8 +30,8 @@ export interface VectorLayerConfig {
     height: number  // meters, the same at every point; larger than the real towers so they read at z19
   }
   // Property that tells homonymous features apart, written into the GeoJSONs by
-  // scripts/enrich-uf.py. Labels are not unique -- 34 municipality names repeat
-  // inside the Caatinga clip, 213 settlement names do -- so the search shows
+  // scripts/build-recortes.py. Labels are not unique -- 30 municipality names
+  // repeat inside the Caatinga clip, 209 settlement names do -- so the search shows
   // this value beside the label ("Bom Jesus · PI") and lets it be typed as the
   // last word of a query. It never becomes a search result of its own.
   contextField?: string
@@ -43,11 +43,17 @@ export interface VectorLayerConfig {
   // rather than derived. Falls back to `name`.
   unitName?: string
   // Granularity of the recorte, used only to decide which layer wins a hover
-  // or click when several visible ones overlap (higher = finer = wins). The
-  // containment hierarchy runs bioma < estados < municipios < territories;
-  // without it the biome, which contains everything, would swallow every
-  // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
+  // or click when several visible ones overlap (higher wins); without it the
+  // biome, which contains nearly everything, would swallow every click. It
+  // runs bioma < estados < municipios < territories and conservation units,
+  // the last two at one level: they nest both ways, so between them the
+  // smaller feature under the pointer wins. See lib/mapa/pickVector.ts.
   pickPriority?: number
+  // A recorte scripts/build-recortes.py keeps whole past the biome edge instead
+  // of clipping it, so its area and statistics include the part outside: the
+  // municipalities, since IBGE's list of predominant biome classifies the whole
+  // municipality. The script and the Territórios story both read it.
+  clippedToBiome?: false
   // Native GEE FeatureCollection asset id used to clip rasters to this region
   // (server-side). When set, the tile route clips to the indexed asset (fast,
   // full detail) instead of the local GeoJSON.

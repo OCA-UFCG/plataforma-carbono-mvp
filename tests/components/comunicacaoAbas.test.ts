@@ -9,17 +9,19 @@ const html = <P extends object>(component: ComponentType<P>, props: P) =>
 const paineis = {
   conteudo: createElement('p', null, 'painel de conteúdo'),
   eventos: createElement('p', null, 'painel de eventos'),
+  glossario: createElement('p', null, 'painel do glossário'),
 }
 
 describe('ComunicacaoAbas', () => {
-  it('renders both tabs in the Inter tab style, and both panels', () => {
+  it('renders every tab in the Inter tab style, and every panel', () => {
     const markup = html(ComunicacaoAbas, { inicial: 'conteudo', paineis })
     const tabs = markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []
 
-    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações'])
+    expect(tabs.map((tab) => tab.replace(/<[^>]+>/g, ''))).toEqual(['Conteúdo', 'Eventos e articulações', 'Glossário (teste)'])
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
     expect(markup).toContain('painel de conteúdo')
     expect(markup).toContain('painel de eventos')
+    expect(markup).toContain('painel do glossário')
   })
 
   it('opens the tab it is given and hides the other panel', () => {

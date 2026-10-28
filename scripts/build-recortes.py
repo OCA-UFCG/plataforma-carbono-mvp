@@ -1,30 +1,49 @@
-# Downloads the territorial recortes (IBGE via geobr; FUNAI and INCRA from their
-# own current exports, which geobr lags by months), keeps
-# those that belong to the Caatinga, clips them to the biome, simplifies them
-# and writes GeoJSON into public/data/vector. Usage: python scripts/build-recortes.py
+# Downloads the territorial recortes (IBGE via geobr; FUNAI, INCRA and MMA from
+# their own current exports, which geobr lags by months), keeps those that belong to
+# the Caatinga, clips all but the municipalities to the biome, simplifies them
+# and writes GeoJSON into public/data/vector.
+# Usage: python scripts/build-recortes.py [names], all recortes or only the named
+# ones (uc_protecao_integral uc_uso_sustentavel), so adding one does not
+# regenerate the others from newer exports and move their ids.
 #
 # A recorte belongs to the Caatinga when the biome is predominant in it:
 #   municipios        IBGE's list of predominant biome per municipality (2024,
 #                     on the 2022 municipal grid)
 #   estados           the states holding at least one of those municipalities
 #   terras_indigenas, more than half of their own area inside the biome
-#   quilombolas
+#   quilombolas,
+#   assentamentos,
+#   uc_protecao_integral, conservation units of MMA's register, one file per
+#   uc_uso_sustentavel    SNUC group (Lei 9.985/2000, art. 7)
 # Clipping every recorte that touched the biome used to let in crumbs of
 # Cerrado and Atlantic Forest municipalities, and a sliver of Maranhão, wherever
 # the state or municipal borders and the biome edge disagree by a few metres.
-# What is kept is still clipped, so the map shows the area the analysis measures.
+# What is kept is clipped to the biome, except the municipalities: a
+# municipality is the unit of IBGE's list and stays whole (Macaúbas, BA, has
+# 40% of its area in the Cerrado). Their layer declares it with
+# "clippedToBiome": false in config/mapa/layers.json, which this script reads.
+# /mapa still clips every raster to the biome, so over a border municipality
+# the map shows only the part inside while its statistics cover all of it.
+#
+# Indigenous lands, quilombos, settlements and conservation units take a 1e-5
+# degree tolerance
+# (about 1 m): 0.002 degrees changed the outline of a quilombo by 68% and of an
+# indigenous land by 47%, and these are the geometries the statistics are
+# computed on. 1e-5 drops 41% of the settlement vertices and changes no
+# feature's area by more than 0.53%.
 #
 # Homonyms take an ordinal suffix in file order (lib/territorios/featureIds.ts),
 # so features keep the order of the file being replaced and new ones go at the
 # end, in source order: a regeneration only moves the ids it cannot avoid.
-# `assentamentos` does not come from here (INSA file, see DOCUMENTACAO.md).
-import io, os, json, re, unicodedata, urllib.request
+import functools, io, os, json, re, sys, unicodedata, urllib.request
 import pandas as pd
+import shapely
 import geopandas as gpd
 import geobr
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "data", "vector")
 BIOMA = os.path.join(OUT, "limite_caatinga.geojson")
+LAYERS = os.path.join(os.path.dirname(__file__), "..", "config", "mapa", "layers.json")
 IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_ambientais/biomas/"
                    "documentos/Bioma_Predominante_por_Municipio_2024.csv")
 # Current exports of the producing agencies. mapas2.funai.gov.br sends only its
@@ -33,8 +52,18 @@ IBGE_BIOME_LIST = ("https://geoftp.ibge.gov.br/informacoes_ambientais/estudos_am
 # and fails with CERTIFICATE_VERIFY_FAILED elsewhere.
 FUNAI_TIS = "https://mapas2.funai.gov.br/portal_mapas/shapes/ti_sirgas.zip"
 INCRA_QUILOMBOS = "https://certificacao.incra.gov.br/csv_shp/zip/%C3%81reas%20de%20Quilombolas.zip"
+INCRA_ASSENTAMENTOS = "https://certificacao.incra.gov.br/csv_shp/zip/Assentamento%20Brasil.zip"
+# Cadastro Nacional de Unidades de Conservação, release of 2025-08, the newest
+# the portal links directly (later ones sit behind a SharePoint login).
+MMA_CNUC = ("https://dados.mma.gov.br/dataset/44b6dc8a-dc82-4a84-8d95-1b0da7c85dac/resource/"
+            "6ba9a557-87e8-4882-acb7-b3e0f0ea192d/download/shp_cnuc_2025_08.zip")
 # South America Albers Equal Area, for the share of a territory inside the biome.
 EQUAL_AREA = "ESRI:102033"
+
+# Recortes kept whole past the biome edge, named as their files are.
+with open(LAYERS, encoding="utf-8") as layers_file:
+    WHOLE = {os.path.splitext(os.path.basename(layer["url"]))[0]
+             for layer in json.load(layers_file)["layers"] if layer.get("clippedToBiome") is False}
 
 bioma = gpd.read_file(BIOMA).to_crs(4674)
 bioma_geom = bioma.union_all() if hasattr(bioma, "union_all") else bioma.unary_union
@@ -58,16 +87,21 @@ def mostly_inside(gdf):
     return gdf[share > 0.5]
 
 
-def read_zip(url, encoding):
+def clean_label(labels):
+    """Collapses the runs of whitespace the agencies' exports leave in labels."""
+    return labels.str.split().str.join(" ")
+
+
+def read_zip(url, encoding, **read_kwargs):
     with urllib.request.urlopen(url, timeout=600) as r:
-        return gpd.read_file(io.BytesIO(r.read()), encoding=encoding)
+        return gpd.read_file(io.BytesIO(r.read()), encoding=encoding, **read_kwargs)
 
 
 def states_of(gdf, fallback):
     """
     The states holding at least 20% of each territory, by share, joined with
-    "/" (the threshold of scripts/enrich-uf.py). INCRA records one state per
-    quilombo, and Serra da Guia has a fifth of its area in Bahia.
+    "/". INCRA records one state per quilombo and settlement: Serra da Guia
+    has a fifth of its area in Bahia, PA Nova Terra 54% in Ceará.
     """
     states = geobr.read_state(year=2022, show_progress=False).to_crs(EQUAL_AREA)[["abbrev_state", "geometry"]]
     parts = gpd.overlay(gdf[["geometry"]].reset_index().to_crs(EQUAL_AREA), states, how="intersection")
@@ -84,6 +118,8 @@ def states_of(gdf, fallback):
 # leading "TQ" (território quilombola) and a trailing state ("Mocambo - SE") kept.
 LOWERCASE_WORDS = {"a", "o", "as", "os", "ao", "aos", "d", "de", "da", "do", "das", "dos", "e", "em", "na", "no", "nas", "nos"}
 ROMAN_NUMERAL = re.compile(r"^(?:I{1,3}|IV|VI{0,3}|IX|XI{0,3})$")
+# Acronyms kept in capitals ("RPPN SOS Caatinga").
+ACRONYMS = {"SOS"}
 UFS = {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE",
        "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}
 
@@ -95,7 +131,7 @@ def title_case(label):
 
     def word(m):
         w, low = m.group(0), m.group(0).lower()
-        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ"):
+        if ROMAN_NUMERAL.match(w) or (m.start() == 0 and w == "TQ") or w in ACRONYMS:
             return w
         if w in UFS and text[:m.start()].endswith("- ") and m.end() == len(text):
             return w
@@ -114,22 +150,25 @@ def slug(value):
 def previous_order(path, gdf, label):
     """
     Position of each row in the file being replaced, so homonyms keep their id
-    suffix. A row is matched first by label and state, the nearest one when the
-    pair repeats; then, for what is left, by the label's slug alone, among old
-    rows its geometry overlaps (a source can rename a state field, as INCRA's
-    "SE" for what enrich-uf.py had as "SE/BA"). The rest goes to the end.
+    suffix. A row is matched first by label and state, then, for what is left,
+    by the label's slug alone (a source can rename a state field, as INCRA's
+    "SE" for what the old file had as "SE/BA"). Both passes only consider old
+    rows the new geometry overlaps and take the one it overlaps most: the
+    nearest homonym in the same state is not necessarily the same territory.
+    The rest goes to the end.
     """
     if not os.path.exists(path):
         return pd.Series(range(len(gdf)), index=gdf.index)
     old = gpd.read_file(path).to_crs(gdf.crs)
-    old_c, new_c = old.geometry.representative_point(), gdf.geometry.representative_point()
     old_slug, new_slug = old[label].map(slug), gdf[label].map(slug)
     taken, rank = set(), {}
 
     def take(i, candidates):
-        free = [j for j in candidates if j not in taken]
-        if free:
-            j = min(free, key=lambda j: old_c[j].distance(new_c[i]))
+        geom = gdf.geometry[i]
+        overlap = {j: old.geometry[j].intersection(geom).area for j in candidates
+                   if j not in taken and old.geometry[j].intersects(geom)}
+        if overlap:
+            j = max(overlap, key=overlap.get)
             taken.add(j)
             rank[i] = j
 
@@ -137,33 +176,40 @@ def previous_order(path, gdf, label):
         take(i, old[(old_slug == new_slug[i]) & (old["abbrev_state"] == gdf.at[i, "abbrev_state"])].index)
     for i in gdf.index:
         if i not in rank:
-            take(i, [j for j in old[old_slug == new_slug[i]].index if old.geometry[j].intersects(gdf.geometry[i])])
+            take(i, old[old_slug == new_slug[i]].index)
     tail = iter(range(len(old), len(old) + len(gdf)))
     return pd.Series({i: rank[i] if i in rank else next(tail) for i in gdf.index})
 
 
-def write(name, gdf, columns, tol, keep_area=False):
+def polygonal(geom):
+    """The polygons of a geometry, dropping the lines and points make_valid can leave."""
+    if geom.geom_type in ("Polygon", "MultiPolygon"):
+        return geom
+    parts = [p for p in getattr(geom, "geoms", []) if p.geom_type in ("Polygon", "MultiPolygon")]
+    return shapely.union_all(parts) if parts else shapely.Polygon()
+
+
+def write(name, gdf, columns, tol):
     path = os.path.join(OUT, name + ".geojson")
-    clipped = gpd.clip(gdf, bioma_geom, sort=True)
-    clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
-    clipped = clipped.loc[previous_order(path, clipped, columns[0]).sort_values().index]
-    clipped = clipped[columns + ["geometry"]].to_crs(4326)
-    simple = clipped.geometry.simplify(tol, preserve_topology=True)
-    if keep_area:
-        # A territory of a few dozen hectares loses half of itself to a 200 m
-        # tolerance (TI Barra, 62 to 34 ha); those get a ten times finer one.
-        before, after = clipped.to_crs(EQUAL_AREA).area, simple.to_crs(EQUAL_AREA).area
-        off = (after - before).abs() > 0.05 * before
-        simple[off] = clipped.geometry[off].simplify(tol / 10, preserve_topology=True)
-    clipped["geometry"] = simple
-    clipped.to_file(path, driver="GeoJSON")
-    # rewrites compactly with 5 decimals (about 1 m)
+    kept = gdf if name in WHOLE else gpd.clip(gdf, bioma_geom, sort=True)
+    kept = kept[~kept.geometry.is_empty & kept.geometry.notna()]
+    kept = kept.loc[previous_order(path, kept, columns[0]).sort_values().index]
+    kept = kept[columns + ["geometry"]].to_crs(4326)
+    kept["geometry"] = kept.geometry.simplify(tol, preserve_topology=True)
+    # Snapped to the 5-decimal grid (about 1 m) the file is written in, here
+    # rather than by rounding the output: rounding an unsimplified outline left
+    # a quarter of its vertices repeated and some rings self-intersecting.
+    kept["geometry"] = shapely.set_precision(shapely.make_valid(kept.geometry.values), grid_size=1e-5)
+    kept["geometry"] = kept.geometry.map(polygonal)
+    kept = kept[~kept.geometry.is_empty]
+    kept.to_file(path, driver="GeoJSON")
+    # rewrites compactly; the rounding only trims the float noise of the grid
     d = json.load(open(path, encoding="utf-8"))
     def rnd(x): return [rnd(v) for v in x] if isinstance(x, list) else round(x, 5)
     for f in d["features"]:
         f["geometry"]["coordinates"] = rnd(f["geometry"]["coordinates"])
     json.dump(d, open(path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print(f"OK {name}: n={len(clipped)} {os.path.getsize(path) // 1024}KB")
+    print(f"OK {name}: n={len(kept)} {os.path.getsize(path) // 1024}KB")
 
 
 def municipios():
@@ -184,7 +230,7 @@ def estados():
 def terras_indigenas():
     g = read_zip(FUNAI_TIS, "utf-8").to_crs(4674)
     g = g.rename(columns={"terrai_nom": "name_indigenous_land", "terrai_cod": "code_indigenous_land"})
-    g["name_indigenous_land"] = g["name_indigenous_land"].str.split().str.join(" ")
+    g["name_indigenous_land"] = clean_label(g["name_indigenous_land"])
     # "MT, PA" and "AM,PA" become "MT/PA", the form searchMatch and the story read.
     g["abbrev_state"] = g["uf_sigla"].str.replace(r"\s*,\s*", "/", regex=True)
     g["code_indigenous_land"] = pd.to_numeric(g["code_indigenous_land"], errors="coerce").astype("Int64")
@@ -200,13 +246,63 @@ def quilombolas():
     return g
 
 
+def assentamentos():
+    g = read_zip(INCRA_ASSENTAMENTOS, "cp1252").to_crs(4674)
+    g["nome_proje"] = clean_label(g["nome_proje"])
+    # INCRA repeats a project over several rows, some with the same polygon and
+    # some as separate parts (CE0318000 in four); one feature per SIPRA code.
+    g = g[["nome_proje", "uf", "cd_sipra", "geometry"]].dissolve(by="cd_sipra", aggfunc="first", sort=False).reset_index()
+    g = mostly_inside(g[["nome_proje", "uf", "cd_sipra", "geometry"]])
+    g["abbrev_state"] = states_of(g, g["uf"])
+    return g
+
+
+@functools.cache
+def unidades_conservacao():
+    """Both SNUC groups from one download, largest unit first."""
+    # The zip also holds a point layer; and the DBF cuts some text fields at 254
+    # bytes inside a character, so a UTF-8 read of every column fails, while
+    # the four used here are whole (the longest name has 121 bytes).
+    g = read_zip(MMA_CNUC, "utf-8", layer="cnuc_2025_08", columns=["cd_cnuc", "nome_uc", "grupo", "uf"])
+    g = g[g.geometry.notna()].to_crs(4674)  # one RPPN has no outline
+    groups = set(g["grupo"].map(slug))
+    assert groups <= {"protecao-integral", "uso-sustentavel"}, groups
+    g["nome_uc"] = g["nome_uc"].map(title_case)
+    g["geometry"] = g.geometry.make_valid().map(polygonal)
+    g = mostly_inside(g[["nome_uc", "uf", "grupo", "cd_cnuc", "geometry"]])
+    # The register names the states in full ("CEARÁ, PERNAMBUCO, PIAUÍ").
+    names = geobr.read_state(year=2022, show_progress=False)
+    abbrev = dict(zip(names["name_state"].map(slug), names["abbrev_state"]))
+    fallback = g["uf"].map(lambda uf: "/".join(abbrev.get(slug(part), part) for part in str(uf).split(",")))
+    g["abbrev_state"] = states_of(g, fallback)
+    # Drawn in file order, so an RPPN inside an APA shows above it. Only on
+    # the first build: a later one keeps the old order for the ids
+    # (previous_order) and puts a new unit at the end, above any it contains.
+    # Picking does not depend on it: a click compares the whole features'
+    # areas (lib/mapa/pickVector.ts).
+    return g.loc[g.to_crs(EQUAL_AREA).area.sort_values(ascending=False).index]
+
+
+def uc_group(group):
+    g = unidades_conservacao()
+    return g[g["grupo"].map(slug) == slug(group)]
+
+
 jobs = [
-    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002, False),
-    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004, False),
-    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 0.002, True),
-    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 0.002, True),
+    ("estados",          estados,          ["name_state", "abbrev_state"], 0.002),
+    ("municipios",       municipios,       ["name_muni", "abbrev_state", "code_muni"], 0.004),
+    ("terras_indigenas", terras_indigenas, ["name_indigenous_land", "abbrev_state", "code_indigenous_land"], 1e-5),
+    ("quilombolas",      quilombolas,      ["name_quilombo", "abbrev_state", "code_quilombo"], 1e-5),
+    ("assentamentos",    assentamentos,    ["nome_proje", "abbrev_state", "cd_sipra"], 1e-5),
+    ("uc_protecao_integral", lambda: uc_group("Proteção Integral"), ["nome_uc", "abbrev_state", "cd_cnuc"], 1e-5),
+    ("uc_uso_sustentavel",   lambda: uc_group("Uso Sustentável"),   ["nome_uc", "abbrev_state", "cd_cnuc"], 1e-5),
 ]
 
-for name, load, columns, tol, keep_area in jobs:
+only = set(sys.argv[1:])
+unknown = only - {job[0] for job in jobs}
+assert not unknown, f"unknown recorte: {unknown}"
+for name, load, columns, tol in jobs:
+    if only and name not in only:
+        continue
     print(f"baixando {name}...", flush=True)
-    write(name, load(), columns, tol, keep_area)
+    write(name, load(), columns, tol)

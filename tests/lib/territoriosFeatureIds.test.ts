@@ -10,7 +10,7 @@ import type { VectorLayerConfig } from '@/types/mapa'
 // Reading here the file the browser downloads, not the one the registry picks,
 // is what proves the two never disagree.
 
-const RECORTES = ['bioma', 'estados', 'municipios', 'terras_indigenas', 'quilombolas', 'assentamentos']
+const RECORTES = ['bioma', 'estados', 'municipios', 'terras_indigenas', 'quilombolas', 'assentamentos', 'uc_protecao_integral', 'uc_uso_sustentavel']
 
 function layerOf(id: string): VectorLayerConfig {
   const layer = (appConfig.layers as VectorLayerConfig[]).find((l) => l.id === id && l.type === 'vector')
@@ -118,6 +118,21 @@ describe('displayName', () => {
     expect(displayName('PA ANGICO BRANCO I e II')).toBe('Angico Branco I e II')
     expect(displayName('PA - AGUA BRANCA-II/REMANSO')).toBe('Agua Branca-II/Remanso')
     expect(displayName('PAQ ESP. QUILOMBOLA RUMO AO RIO')).toBe('PAQ Esp. Quilombola Rumo ao Rio')
+  })
+
+  it("keeps the other settlement kinds of INCRA's export as acronyms", () => {
+    expect(displayName('RESEX BATOQUE')).toBe('RESEX Batoque')
+    expect(displayName('PE VÁRZEA GRANDE')).toBe('PE Várzea Grande')
+    expect(displayName('ARTUR SABINO')).toBe('Artur Sabino')
+  })
+
+  it('heads every settlement on disk with a kind acronym or a capitalized word', () => {
+    const kinds = ['PAE', 'PAQ', 'PDS', 'PE', 'PIC', 'RESEX', 'RTRQ']
+    const features: FeatureLike[] = JSON.parse(readFileSync('public/data/vector/assentamentos.geojson', 'utf-8')).features
+    const heads = new Set(features.map((f) => displayName(String(f.properties?.nome_proje)).split(/[\s/.-]+/)[0]))
+    // An unknown kind would come out in title case ("Resex") and a lowercase
+    // head would mean a connective took the place of a name.
+    expect([...heads].filter((w) => !kinds.includes(w) && !/^[\p{Lu}\d]\P{Lu}*$/u.test(w))).toEqual([])
   })
 
   it('leaves a label in mixed case as it is', () => {

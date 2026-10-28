@@ -1,7 +1,9 @@
 /* Content of "Conheça a plataforma", Figma 18988:8640: 40px of block padding
- * and 24px between blocks. */
+ * and 24px between blocks. The photo band closes the page, so the same 40px
+ * sits under it, keeping it off the footer. */
 .page {
   background: var(--bg-fundo);
+  padding-bottom: 40px;
 }
 
 .inner {
