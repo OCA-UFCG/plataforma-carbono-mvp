@@ -119,16 +119,6 @@ export const IcInfo = line(<>
   <path d="M12 8h.01" />
 </>)
 
-// drag handle: only the layers change position, the cards do not
-export const IcGrip = line(<>
-  <circle cx="9" cy="6" r="1" />
-  <circle cx="9" cy="12" r="1" />
-  <circle cx="9" cy="18" r="1" />
-  <circle cx="15" cy="6" r="1" />
-  <circle cx="15" cy="12" r="1" />
-  <circle cx="15" cy="18" r="1" />
-</>)
-
 // drawing (pen, as in the prototype)
 export const IcPen = line(<>
   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />

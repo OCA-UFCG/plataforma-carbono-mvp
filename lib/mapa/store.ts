@@ -14,7 +14,7 @@ import { defaultBasemapId } from '@/config/mapa/basemaps'
 import { paradaInicial } from '@/lib/mapa/temporal'
 import { isExclusiveSubtheme, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import {
-  DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER, applyGroupOrder, moveInList,
+  DEFAULT_LAYER_ORDER, applyLayerOrder, moveInList,
 } from '@/lib/mapa/layerOrder'
 import {
   readPersisted,
@@ -40,8 +40,7 @@ const restaurado = readPersisted(PANEL_LAYERS)
 export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 
 // The user's draw order, and `layers` sorted by it from the first render on.
-const ordemTemas = restaurado?.themeOrder ?? DEFAULT_THEME_ORDER
-const ordemSubtemas = restaurado?.subthemeOrder ?? DEFAULT_SUBTHEME_ORDER
+const ordemCamadas = restaurado?.layerOrder ?? DEFAULT_LAYER_ORDER
 
 export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
   const selected = layers.find((layer) => layer.id === id)
@@ -68,10 +67,9 @@ export function hideThematicLayers(layers: LayerConfig[]) {
 
 interface MapaStore {
   layers: LayerConfig[]
-  /** Thematic theme ids, top of the map first. Território is always above them. */
-  themeOrder: string[]
-  /** Subtheme ids per thematic theme, top of the map first. */
-  subthemeOrder: Record<string, string[]>
+  /** Thematic layer ids (rasters and emissions), top of the map first. The
+   *  recortes are always above them. */
+  layerOrder: string[]
   drawMode: DrawMode
   drawnArea: number | null
   drawnLength: number | null
@@ -126,10 +124,8 @@ interface MapaStore {
   showLayer:     (id: string) => void
   clearThematicLayers: () => void
   setOpacity:    (id: string, opacity: number) => void
-  /** Moves a thematic theme in front of `beforeId` (null = the end) and redraws. */
-  moveTheme:     (id: string, beforeId: string | null) => void
-  /** Moves a subtheme within its theme in front of `beforeId` (null = the end) and redraws. */
-  moveSubtheme:  (themeId: string, id: string, beforeId: string | null) => void
+  /** Moves a thematic layer in front of `beforeId` (null = the end) and redraws. */
+  moveLayer:     (id: string, beforeId: string | null) => void
 
   setDrawMode:    (mode: DrawMode) => void
   setDrawnArea:   (area: number | null) => void
@@ -153,9 +149,8 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json, in the draw order.
-  layers: applyGroupOrder(restaurado?.layers ?? PANEL_LAYERS, ordemTemas, ordemSubtemas),
-  themeOrder: ordemTemas,
-  subthemeOrder: ordemSubtemas,
+  layers: applyLayerOrder(restaurado?.layers ?? PANEL_LAYERS, ordemCamadas),
+  layerOrder: ordemCamadas,
   drawMode: null,
   drawnArea: null,
   drawnLength: null,
@@ -247,21 +242,11 @@ export const useStore = create<MapaStore>((set, get) => ({
       ),
     })),
 
-  moveTheme: (id, beforeId) =>
+  moveLayer: (id, beforeId) =>
     set((s) => {
-      const themeOrder = moveInList(s.themeOrder, id, beforeId)
-      if (themeOrder === s.themeOrder) return s
-      return { themeOrder, layers: applyGroupOrder(s.layers, themeOrder, s.subthemeOrder) }
-    }),
-
-  moveSubtheme: (themeId, id, beforeId) =>
-    set((s) => {
-      const current = s.subthemeOrder[themeId]
-      if (!current) return s
-      const next = moveInList(current, id, beforeId)
-      if (next === current) return s
-      const subthemeOrder = { ...s.subthemeOrder, [themeId]: next }
-      return { subthemeOrder, layers: applyGroupOrder(s.layers, s.themeOrder, subthemeOrder) }
+      const layerOrder = moveInList(s.layerOrder, id, beforeId)
+      if (layerOrder === s.layerOrder) return s
+      return { layerOrder, layers: applyLayerOrder(s.layers, layerOrder) }
     }),
 
   setDrawMode:    (mode)   => set({ drawMode: mode }),
@@ -478,7 +463,7 @@ function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
 export const mapConfig = appConfig.map
 
 // Persistence: a single subscriber, instead of a setItem scattered across
-// toggleLayer, setOpacity, moveTheme, setBasemap and setTemporalDate. Five
+// toggleLayer, setOpacity, moveLayer, setBasemap and setTemporalDate. Five
 // write points drift out of sync; one subscriber does not. The debounce avoids
 // writing on every frame while the user drags the map or the opacity.
 if (typeof window !== 'undefined') {
@@ -493,8 +478,7 @@ if (typeof window !== 'undefined') {
         temporalDate: s.temporalDate,
         view: s.view,
         drawing: s.drawing,
-        themeOrder: s.themeOrder,
-        subthemeOrder: s.subthemeOrder,
+        layerOrder: s.layerOrder,
       })
     }, 400)
   })

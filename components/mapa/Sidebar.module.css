@@ -53,8 +53,8 @@
 }
 
 /* Themes stack edge to edge, ruled apart (19430:58768). */
-.theme {
-  position: relative;
+.theme + .theme,
+.search + .theme {
   border-top: 1px solid var(--bg-borda);
 }
 
@@ -208,24 +208,7 @@
   background: var(--am-100);
 }
 
-/* The opacity and the error of a layer that is on, under its row until
- * they move to "Camadas ativas" (#139). */
-.extra {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  padding-left: 44px;
-  color: var(--am-400);
-}
-
-.extra input {
-  flex: 1;
-  min-width: 0;
-  accent-color: var(--role-marca-ancora-padrao);
-  cursor: pointer;
-}
-
+/* An error that keeps the layer off, under its row. */
 .error {
   display: flex;
   gap: 6px;

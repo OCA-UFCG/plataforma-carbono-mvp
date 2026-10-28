@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { buildSiteTheme } from '@/config/mapa/platforms'
-import { DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER } from '@/lib/mapa/layerOrder'
 
 const state = vi.hoisted(() => ({
   layers: [
@@ -13,10 +12,8 @@ const state = vi.hoisted(() => ({
     { id: 'cobertura', name: 'Uso e Cobertura da Terra', type: 'raster', visible: false, opacity: 100, theme: 'uso_solo', subtheme: 'cobertura' },
     { id: 'altitude', name: 'Altitude', type: 'raster', visible: false, opacity: 100, unit: 'm', theme: 'ambiente', subtheme: 'relevo' },
   ],
-  themeOrder: [] as string[],
-  subthemeOrder: {} as Record<string, string[]>,
   loadingLayers: {}, layerErrors: {},
-  moveTheme: () => {}, moveSubtheme: () => {}, showOnlyMunicipios: () => {}, clearThematicLayers: () => {},
+  showOnlyMunicipios: () => {}, clearThematicLayers: () => {}, moveLayer: () => {},
   toggleLayer: () => {}, setOpacity: () => {}, clearLayerError: () => {},
 }))
 vi.mock('@/lib/mapa/store', () => ({
@@ -25,8 +22,6 @@ vi.mock('@/lib/mapa/store', () => ({
 
 import Sidebar from '@/components/mapa/Sidebar'
 
-state.themeOrder = DEFAULT_THEME_ORDER
-state.subthemeOrder = DEFAULT_SUBTHEME_ORDER
 const markup = renderToStaticMarkup(createElement(Sidebar, {
   theme: buildSiteTheme(), infoId: null, onInfo: () => {}, onCollapse: () => {},
 }))
