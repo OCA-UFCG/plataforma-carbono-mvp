@@ -28,6 +28,39 @@ describe('setLayerVisibility', () => {
     expect(territorial.find((layer) => layer.id === 'bioma')?.visible).toBe(true)
     expect(territorial.find((layer) => layer.id === 'estados')?.visible).toBe(true)
   })
+
+  describe('with overlays', () => {
+    const relevo: LayerConfig[] = [
+      { id: 'hillshade', name: 'Hillshade', type: 'raster', visible: false, opacity: 40, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo', overlay: true },
+      { id: 'altitude', name: 'Altitude', type: 'raster', visible: true, opacity: 80, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo' },
+      { id: 'declividade', name: 'Declividade', type: 'raster', visible: false, opacity: 80, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo' },
+    ]
+    const visibilityOf = (list: LayerConfig[]) =>
+      Object.fromEntries(list.map((layer) => [layer.id, layer.visible]))
+
+    it('combines an overlay with the layer on', () => {
+      expect(visibilityOf(setLayerVisibility(relevo, 'hillshade', true)))
+        .toEqual({ hillshade: true, altitude: true, declividade: false })
+    })
+
+    it('keeps the overlay on when the other layers replace each other', () => {
+      const shaded = setLayerVisibility(relevo, 'hillshade', true)
+      expect(visibilityOf(setLayerVisibility(shaded, 'declividade', true)))
+        .toEqual({ hillshade: true, altitude: false, declividade: true })
+    })
+  })
+
+  it('makes Altitude and Declividade exclusive and lets the hillshades combine with them', () => {
+    const catalog = useStore.getState().layers
+    const on = (list: LayerConfig[]) => list.filter((layer) => layer.visible).map((layer) => layer.id).sort()
+    let updated = setLayerVisibility(catalog, 'altitude_fabdem', true)
+    updated = setLayerVisibility(updated, 'hillshade_fabdem', true)
+    updated = setLayerVisibility(updated, 'sombreado_terreno', true)
+    updated = setLayerVisibility(updated, 'declividade_fabdem', true)
+
+    const relevoOn = on(updated).filter((id) => catalog.find((layer) => layer.id === id)?.subtheme === 'relevo')
+    expect(relevoOn).toEqual(['declividade_fabdem', 'hillshade_fabdem', 'sombreado_terreno'])
+  })
 })
 
 describe('hideThematicLayers', () => {

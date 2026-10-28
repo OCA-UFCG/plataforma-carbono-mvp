@@ -96,6 +96,10 @@ export interface RasterLayerConfig {
   // and not a quantity: it gets no result card, and on its own it gives a
   // click nothing to measure (lib/mapa/analysisTargets.ts).
   analysis?: false
+  // Combined with the layers of an exclusive subtheme instead of replacing
+  // them (lib/mapa/store.ts), and drawn above them (lib/mapa/layerOrder.ts):
+  // the Relevo hillshades, laid over altitude or slope.
+  overlay?: true
   // Left out of the map panel for now (lib/mapa/store.ts): set aside, or not
   // released yet. Deleting the flag brings the layer back.
   hidden?: true

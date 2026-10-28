@@ -8,6 +8,25 @@
   },
   "layers": [
     {
+      "id": "areas_monitoramento",
+      "name": "Áreas de Monitoramento",
+      "unitName": "Área de monitoramento",
+      "type": "vector",
+      "url": "/data/vector/areas_monitoramento.geojson",
+      "visible": false,
+      "opacity": 100,
+      "color": "#D62828",
+      "hoverLabelField": "nome",
+      "pickPriority": 60,
+      "theme": "localidades",
+      "subtheme": "monitoramento",
+      "pulse": true,
+      "model": {
+        "url": "/models/torre.glb",
+        "height": 22
+      }
+    },
+    {
       "id": "bioma",
       "name": "Bioma Caatinga",
       "unitName": "Bioma",
@@ -127,25 +146,6 @@
       "pickPriority": 30,
       "theme": "territorio",
       "subtheme": "unidades_conservacao"
-    },
-    {
-      "id": "areas_monitoramento",
-      "name": "Áreas de Monitoramento",
-      "unitName": "Área de monitoramento",
-      "type": "vector",
-      "url": "/data/vector/areas_monitoramento.geojson",
-      "visible": false,
-      "opacity": 100,
-      "color": "#D62828",
-      "hoverLabelField": "nome",
-      "pickPriority": 60,
-      "theme": "localidades",
-      "subtheme": "monitoramento",
-      "pulse": true,
-      "model": {
-        "url": "/models/torre.glb",
-        "height": 22
-      }
     },
     {
       "id": "estoque_carbono",
@@ -1433,6 +1433,7 @@
         230
       ],
       "analysis": false,
+      "overlay": true,
       "theme": "ambiente",
       "subtheme": "relevo"
     },
@@ -1448,6 +1449,7 @@
       "opacity": 70,
       "colorType": "continuous",
       "analysis": false,
+      "overlay": true,
       "theme": "ambiente",
       "subtheme": "relevo"
     },

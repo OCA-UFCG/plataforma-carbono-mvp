@@ -7,9 +7,10 @@ import type { LayerConfig } from '@/types/mapa'
  * (layers[0] is drawn on top): the recortes first, in layers.json order, then
  * the rasters by the user's theme order, then subtheme order. Recortes have to
  * sit above the rasters: a click resolves to a recorte and measures the rasters
- * under it (`clickableRecortes`). Every thematic subtheme but Relevo is
- * exclusive, so ordering subthemes orders the visible rasters; inside Relevo
- * the layers.json order decides.
+ * under it (`clickableRecortes`). Every thematic subtheme is exclusive, so
+ * ordering subthemes orders the visible rasters. The one combination inside a
+ * subtheme is an `overlay` layer (a Relevo hillshade) over altitude or slope,
+ * and overlays sort first in their subtheme, so it draws on top.
  *
  * Every function returns the same array when nothing changes, so the store does
  * not notify, re-render or re-persist for a no-op.
@@ -41,7 +42,13 @@ function rank(order: readonly string[] | undefined, id: string | undefined): num
   return index === -1 ? Number.MAX_SAFE_INTEGER : index
 }
 
-/** The draw order: vectors in catalog order, then rasters by theme, subtheme and catalog. */
+// Overlays sort ahead of the other layers of their subtheme, so they draw above them.
+const overlayFirst = (layer: LayerConfig) => (layer.type === 'raster' && layer.overlay ? 0 : 1)
+
+/**
+ * The draw order: vectors in catalog order, then rasters by theme, subtheme,
+ * overlays first, and catalog.
+ */
 export function applyGroupOrder(
   layers: LayerConfig[],
   themeOrder: string[],
@@ -54,6 +61,7 @@ export function applyGroupOrder(
   const rasters = layers.filter((layer) => layer.type === 'raster').sort((a, b) =>
     rank(themeOrder, a.theme) - rank(themeOrder, b.theme) ||
     rank(subthemeOrder[a.theme ?? ''], a.subtheme) - rank(subthemeOrder[b.theme ?? ''], b.subtheme) ||
+    overlayFirst(a) - overlayFirst(b) ||
     byCatalog(a) - byCatalog(b),
   )
   const out = [...vectors, ...rasters]

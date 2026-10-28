@@ -53,9 +53,9 @@ export const THEMES: ThemeInfo[] = [
     subthemes: [
       { id: 'vegetacao', label: 'Índices de vegetação', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
-      // The one thematic exception, so the hillshade can be combined with
-      // altitude or slope; layers.json order sets which one is drawn on top.
-      { id: 'relevo', label: 'Relevo', exclusive: false, terrain: true },
+      // Altitude and slope replace each other; the hillshades are `overlay`
+      // layers, combined with either and drawn above them.
+      { id: 'relevo', label: 'Relevo', exclusive: true, terrain: true },
     ],
   },
   {
