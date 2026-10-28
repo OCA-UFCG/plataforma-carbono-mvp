@@ -12,7 +12,12 @@ import 'server-only'
 
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { getReportLayer, MAX_REPORT_LAYERS, REPORT_LAYERS } from '@/config/mapa/reportLayers'
+import {
+  currentReportLayerId,
+  getReportLayer,
+  MAX_REPORT_LAYERS,
+  REPORT_LAYERS,
+} from '@/config/mapa/reportLayers'
 import { getEe, initGee } from '@/lib/mapa/geeAuth'
 import { getFeicao } from '@/lib/mapa/recorteRegistry'
 import { buildNarrative } from '@/lib/mapa/reportNarrative'
@@ -113,7 +118,7 @@ export function buildReportShell(input: {
     throw new ReportBadRequestError('No layer was selected.')
   }
 
-  const deduped = [...new Set(layerIds)]
+  const deduped = [...new Set(layerIds.map(currentReportLayerId))]
   if (deduped.length > MAX_REPORT_LAYERS) {
     throw new ReportBadRequestError(
       `At most ${MAX_REPORT_LAYERS} layers can be selected.`,
@@ -228,9 +233,9 @@ export async function buildReportAnalysis(input: {
         region: {
           kind:     'zonal',
           geometry: feicao.geometry,
-          // A floor, never a fixed value: it can only coarsen. CHIRPS is
-          // natively 5566 m, and a literal 300 there would resample finer than
-          // the data for no gain.
+          // A floor, never a fixed value: it can only coarsen. BR-DWGD is
+          // natively 0.1° (11131.78 m), and a literal 300 there would resample
+          // finer than the data for no gain.
           scale:    Math.max(config.seriesScale ?? 0, asset.scale ?? 500),
         },
       })

@@ -11,6 +11,7 @@ vi.mock('@/lib/mapa/geeImage', async (importOriginal) => ({
   buildEeImage: mocks.buildEeImage,
 }))
 
+import appConfig from '@/config/mapa/layers.json'
 import { anosDoIntervalo, computeSeries, MAX_ANOS } from '@/lib/mapa/zonalSeries'
 
 /** Self-returning stub; see the note in tests/lib/zonalStats.test.ts. */
@@ -48,6 +49,14 @@ describe('anosDoIntervalo', () => {
     expect(anosDoIntervalo(['2023-01-01', '2020-01-01'])).toBeNull()
     expect(anosDoIntervalo(['1900-01-01', '2100-01-01'])).toBeNull()
     expect(anosDoIntervalo([`${2000}-01-01`, `${2000 + MAX_ANOS}-01-01`])).toBeNull()
+  })
+
+  it('accepts the range of every temporal layer, so a point click gets its series', () => {
+    const ranges = (appConfig.layers as { id: string; gee?: { temporal?: { dateRange?: string[] } } }[])
+      .filter((l) => l.gee?.temporal?.dateRange)
+      .map((l) => [l.id, anosDoIntervalo(l.gee!.temporal!.dateRange)] as const)
+    expect(ranges.filter(([, anos]) => anos === null).map(([id]) => id)).toEqual([])
+    expect(anosDoIntervalo(['1961-01-01', '2025-01-01'])).toHaveLength(65)
   })
 })
 
