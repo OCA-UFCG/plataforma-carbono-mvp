@@ -1,16 +1,26 @@
-/* The "Legendas" card, Figma 19428:58419: 302px wide, 24px above the map's
- * bottom edge and as far from its right edge as the controls above it. */
-
-.legend {
+/* The corner column: the time slider (TemporalSlider.tsx) over the legend,
+ * 24px above the map's bottom edge and as far from its right edge as the
+ * controls above it. */
+.stack {
   position: absolute;
   bottom: 24px;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  width: 302px;
+  align-items: flex-end;
+  gap: 16px;
   /* Clear of the control stack, which ends at the basemap button 364px down
-   * the map, with 16px between them; a long legend scrolls instead. */
-  max-height: max(160px, calc(100% - 404px));
+   * the map, with 16px between them; a long legend scrolls instead. The
+   * floor is the legend's own 160px plus the slider's 72px and the gap. */
+  max-height: max(248px, calc(100% - 404px));
+}
+
+/* The "Legendas" card, Figma 19428:58419: 302px wide. */
+.legend {
+  display: flex;
+  flex-direction: column;
+  width: 302px;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--bg-borda);
   border-radius: var(--radius);

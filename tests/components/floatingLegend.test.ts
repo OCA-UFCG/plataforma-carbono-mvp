@@ -37,12 +37,12 @@ describe('FloatingLegend', () => {
     expect(markup).toContain('Bioma Caatinga')
   })
 
-  it('carries the year control of a temporal layer at its top', () => {
+  it('stacks the year control above the card, outside what folding hides', () => {
     state.layers = [bioma, estoque]
-    const markup = render()
-    expect(markup).toMatch(/<input [^>]*type="range"[^>]*aria-label="Ano de Estoque total"/)
-    // The control comes before the entries it dates.
-    expect(markup.indexOf('type="range"')).toBeLessThan(markup.indexOf('Bioma Caatinga'))
+    const m = render()
+    expect(m).toMatch(/<input [^>]*type="range"[^>]*aria-label="Ano de Estoque total"/)
+    expect(m.indexOf('type="range"')).toBeLessThan(m.indexOf('Legendas'))
+    expect(m.indexOf('type="range"')).toBeLessThan(m.indexOf('id="legenda-conteudo"'))
   })
 
   it('has no year control without a temporal layer', () => {
