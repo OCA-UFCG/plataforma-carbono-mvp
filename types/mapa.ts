@@ -21,6 +21,10 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // The only properties the search matches, for a layer whose features carry
+  // free text beside their name (the citations and soils of the monitoring
+  // sites). Without it the search matches every string property.
+  searchFields?: string[]
   // Point layer drawn as a sonar: a larger dot with a ring pulsing around it,
   // and a round swatch in the legend.
   pulse?: true
@@ -98,6 +102,10 @@ export interface RasterLayerConfig {
   // and not a quantity: it gets no result card, and on its own it gives a
   // click nothing to measure (lib/mapa/analysisTargets.ts).
   analysis?: false
+  // Combined with the layers of an exclusive subtheme instead of replacing
+  // them (lib/mapa/store.ts), and drawn above them (lib/mapa/layerOrder.ts):
+  // the Relevo hillshades, laid over altitude or slope.
+  overlay?: true
   // Left out of the map panel for now (lib/mapa/store.ts): set aside, or not
   // released yet. Deleting the flag brings the layer back.
   hidden?: true
@@ -115,7 +123,9 @@ export interface RasterLayerConfig {
   source?: 'titiler' | 'gee' | 'dem'
   // `source: 'dem'`: elevation tiles (TileJSON) that MapLibre shades by itself,
   // with no GEE request. The same tiles feed the 3D terrain.
-  dem?: { url: string }
+  // `maxzoom` is the deepest zoom the tiles exist at, for a TileJSON that does
+  // not declare it: MapLibre would assume 22 and request tiles that 404.
+  dem?: { url: string; maxzoom?: number }
   clipToLayerId?: string         // vector layer id whose bbox clips the GEE image
   gee?: {
     asset: {

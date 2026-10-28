@@ -42,14 +42,18 @@ export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 // The user's draw order, and `layers` sorted by it from the first render on.
 const ordemCamadas = restaurado?.layerOrder ?? DEFAULT_LAYER_ORDER
 
+const isOverlay = (layer: LayerConfig) => layer.type === 'raster' && layer.overlay === true
+
 export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
   const selected = layers.find((layer) => layer.id === id)
   if (!selected) return layers
 
-  const exclusive = visible && isExclusiveSubtheme(selected.theme, selected.subtheme)
+  // An overlay (a hillshade) neither replaces nor is replaced by the layer it
+  // is laid over; only the layers that are not overlays exclude each other.
+  const exclusive = visible && !isOverlay(selected) && isExclusiveSubtheme(selected.theme, selected.subtheme)
   return layers.map((layer) => {
     if (layer.id === id) return { ...layer, visible }
-    if (exclusive && layer.theme === selected.theme && layer.subtheme === selected.subtheme) {
+    if (exclusive && !isOverlay(layer) && layer.theme === selected.theme && layer.subtheme === selected.subtheme) {
       return { ...layer, visible: false }
     }
     return layer

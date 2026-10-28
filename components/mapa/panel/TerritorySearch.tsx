@@ -57,6 +57,7 @@ export default function TerritorySearch({ onSelect }: {
             layerId: layer.id,
             unitName: layer.unitName ?? layer.name,
             contextField: field,
+            searchFields: layer.searchFields,
             features: geojson.features,
             // Derived from the file rather than declared: on the states layer
             // the abbreviation is one per feature and typing "RN" should find

@@ -12,6 +12,9 @@ import type { LayerConfig } from '@/types/mapa'
  * (`clickableRecortes`). Which recorte a click picks is `pickPriority`'s call,
  * not this order's.
  *
+ * By default an `overlay` layer (a Relevo hillshade) draws above the other
+ * layers of its subtheme (`overlayFirst`); the reader can drag it below.
+ *
  * Until the redesign the user ordered themes and subthemes instead. That order
  * is kept below only to translate a state saved back then
  * (`layerOrderFromGroups`), so whoever returns finds the layers drawn as they
@@ -66,10 +69,14 @@ export function applyLayerOrder(
   return out.every((layer, index) => layer === layers[index]) ? layers : out
 }
 
+// Overlays sort ahead of the other layers of their subtheme, so they draw above them.
+const overlayFirst = (layer: LayerConfig) => (layer.type === 'raster' && layer.overlay ? 0 : 1)
+
 /**
  * The draw order the theme and subtheme order gave: vectors in catalog
- * order, then thematic layers by theme, subtheme and catalog. Kept for
- * migrating a saved state (`layerOrderFromGroups`) and for the default order.
+ * order, then thematic layers by theme, subtheme, overlays first and
+ * catalog. Kept for migrating a saved state (`layerOrderFromGroups`) and for
+ * the default order.
  */
 export function applyGroupOrder(
   layers: LayerConfig[],
@@ -83,6 +90,7 @@ export function applyGroupOrder(
   const rasters = layers.filter((layer) => layer.type !== 'vector').sort((a, b) =>
     rank(themeOrder, a.theme) - rank(themeOrder, b.theme) ||
     rank(subthemeOrder[a.theme ?? ''], a.subtheme) - rank(subthemeOrder[b.theme ?? ''], b.subtheme) ||
+    overlayFirst(a) - overlayFirst(b) ||
     byCatalog(a) - byCatalog(b),
   )
   const out = [...vectors, ...rasters]

@@ -14,6 +14,12 @@ export interface SearchSource {
   unitName: string
   /** Property that tells homonymous features apart (a municipality's state). */
   contextField?: string
+  /**
+   * The only properties to match, for a layer whose features carry free text
+   * beside their name (the citations and soils of the monitoring sites).
+   * Without it every text property matches.
+   */
+  searchFields?: string[]
   features: GeoJSON.Feature[]
   /** Whether a bare context is a legitimate query for this layer ("RN"). */
   contextIdentifies: boolean
@@ -78,6 +84,8 @@ export function searchTerritories(query: string, sources: SearchSource[], max = 
         // listing it would put one row per municipality of a whole state
         // under the heading "abbrev_state".
         if (key === source.contextField || CODE_FIELD.test(key)) continue
+        // A citation or a soil type is not a place to go to.
+        if (source.searchFields && !source.searchFields.includes(key)) continue
         if (typeof raw !== 'string' || raw === '') continue
         const match = matchTerritory(q, raw, context, { contextIdentifies: source.contextIdentifies })
         if (!match) continue

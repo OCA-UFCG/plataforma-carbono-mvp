@@ -62,6 +62,12 @@ describe('applyGroupOrder', () => {
     expect(ids(out)).toEqual(['b1', 'b1bis'])
   })
 
+  it('draws an overlay above the other layers of its subtheme, wherever the catalog lists it', () => {
+    const shade = { ...raster('shade', 'B', 's1'), overlay: true } as LayerConfig
+    const out = applyGroupOrder([b1, a1, shade, b1bis], ['B', 'A'], { A: ['s1'], B: ['s1'] }, [...catalog, shade])
+    expect(ids(out)).toEqual(['shade', 'b1', 'b1bis', 'a1'])
+  })
+
   it('returns the same array when the order already holds', () => {
     const layers = [bioma, estados, a1, a2, b1]
     expect(applyGroupOrder(layers, ['A', 'B'], { A: ['s1', 's2'], B: ['s1'] }, catalog)).toBe(layers)
@@ -86,6 +92,16 @@ describe('applyGroupOrder', () => {
     for (const layer of once.filter((l) => l.type !== 'vector')) {
       expect(DEFAULT_THEME_ORDER).toContain(layer.theme)
       expect(DEFAULT_SUBTHEME_ORDER[layer.theme!]).toContain(layer.subtheme)
+    }
+  })
+
+  it('draws the monitoring sites above the polygon recortes and the hillshades above altitude and slope', () => {
+    const order = ids(applyGroupOrder(appConfig.layers as LayerConfig[], DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER))
+    const above = (top: string, below: string) => expect(order.indexOf(top), `${top} over ${below}`).toBeLessThan(order.indexOf(below))
+    above('areas_monitoramento', 'bioma')
+    for (const overlay of ['hillshade_fabdem', 'sombreado_terreno']) {
+      above(overlay, 'altitude_fabdem')
+      above(overlay, 'declividade_fabdem')
     }
   })
 })
@@ -190,7 +206,7 @@ describe('layerOrderFromGroups', () => {
 
   it('keeps the recortes first, in catalog order, as that order drew them', () => {
     const order = layerOrderFromGroups(['uso_solo', 'carbono', 'ambiente', 'localidades'], DEFAULT_SUBTHEME_ORDER)
-    expect(order.slice(0, 3)).toEqual(['bioma', 'estados', 'municipios'])
+    expect(order.slice(0, 3)).toEqual(['areas_monitoramento', 'bioma', 'estados'])
   })
 })
 
@@ -205,7 +221,7 @@ describe('sanitizeLayerOrder', () => {
     expect(out[0]).toBe('municipios')
     expect(out).not.toContain('gone')
     expect(out).toHaveLength(DEFAULT_LAYER_ORDER.length)
-    expect(out.indexOf('bioma')).toBe(1)
+    expect(out.slice(1)).toEqual(DEFAULT_LAYER_ORDER.filter((id) => id !== 'municipios'))
   })
 
   it('falls back to the default for anything that is not a list', () => {
