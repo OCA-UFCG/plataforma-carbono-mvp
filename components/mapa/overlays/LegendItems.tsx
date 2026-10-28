@@ -1,8 +1,8 @@
-import type { CSSProperties } from 'react'
 import { describeFlux, fluxInk, zeroPosition } from '@/lib/mapa/carbonFlux'
 import { dataRangeFor } from '@/lib/mapa/dataRange'
 import { anoEmissoes, nivelEmissoes, rotulosClasses, type EmissoesEntry } from '@/lib/emissoes/mapa'
 import type { EmissionsLayerConfig, LayerConfig, PlatformTheme, VectorLayerConfig, RasterLayerConfig } from '@/types/mapa'
+import styles from './LegendItems.module.css'
 
 // Legend entries shared by the floating legend and the JPEG's sheet. They take
 // everything from props, store included, so the off-screen sheet renders the
@@ -11,7 +11,7 @@ import type { EmissionsLayerConfig, LayerConfig, PlatformTheme, VectorLayerConfi
 // Vector layer: single color swatch + name
 
 export function VectorLegendItem({
-  layer, theme, still = false,
+  layer, still = false,
 }: {
   layer: VectorLayerConfig
   theme: PlatformTheme
@@ -20,35 +20,16 @@ export function VectorLegendItem({
 }) {
   const pulsing = layer.pulse && !still
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={styles.row}>
       <span
-        className={pulsing ? 'legend-sonar' : undefined}
+        className={`${styles.swatch} ${layer.pulse ? styles.point : ''} ${pulsing ? 'legend-sonar' : ''}`}
         style={{
-          width: 13,
-          height: 13,
-          borderRadius: layer.pulse ? '50%' : 3,
-          flexShrink: 0,
           background: layer.color,
           border: `1px solid ${pulsing ? '#fff' : layer.color}`,
           color: layer.color,
         }}
       />
-      <span
-        style={{
-          fontSize: 14.5,
-          fontWeight: 600,
-          color: theme.colors.text,
-          // Wraps instead of truncating: the legend is 256px wide and the
-          // longer names ("Territórios Quilombolas") lost their tail to an
-          // ellipsis, which is the one place the reader checks what is on.
-          minWidth: 0,
-          overflowWrap: 'anywhere',
-          lineHeight: 1.3,
-        }}
-        title={layer.name}
-      >
-        {layer.name}
-      </span>
+      <span className={`${styles.label} text-ui-badge`} title={layer.name}>{layer.name}</span>
     </div>
   )
 }
@@ -66,40 +47,15 @@ export function RasterLegendItem({
   const hasClasses = layer.classes && layer.classes.length > 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      {/* Layer name, uppercase eyebrow (handoff) */}
-      <span
-        style={{
-          fontSize: 11.5,
-          fontWeight: 800,
-          letterSpacing: '.08em',
-          textTransform: 'uppercase',
-          color: theme.colors.textDim,
-          // Same reason as the vector item, and worse here: uppercase plus
-          // letter-spacing costs width, so "BIOMASSA ACIMA DO SOLO (QUARTO
-          // INVENTÁRIO)" was cut roughly in half.
-          overflowWrap: 'anywhere',
-          lineHeight: 1.4,
-        }}
-        title={layer.name}
-      >
-        {layer.name}
-      </span>
+    <div className={styles.item}>
+      <span className={`${styles.label} text-ui-badge`} title={layer.name}>{layer.name}</span>
 
       {/* Categorical classes */}
       {hasClasses &&
         layer.classes!.map((cls) => (
-          <div key={cls.value} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span
-              style={{
-                width: 13,
-                height: 13,
-                borderRadius: 3,
-                flexShrink: 0,
-                background: cls.color,
-              }}
-            />
-            <span style={{ fontSize: 14, fontWeight: 500, color: theme.colors.text }}>{cls.label}</span>
+          <div key={cls.value} className={styles.row}>
+            <span className={styles.swatch} style={{ background: cls.color }} />
+            <span className={`${styles.label} text-ui-badge`}>{cls.label}</span>
           </div>
         ))}
 
@@ -139,13 +95,6 @@ function ContinuousLegend({
   const fmt = (n: number) =>
     n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 
-  const endStyle: CSSProperties = {
-    fontSize: 11.5,
-    fontWeight: 700,
-    color: theme.colors.caption,
-    fontVariantNumeric: 'tabular-nums',
-  }
-
   // A signed flux crosses zero somewhere along the bar, and that crossing is
   // the whole reading: left of it the area removed carbon, right of it it
   // emitted. So the ends lose the minus sign and name their direction, and a
@@ -156,64 +105,33 @@ function ContinuousLegend({
   const zero = signed ? zeroPosition(min, max) : null
 
   return (
-    <div style={{ marginLeft: 0 }}>
-      <div style={{ position: 'relative', height: 9, borderRadius: 99, background: gradient }}>
+    <>
+      <div className={styles.ramp} style={{ background: gradient }}>
         {zero !== null && (
           <span
             aria-hidden
             title="Equilíbrio: nem emissão nem sequestro"
-            style={{
-              position: 'absolute',
-              left: `${zero * 100}%`,
-              top: -2,
-              width: 1.5,
-              height: 13,
-              background: theme.colors.text,
-              opacity: 0.55,
-            }}
+            className={styles.zero}
+            style={{ left: `${zero * 100}%` }}
           />
         )}
       </div>
       {signed ? (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 4,
-            marginTop: 2,
-          }}
-        >
+        <div className={`${styles.ends} text-ui-badge`}>
           <FluxEnd value={low!} theme={theme} format={fmt} align="left" />
-          {layer.unit && (
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
-              {layer.unit}
-            </span>
-          )}
+          {layer.unit && <span className={styles.unit}>{layer.unit}</span>}
           <FluxEnd value={high!} theme={theme} format={fmt} align="right" />
         </div>
       ) : (
         (low != null || high != null || layer.unit) && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              gap: 4,
-              marginTop: 2,
-            }}
-          >
-            <span style={endStyle}>{low != null ? fmt(low) : ''}</span>
-            {layer.unit && (
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, textAlign: 'center' }}>
-                {layer.unit}
-              </span>
-            )}
-            <span style={endStyle}>{high != null ? fmt(high) : ''}</span>
+          <div className={`${styles.ends} text-ui-badge`}>
+            <span>{low != null ? fmt(low) : ''}</span>
+            {layer.unit && <span className={styles.unit}>{layer.unit}</span>}
+            <span>{high != null ? fmt(high) : ''}</span>
           </div>
         )
       )}
-    </div>
+    </>
   )
 }
 
@@ -233,13 +151,9 @@ function FluxEnd({
   const ink = fluxInk(flux.direction, theme.colors)
 
   return (
-    <span style={{ display: 'flex', flexDirection: 'column', alignItems: align === 'left' ? 'flex-start' : 'flex-end' }}>
-      <span style={{ fontSize: 11.5, fontWeight: 700, color: ink, fontVariantNumeric: 'tabular-nums' }}>
-        {format(flux.magnitude)}
-      </span>
-      {flux.noun && (
-        <span style={{ fontSize: 11, fontWeight: 700, color: ink }}>{flux.noun}</span>
-      )}
+    <span className={styles.fluxEnd} data-align={align} style={{ color: ink }}>
+      <span>{format(flux.magnitude)}</span>
+      {flux.noun && <span>{flux.noun}</span>}
     </span>
   )
 }
@@ -250,7 +164,7 @@ function FluxEnd({
 const intensidadeFmt = new Intl.NumberFormat('pt-BR', { maximumSignificantDigits: 3 })
 
 export function EmissionsLegendItem({
-  layer, theme, temporalDate, layers, emissoes, layerErrors = {},
+  layer, temporalDate, layers, emissoes, layerErrors = {},
 }: {
   layer: EmissionsLayerConfig
   theme: PlatformTheme
@@ -268,48 +182,35 @@ export function EmissionsLegendItem({
   const valorBioma = payload && nivel?.nivel === 'bioma'
     ? payload.valores.bioma.bioma?.[payload.anos.indexOf(ano)]
     : undefined
-  const caption = { fontSize: 11.5, fontWeight: 700, color: theme.colors.caption, lineHeight: 1.3 }
+  const note = `${styles.note} text-ui-badge`
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span
-        style={{
-          fontSize: 11.5,
-          fontWeight: 800,
-          letterSpacing: '.08em',
-          textTransform: 'uppercase',
-          color: theme.colors.textDim,
-          overflowWrap: 'anywhere',
-          lineHeight: 1.4,
-        }}
-        title={layer.name}
-      >
-        {layer.name}
-      </span>
+    <div className={styles.item}>
+      <span className={`${styles.label} text-ui-badge`} title={layer.name}>{layer.name}</span>
 
       {!nivel ? (
-        <span style={caption}>Ative Bioma Caatinga, Estados ou Municípios para ver este dado.</span>
+        <span className={note}>Ative Bioma Caatinga, Estados ou Municípios para ver este dado.</span>
       ) : erroRecorte ? (
-        <span style={caption}>{erroRecorte}</span>
+        <span className={note}>{erroRecorte}</span>
       ) : entry?.status === 'error' ? (
-        <span style={caption}>Os valores não carregaram; desligue e ligue a camada para tentar de novo.</span>
+        <span className={note}>Os valores não carregaram; desligue e ligue a camada para tentar de novo.</span>
       ) : !payload ? (
-        <span style={{ ...caption, opacity: 0.75 }}>Carregando…</span>
+        <span className={note}>Carregando…</span>
       ) : (
         <>
-          <span style={caption}>{nivel.recorte.name}, {ano}</span>
+          <span className={note}>{nivel.recorte.name}, {ano}</span>
           {valorBioma != null && (
-            <span style={{ fontSize: 14, fontWeight: 700, color: theme.colors.text }}>
+            <span className={`${styles.value} text-p-ui-semibold`}>
               {intensidadeFmt.format(valorBioma)} {layer.unit}
             </span>
           )}
           {rotulosClasses(payload.classes).map((label, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 13, height: 13, borderRadius: 3, flexShrink: 0, background: payload.classes.cores[i] }} />
-              <span style={{ fontSize: 14, fontWeight: 500, color: theme.colors.text }}>{label}</span>
+            <div key={i} className={styles.row}>
+              <span className={styles.swatch} style={{ background: payload.classes.cores[i] }} />
+              <span className={`${styles.label} text-ui-badge`}>{label}</span>
             </div>
           ))}
-          <span style={{ fontSize: 12, color: theme.colors.textDim }}>{layer.unit}</span>
+          <span className={note}>{layer.unit}</span>
         </>
       )}
     </div>
