@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { IcSearch } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
@@ -28,13 +27,12 @@ export default function Mapa() {
   // Same condition ResultsSidebar renders on: any measurement/stat content OR
   // an active raster (which shows the onboarding hint).
   const drawnArea   = useStore((s) => s.drawnArea)
-  const drawnLength = useStore((s) => s.drawnLength)
   const results     = useStore((s) => s.results)
   const layers      = useStore((s) => s.layers)
 
   // Same predicate ResultsSidebar renders on -- shared, because two copies of
   // it is what let the panel and the controls disagree about being open.
-  const resultsHasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
+  const resultsHasContent = hasAnalysisContent({ drawnArea, results, layers })
   const activeRaster = layers.some(isMeasuredRaster)
   const resultsVisible = resultsHasContent || activeRaster
 
@@ -48,13 +46,17 @@ export default function Mapa() {
     if (!resultsVisible) setResultsCollapsed(false)
   }
 
-  // The results panel's X. Over a recorte selection it does what a click on
-  // empty map does: the highlight, the spotlight and the results go, and the
-  // panel is left with what that click leaves (the hint, or nothing). A
-  // drawing, which only "Limpar" clears, and the hint have nothing to drop, so
-  // there the X collapses the panel. MapView fills the ref: it holds the draw
-  // instance, the only reliable answer to whether a drawing is on the map.
+  // The results panel's X, and the X of the panel's card in focus over a
+  // feature. Over a recorte selection it does what a click on empty map does:
+  // the highlight, the spotlight and the results go, and the panel is left
+  // with what that click leaves (the hint, or nothing). A drawing, which only
+  // the card's X clears, and the hint have nothing to drop, so there the
+  // results panel's X collapses the panel. MapView fills the ref: it holds the
+  // draw instance, the only reliable answer to whether a drawing is on the map.
   const dismissSelectionRef = useRef<(() => boolean) | null>(null)
+  // A result picked in the panel's search, selected on the map as a click
+  // would select it. MapView fills it: the selection lives there.
+  const selectFeatureRef = useRef<((layerId: string, featureId: number, bbox: [number, number, number, number]) => void) | null>(null)
   // Snapshot of the map for the results panel's JPEG. MapView fills it: only
   // it holds the map instance.
   const captureMapRef = useRef<(() => Promise<string | null>) | null>(null)
@@ -143,6 +145,8 @@ export default function Mapa() {
             theme={theme}
             infoId={infoId}
             onInfo={toggleInfo}
+            onSelectFeature={(layerId, featureId, bbox) => selectFeatureRef.current?.(layerId, featureId, bbox)}
+            onDismissSelection={() => { dismissSelectionRef.current?.() }}
           />
         )}
 
@@ -166,6 +170,7 @@ export default function Mapa() {
             leftEdge={MAP_INSET}
             rightOffset={MAP_INSET}
             dismissSelectionRef={dismissSelectionRef}
+            selectFeatureRef={selectFeatureRef}
             captureMapRef={captureMapRef}
           />
 
@@ -188,19 +193,6 @@ export default function Mapa() {
               height={16}
               style={panelOpen ? undefined : { transform: 'scaleX(-1)' }}
             />
-          </button>
-
-          {/* Provisional: the old map header was the only way into the search,
-              and the redesign moves it into the panel (issue #141). Until then
-              it opens from here, under the "‹". */}
-          <button
-            className="mapa-edge-button ui-press"
-            onClick={() => window.dispatchEvent(new CustomEvent('cc-open-search'))}
-            aria-label="Buscar município, estado ou território"
-            title="Buscar município, estado ou território"
-            style={{ top: 62 }}
-          >
-            <IcSearch size={16} />
           </button>
 
           {/* "Resultado" (Figma 19423:58080), 26px under the header, shows

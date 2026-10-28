@@ -21,11 +21,9 @@ import type { LayerConfig, RasterLayerConfig, VectorLayerConfig } from '@/types/
 // Portuguese list with "ou": "Bioma Caatinga ou Municípios".
 const recorteList = new Intl.ListFormat('pt-BR', { style: 'long', type: 'disjunction' })
 
-// Every branch of the hint ends the same way: the drawing tools are the way
-// out when no recorte fits. The toolbar starts closed, so the hint names the
-// pencil button that opens it.
-const DRAW_FALLBACK =
-  'ou delimite a área com Polígono, Ponto ou Coordenadas, nas ferramentas de desenho do botão do lápis.'
+// Every branch of the hint ends the same way: the drawing buttons of the
+// panel's "Território" section are the way out when no recorte fits.
+const DRAW_FALLBACK = 'ou use "Delimitar recorte" ou "Marcar ponto", na seção Território.'
 
 /** A visible raster the results panel measures. */
 export function isMeasuredRaster(layer: LayerConfig): layer is RasterLayerConfig {
@@ -59,7 +57,7 @@ export function analysisHint(recortes: VectorLayerConfig[]): string {
   if (recortes.length === 0) {
     return (
       'Nenhum recorte territorial ativo, então o clique no mapa não tem o que selecionar. ' +
-      'Ligue um em Temas › Território › Limites de referência, ' +
+      'Escolha um em "Escolha o recorte", ' +
       DRAW_FALLBACK
     )
   }

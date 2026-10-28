@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { buildSiteTheme } from '@/config/mapa/platforms'
-import { BarList, Empty, Hero, LayerHeading, Pair } from '@/components/mapa/results/blocks'
+import { BarList, Empty, Hero, LayerHeading } from '@/components/mapa/results/blocks'
 import Donut from '@/components/mapa/results/Donut'
 
 const theme = buildSiteTheme()
@@ -32,11 +32,6 @@ describe('result blocks', () => {
     const markup = renderToStaticMarkup(createElement(Empty, { theme, text: 'Clique num município.' }))
     expect(cards(markup)).toEqual([])
     expect(markup).toContain('Clique num município.')
-  })
-
-  it('draws a lone pair of figures as its own card', () => {
-    const markup = renderToStaticMarkup(createElement(Pair, { theme, items: [{ label: 'Comprimento', value: '12,3', aside: 'km' }] }))
-    expect(cards(markup)).toEqual(['data-card="figures"'])
   })
 
   it('draws a list of bars as its own titled card (Figma 19433:60433)', () => {

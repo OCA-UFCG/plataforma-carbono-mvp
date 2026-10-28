@@ -6,7 +6,6 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol as PMTilesProtocol } from 'pmtiles'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
-import DrawRectangleMode from '@/lib/mapa/drawRectangleMode'
 
 // mapbox-gl-draw's default styles use `line-dasharray` expressions that
 // MapLibre v5 rejects (bare arrays are parsed as expressions, need
@@ -34,7 +33,6 @@ const MAPBOX_DRAW_STYLES: object[] = [
 ]
 import { area as turfArea } from '@turf/area'
 import { useStore, mapConfig } from '@/lib/mapa/store'
-import { RESULT_BUTTON_SPAN } from '@/lib/mapa/layout'
 import {
   bumpAnalysisSeq,
   currentAnalysisSeq,
@@ -43,7 +41,6 @@ import {
 import { pickMostSpecific, type VectorPickCandidate } from '@/lib/mapa/pickVector'
 import { clickableRecortes, topVisibleRasterIndex } from '@/lib/mapa/analysisTargets'
 import { vectorDataUrl } from '@/lib/mapa/vectorDataUrl'
-import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
@@ -75,8 +72,7 @@ import type {
 } from '@/types/mapa'
 import FloatingLegend from './overlays/FloatingLegend'
 import MapControls from './overlays/MapControls'
-import DrawToolbar from './overlays/DrawToolbar'
-import FloatingSearchBar from './overlays/FloatingSearchBar'
+import DrawHint from './overlays/DrawHint'
 
 // Full-feature geometry lookup
 // map.queryRenderedFeatures returns geometry CLIPPED to the tiles under the
@@ -143,31 +139,11 @@ const PULSE_MIN_RADIUS  = 7
 const PULSE_MAX_RADIUS  = 24
 const PULSE_PERIOD_MS   = 1800
 
-// Toolbar tool -> mapbox-gl-draw mode name.
+// Drawing button of the panel ("Delimitar recorte", "Marcar ponto") ->
+// mapbox-gl-draw mode name.
 const MAPBOX_DRAW_MODE: Record<Exclude<DrawMode, null>, string> = {
-  polygon:    'draw_polygon',
-  rectangle:  'draw_rectangle',
-  linestring: 'draw_line_string',
-  point:      'draw_point',
-}
-
-// Geodesic length in km for a LineString (Haversine over segments)
-
-function lineStringLengthKm(coords: number[][]): number {
-  const R = 6371 // km
-  let total = 0
-  for (let i = 1; i < coords.length; i++) {
-    const [lon1, lat1] = coords[i - 1]
-    const [lon2, lat2] = coords[i]
-    const toRad = Math.PI / 180
-    const dLat = (lat2 - lat1) * toRad
-    const dLon = (lon2 - lon1) * toRad
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) ** 2
-    total += 2 * R * Math.asin(Math.sqrt(a))
-  }
-  return total
+  polygon: 'draw_polygon',
+  point:   'draw_point',
 }
 
 // Generic: add any layer to the MapLibre map
@@ -463,15 +439,21 @@ const CAPTURE_MIN_ASPECT = 3 / 4
 
 interface MapViewProps {
   theme: PlatformTheme
-  /** left anchor (px) for panel-edge overlays (draw toolbar, scale/attr). */
+  /** left anchor (px) for panel-edge overlays (drawing hint, scale/attr). */
   leftEdge: number
   /** right offset (px) for the control cluster + legend (Results-aware). */
   rightOffset: number
   /**
    * Filled with the teardown a click on empty map runs, for the results
-   * panel's X. Returns false when there was no recorte selection to drop.
+   * panel's X and the X of the panel's card in focus. Returns false when there
+   * was no recorte selection to drop.
    */
   dismissSelectionRef: RefObject<(() => boolean) | null>
+  /**
+   * Filled with what picking a result of the panel's search does: select the
+   * feature as a click would, and bring the camera to it.
+   */
+  selectFeatureRef: RefObject<((layerId: string, featureId: number, bbox: [number, number, number, number]) => void) | null>
   /**
    * Filled with a snapshot of the map for the JPEG export: the strip between
    * the floating panels, as a PNG data URL, or null when it cannot be read.
@@ -480,7 +462,7 @@ interface MapViewProps {
   captureMapRef: RefObject<(() => Promise<string | null>) | null>
 }
 
-export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, captureMapRef }: MapViewProps) {
+export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, selectFeatureRef, captureMapRef }: MapViewProps) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -500,18 +482,17 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
     featureId: number
     bbox: [number, number, number, number]
   } | null>(null)
-  // Installs a geometry the user typed as coordinates. Assigned inside the map
-  // init effect, where the draw instance and the commit handler live, and
-  // called by the coordinate form in the draw toolbar.
-  const commitCoordinatesRef = useRef<((feature: GeoJSON.Feature) => void) | null>(null)
   // Selection teardown, assigned inside the map init effect where the draw
-  // instance lives, for the "Limpar" and "Início" effects below. The first
-  // clears the highlight and the spotlight only; the second also empties the
-  // results panel, like a click on empty map, and is what the results panel's
-  // X reaches through `dismissSelectionRef`.
+  // instance lives. The first clears the highlight and the spotlight only, for
+  // the clear-drawings effect below; the second also empties the results
+  // panel, like a click on empty map, and is what the X of the results panel
+  // and of the card in focus reach through `dismissSelectionRef`.
   const clearSelectedFeatureRef = useRef<(() => void) | null>(null)
   const dismissFeatureSelectionRef = useRef<(() => boolean) | null>(null)
   useImperativeHandle(dismissSelectionRef, () => () => dismissFeatureSelectionRef.current?.() ?? false, [])
+  useImperativeHandle(selectFeatureRef, () => (layerId, featureId, bbox) => {
+    selectFeatureFromSearchRef.current?.(layerId, featureId, bbox)
+  }, [])
   // Camera fit to a selected recorte. Requested from the init effect and run
   // by an effect, so the padding comes from the render in which the results
   // panel opened for that selection, not from the offsets before it.
@@ -568,10 +549,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   // feature does not land under them.
   const legendRef = useRef<HTMLDivElement>(null)
   const [mapReady, setMapReady] = useState(false)
-  // Draw toolbar visibility. It starts closed; the pencil in the control
-  // cluster opens and closes it, and the results hint names that pencil. On a
-  // narrow screen the tools wrap onto a second line once it is open.
-  const [drawOpen, setDrawOpen] = useState(false)
 
   const layers            = useStore((s) => s.layers)
   const drawMode          = useStore((s) => s.drawMode)
@@ -582,7 +559,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const temporalDate      = useStore((s) => s.temporalDate)
   const setDrawMode       = useStore((s) => s.setDrawMode)
   const setDrawnArea    = useStore((s) => s.setDrawnArea)
-  const setDrawnLength  = useStore((s) => s.setDrawnLength)
   const clearResults        = useStore((s) => s.clearResults)
   const setSelectedGeometry = useStore((s) => s.setSelectedGeometry)
   const setAnalysisLabel = useStore((s) => s.setAnalysisLabel)
@@ -692,20 +668,14 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
       // user layers as they are added.
       addSpotlightLayers(map)
 
-      // mapbox-gl-draw setup with MapLibre-compatible styles + custom
-      // rectangle mode. Default mode is 'simple_select' (the library's
-      // built-in idle mode); 'static' is NOT a default mode in v1.5.
+      // mapbox-gl-draw setup with MapLibre-compatible styles. Default mode is
+      // 'simple_select' (the library's built-in idle mode); 'static' is NOT a
+      // default mode in v1.5.
       const draw = new MapboxDraw({
         displayControlsDefault: false,
         controls: {},
         defaultMode: 'simple_select',
         styles: MAPBOX_DRAW_STYLES,
-        // Merge default modes with our custom draw_rectangle implementation
-        modes: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(MapboxDraw as any).modes,
-          draw_rectangle: DrawRectangleMode,
-        },
       })
       // mapbox-gl-draw expects a mapbox-gl-compatible map; maplibre-gl v5
       // satisfies enough of the API for draw operations.
@@ -731,7 +701,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
 
       // Drops a recorte selection and the results it filled, as a click on
       // empty map does. A drawing is left alone: it is committed user work,
-      // cleared through "Limpar". Returns whether there was a selection to drop.
+      // cleared through the X of the panel's card in focus (store
+      // `clearDrawings`). Returns whether there was a selection to drop.
       const dismissFeatureSelection = () => {
         const hasDrawing = draw.getAll().features.length > 0
         if (hasDrawing || !selectedFeatureRef.current) return false
@@ -739,7 +710,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         clearSelectedFeature()
         setSelectedGeometry(null)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         setAnalysisLabel(null)
         setAnalysisKind(null)
@@ -768,18 +738,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         const seq = bumpAnalysisSeq()
         useStore.getState().setDrawing(feature)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
-        // A typed geometry is announced as "Coordenadas", with the coordinate
-        // itself as the label. Both come off the feature's properties rather
-        // than from an argument, so a drawing restored from localStorage --
-        // which comes back as a bare GeoJSON feature -- keeps its chip.
-        const typed = feature.properties?.ccOrigin === COORDINATE_ORIGIN
-        setAnalysisLabel(typed ? (feature.properties?.ccLabel ?? null) : null)
-        const drawnKind = feature.geometry.type === 'Point' ? 'Ponto desenhado'
-          : feature.geometry.type === 'LineString' ? 'Linha desenhada'
-            : 'Área desenhada'
-        setAnalysisKind(typed ? 'Coordenadas' : drawnKind)
+        setAnalysisLabel(null)
+        setAnalysisKind(feature.geometry.type === 'Point' ? 'Ponto desenhado' : 'Área desenhada')
         clearSelectedFeature()
         setSelectedGeometry(null)
 
@@ -791,9 +752,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           }
           setSelectedGeometry(geom)
           runVisibleRasterAnalyses(geom, seq)
-        } else if (feature.geometry.type === 'LineString') {
-          const coords = feature.geometry.coordinates as number[][]
-          setDrawnLength(lineStringLengthKm(coords))
         } else if (feature.geometry.type === 'Point') {
           const [lon, lat] = feature.geometry.coordinates as [number, number]
           const geom: SelectedGeometry = {
@@ -808,30 +766,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
 
       map.on('draw.create', handleDrawCommit)
       map.on('draw.update', handleDrawCommit)
-
-      // Geometry typed as coordinates instead of drawn. It enters through the
-      // same commit as a drawn shape, so the measurements, the statistics,
-      // Limpar, the persisted drawing and the recompute on a temporal change
-      // all follow without a second code path. The id comes from `draw.add`
-      // and has to travel with the feature: `handleDrawCommit` clears every
-      // other feature in the buffer by comparing ids, and would wipe this one.
-      commitCoordinatesRef.current = (feature) => {
-        draw.deleteAll()
-        const [id] = draw.add(feature)
-        void handleDrawCommit({ features: [{ ...feature, id }] })
-
-        // A typed coordinate is usually outside the current view, so unlike a
-        // drawn shape it has to bring the camera with it.
-        if (feature.geometry.type === 'Point') {
-          const [lon, lat] = feature.geometry.coordinates as [number, number]
-          map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 12) })
-        } else {
-          map.fitBounds(
-            computeBbox(feature.geometry) as maplibregl.LngLatBoundsLike,
-            { padding: 60 },
-          )
-        }
-      }
 
       // Drawing from the previous session. `draw.add` does not emit `draw.create`,
       // so the handler is called by hand: restoring and drawing go down the same
@@ -854,7 +788,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           useStore.getState().setDrawing(null)
           setSelectedGeometry(null)
           setDrawnArea(null)
-          setDrawnLength(null)
           clearResults()
         }
       })
@@ -990,10 +923,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // Replace any existing drawing / measurement. Only the erase sits
         // behind the guard: the geometry is committed user work, while the
         // numbers describe the subject the click is replacing, and leaving
-        // them would caption the clicked feature with the drawing's length.
+        // them would caption the clicked feature with the drawing's area.
         if (measurable) eraseDrawing(draw)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         // Dropped until the complete geometry resolves below. Leaving the
         // previous feature in place would let the reactive effect measure it
@@ -1072,8 +1004,9 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         }
       }
 
-      // Exposed to FloatingSearchBar via a ref so it can zoom, highlight and
-      // analyse a feature from the search results dropdown.
+      // Exposed through `selectFeatureRef` to the search of the panel's
+      // Território section, so it can zoom, highlight and analyse a feature
+      // picked among its results.
       selectFeatureFromSearchRef.current = (layerId, featureId, bbox) => {
         const layer = useStore.getState().layers.find((candidate) => candidate.id === layerId)
         if (!layer || layer.type !== 'vector') return
@@ -1095,7 +1028,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         bumpAnalysisSeq()
         setSelectedGeometry(null)
         setDrawnArea(null)
-        setDrawnLength(null)
         clearResults()
         setAnalysisLabel(null)
         setAnalysisKind(null)
@@ -1192,8 +1124,8 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         if (!hit) {
           // Clicked on empty map. Dismiss the results sidebar + feature
           // highlight *only* if the current content came from a vector
-          // selection (not from a drawing tool). Drawings are explicitly
-          // cleared via the "Limpar" button in the drawing toolbar.
+          // selection (not from a drawing). Drawings are explicitly cleared
+          // through the X of the panel's card in focus.
           dismissFeatureSelection()
           return
         }
@@ -1609,16 +1541,11 @@ useEffect(() => {
     const map  = mapRef.current
     if (!draw || !map) return
 
-    const isDrawingMode =
-      drawMode === 'polygon' ||
-      drawMode === 'rectangle' ||
-      drawMode === 'linestring' ||
-      drawMode === 'point'
+    const isDrawingMode = drawMode !== null
 
     if (isDrawingMode) {
       eraseDrawing(draw)
       setDrawnArea(null)
-      setDrawnLength(null)
       // Bumped with the clear: a response still in flight would otherwise land
       // in `results` with no selection behind it, and the panel would render
       // its header and footer around nothing.
@@ -1652,16 +1579,13 @@ useEffect(() => {
     // already-correct classes.
     const container = map.getContainer()
     const MOUSE_CLASSES = ['mouse-add', 'mouse-pointer', 'mouse-move', 'mouse-none', 'mouse-drag']
-    const MODE_CLASSES  = [
-      'mode-draw_polygon', 'mode-draw_rectangle', 'mode-draw_line_string',
-      'mode-draw_point',   'mode-simple_select',  'mode-direct_select',
-    ]
+    const MODE_CLASSES  = ['mode-draw_polygon', 'mode-draw_point', 'mode-simple_select', 'mode-direct_select']
     container.classList.remove(...MOUSE_CLASSES, ...MODE_CLASSES)
     container.classList.add(`mode-${mapboxMode}`)
     if (isDrawingMode) container.classList.add('mouse-add')
-  }, [drawMode, setDrawnArea, setDrawnLength, clearResults, setSelectedGeometry])
+  }, [drawMode, setDrawnArea, clearResults, setSelectedGeometry])
 
-  // React to "Clear drawings" button
+  // React to the store's `clearDrawings`: the X of the panel's card in focus
   useEffect(() => {
     if (clearSignal === 0) return
     // The store has already emptied `results`; without this bump a reduction
@@ -1727,35 +1651,8 @@ useEffect(() => {
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {mapReady && (
         <>
-          {/* Clear of the "Resultado" button in the top-right corner too
-              (Mapa.tsx), which the search bar would otherwise run under. */}
-          <FloatingSearchBar
-            theme={theme}
-            leftEdge={leftEdge}
-            rightOffset={rightOffset + RESULT_BUTTON_SPAN}
-            onSelectFeature={(lid, fid, bbox) =>
-              selectFeatureFromSearchRef.current?.(lid, fid, bbox)
-            }
-          />
-          <MapControls
-            mapRef={mapRef}
-            rightOffset={rightOffset}
-            drawOpen={drawOpen}
-            onToggleDraw={() => {
-              setDrawOpen((v) => {
-                if (v) setDrawMode(null) // closing the toolbar cancels the tool
-                return !v
-              })
-            }}
-          />
-          <DrawToolbar
-            theme={theme}
-            leftEdge={leftEdge}
-            rightOffset={rightOffset}
-            open={drawOpen}
-            onClose={() => setDrawOpen(false)}
-            onApplyCoordinates={(feature) => commitCoordinatesRef.current?.(feature)}
-          />
+          <MapControls mapRef={mapRef} rightOffset={rightOffset} />
+          <DrawHint leftEdge={leftEdge} rightOffset={rightOffset} />
           <FloatingLegend ref={legendRef} theme={theme} rightOffset={rightOffset} />
         </>
       )}

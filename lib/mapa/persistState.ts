@@ -115,6 +115,9 @@ function restoreDrawing(stored: unknown): GeoJSON.Feature | null {
   if (!isRecord(stored)) return null
   if (stored.type !== 'Feature') return null
   if (!isRecord(stored.geometry) || typeof stored.geometry.type !== 'string') return null
+  // A line drawn before the redesign: its tool and its length left the
+  // platform (issue #136, question 2), and nothing would measure it.
+  if (stored.geometry.type === 'LineString') return null
   return stored as unknown as GeoJSON.Feature
 }
 

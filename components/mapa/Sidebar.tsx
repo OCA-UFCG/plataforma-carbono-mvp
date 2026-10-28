@@ -18,6 +18,10 @@ interface Props {
    *  column the ficha occupies. Toggling is the caller's business too. */
   infoId: string | null
   onInfo: (id: string) => void
+  /** A search result picked in the Território section; Mapa.tsx sends it to MapView. */
+  onSelectFeature: (layerId: string, featureIndex: number, bbox: [number, number, number, number]) => void
+  /** The X of the card in focus over a feature: what a click on empty map does. */
+  onDismissSelection: () => void
 }
 
 // The themes listed under "Camadas ativas", in groups.ts order. They no longer
@@ -25,7 +29,7 @@ interface Props {
 // among them: its recortes have their own section above (Figma 19423:56814).
 const LISTED_THEMES = THEMES.filter((tema) => tema.id !== TERRITORY_THEME_ID)
 
-export default function Sidebar({ theme, infoId, onInfo }: Props) {
+export default function Sidebar({ theme, infoId, onInfo, onSelectFeature, onDismissSelection }: Props) {
   const layers = useStore((s) => s.layers)
   const [query, setQuery] = useState('')
 
@@ -106,7 +110,7 @@ export default function Sidebar({ theme, infoId, onInfo }: Props) {
         {/* The recortes, the layers on, the search and the themes scroll
             together; the panel's "‹" is on its edge, in Mapa.tsx. */}
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <Territory />
+          <Territory onSelectFeature={onSelectFeature} onDismissSelection={onDismissSelection} />
           <ActiveLayers infoId={infoId} onInfo={onInfo} />
 
           <div className={styles.search}>

@@ -297,6 +297,16 @@ describe('sanitizePersisted', () => {
     expect(restored?.drawing).toEqual(drawing)
   })
 
+  it('discards a saved line, whose measurement left with the line tool (#136, question 2)', () => {
+    const line: GeoJSON.Feature = {
+      type: 'Feature', properties: {},
+      geometry: { type: 'LineString', coordinates: [[-38, -8], [-37, -7]] },
+    }
+    const restored = sanitizePersisted({ version: PERSIST_VERSION, layers: [], basemapId: 'carto-positron', drawing: line }, config)
+
+    expect(restored?.drawing).toBeNull()
+  })
+
   it('discards a drawing that is not a GeoJSON feature with a geometry', () => {
     for (const drawing of [{ type: 'Feature' }, { geometry: { type: 'Polygon' } }, 42]) {
       const restored = sanitizePersisted(

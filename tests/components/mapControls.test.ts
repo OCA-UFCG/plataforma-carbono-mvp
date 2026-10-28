@@ -9,7 +9,7 @@ vi.mock('@/lib/mapa/store', () => ({
 import MapControls from '@/components/mapa/overlays/MapControls'
 
 const markup = renderToStaticMarkup(createElement(MapControls, {
-  mapRef: { current: null }, rightOffset: 40, drawOpen: false, onToggleDraw: () => {},
+  mapRef: { current: null }, rightOffset: 40,
 }))
 
 describe('MapControls', () => {
@@ -17,8 +17,6 @@ describe('MapControls', () => {
     const labels = [...markup.matchAll(/<button [^>]*aria-label="([^"]+)"/g)].map((m) => m[1])
     expect(labels).toEqual([
       'Aproximar', 'Afastar', 'Minha localização', 'Tela cheia', 'Orientar para o norte', 'Mapa base',
-      // Leaves with the move of the drawing into the panel (issue #141).
-      'Ferramentas de desenho',
     ])
   })
 

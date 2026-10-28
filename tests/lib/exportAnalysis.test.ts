@@ -18,7 +18,6 @@ const base: AnalysisSnapshot = {
   analysisKind: 'Município',
   analysisLabel: 'Petrolina',
   drawnArea: null,
-  drawnLength: null,
   generatedAt: new Date('2026-08-24T15:00:00Z'),
   layers: [layer()],
 }
@@ -150,7 +149,6 @@ describe('buildAnalysisCsv', () => {
     const { csv } = buildAnalysisCsv({
       ...base,
       drawnArea: 12.48,
-      drawnLength: 3.2,
       layers: [layer({
         layerUnit: 't C/ha',
         pixelValue: { value: 38.25, label: 'Formação Florestal' },
@@ -160,7 +158,7 @@ describe('buildAnalysisCsv', () => {
     expect(csv).toContain('medida;valor;unidade')
     expect(csv).toContain('Área analisada;12,48;km²')
     expect(csv).toContain('Área analisada;1248;ha')
-    expect(csv).toContain('Comprimento;3,2;km')
+    expect(csv).not.toContain('Comprimento')
     expect(csv).toContain('Valor no ponto;38,25;t C/ha')
     expect(csv).toContain('Classe no ponto;Formação Florestal;')
   })
@@ -271,22 +269,21 @@ describe('buildAnalysisCsv', () => {
     expect(csv.match(/Área analisada;621,4;km²/g)).toHaveLength(1)
   })
 
-  // A drawn LineString measures no raster, and neither does a polygon with
-  // every raster turned off. Both are analyses the panel shows and the user can
-  // export, so the file carries the measurement rows and is named after the
-  // analysis -- "0-camadas" would be a filename describing nothing.
+  // A polygon drawn with every raster turned off measures no layer. It is an
+  // analysis the panel shows and the user can export, so the file carries the
+  // measurement rows and is named after the analysis -- "0-camadas" would be
+  // a filename describing nothing.
   it('exports a measurement that touched no layer, named after the analysis', () => {
     const { filename, csv } = buildAnalysisCsv({
       ...base,
       analysisKind: 'Área desenhada',
       analysisLabel: null,
-      drawnArea: null,
-      drawnLength: 42.5,
+      drawnArea: 42.5,
       layers: [],
     })
 
     expect(csv).toContain('medida;valor;unidade')
-    expect(csv).toContain('Comprimento;42,5;km')
+    expect(csv).toContain('Área analisada;42,5;km²')
     expect(filename).toBe('caativar_analise_area-desenhada_2026-08-24.csv')
   })
 

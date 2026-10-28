@@ -49,6 +49,202 @@
   background: var(--am-100);
 }
 
+/* The picker, the search and "Ou clique no mapa.", 8px apart
+ * (19423:56422;19415:55087). */
+.find {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Rubik 14/20. */
+.orClick {
+  margin: 0;
+  color: var(--foreground);
+}
+
+/* "Buscar município, estado ou território" (19423:56422;19410:51154): the
+ * picker's 40px field, the magnifier at its right; its results open under it
+ * as the picker's list does. */
+.search {
+  position: relative;
+}
+
+.searchBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding: 7px 39px 7px 11px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.searchInput::placeholder {
+  color: var(--bg-texto-secundario);
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+
+.results {
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* A result: what kind of recorte it is over its name, the run typed in bold,
+ * and the state beside a municipality. */
+.result {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.result + .result {
+  border-top: 1px solid var(--am-100);
+}
+
+.result[aria-selected='true'] {
+  background: var(--am-050);
+}
+
+.resultKind {
+  color: var(--bg-texto-secundario);
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.resultName {
+  color: var(--foreground);
+  font-family: var(--font-ui, var(--font-fallback));
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.resultName strong {
+  color: var(--role-marca-ancora-hover);
+  font-weight: 600;
+}
+
+.resultContext {
+  color: var(--am-400);
+}
+
+.resultsNote {
+  padding: 8px;
+  border-top: 1px solid var(--am-100);
+  color: var(--am-400);
+  font-family: var(--font-ui, var(--font-fallback));
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.resultsNote:first-child {
+  border-top: none;
+}
+
+/* "Município em foco" (19416:55282): 52px on white, 6px above and 8px beside
+ * the kind in Rubik 12/20 over the name in Rubik SemiBold 14/20, and the X. */
+.focus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.focusText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--foreground);
+}
+
+.focusLabel {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.focusName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focusClear {
+  flex: none;
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.focusClear:hover {
+  background: var(--am-100);
+}
+
+/* "Delimitar recorte" (19425:58259), and "Marcar ponto" under it: 40px tall
+ * outlined buttons, the 1px outline drawn inside, the label in Inter Medium
+ * 14/24 with the pencil after it. Armed, on the light green, a step darker. */
+.drawButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draw {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 7px 15px;
+  border: 1px solid var(--role-marca-ancora-padrao);
+  border-radius: var(--radius-interno);
+  background: var(--bg-fundo);
+  color: var(--role-marca-ancora-padrao);
+  cursor: pointer;
+}
+
+.draw:hover,
+.draw[aria-pressed='true'] {
+  background: var(--role-marca-ancora-container);
+  color: var(--role-marca-ancora-hover);
+}
+
+.draw:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
 .rule {
   margin: 0;
   border: none;

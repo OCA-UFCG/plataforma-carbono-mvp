@@ -6,14 +6,18 @@ const state = vi.hoisted(() => ({
   layers: [] as object[],
   selectedGeometry: null as object | null,
   analysisLabel: null as string | null,
+  analysisKind: null as string | null,
+  drawing: null as object | null,
+  drawMode: null as string | null,
   layerErrors: {} as Record<string, string>,
   toggleLayer: () => {}, setOpacity: () => {}, moveLayer: () => {}, clearRecortes: () => {}, clearLayerError: () => {},
+  setDrawMode: () => {}, clearDrawings: () => {},
 }))
 vi.mock('@/lib/mapa/store', () => ({
   useStore: (select: (s: typeof state) => unknown) => select(state),
 }))
 
-import Territory, { TerritorySummary, recorteSummary } from '@/components/mapa/panel/Territory'
+import Territory, { FocusCard, TerritorySummary, recorteSummary } from '@/components/mapa/panel/Territory'
 import RecortePicker, { nextOption, pickerLabel, recorteGroups } from '@/components/mapa/panel/RecortePicker'
 import type { LayerConfig } from '@/types/mapa'
 
@@ -33,13 +37,17 @@ const estoque: LayerConfig = {
   theme: 'carbono', subtheme: 'estoques',
 }
 
-const render = () => renderToStaticMarkup(createElement(Territory))
+const render = () => renderToStaticMarkup(createElement(Territory, { onSelectFeature: () => {}, onDismissSelection: () => {} }))
+const point = { geometry: { type: 'Point', coordinates: [-35.9, -7.2] }, geometryType: 'point', lon: -35.9, lat: -7.2 }
 
 describe('Territory (Figma 19423:56814)', () => {
   beforeEach(() => {
     state.layers = []
     state.selectedGeometry = null
     state.analysisLabel = null
+    state.analysisKind = null
+    state.drawing = null
+    state.drawMode = null
     state.layerErrors = {}
   })
 
@@ -48,6 +56,42 @@ describe('Territory (Figma 19423:56814)', () => {
     const markup = render()
     expect(markup).toMatch(/<h2[^>]*>Território<\/h2>/)
     expect(markup).toMatch(/<button [^>]*aria-expanded="true"[^>]*aria-label="Recolher Território"/)
+  })
+
+  it('searches under the picker, then offers the map and the drawing buttons, as 19423:56814 stacks them', () => {
+    state.layers = [bioma]
+    const markup = render()
+    expect(markup).toMatch(/<input [^>]*role="combobox"[^>]*placeholder="Buscar município, estado ou território"/)
+    const at = (text: string) => markup.indexOf(text)
+    expect(at('aria-haspopup="listbox"')).toBeLessThan(at('role="combobox"'))
+    expect(at('role="combobox"')).toBeLessThan(at('Ou clique no mapa.'))
+    expect(at('Ou clique no mapa.')).toBeLessThan(at('Delimitar recorte'))
+    expect(at('Delimitar recorte')).toBeLessThan(at('Marcar ponto'))
+    expect(at('Marcar ponto')).toBeLessThan(at('<hr'))
+    expect(markup).toContain('/icons/mapa/edit.svg')
+  })
+
+  it('arms the drawing button in use', () => {
+    state.drawMode = 'polygon'
+    const markup = render()
+    expect(markup).toMatch(/<button [^>]*aria-pressed="true"[^>]*>Delimitar recorte/)
+    expect(markup).toMatch(/<button [^>]*aria-pressed="false"[^>]*>Marcar ponto/)
+  })
+
+  it('shows the card in focus only with a feature or a drawing in focus', () => {
+    expect(render()).not.toContain('em foco')
+    state.selectedGeometry = { ...point, feature: { recorteId: 'municipios', properties: {} } }
+    state.analysisKind = 'Município'
+    state.analysisLabel = 'Campina Grande'
+    expect(render()).toContain('Município em foco')
+  })
+
+  it('shows a drawing in focus by its kind, so its X can erase it (#136, question 2)', () => {
+    state.drawing = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [] } }
+    state.analysisKind = 'Área desenhada'
+    const markup = render()
+    expect(markup).toMatch(/>Em foco<(?:(?!<\/button>).)*>Área desenhada</)
+    expect(markup).toMatch(/aria-label="Desfazer a seleção de Área desenhada"/)
   })
 
   it('lists the recortes on, in draw order, and nothing else', () => {
@@ -83,6 +127,17 @@ describe('Territory (Figma 19423:56814)', () => {
     expect(markup).toContain('Recorte em destaque (0)')
     expect(markup).toMatch(/<button [^>]*disabled[^>]*>Limpar/)
     expect(markup).not.toMatch(/data-layer=/)
+  })
+})
+
+describe('FocusCard (Figma 19416:55282)', () => {
+  const card = (props: Parameters<typeof FocusCard>[0]) => renderToStaticMarkup(createElement(FocusCard, props))
+
+  it('names a feature with its kind, and its X undoes the selection', () => {
+    const markup = card({ label: 'Município em foco', name: 'Campina Grande', onClear: () => {} })
+    expect(markup).toContain('Município em foco')
+    expect(markup).toContain('Campina Grande')
+    expect(markup).toMatch(/<button [^>]*aria-label="Desfazer a seleção de Campina Grande"/)
   })
 })
 
