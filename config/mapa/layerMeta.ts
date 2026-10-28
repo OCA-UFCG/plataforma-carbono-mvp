@@ -18,6 +18,8 @@ export const LAYER_META: Record<string, LayerMeta> = {
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
   areas_monitoramento: { description: 'sítios com torre de fluxo por covariância de vórtices em área de Caatinga', source: 'Mendes et al. (2025)', kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
+  uc_protecao_integral: { description: 'unidades de conservação de proteção integral: parques, monumentos naturais, refúgios de vida silvestre, estações ecológicas e reservas biológicas', source: 'MMA, CNUC', kind: 'Vetorial' },
+  uc_uso_sustentavel:   { description: 'unidades de conservação de uso sustentável: APA, RPPN, ARIE, florestas, RDS e reservas extrativistas', source: 'MMA, CNUC', kind: 'Vetorial' },
 
   // The only layer whose click opens a report, not the band statistics: the
   // displayed total breaks down into five pools and into phytophysiognomy.
@@ -58,6 +60,9 @@ export const LAYER_META: Record<string, LayerMeta> = {
   ndvi_modis:       { description: 'índice de vegetação NDVI',       source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5,5 km',       kind: 'Raster contínuo' },
+  brdwgd_pr:        { description: 'precipitação anual',             source: 'BR-DWGD, 11 km',       kind: 'Raster contínuo' },
+  brdwgd_tmed:      { description: 'temperatura média do ar',        source: 'BR-DWGD, 11 km',       kind: 'Raster contínuo' },
+  brdwgd_eto:       { description: 'evapotranspiração de referência anual', source: 'BR-DWGD, 11 km', kind: 'Raster contínuo' },
   lst_modis:        { description: 'temperatura de superfície',      source: 'MODIS, 1 km',         kind: 'Raster contínuo' },
   // FABDEM is Copernicus GLO-30 with trees and buildings removed, so it reads
   // the ground and not the canopy. Its CC BY-NC-SA 4.0 licence bars commercial
