@@ -193,9 +193,9 @@ export function themeLegend(themeId: ThemeId): Legend {
 export const CAATINGA_BBOX: Bbox = [-45.07658, -16.71049, -35.07258, -2.74849]
 
 /**
- * Narrowest view of the rain step, in degrees: CHIRPS pixels are 0.05°, so the
- * view holds at least 30 of them across, where a small municipality alone
- * would sit on two or three.
+ * Narrowest view of the rain step, in degrees: BR-DWGD cells are 0.1°, so the
+ * view holds at least 15 of them across, where a small municipality alone
+ * would sit on one or two.
  */
 export const RAIN_MIN_SPAN_DEG = 1.5
 

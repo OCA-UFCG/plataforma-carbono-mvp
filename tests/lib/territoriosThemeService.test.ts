@@ -103,7 +103,7 @@ describe('biome reference', () => {
     expect(biome.fireRecurrenceSharesPct?.never).toBeCloseTo(87.96, 2)
     expect(Object.values(biome.fireRecurrenceSharesPct ?? {}).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10)
     expect(biome.fireAnnualMeanSharePct).toBeCloseTo(0.559, 3)
-    expect(biome.rainMeanMm).toBeCloseTo(701.2, 1)
+    expect(biome.rainMeanMm).toBeCloseTo(692.0, 1)
   })
 
   it('divides by the same bases as a territory: the biome read as a territory lands on its own reference', () => {
