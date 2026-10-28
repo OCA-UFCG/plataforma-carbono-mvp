@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
 import { LAYER_INFO } from '@/config/mapa/layerInfo'
 import { LAYER_META } from '@/config/mapa/layerMeta'
+import { layerTemporal } from '@/lib/mapa/temporal'
 import type { LayerConfig } from '@/types/mapa'
 
 const layers = appConfig.layers as LayerConfig[]
@@ -31,7 +32,7 @@ describe('LAYER_INFO', () => {
 describe('LAYER_INFO against the rest of the platform', () => {
   it('gives each time series the years its slider offers', () => {
     for (const layer of layers) {
-      const temporal = (layer as { gee?: { temporal?: { dateRange?: string[]; dates?: string[] } } }).gee?.temporal
+      const temporal = layerTemporal(layer)
       const info = LAYER_INFO[layer.id]
       if (!temporal || !info) continue
       const span = temporal.dates ?? temporal.dateRange ?? []

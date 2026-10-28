@@ -46,6 +46,8 @@ import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
+import { anoEmissoes, corEmissoes, nivelEmissoes, valoresPorFeicao } from '@/lib/emissoes/mapa'
+import { runEmissoes } from '@/lib/emissoes/runner'
 import {
   RETRY_TILE_PROTOCOL,
   fetchTileWithRetry,
@@ -85,30 +87,31 @@ import FloatingSearchBar from './overlays/FloatingSearchBar'
 // MapLibre assigns feature.id = index in the source features array.
 
 const vectorFeatureCache = new Map<string, GeoJSON.FeatureCollection>()
-// Downloads in flight, so the hover asking on every frame starts only one.
-const vectorFeatureLoads = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
+// One download per file at a time: the click, the hover, the search and the
+// emissions layers may all ask for the same recorte before the first answer
+// lands.
+const vectorFeatureInFlight = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
 
-async function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
+function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
   const cached = vectorFeatureCache.get(url)
-  if (cached) return cached
-  let load = vectorFeatureLoads.get(url)
-  if (!load) {
-    load = (async () => {
-      try {
-        const res = await fetch(vectorDataUrl(url))
-        if (!res.ok) return null
-        const fc = (await res.json()) as GeoJSON.FeatureCollection
-        vectorFeatureCache.set(url, fc)
-        return fc
-      } catch {
-        return null
-      } finally {
-        vectorFeatureLoads.delete(url)
-      }
-    })()
-    vectorFeatureLoads.set(url, load)
-  }
-  return load
+  if (cached) return Promise.resolve(cached)
+  const pending = vectorFeatureInFlight.get(url)
+  if (pending) return pending
+  const request = (async () => {
+    try {
+      const res = await fetch(vectorDataUrl(url))
+      if (!res.ok) return null
+      const fc = (await res.json()) as GeoJSON.FeatureCollection
+      vectorFeatureCache.set(url, fc)
+      return fc
+    } catch {
+      return null
+    } finally {
+      vectorFeatureInFlight.delete(url)
+    }
+  })()
+  vectorFeatureInFlight.set(url, request)
+  return request
 }
 
 // Area of the complete feature, which pickMostSpecific compares between
@@ -384,6 +387,8 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
       },
     })
   }
+  // An emissions layer has no source of its own: the emissions effect draws it
+  // as a fill on the source of the recorte it is shown at.
 
   return true
 }
@@ -399,8 +404,44 @@ function hillshadeColors(opacity: number) {
   }
 }
 
-// Update visibility / opacity for an existing layer
+// The map layers a config layer draws with, bottom first: syncZOrder moves
+// them in this order, so the last one ends up on top.
+function drawnSublayers(layer: LayerConfig): string[] {
+  switch (layer.type) {
+    case 'vector':
+      return [
+        `${layer.id}-fill`,
+        `${layer.id}-outline`,
+        `${layer.id}-pulse`,
+        `${layer.id}-circle`,
+        `${layer.id}-model`,
+        ...(layer.labelField ? [`${layer.id}-label`] : []),
+      ]
+    case 'raster':
+      return [`${layer.id}-raster`]
+    case 'emissions':
+      return [`${layer.id}-emissoes`]
+  }
+}
 
+// Puts the map layers in the order of `layers` (layers[0] = top of the list =
+// rendered on top), then the selection spotlight, which dims every user layer,
+// above them, and mapbox-gl-draw (layers prefixed "gl-draw-") above everything.
+function syncZOrder(map: maplibregl.Map, layers: LayerConfig[]) {
+  // Iterate last->first so whatever is moved last ends up topmost.
+  for (let i = layers.length - 1; i >= 0; i--) {
+    for (const lid of drawnSublayers(layers[i])) {
+      if (map.getLayer(lid)) map.moveLayer(lid)
+    }
+  }
+  raiseSpotlight(map)
+  const style = map.getStyle()
+  for (const l of style?.layers ?? []) {
+    if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
+  }
+}
+
+// Update visibility / opacity for an existing layer
 function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
   if (layer.type === 'vector') {
     const vis = layer.visible ? 'visible' : 'none'
@@ -1051,14 +1092,15 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
         // reached, on every layer toggle and every year step.
         if (belowRaster) return
 
+        const feature = { recorteId: vector.id, properties: { ...(properties ?? {}) } }
         if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon' }
+          const selected: SelectedGeometry = { geometry: geom, geometryType: 'polygon', feature }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
         } else if (geom.type === 'Point') {
           const [lon, lat] = geom.coordinates as [number, number]
           const selected: SelectedGeometry = {
-            geometry: geom, geometryType: 'point', lon, lat,
+            geometry: geom, geometryType: 'point', lon, lat, feature,
           }
           setSelectedGeometry(selected)
           runVisibleRasterAnalyses(selected, seq)
@@ -1255,33 +1297,7 @@ useEffect(() => {
   if (addedSomething || orderKey !== prevLayerOrderRef.current) {
     prevLayerOrderRef.current = orderKey
 
-    // layers[0] = top of the list = rendered on top. Iterate last->first so
-    // whatever is moved last ends up topmost.
-    for (let i = layers.length - 1; i >= 0; i--) {
-      const layer = layers[i]
-      const sublayers =
-        layer.type === 'vector'
-          ? [
-              `${layer.id}-fill`,
-              `${layer.id}-outline`,
-              `${layer.id}-pulse`,
-              `${layer.id}-circle`,
-              `${layer.id}-model`,
-              ...((layer as VectorLayerConfig).labelField ? [`${layer.id}-label`] : []),
-            ]
-          : [`${layer.id}-raster`]
-      for (const lid of sublayers) {
-        if (map.getLayer(lid)) map.moveLayer(lid)
-      }
-    }
-
-    // The selection spotlight dims every user layer, so it goes above them,
-    // and mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
-    raiseSpotlight(map)
-    const style = map.getStyle()
-    for (const l of style?.layers ?? []) {
-      if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
-    }
+    syncZOrder(map, layers)
   }
 }, [layers, mapReady, fetchedTileUrls, temporalTileUrls, temporalDate])
 
@@ -1572,6 +1588,82 @@ useEffect(() => {
     if (!selectedGeometry) return
     runVisibleRasterAnalyses(selectedGeometry, currentAnalysisSeq())
   }, [layers, temporalDate, temporalTileUrls, fetchedTileUrls, selectedGeometry])
+
+  // The emissions layers: their values are fetched once per layer, for every
+  // level and year (lib/emissoes/runner.ts).
+  useEffect(() => {
+    runEmissoes()
+  }, [layers])
+
+  // Draws each visible emissions layer as a fill on the source of the finest
+  // of bioma, estados and municipios that is on, colored by the layer's fixed
+  // classes from feature states written by IBGE code or state. A year step or
+  // a level change only rewrites the states. The recorte's GeoJSON is read
+  // through the same cache the click uses; `fcVersion` re-runs the effect once
+  // it has arrived.
+  const emissoes = useStore((s) => s.emissoes)
+  const [fcVersion, setFcVersion] = useState(0)
+  const drawnEmissoes = useRef(new Map<string, { recorteId: string; ano: number; payload: unknown }>())
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const nivel = nivelEmissoes(layers)
+    const fc = nivel ? vectorFeatureCache.get(nivel.recorte.url) : undefined
+    if (nivel && !fc && layers.some((l) => l.type === 'emissions' && l.visible)) {
+      // A recorte file that does not arrive is reported on the recorte, where
+      // the panel shows layer errors and the emissions legend reads it.
+      const recorteId = nivel.recorte.id
+      void loadVectorFeatureCollection(nivel.recorte.url).then((loaded) => {
+        if (loaded) {
+          useStore.getState().clearLayerError(recorteId)
+          setFcVersion((v) => v + 1)
+        } else {
+          useStore.setState((s) => ({
+            layerErrors: { ...s.layerErrors, [recorteId]: 'Os limites não carregaram; desligue e ligue a camada para tentar de novo.' },
+          }))
+        }
+      })
+    }
+
+    for (const layer of layers) {
+      if (layer.type !== 'emissions') continue
+      const fillId = `${layer.id}-emissoes`
+      const entry = emissoes[layer.id]
+      const drawn = drawnEmissoes.current.get(layer.id)
+
+      if (!layer.visible || !nivel || !fc || entry?.status !== 'ready' || !map.getSource(nivel.recorte.id)) {
+        if (map.getLayer(fillId)) map.removeLayer(fillId)
+        drawnEmissoes.current.delete(layer.id)
+        continue
+      }
+
+      const stateKey = `e_${layer.id}`
+      const color = corEmissoes(entry.payload.classes, stateKey)
+      if (drawn && drawn.recorteId !== nivel.recorte.id && map.getLayer(fillId)) map.removeLayer(fillId)
+      if (!map.getLayer(fillId)) {
+        map.addLayer({
+          id: fillId,
+          type: 'fill',
+          source: nivel.recorte.id,
+          paint: { 'fill-color': color, 'fill-opacity': layer.opacity / 100 },
+        })
+        // It arrives after the layer sync, on top of everything: back to its place.
+        syncZOrder(map, layers)
+      } else {
+        map.setPaintProperty(fillId, 'fill-color', color)
+        map.setPaintProperty(fillId, 'fill-opacity', layer.opacity / 100)
+      }
+
+      const ano = anoEmissoes(layer, temporalDate[layer.id])
+      if (!drawn || drawn.recorteId !== nivel.recorte.id || drawn.ano !== ano || drawn.payload !== entry.payload) {
+        valoresPorFeicao(entry.payload, nivel.nivel, fc.features, ano).forEach((value, id) => {
+          map.setFeatureState({ source: nivel.recorte.id, id }, { [stateKey]: value })
+        })
+      }
+      drawnEmissoes.current.set(layer.id, { recorteId: nivel.recorte.id, ano, payload: entry.payload })
+    }
+  }, [layers, emissoes, temporalDate, mapReady, fcVersion])
 
   // Sync draw mode
   // Switching to a drawing mode clears any previous feature + measurements.
