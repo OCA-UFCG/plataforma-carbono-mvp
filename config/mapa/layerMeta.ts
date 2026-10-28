@@ -18,6 +18,8 @@ export const LAYER_META: Record<string, LayerMeta> = {
   quilombolas:      { description: 'territórios quilombolas',        source: 'Incra',                kind: 'Vetorial' },
   areas_monitoramento: { description: 'sítios com torre de fluxo por covariância de vórtices em área de Caatinga', source: 'Mendes et al. (2025)', kind: 'Vetorial' },
   assentamentos:    { description: 'assentamentos rurais',           source: 'Incra',                kind: 'Vetorial' },
+  uc_protecao_integral: { description: 'unidades de conservação de proteção integral: parques, monumentos naturais, refúgios de vida silvestre, estações ecológicas e reservas biológicas', source: 'MMA, CNUC', kind: 'Vetorial' },
+  uc_uso_sustentavel:   { description: 'unidades de conservação de uso sustentável: APA, RPPN, ARIE, florestas, RDS e reservas extrativistas', source: 'MMA, CNUC', kind: 'Vetorial' },
 
   // The only layer whose click opens a report, not the band statistics: the
   // displayed total breaks down into five pools and into phytophysiognomy.

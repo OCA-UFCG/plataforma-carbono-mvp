@@ -85,19 +85,57 @@ import FloatingSearchBar from './overlays/FloatingSearchBar'
 // MapLibre assigns feature.id = index in the source features array.
 
 const vectorFeatureCache = new Map<string, GeoJSON.FeatureCollection>()
+// Downloads in flight, so the hover asking on every frame starts only one.
+const vectorFeatureLoads = new Map<string, Promise<GeoJSON.FeatureCollection | null>>()
 
 async function loadVectorFeatureCollection(url: string): Promise<GeoJSON.FeatureCollection | null> {
   const cached = vectorFeatureCache.get(url)
   if (cached) return cached
-  try {
-    const res = await fetch(vectorDataUrl(url))
-    if (!res.ok) return null
-    const fc = (await res.json()) as GeoJSON.FeatureCollection
-    vectorFeatureCache.set(url, fc)
-    return fc
-  } catch {
-    return null
+  let load = vectorFeatureLoads.get(url)
+  if (!load) {
+    load = (async () => {
+      try {
+        const res = await fetch(vectorDataUrl(url))
+        if (!res.ok) return null
+        const fc = (await res.json()) as GeoJSON.FeatureCollection
+        vectorFeatureCache.set(url, fc)
+        return fc
+      } catch {
+        return null
+      } finally {
+        vectorFeatureLoads.delete(url)
+      }
+    })()
+    vectorFeatureLoads.set(url, load)
   }
+  return load
+}
+
+// Area of the complete feature, which pickMostSpecific compares between
+// overlapping recortes of one granularity; the rendered one is clipped to its
+// tile. Synchronous, as the hover needs it: undefined until the source GeoJSON
+// has loaded, and asking starts the download. A point measures 0.
+const featureAreaCache = new WeakMap<GeoJSON.Feature, number>()
+
+function fullFeatureArea(
+  vec: VectorLayerConfig,
+  featureId: number | string | undefined,
+): number | undefined {
+  if (featureId === undefined || featureId === null || vec.source) return undefined
+  const fc = vectorFeatureCache.get(vec.url)
+  if (!fc) {
+    void loadVectorFeatureCollection(vec.url)
+    return undefined
+  }
+  const idx = Number(featureId)
+  const feature = Number.isInteger(idx) ? fc.features?.[idx] : undefined
+  if (!feature?.geometry) return undefined
+  let area = featureAreaCache.get(feature)
+  if (area === undefined) {
+    area = turfArea(feature)
+    featureAreaCache.set(feature, area)
+  }
+  return area
 }
 
 async function fullFeatureGeometry(
@@ -880,7 +918,7 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
           candidates.push({ layer: owner.vector, storeIndex: owner.storeIndex, hit: f })
         }
 
-        const best = pickMostSpecific(candidates)
+        const best = pickMostSpecific(candidates, (c) => fullFeatureArea(c.layer, c.hit.id))
         return best ? { vector: best.layer, feature: best.hit } : null
       }
 
