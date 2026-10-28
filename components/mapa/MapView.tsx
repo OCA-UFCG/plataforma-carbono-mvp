@@ -167,7 +167,6 @@ const EMPTY_STYLE: maplibregl.StyleSpecification = {
 
 const BASEMAP_SOURCE_ID = 'basemap'
 const BASEMAP_LAYER_ID  = 'basemap'
-const TERRAIN_SOURCE_ID = 'terrain-dem'
 const PULSE_MIN_RADIUS  = 7
 const PULSE_MAX_RADIUS  = 24
 const PULSE_PERIOD_MS   = 1800
@@ -607,7 +606,6 @@ export default function MapView({ theme, leftEdge, rightOffset, dismissSelection
   const clearSignal       = useStore((s) => s.clearSignal)
   const homeSignal        = useStore((s) => s.homeSignal)
   const basemapId         = useStore((s) => s.basemapId)
-  const terrain3d         = useStore((s) => s.terrain3d)
   const fetchedTileUrls   = useStore((s) => s.fetchedTileUrls)
   const temporalTileUrls  = useStore((s) => s.temporalTileUrls)
   const temporalDate      = useStore((s) => s.temporalDate)
@@ -1357,26 +1355,6 @@ useEffect(() => {
       })
     }
   }, [layers, mapReady])
-
-  // 3D terrain from the same elevation tiles as the Relevo hillshade, in a
-  // source of its own: MapLibre renders terrain and hillshade better apart.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady) return
-    if (terrain3d) {
-      const dem = useStore.getState().layers.find(
-        (l): l is RasterLayerConfig => l.type === 'raster' && l.source === 'dem',
-      )?.dem
-      if (!dem) return
-      if (!map.getSource(TERRAIN_SOURCE_ID)) map.addSource(TERRAIN_SOURCE_ID, { type: 'raster-dem', url: dem.url })
-      // The Caatinga is mostly flat; at 1x its relief barely shows.
-      map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration: 3 })
-      map.easeTo({ pitch: 60, duration: 800 })
-    } else if (map.getTerrain()) {
-      map.setTerrain(null)
-      map.easeTo({ pitch: 0, duration: 800 })
-    }
-  }, [terrain3d, mapReady])
 
   // WFS viewport loading
   // For layers with `source: 'wfs'`, fetch features from the configured
