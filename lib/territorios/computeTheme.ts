@@ -209,22 +209,27 @@ async function rain(ee: any, geometry: Geometry, areaHa: number): Promise<ThemeC
     (_, i) => RAIN_FIRST_YEAR + i,
   )
 
-  if (areaHa >= RAIN_POINT_BELOW_HA) {
-    const zonal = await computeSeries(ee, {
-      asset, anos, region: { kind: 'zonal', geometry, scale: asset.scale },
-    })
-    if (hasValue(zonal)) {
-      return { status: 'available', origin: 'zonal', coarseScaleM: null, data: { theme: 'chuva', series: zonal } }
-    }
-  }
+  const read = (origin: 'zonal' | 'point') => computeSeries(ee, {
+    asset,
+    anos,
+    region: origin === 'zonal'
+      ? { kind: 'zonal', geometry, scale: asset.scale }
+      : { kind: 'point', ...interiorPoint(geometry) },
+  })
 
-  // Above one pixel the mean can still come back null, when no 5.6 km pixel
-  // reaches the minimum weight inside the polygon, so the empty series falls
-  // back to the point too.
-  const { lon, lat } = interiorPoint(geometry)
-  const point = await computeSeries(ee, { asset, anos, region: { kind: 'point', lon, lat } })
-  if (hasValue(point)) {
-    return { status: 'available', origin: 'point', coarseScaleM: null, data: { theme: 'chuva', series: point } }
+  // The read that suits the territory's size goes first, and an empty series
+  // falls back to the other. Above the threshold the mean can come back null
+  // when no 0.1° cell reaches the minimum weight inside the polygon. Below it, a
+  // coastal territory's interior point can fall in a cell the BR-DWGD grid
+  // leaves out over the sea (RESEX Batoque, CE), while the mean over the
+  // polygon still finds the cells inland. A read that throws is no empty
+  // answer: it propagates, and themeService.ts reports 'unavailable'.
+  const order = areaHa >= RAIN_POINT_BELOW_HA ? ['zonal', 'point'] as const : ['point', 'zonal'] as const
+  for (const origin of order) {
+    const series = await read(origin)
+    if (hasValue(series)) {
+      return { status: 'available', origin, coarseScaleM: null, data: { theme: 'chuva', series } }
+    }
   }
   return noPixels('point')
 }

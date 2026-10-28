@@ -33,6 +33,7 @@ export const THEMES: ThemeInfo[] = [
     subthemes: [
       { id: 'limites', label: 'Limites de referência', exclusive: false },
       { id: 'territorios', label: 'Territórios tradicionais e assentamentos', exclusive: false },
+      { id: 'unidades_conservacao', label: 'Unidades de Conservação', exclusive: false },
     ],
   },
   {
