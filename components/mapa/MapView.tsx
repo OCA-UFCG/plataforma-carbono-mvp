@@ -46,6 +46,7 @@ import { COORDINATE_ORIGIN } from '@/lib/mapa/parseCoordinates'
 import { computeBbox } from '@/lib/mapa/computeBbox'
 import { eraseDrawing } from '@/lib/mapa/eraseDrawing'
 import { vectorFillOpacity } from '@/lib/mapa/vectorPaint'
+import { POINT_MODEL_MIN_ZOOM } from '@/lib/mapa/pointModelZoom'
 import {
   RETRY_TILE_PROTOCOL,
   fetchTileWithRetry,
@@ -169,6 +170,7 @@ const TERRAIN_SOURCE_ID = 'terrain-dem'
 const PULSE_MIN_RADIUS  = 7
 const PULSE_MAX_RADIUS  = 24
 const PULSE_PERIOD_MS   = 1800
+const PULSE_STEP_MS     = 50
 
 // Toolbar tool -> mapbox-gl-draw mode name.
 const MAPBOX_DRAW_MODE: Record<Exclude<DrawMode, null>, string> = {
@@ -283,7 +285,8 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
     }
 
     // Circle, only for Point features. The filter prevents MapLibre from
-    // rendering circles at every vertex of Polygon/LineString features.
+    // rendering circles at every vertex of Polygon/LineString features. Its
+    // stroke thickens on hover OR selected, as the outline does for polygons.
     map.addLayer({
       id: `${l.id}-circle`,
       type: 'circle',
@@ -296,7 +299,15 @@ function addLayerToMap(map: maplibregl.Map, layer: LayerConfig) {
         'circle-color': l.color,
         'circle-opacity': l.opacity / 100,
         'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 1.5,
+        'circle-stroke-width': [
+          'case',
+          ['any',
+            ['boolean', ['feature-state', 'hover'],    false],
+            ['boolean', ['feature-state', 'selected'], false],
+          ],
+          3,
+          1.5,
+        ],
         'circle-stroke-opacity': l.opacity / 100,
       },
     })
@@ -445,6 +456,39 @@ function updateLayer(map: maplibregl.Map, layer: LayerConfig) {
         layer.visible ? layer.opacity / 100 : 0
       )
     }
+  }
+}
+
+// Stacks the map's layers in the store's draw order. Run whenever a layer lands
+// on the map, which puts it on top, including the tower models added after an
+// async load.
+function syncZOrder(map: maplibregl.Map, layers: LayerConfig[]) {
+  // layers[0] = top of the list = rendered on top. Iterate last->first so
+  // whatever is moved last ends up topmost.
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const layer = layers[i]
+    const sublayers =
+      layer.type === 'vector'
+        ? [
+            `${layer.id}-fill`,
+            `${layer.id}-outline`,
+            `${layer.id}-pulse`,
+            `${layer.id}-circle`,
+            `${layer.id}-model`,
+            ...((layer as VectorLayerConfig).labelField ? [`${layer.id}-label`] : []),
+          ]
+        : [`${layer.id}-raster`]
+    for (const lid of sublayers) {
+      if (map.getLayer(lid)) map.moveLayer(lid)
+    }
+  }
+
+  // The selection spotlight dims every user layer, so it goes above them,
+  // and mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
+  raiseSpotlight(map)
+  const style = map.getStyle()
+  for (const l of style?.layers ?? []) {
+    if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
   }
 }
 
@@ -1261,69 +1305,71 @@ useEffect(() => {
   const orderKey = layers.map((l) => l.id).join(',')
   if (addedSomething || orderKey !== prevLayerOrderRef.current) {
     prevLayerOrderRef.current = orderKey
-
-    // layers[0] = top of the list = rendered on top. Iterate last->first so
-    // whatever is moved last ends up topmost.
-    for (let i = layers.length - 1; i >= 0; i--) {
-      const layer = layers[i]
-      const sublayers =
-        layer.type === 'vector'
-          ? [
-              `${layer.id}-fill`,
-              `${layer.id}-outline`,
-              `${layer.id}-pulse`,
-              `${layer.id}-circle`,
-              `${layer.id}-model`,
-              ...((layer as VectorLayerConfig).labelField ? [`${layer.id}-label`] : []),
-            ]
-          : [`${layer.id}-raster`]
-      for (const lid of sublayers) {
-        if (map.getLayer(lid)) map.moveLayer(lid)
-      }
-    }
-
-    // The selection spotlight dims every user layer, so it goes above them,
-    // and mapbox-gl-draw layers (prefixed "gl-draw-") above everything else.
-    raiseSpotlight(map)
-    const style = map.getStyle()
-    for (const l of style?.layers ?? []) {
-      if (l.id.startsWith('gl-draw-')) map.moveLayer(l.id)
-    }
+    syncZOrder(map, layers)
   }
 }, [layers, mapReady, fetchedTileUrls, temporalTileUrls, temporalDate])
 
   // Sonar pulse of the point layers that ask for it: a ring grows out of each
-  // point and fades, repainted every frame while such a layer is on. Left
-  // still for readers who asked their system for reduced motion.
+  // point and fades. Every step repaints the whole map, so the ring steps every
+  // PULSE_STEP_MS rather than every frame, and only while one of its points is
+  // in view. Left still for readers who asked their system for reduced motion.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const rings = layers
-      .filter((l): l is VectorLayerConfig => l.type === 'vector' && !!l.pulse && l.visible)
-      .map((l) => ({ id: `${l.id}-pulse`, alpha: 0.6 * (l.opacity / 100) }))
-    if (rings.length === 0) return
+    const pulsing = layers.filter(
+      (l): l is VectorLayerConfig => l.type === 'vector' && !!l.pulse && l.visible,
+    )
+    if (pulsing.length === 0) return
+
+    // `points` stays null until the GeoJSON is read, and then the ring pulses
+    // wherever the map is.
+    const rings = pulsing.map((l) => ({
+      id: `${l.id}-pulse`,
+      alpha: 0.6 * (l.opacity / 100),
+      points: null as [number, number][] | null,
+    }))
+    let cancelled = false
+    pulsing.forEach((l, i) => {
+      void loadVectorFeatureCollection(l.url).then((fc) => {
+        if (cancelled || !fc) return
+        rings[i].points = fc.features.flatMap((f) =>
+          f.geometry?.type === 'Point' ? [f.geometry.coordinates as [number, number]] : [],
+        )
+      })
+    })
 
     let frame = 0
+    let lastStep = -Infinity
     const tick = (now: number) => {
+      frame = requestAnimationFrame(tick)
+      if (now - lastStep < PULSE_STEP_MS) return
+      lastStep = now
+      const bounds = map.getBounds()
       const t = (now % PULSE_PERIOD_MS) / PULSE_PERIOD_MS
       for (const ring of rings) {
         if (!map.getLayer(ring.id)) continue
+        if (ring.points && !ring.points.some((point) => bounds.contains(point))) continue
         map.setPaintProperty(ring.id, 'circle-radius', PULSE_MIN_RADIUS + t * (PULSE_MAX_RADIUS - PULSE_MIN_RADIUS))
         map.setPaintProperty(ring.id, 'circle-opacity', ring.alpha * (1 - t))
       }
-      frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+    }
   }, [layers, mapReady])
 
-  // glTF models on the points of the layers that declare one, added the first
-  // time such a layer is on and shown or hidden with it after that.
+  // glTF models on the points of the layers that declare one, shown or hidden
+  // with the layer. One is added the first time its layer is on with the map at
+  // the zoom the towers draw from, and no sooner: three.js and the model are
+  // megabytes most readers would download for nothing.
   const modelLayersRef = useRef(new Set<string>())
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
+    const waiting: VectorLayerConfig[] = []
     for (const l of layers) {
       if (l.type !== 'vector' || !l.model) continue
       const id = `${l.id}-model`
@@ -1331,7 +1377,12 @@ useEffect(() => {
         map.setLayoutProperty(id, 'visibility', l.visible ? 'visible' : 'none')
         continue
       }
-      if (!l.visible || modelLayersRef.current.has(id)) continue
+      if (l.visible && !modelLayersRef.current.has(id)) waiting.push(l)
+    }
+    if (waiting.length === 0) return
+
+    const addModel = (l: VectorLayerConfig) => {
+      const id = `${l.id}-model`
       modelLayersRef.current.add(id)
       void (async () => {
         const [{ createPointModelLayer }, fc] = await Promise.all([
@@ -1344,12 +1395,26 @@ useEffect(() => {
         const custom = await createPointModelLayer(l, points)
         if (mapRef.current !== map || map.getLayer(id)) return
         map.addLayer(custom)
+        // addLayer put it on top of the spotlight and the drawing.
+        syncZOrder(map, useStore.getState().layers)
         const now = useStore.getState().layers.find((x) => x.id === l.id)
         if (!now?.visible) map.setLayoutProperty(id, 'visibility', 'none')
       })().catch((err) => {
         modelLayersRef.current.delete(id)
         console.error('[pointModels]', err)
       })
+    }
+    // On 'zoom' rather than 'zoomend', so the flight to a tower starts the
+    // download on its way down.
+    const loadWhenClose = () => {
+      if (map.getZoom() < POINT_MODEL_MIN_ZOOM) return
+      map.off('zoom', loadWhenClose)
+      waiting.forEach(addModel)
+    }
+    map.on('zoom', loadWhenClose)
+    loadWhenClose()
+    return () => {
+      map.off('zoom', loadWhenClose)
     }
   }, [layers, mapReady])
 
@@ -1548,7 +1613,13 @@ useEffect(() => {
       map.flyTo({ center: [(w + e) / 2, (s + n) / 2], zoom: fitRequest.zoom, pitch: fitRequest.pitch, padding })
       return
     }
-    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, { padding, maxZoom: 13 })
+    // A recorte is framed from above, so the tilt a tower fit left goes; with
+    // the 3D terrain on, the tilt is the reader's and stays.
+    map.fitBounds(fitRequest.bbox as maplibregl.LngLatBoundsLike, {
+      padding,
+      maxZoom: 13,
+      ...(map.getTerrain() ? {} : { pitch: 0 }),
+    })
   }, [fitRequest, mapReady])
 
   // Swap temporal tile URLs when date changes
