@@ -94,7 +94,9 @@ export default function MapControls({ mapRef, theme, rightOffset, drawOpen, onTo
   return (
     <div
       style={{
-        position: 'absolute', top: 14, right: rightOffset, zIndex: 12,
+        // Under the "Resultado" button (Mapa.tsx), 26px from the map's top and
+        // 40px tall, with 16px between them (Figma 19424:58115).
+        position: 'absolute', top: 82, right: rightOffset, zIndex: 12,
         display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
         transition: 'right .3s',
       }}

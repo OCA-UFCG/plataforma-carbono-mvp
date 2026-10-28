@@ -1,39 +1,30 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { IcList, IcBarChart } from './icons'
+import { IcSearch } from './icons'
 import MapView from './MapView'
 import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
-import LayerInfoCard, { FICHA_WIDTH } from './LayerInfoCard'
-import ReportForm from './overlays/ReportForm'
-import Header from './Header'
-import Welcome from './Welcome'
+import LayerInfoCard from './LayerInfoCard'
+import SiteHeader from '@/components/marketing/SiteHeader'
 import { useStore, camadasARestaurar, hasAnalysisContent } from '@/lib/mapa/store'
-import { buildTheme } from '@/config/mapa/platforms'
-import { resolveMonth } from '@/lib/phenology'
+import { buildSiteTheme } from '@/config/mapa/platforms'
+import { MAP_INSET } from '@/lib/mapa/layout'
 import { isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import type { PlatformTheme } from '@/types/mapa'
 
+// The site's fixed palette, light only (Figma section "Plataforma",
+// 19437:60649): one theme for every visit, so it is built once.
+const theme = buildSiteTheme()
+
 export default function Mapa() {
-  const darkMode    = useStore((s) => s.darkMode)
-  const monthPref   = useStore((s) => s.month)
-  const welcomeSeen = useStore((s) => s.welcomeSeen)
-
-  // Effective month -> accent; darkMode -> neutrals.
-  const month = resolveMonth(monthPref)
-  const theme = buildTheme(month, darkMode)
-
-  // Temas panel: open on wide screens, collapsed below 1180px (floating button).
+  // Layer panel: open on wide screens, collapsed below 1180px.
   const [panelOpen, setPanelOpen] = useState(() => {
     if (typeof window === 'undefined') return true
     return window.innerWidth >= 1180
   })
 
-  // The report form overlay, opened by the trigger near the panel toggle.
-  const [reportOpen, setReportOpen] = useState(false)
-
-  // Results panel visibility (drives the dynamic control/legend offset)
+  // Results panel visibility.
   // Same condition ResultsSidebar renders on: any measurement/stat content OR
   // an active raster (which shows the onboarding hint).
   const drawnArea   = useStore((s) => s.drawnArea)
@@ -49,7 +40,13 @@ export default function Mapa() {
 
   const [resultsCollapsed, setResultsCollapsed] = useState(false)
   // When the panel goes away entirely, reset collapse so it reopens expanded.
-  useEffect(() => { if (!resultsVisible) setResultsCollapsed(false) }, [resultsVisible])
+  // Adjusted while rendering rather than in an effect, so the reopened panel
+  // never paints collapsed first.
+  const [wasResultsVisible, setWasResultsVisible] = useState(resultsVisible)
+  if (resultsVisible !== wasResultsVisible) {
+    setWasResultsVisible(resultsVisible)
+    if (!resultsVisible) setResultsCollapsed(false)
+  }
 
   // The results panel's X. Over a recorte selection it does what a click on
   // empty map does: the highlight, the spotlight and the results go, and the
@@ -96,14 +93,15 @@ export default function Mapa() {
 
   const resultsOpen = resultsVisible && !resultsCollapsed
 
-  // Open ficha. It lives here, not in Sidebar, because only this component can
-  // widen `leftEdge` to reserve the column the ficha occupies.
+  // Open ficha. It lives here, not in Sidebar, because it is a column of the
+  // row below, between the panel and the map.
   const [infoId, setInfoId] = useState<string | null>(null)
   const toggleInfo = (id: string) => setInfoId((current) => (current === id ? null : id))
 
-  // Below 768px the Results panel is a full-width overlay drawer (it doesn't
-  // reserve horizontal space), so the map controls/legend must NOT shift to the
-  // desktop 396px offset, that would push them off the left edge.
+  const collapsePanel = () => { setPanelOpen(false); setInfoId(null) }
+
+  // Below 768px the side columns turn into drawers over the map (Sidebar,
+  // ResultsSidebar and LayerInfoCard each switch on their own).
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768,
   )
@@ -113,25 +111,9 @@ export default function Mapa() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // Floating-layout anchors (handoff): panel edge on the left, Results-aware
-  // offset on the right. On narrow screens the offset stays at 14 (drawer
-  // overlays the map). When collapsed to a tab, clear its 28px width.
-  //
-  // Everything the map floats -- the Relatorio button, the draw toolbar, the
-  // search bar, the temporal slider -- is laid out inside [leftEdge,
-  // 100% - rightOffset]. Reserving space here is what keeps them from
-  // overlapping, so a panel that takes room must be added to an anchor rather
-  // than be given a higher z-index.
-  const panelEdge   = panelOpen ? 360 : 64
-  const fichaOpen   = !narrow && panelOpen && infoId !== null
-  const leftEdge    = panelEdge + (fichaOpen ? FICHA_WIDTH + 12 : 0)
-  const rightOffset = narrow ? 14 : resultsOpen ? 396 : resultsVisible ? 42 : 14
-
   return (
     <div
       data-cc-root
-      data-month={month.id}
-      data-theme={darkMode ? 'dark' : undefined}
       style={{
         height: '100dvh',
         display: 'flex',
@@ -139,10 +121,8 @@ export default function Mapa() {
         overflow: 'hidden',
         position: 'relative',
         background: theme.colors.bg,
-        transition: 'background .4s',
-        // The accent vars come from here, and not from [data-month] blocks in the
-        // CSS: there are twelve months in two modes, and the set already comes
-        // computed in the theme. Whoever reads var(--acc) (the sliders'
+        // The accent vars come from the theme, not from CSS, so the JS theme
+        // stays their single source. Whoever reads var(--acc) (the sliders'
         // accent-color, for example) follows along.
         ['--acc' as string]: theme.colors.accent,
         ['--accBg' as string]: theme.colors.accentBg,
@@ -151,47 +131,20 @@ export default function Mapa() {
         ['--accGrad' as string]: theme.colors.accentGrad,
       }}
     >
-      <Header theme={theme} month={month} />
+      <SiteHeader account />
 
-      {/* Full-bleed map with floating panels over it (GFW style). */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <MapView theme={theme} leftEdge={leftEdge} rightOffset={rightOffset} dismissSelectionRef={dismissSelectionRef} captureMapRef={captureMapRef} />
-
-        {panelOpen ? (
+      {/* The docked layout of Figma 19413:54279 and 19451:60959: the layer
+          panel, the ficha when open, the map and the results, side by side
+          under the header. A column that closes leaves the row, and the map
+          takes its width. */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', position: 'relative' }}>
+        {panelOpen && (
           <Sidebar
             theme={theme}
             infoId={infoId}
             onInfo={toggleInfo}
-            onCollapse={() => { setPanelOpen(false); setInfoId(null) }}
+            onCollapse={collapsePanel}
           />
-        ) : (
-          <button
-            className="ui-press"
-            onClick={() => setPanelOpen(true)}
-            title="Mostrar painel de temas"
-            aria-label="Mostrar painel de temas"
-            style={{
-              position: 'absolute',
-              top: 16,
-              left: 16,
-              zIndex: 12,
-              width: 40,
-              height: 40,
-              borderRadius: 11,
-              background: theme.colors.glassBg,
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: `1px solid ${theme.colors.glassBd}`,
-              boxShadow: 'var(--sh-ctrl)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: theme.colors.text,
-            }}
-          >
-            <IcList size={17} />
-          </button>
         )}
 
         {infoId && panelOpen && (
@@ -201,56 +154,82 @@ export default function Mapa() {
             theme={theme}
             layerId={infoId}
             narrow={narrow}
-            leftEdge={panelEdge}
             onClose={() => setInfoId(null)}
           />
         )}
 
-        {/* Report trigger: sits next to the panel toggle and shifts with it. */}
-        <button
-          className="ui-press"
-          onClick={() => setReportOpen(true)}
-          title="Gerar relatório territorial"
-          aria-label="Gerar relatório territorial"
-          style={{
-            position: 'absolute',
-            top: 16,
-            left: leftEdge + 12,
-            zIndex: 12,
-            height: 40,
-            padding: '0 14px',
-            borderRadius: 11,
-            background: theme.colors.glassBg,
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: `1px solid ${theme.colors.glassBd}`,
-            boxShadow: 'var(--sh-ctrl)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 14.5,
-            fontWeight: 600,
-            color: theme.colors.text,
-            transition: 'left .3s',
-          }}
-        >
-          <IcBarChart size={15} />
-          Relatório
-        </button>
+        {/* Clips its overlays at the column's edge: with the ficha open the
+            map is 290px wide, and the legend would spill over the ficha. */}
+        <div style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
+          {/* The panels no longer cover the map, so the insets only keep the
+              overlays clear of the map's own buttons below. */}
+          <MapView
+            theme={theme}
+            leftEdge={MAP_INSET}
+            rightOffset={MAP_INSET}
+            dismissSelectionRef={dismissSelectionRef}
+            captureMapRef={captureMapRef}
+          />
+
+          {/* "‹" on the panel's edge (Figma 19442:60752), 14px under the
+              header; it turns into "›" to bring the panel back. */}
+          <button
+            className="mapa-edge-button ui-press"
+            onClick={panelOpen ? collapsePanel : () => setPanelOpen(true)}
+            aria-label={panelOpen ? 'Recolher painel de camadas' : 'Mostrar painel de camadas'}
+            title={panelOpen ? 'Recolher painel de camadas' : 'Mostrar painel de camadas'}
+            aria-expanded={panelOpen}
+            aria-controls={panelOpen ? 'painel-camadas' : undefined}
+            style={{ top: 14 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+            <img
+              src="/icons/mapa/keyboard-arrow-left.svg"
+              alt=""
+              width={16}
+              height={16}
+              style={panelOpen ? undefined : { transform: 'scaleX(-1)' }}
+            />
+          </button>
+
+          {/* Provisional: the old map header was the only way into the search,
+              and the redesign moves it into the panel (issue #141). Until then
+              it opens from here, under the "‹". */}
+          <button
+            className="mapa-edge-button ui-press"
+            onClick={() => window.dispatchEvent(new CustomEvent('cc-open-search'))}
+            aria-label="Buscar município, estado ou território"
+            title="Buscar município, estado ou território"
+            style={{ top: 62 }}
+          >
+            <IcSearch size={16} />
+          </button>
+
+          {/* "Resultado" (Figma 19423:58080), 26px under the header, shows
+              and hides the results column; it is there whenever the column
+              has something to show. */}
+          {resultsVisible && (
+            <button
+              className="mapa-result-button text-ui-medium ui-press"
+              onClick={() => setResultsCollapsed((collapsed) => !collapsed)}
+              aria-expanded={resultsOpen}
+              aria-controls={resultsOpen ? 'painel-resultados' : undefined}
+              style={{ top: 26, right: MAP_INSET }}
+            >
+              Resultado
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/insert-chart.svg" alt="" width={16} height={16} />
+            </button>
+          )}
+        </div>
 
         <ResultsSidebar
           theme={theme}
           collapsed={resultsCollapsed}
-          onSetCollapsed={setResultsCollapsed}
           onClose={closeResults}
           captureMap={() => captureMapRef.current?.() ?? Promise.resolve(null)}
         />
-
-        <ReportForm theme={theme} open={reportOpen} onClose={() => setReportOpen(false)} />
       </div>
-
-      {!welcomeSeen && <Welcome theme={theme} month={month} />}
     </div>
   )
 }

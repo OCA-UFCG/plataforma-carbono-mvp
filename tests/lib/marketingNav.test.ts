@@ -5,6 +5,7 @@ import { MAPA_URL } from '@/lib/config'
 import {
   FOOTER_LINKS,
   HEADER_LINKS,
+  MAPA_LINK,
   SECTION_IDS,
   SOBRE_PAGES,
   TERRITORIOS_LINK,
@@ -166,6 +167,13 @@ describe('activeNavHref', () => {
   it('marks "Resumo territorial" on the story, which renders this header too', () => {
     expect(activeNavHref('/territorios')).toBe(TERRITORIOS_LINK.href)
     expect(activeNavHref('/territoriosx')).toBeNull()
+  })
+
+  it('marks "Plataforma" on the platform, which renders this header too', () => {
+    // MAPA_LINK.href is MAPA_URL, which a deployment may point at the login
+    // page; the platform's own route is what marks the entry.
+    expect(activeNavHref('/mapa')).toBe(MAPA_LINK.href)
+    expect(activeNavHref('/mapax')).toBeNull()
   })
 
   it('marks nothing for a route no entry owns', () => {

@@ -11,7 +11,6 @@ import type {
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
-import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
 import { isExclusiveSubtheme, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import {
@@ -22,9 +21,6 @@ import {
   writePersisted,
   type PersistedView,
 } from '@/lib/mapa/persistState'
-
-const DARK_MODE_KEY = 'cc_dark_mode_v1'
-const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
 // The layers the panel offers. A `hidden` layer stays in layers.json, so the
 // GEE allowlist and the Territórios story still reach it, but the map module
@@ -100,14 +96,10 @@ interface MapaStore {
   basemapId: string
   /** Relief in 3D, from the elevation tiles of the Relevo subtheme. Not persisted. */
   terrain3d: boolean
-  darkMode: boolean
   // Current viewport and drawing. They live in the store so persistence has a
   // single read point; MapView consumes them on mount and feeds them afterwards.
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  // Month dressing the interface ('auto' follows the date) + welcome-seen flag.
-  month: MonthPref
-  welcomeSeen: boolean
 
   // Dynamic layer (GEE) state
   fetchedTileUrls:  Record<string, string>
@@ -153,9 +145,6 @@ interface MapaStore {
   setTerrain3d:   (on: boolean) => void
   setView:        (v: PersistedView) => void
   setDrawing:     (f: GeoJSON.Feature | null) => void
-  toggleDarkMode: () => void
-  setMonth:       (m: MonthPref) => void
-  setWelcomeSeen: (v: boolean) => void
   clearDrawings:  () => void
 
   activateDynamicLayer: (layer: RasterLayerConfig) => Promise<void>
@@ -181,30 +170,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
   terrain3d: false,
-  // Dark mode: hydrates from localStorage on the client and, with no stored
-  // mark, follows the operating system preference.
-  // LEGACY: until 2026-07 the key was 'websig-dark-mode'. It is still read once
-  // so we do not discard the choice of existing users; from the first tap on
-  // the button onwards, only the new key is written.
-  darkMode: typeof window !== 'undefined'
-    ? (() => {
-        const stored = window.localStorage?.getItem(DARK_MODE_KEY)
-          ?? window.localStorage?.getItem(DARK_MODE_KEY_LEGADA)
-        if (stored === 'true') return true
-        if (stored === 'false') return false
-        return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
-      })()
-    : false,
-  // New key (v2) because v1 stored a season ('chuva'/'transicao'/'seca'), which
-  // no longer exists; isMonthPref discards the old value instead of accepting
-  // an invalid month coming from localStorage.
-  month: (() => {
-    if (typeof window === 'undefined') return 'auto'
-    const stored = window.localStorage?.getItem('cc_month_v2')
-    return isMonthPref(stored) ? stored : 'auto'
-  })(),
-  welcomeSeen: typeof window !== 'undefined'
-    && window.localStorage?.getItem('cc_welcome_v1') === '1',
 
   view:    restaurado?.view ?? null,
   drawing: restaurado?.drawing ?? null,
@@ -317,22 +282,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   setAnalysisKind:  (v)    => set({ analysisKind: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
   setTerrain3d:   (on)     => set({ terrain3d: on }),
-  toggleDarkMode: () =>
-    set((s) => {
-      const next = !s.darkMode
-      if (typeof window !== 'undefined') {
-        window.localStorage?.setItem(DARK_MODE_KEY, String(next))
-      }
-      return { darkMode: next }
-    }),
-  setMonth: (month) => {
-    if (typeof window !== 'undefined') window.localStorage?.setItem('cc_month_v2', month)
-    set({ month })
-  },
-  setWelcomeSeen: (v) => {
-    if (typeof window !== 'undefined') window.localStorage?.setItem('cc_welcome_v1', v ? '1' : '0')
-    set({ welcomeSeen: v })
-  },
   setView:    (v) => set({ view: v }),
   setDrawing: (f) => set({ drawing: f }),
   clearDrawings:  ()       =>

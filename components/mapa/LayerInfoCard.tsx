@@ -6,12 +6,8 @@ import { LAYER_META } from '@/config/mapa/layerMeta'
 import { LAYER_INFO } from '@/config/mapa/layerInfo'
 import { THEMES } from '@/config/mapa/groups'
 import { IcArrowUpRight, IcX } from './icons'
+import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import type { LayerConfig, PlatformTheme } from '@/types/mapa'
-
-/** Width of the ficha column. Mapa.tsx adds this to `leftEdge` while the ficha
- *  is open, which is what steps the left cluster aside instead of letting it
- *  overlap; the two numbers must stay in sync. */
-export const FICHA_WIDTH = 340
 
 const LABEL: CSSProperties = {
   fontSize: 11.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', margin: '22px 0 8px',
@@ -23,10 +19,10 @@ const LEARN_MORE: CSSProperties = {
 }
 
 /**
- * The layer sheet: a sibling panel of Temas, not a popover over it. It renders
- * from Mapa.tsx rather than from inside Sidebar, so it is not trapped in the
- * panel root's stacking context, and the space it occupies is reserved through
- * `leftEdge` rather than contested.
+ * The layer sheet: a column of its own between the layer panel and the map
+ * (Figma 19451:60959), not a popover over the panel. It renders from Mapa.tsx
+ * rather than from inside Sidebar, so it takes its place in the row and the map
+ * gives up the width.
  *
  * Below 768px there is no room for a second column, so it stays an overlay over
  * the drawer -- which already covers the map on its own.
@@ -35,13 +31,11 @@ const LEARN_MORE: CSSProperties = {
  * data: what it shows, what changes its reading, where it comes from.
  */
 export default function LayerInfoCard({
-  theme, layerId, narrow, leftEdge, onClose,
+  theme, layerId, narrow, onClose,
 }: {
   theme: PlatformTheme
   layerId: string
   narrow: boolean
-  /** Left edge of the cluster, WITHOUT the ficha's own width. */
-  leftEdge: number
   onClose: () => void
 }) {
   const layers = useStore((s) => s.layers)
@@ -97,18 +91,19 @@ export default function LayerInfoCard({
 
   return (
     <div
-      // Fades in over the same .3s the cluster takes to slide away, so the two
-      // never occupy the same pixels, not even mid-animation.
       className="ficha-in"
       role="complementary"
       aria-labelledby="ficha-titulo"
       style={{
-        position: 'absolute', top: 16, zIndex: 16,
         ...(narrow
-          ? { left: 8, width: 'calc(100vw - 16px)' }
-          : { left: leftEdge + 12, width: FICHA_WIDTH }),
-        maxHeight: 'calc(100% - 32px)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, boxShadow: 'var(--sh-pop)',
+          ? {
+              position: 'absolute', top: 16, zIndex: 16, left: 8, width: 'calc(100vw - 16px)',
+              maxHeight: 'calc(100% - 32px)',
+              border: `1px solid ${c.border}`, borderRadius: 16, boxShadow: 'var(--sh-pop)',
+            }
+          : { position: 'relative', flex: 'none', width: COLUMN_WIDTH, height: '100%', borderRight: `1px solid ${c.border}` }),
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        background: c.bgCard,
         fontFamily: 'var(--font-app), sans-serif',
       }}
     >

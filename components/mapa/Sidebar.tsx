@@ -8,6 +8,7 @@ import { useStore } from '@/lib/mapa/store'
 import { orderThemes } from '@/lib/mapa/layerOrder'
 import { keepSlot, slotBefore, type DropSlot } from '@/lib/mapa/dropSlot'
 import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
+import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { THEMES, TERRITORY_THEME_ID, type SubthemeInfo, type ThemeInfo } from '@/config/mapa/groups'
 import type { LayerConfig, PlatformTheme } from '@/types/mapa'
@@ -121,23 +122,29 @@ export default function Sidebar({ theme, infoId, onInfo, onCollapse }: Props) {
 
   return (
     <div
+      id="painel-camadas"
       style={{
-        position: 'absolute', zIndex: 10, display: 'flex',
+        display: 'flex',
         ...(narrow
-          ? { top: 0, left: 0, bottom: 0, width: 'min(320px, 88vw)', maxHeight: '100%' }
-          : { top: 16, left: 16, width: 332, maxHeight: 'calc(100% - 32px)' }),
+          ? { position: 'absolute', zIndex: 10, top: 0, left: 0, bottom: 0, width: 'min(320px, 88vw)', maxHeight: '100%' }
+            // The first column of Mapa.tsx's row, the whole height under the
+            // site header (Figma 19413:54279).
+          : { position: 'relative', flex: 'none', width: COLUMN_WIDTH, height: '100%' }),
         fontFamily: 'var(--font-app), sans-serif',
       }}
     >
-      {/* Panel chrome; overflow:hidden clips the rounded corners. The ficha is
-          not in here: it is a sibling panel rendered by Mapa.tsx. */}
+      {/* Panel chrome; overflow:hidden clips the drawer's rounded corners. The
+          ficha is not in here: it is a sibling column rendered by Mapa.tsx. */}
       <div
         style={{
           flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
-          background: c.glassBg, backdropFilter: 'blur(11px)', WebkitBackdropFilter: 'blur(11px)',
-          border: `1px solid ${c.glassBd}`, boxShadow: 'var(--sh-panel)',
-          borderRadius: narrow ? '0 16px 16px 0' : 16,
           overflow: 'hidden',
+          ...(narrow
+            ? {
+                background: c.glassBg, backdropFilter: 'blur(11px)', WebkitBackdropFilter: 'blur(11px)',
+                border: `1px solid ${c.glassBd}`, boxShadow: 'var(--sh-panel)', borderRadius: '0 16px 16px 0',
+              }
+            : { background: c.bgCard, borderRight: `1px solid ${c.border}` }),
         }}
       >
         {/* Header */}
