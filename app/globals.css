@@ -29,6 +29,8 @@
    * never have to edit this file (issue #44, "Regras para evitar conflito"). */
   --role-marca-ancora-borda: #587c22;
   --role-marca-ancora-foco: #587c22;
+  /* The fill of the layer sheet's "Saiba mais" (Figma 19451:60852). */
+  --role-marca-ancora-container: #f0f4ea;
   --role-categorica1-borda: #27725b;
   --role-categorica1-container: #eaf3f0;
   --role-categorica2-padrao: #002b39;
