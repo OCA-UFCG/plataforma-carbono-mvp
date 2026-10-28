@@ -23,7 +23,7 @@ vi.mock('@/lib/mapa/store', () => ({
 import Sidebar from '@/components/mapa/Sidebar'
 
 const markup = renderToStaticMarkup(createElement(Sidebar, {
-  theme: buildSiteTheme(), infoId: null, onInfo: () => {},
+  theme: buildSiteTheme(), infoId: null, onInfo: () => {}, onSelectFeature: () => {}, onDismissSelection: () => {},
 }))
 const header = (label: string) =>
   markup.match(new RegExp(`<button [^>]*aria-expanded="(?:true|false)"[^>]*>(?:(?!</button>).)*${label}(?:(?!</button>).)*</button>`))?.[0] ?? ''

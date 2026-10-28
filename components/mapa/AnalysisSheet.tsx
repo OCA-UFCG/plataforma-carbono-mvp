@@ -5,7 +5,6 @@ import type { Ref } from 'react'
 import LayerResultCard, { type CardCharts } from './LayerResultCard'
 import { StatsChartView } from './StatsChart'
 import PointSeries from './results/PointSeries'
-import { Pair } from './results/blocks'
 import { luminance } from '@/lib/color'
 import { EmissionsLegendItem, VectorLegendItem, RasterLegendItem } from './overlays/LegendItems'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
@@ -13,7 +12,6 @@ import type {
   LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig,
 } from '@/types/mapa'
 
-const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 // The charts come with the sheet, not lazily: the capture runs right after the
@@ -43,7 +41,6 @@ interface Props {
   analysisKind:  string | null
   analysisLabel: string | null
   drawnArea:     number | null
-  drawnLength:   number | null
   generatedAt:   Date
   layers:        SheetLayer[]
   /** Layers that were on the map, in the legend's order. */
@@ -71,24 +68,19 @@ interface Props {
  * asked for.
  */
 export default function AnalysisSheet({
-  theme, mapSrc, analysisKind, analysisLabel, drawnArea, drawnLength, generatedAt, layers, legendLayers, legendDates, legendEmissoes, ref,
+  theme, mapSrc, analysisKind, analysisLabel, drawnArea, generatedAt, layers, legendLayers, legendDates, legendEmissoes, ref,
 }: Props) {
   const c = theme.colors
   const dark = luminance(c.bg) < 0.25
   const title = analysisLabel ?? analysisKind ?? 'Resultados'
   // A recorte with no raster measured has nothing for the results column; an
   // empty column would read as a capture that failed.
-  const hasResults = layers.length > 0 || drawnLength !== null
+  const hasResults = layers.length > 0
   const stacked = layers.length >= 2
   const contentWidth = stacked
     ? STACKED_WIDTH
     : Math.max((mapSrc ? MAP_WIDTH : 0) + (mapSrc && hasResults ? GAP : 0) + (hasResults ? RESULTS_WIDTH : 0), RESULTS_WIDTH)
 
-  const length = drawnLength !== null && (
-    <div style={{ marginBottom: 24 }}>
-      <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
-    </div>
-  )
   const cards = layers.map(({ raster, result, date }) => (
     <LayerResultCard
       key={raster.id}
@@ -169,7 +161,6 @@ export default function AnalysisSheet({
 
         {stacked ? (
           <div style={{ width: STACKED_WIDTH }}>
-            {length}
             <div style={{
               display: 'grid',
               gridTemplateColumns: `repeat(${Math.min(layers.length, MAX_COLUMNS)}, minmax(0, 1fr))`,
@@ -181,7 +172,6 @@ export default function AnalysisSheet({
           </div>
         ) : hasResults && (
           <div style={{ width: RESULTS_WIDTH, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-            {length}
             {cards}
           </div>
         )}

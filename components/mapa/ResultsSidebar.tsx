@@ -12,12 +12,11 @@ import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { Empty, LayerHeading, Pair } from './results/blocks'
+import { Empty, LayerHeading } from './results/blocks'
 import styles from './ResultsSidebar.module.css'
 import type { EmissionsLayerConfig, LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
-const nf    = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
 const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 interface Props {
@@ -55,7 +54,6 @@ const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() 
  */
 export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }: Props) {
   const drawnArea        = useStore((s) => s.drawnArea)
-  const drawnLength      = useStore((s) => s.drawnLength)
   const results          = useStore((s) => s.results)
   const selectedGeometry = useStore((s) => s.selectedGeometry)
   const analysisLabel    = useStore((s) => s.analysisLabel)
@@ -70,7 +68,7 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
   // not it has an answer yet: a layer still computing shows its skeleton.
   const rasters = layers.filter(isMeasuredRaster)
   const emissionsLayer = layers.find((l): l is EmissionsLayerConfig => l.type === 'emissions' && l.visible)
-  const hasContent = hasAnalysisContent({ drawnArea, drawnLength, results, layers })
+  const hasContent = hasAnalysisContent({ drawnArea, results, layers })
 
   // The topmost layer opens; the rest answer from their headers until asked for.
   // `null` means untouched, which is not the same as "all closed": an empty Set
@@ -144,7 +142,6 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
       analysisKind,
       analysisLabel,
       drawnArea,
-      drawnLength,
       generatedAt,
       layers: measured.map((raster) => ({
         layerName:    raster.name,
@@ -278,7 +275,6 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
         analysisKind={analysisKind}
         analysisLabel={analysisLabel}
         drawnArea={drawnArea}
-        drawnLength={drawnLength}
         generatedAt={sheet.generatedAt}
         layers={sheetLayers}
         legendLayers={sheet.legendLayers}
@@ -328,10 +324,6 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
 
       {/* The cards scroll between the header and the downloads. */}
       <div className={styles.body}>
-        {drawnLength !== null && (
-          <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
-        )}
-
         {/* The emissions of the selected recorte feature, while an emissions
             layer is on: one card, whichever of the exclusive layers it is. */}
         {selectedGeometry && emissionsLayer && (

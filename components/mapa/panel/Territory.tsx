@@ -7,6 +7,7 @@ import type { LayerConfig } from '@/types/mapa'
 import { IcX } from '../icons'
 import OpacityControl from './OpacityControl'
 import RecortePicker from './RecortePicker'
+import TerritorySearch from './TerritorySearch'
 import { useCardDrag, type GripHandlers } from './useCardDrag'
 import cardDrag from './cardDrag.module.css'
 import styles from './Territory.module.css'
@@ -20,13 +21,24 @@ export function recorteSummary(n: number): string {
 /**
  * "Território" (Figma 19423:56814), atop the layer panel: the recortes are
  * chosen in "Escolha o recorte" and listed in "Recorte em destaque", where
- * their draw order and opacity are set. Folded (19430:58762) it sums them up.
- * The search, "Município em foco" and "Delimitar recorte" join it in #141.
+ * their draw order and opacity are set; a feature is found in the search or
+ * clicked on the map, and shows in the card in focus; "Delimitar recorte" and
+ * "Marcar ponto" draw what to analyse instead. Folded (19430:58762) it sums
+ * them up. Picking a search result and dropping a selection go through the
+ * map (MapView's `selectFeatureRef` and `dismissSelectionRef`, by Mapa.tsx).
  */
-export default function Territory() {
+export default function Territory({ onSelectFeature, onDismissSelection }: {
+  onSelectFeature: (layerId: string, featureIndex: number, bbox: [number, number, number, number]) => void
+  onDismissSelection: () => void
+}) {
   const layers = useStore((s) => s.layers)
   const selectedGeometry = useStore((s) => s.selectedGeometry)
   const analysisLabel = useStore((s) => s.analysisLabel)
+  const analysisKind = useStore((s) => s.analysisKind)
+  const drawing = useStore((s) => s.drawing)
+  const drawMode = useStore((s) => s.drawMode)
+  const setDrawMode = useStore((s) => s.setDrawMode)
+  const clearDrawings = useStore((s) => s.clearDrawings)
   const layerErrors = useStore((s) => s.layerErrors)
   const toggleLayer = useStore((s) => s.toggleLayer)
   const setOpacity = useStore((s) => s.setOpacity)
@@ -44,6 +56,13 @@ export default function Territory() {
   // The destaque is the feature in focus, clicked or searched, which the
   // analysis measures; a drawing is not one (issue #136, question 3).
   const destaque = selectedGeometry?.feature ? analysisLabel : null
+  // The card in focus names that feature by its kind ("Município em foco"),
+  // or a drawing by what it is, and its X drops either: a feature as a click
+  // on empty map does, a drawing through the store (#136, question 2).
+  const focus = destaque
+    ? { label: `${analysisKind ?? 'Recorte'} em foco`, name: destaque }
+    : drawing && analysisKind ? { label: 'Em foco', name: analysisKind } : null
+  const toggleDraw = (mode: 'polygon' | 'point') => setDrawMode(drawMode === mode ? null : mode)
 
   return (
     <section className={styles.section} data-open={open} aria-labelledby="territorio">
@@ -64,7 +83,41 @@ export default function Territory() {
 
       {open ? (
         <>
-          <RecortePicker layers={recortes} onToggle={toggleLayer} />
+          <div className={styles.find}>
+            <RecortePicker layers={recortes} onToggle={toggleLayer} />
+            <TerritorySearch onSelect={onSelectFeature} />
+            <p className={`${styles.orClick} text-subtle`}>Ou clique no mapa.</p>
+          </div>
+          {focus && (
+            <FocusCard
+              label={focus.label}
+              name={focus.name}
+              onClear={() => (drawing ? clearDrawings() : onDismissSelection())}
+            />
+          )}
+          {/* "Delimitar recorte" as the design draws it, and "Marcar ponto",
+              which it does not: the way to a point's value and series. Each
+              stays armed until pressed again or Esc (DrawHint). */}
+          <div className={styles.drawButtons}>
+            <button
+              type="button"
+              className={`${styles.draw} text-ui-medium`}
+              aria-pressed={drawMode === 'polygon'}
+              onClick={() => toggleDraw('polygon')}
+            >
+              Delimitar recorte
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/edit.svg" alt="" width={16} height={16} />
+            </button>
+            <button
+              type="button"
+              className={`${styles.draw} text-ui-medium`}
+              aria-pressed={drawMode === 'point'}
+              onClick={() => toggleDraw('point')}
+            >
+              Marcar ponto
+            </button>
+          </div>
           <hr className={styles.rule} />
           <div className={styles.chosen}>
             <div className={styles.chosenHead}>
@@ -104,6 +157,28 @@ export default function Territory() {
         <TerritorySummary count={n} destaque={destaque} onOpen={() => setOpen(true)} />
       )}
     </section>
+  )
+}
+
+/** The feature or the drawing in focus (Figma "Município em foco", 19416:55282). */
+export function FocusCard({ label, name, onClear }: { label: string; name: string; onClear: () => void }) {
+  return (
+    <div className={styles.focus}>
+      <div className={styles.focusText}>
+        <span className={styles.focusLabel}>{label}</span>
+        <span className={`${styles.focusName} text-subtle-semibold`} title={name}>{name}</span>
+      </div>
+      <button
+        type="button"
+        className={styles.focusClear}
+        onClick={onClear}
+        aria-label={`Desfazer a seleção de ${name}`}
+        title="Desfazer a seleção"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+        <img src="/icons/mapa/close-small.svg" alt="" width={16} height={16} />
+      </button>
+    </div>
   )
 }
 

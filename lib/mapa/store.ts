@@ -73,7 +73,6 @@ interface MapaStore {
   layerOrder: string[]
   drawMode: DrawMode
   drawnArea: number | null
-  drawnLength: number | null
   // One result per visible raster, keyed by layer id. Nothing prunes it when a
   // layer is switched off: the panel renders the intersection with the visible
   // rasters, so the card disappears on its own and switching the layer back on
@@ -128,7 +127,6 @@ interface MapaStore {
 
   setDrawMode:    (mode: DrawMode) => void
   setDrawnArea:   (area: number | null) => void
-  setDrawnLength: (length: number | null) => void
   setLayerResult:      (result: LayerResult) => void
   clearResults:        () => void
   setSelectedGeometry: (geom: SelectedGeometry | null) => void
@@ -152,7 +150,6 @@ export const useStore = create<MapaStore>((set, get) => ({
   layerOrder: ordemCamadas,
   drawMode: null,
   drawnArea: null,
-  drawnLength: null,
   results: {},
   selectedGeometry: null,
   analysisLabel: null,
@@ -246,7 +243,6 @@ export const useStore = create<MapaStore>((set, get) => ({
 
   setDrawMode:    (mode)   => set({ drawMode: mode }),
   setDrawnArea:   (area)   => set({ drawnArea: area }),
-  setDrawnLength: (length) => set({ drawnLength: length }),
   // A full replace, not a merge: a layer moving back to 'loading' must drop the
   // previous stop's numbers, or the card would show last year's mean under this
   // year's header while the request is in flight.
@@ -263,7 +259,6 @@ export const useStore = create<MapaStore>((set, get) => ({
     set((s) => ({
       drawing: null,
       drawnArea: null,
-      drawnLength: null,
       drawMode: null,
       results: {},
       selectedGeometry: null,
@@ -436,11 +431,10 @@ export const useStore = create<MapaStore>((set, get) => ({
  */
 export function hasAnalysisContent(s: {
   drawnArea:   number | null
-  drawnLength: number | null
   results:     Record<string, LayerResult>
   layers:      LayerConfig[]
 }): boolean {
-  if (s.drawnArea !== null || s.drawnLength !== null) return true
+  if (s.drawnArea !== null) return true
   return s.layers.some(
     (l) => l.type === 'raster' && l.visible && s.results[l.id] !== undefined,
   )

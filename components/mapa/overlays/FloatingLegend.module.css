@@ -8,11 +8,9 @@
   display: flex;
   flex-direction: column;
   width: 302px;
-  /* Clear of the control stack, with 16px between them; a long legend
-   * scrolls instead. The stack ends 420px down the map with the drawing
-   * button, which leaves with issue #141; the design's stack ends at the
-   * basemap button, 364px, and this becomes calc(100% - 404px). */
-  max-height: max(160px, calc(100% - 460px));
+  /* Clear of the control stack, which ends at the basemap button 364px down
+   * the map, with 16px between them; a long legend scrolls instead. */
+  max-height: max(160px, calc(100% - 404px));
   overflow: hidden;
   border: 1px solid var(--bg-borda);
   border-radius: var(--radius);

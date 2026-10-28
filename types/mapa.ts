@@ -206,10 +206,9 @@ export interface AppConfig {
 
 // Drawing
 
+/** The drawing buttons of the panel: "Delimitar recorte" and "Marcar ponto". */
 export type DrawMode =
   | 'polygon'
-  | 'rectangle'
-  | 'linestring'
   | 'point'
   | null
 

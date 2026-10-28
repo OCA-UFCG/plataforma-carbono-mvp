@@ -4,15 +4,12 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { useStore } from '@/lib/mapa/store'
 import { basemaps } from '@/config/mapa/basemaps'
-import { IcPen } from '../icons'
 import styles from './MapControls.module.css'
 
 interface Props {
   mapRef: RefObject<maplibregl.Map | null>
   /** Distance from the map's right edge (lib/mapa/layout.ts, MAP_INSET). */
   rightOffset: number
-  drawOpen: boolean
-  onToggleDraw: () => void
 }
 
 /** One of Figma's 16px control icons, exported to public/icons/mapa/. */
@@ -24,10 +21,10 @@ function Icon({ name }: { name: string }) {
 /**
  * Map control stack (Figma 19428:58457), under the "Resultado" button: zoom
  * in and out in one box, then locate, fullscreen and north, then the basemap
- * selector, each a 40px outlined button. The drawing button below them is not
- * in the design; it leaves when the drawing moves into the panel (#141).
+ * selector, each a 40px outlined button. Drawing starts from the panel's
+ * Território section.
  */
-export default function MapControls({ mapRef, rightOffset, drawOpen, onToggleDraw }: Props) {
+export default function MapControls({ mapRef, rightOffset }: Props) {
   const basemapId  = useStore((s) => s.basemapId)
   const setBasemap = useStore((s) => s.setBasemap)
 
@@ -80,7 +77,6 @@ export default function MapControls({ mapRef, rightOffset, drawOpen, onToggleDra
   }
 
   const fullscreenLabel = isFull ? 'Sair da tela cheia' : 'Tela cheia'
-  const drawLabel = drawOpen ? 'Ocultar ferramentas de desenho' : 'Ferramentas de desenho'
 
   return (
     <div className={styles.stack} style={{ right: rightOffset }}>
@@ -141,17 +137,6 @@ export default function MapControls({ mapRef, rightOffset, drawOpen, onToggleDra
           </div>
         )}
       </div>
-
-      <button
-        type="button"
-        className={styles.control}
-        onClick={onToggleDraw}
-        aria-label={drawLabel}
-        title={drawLabel}
-        aria-pressed={drawOpen}
-      >
-        <IcPen size={16} />
-      </button>
     </div>
   )
 }

@@ -43,11 +43,6 @@ export const IcChevronUp    = line(<path d="m18 15-6-6-6 6" />)
 export const IcChevronLeft  = line(<path d="m15 18-6-6 6-6" />)
 export const IcChevronRight = line(<path d="m9 18 6-6-6-6" />)
 
-export const IcSearch = line(<>
-  <circle cx="11" cy="11" r="8" />
-  <path d="m21 21-4.3-4.3" />
-</>)
-
 export const IcCheck = line(<path d="M20 6 9 17l-5-5" />)
 
 export const IcX = line(<>
@@ -117,12 +112,6 @@ export const IcInfo = line(<>
   <circle cx="12" cy="12" r="10" />
   <path d="M12 16v-4" />
   <path d="M12 8h.01" />
-</>)
-
-// drawing (pen, as in the prototype)
-export const IcPen = line(<>
-  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-  <path d="m15 5 4 4" />
 </>)
 
 // basemap

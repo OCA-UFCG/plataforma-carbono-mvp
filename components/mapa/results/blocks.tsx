@@ -83,16 +83,6 @@ export function Hero({
   )
 }
 
-/** Secondary figures on their own, as a card (the drawn line's length). */
-export function Pair({ items }: { theme: PlatformTheme; items: Figure[] }) {
-  if (items.length === 0) return null
-  return (
-    <section className={styles.card} data-card="figures">
-      <Figures items={items} />
-    </section>
-  )
-}
-
 /** A card's title row: the heading in capitals and, right, a hint. */
 export function ListHead({ title, hint }: { title: string; hint?: string }) {
   return (
