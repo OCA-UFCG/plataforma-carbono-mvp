@@ -17,7 +17,7 @@ import { adaptive, coverageNote, edge, hectaresShort, percentShort, quantity, so
 import { recurrenceSummary } from '@/lib/mapa/results/recurrence'
 import { describeFlux, fluxInk } from '@/lib/mapa/carbonFlux'
 import type { AreaBin, PanelResult, PlatformTheme, ProfiledResult, RasterLayerConfig } from '@/types/mapa'
-import { BarList, Empty, Footnote, Hero, Pair, Stack, type Figure } from './blocks'
+import { BarList, Empty, Footnote, Hero, Stack, type Figure } from './blocks'
 import StocksResult from './StocksResult'
 import CompositionResult from './CompositionResult'
 
@@ -121,8 +121,7 @@ function AmountResult({ theme, profile, layer, r, polygonHa }: LayerResultViewPr
   const where = coverage && profile.densityBasis === 'valid' ? 'na parte com dado' : 'na área analisada'
   return (
     <>
-      <Hero theme={theme} value={total.value} unit={total.unit} caption={`de ${lowerFirst(profile.totalLabel)} ${where}`} />
-      <Pair theme={theme} items={pair} />
+      <Hero theme={theme} value={total.value} unit={total.unit} caption={`de ${lowerFirst(profile.totalLabel)} ${where}`} figures={pair} />
       <Bands theme={theme} bins={r.bins} validHa={r.validHa} unit={perHaUnit} color={theme.colors.accent} />
       <Footnote theme={theme} notes={[profile.note, coverage, sourceOf(layer)]} />
     </>
@@ -140,8 +139,7 @@ function DistributionResult({ theme, layer, profile, r, polygonHa }: LayerResult
   }
   return (
     <>
-      <Hero theme={theme} value={adaptive(r.p50)} unit={layer.unit} caption="mediana na área analisada" />
-      <Pair theme={theme} items={pair} />
+      <Hero theme={theme} value={adaptive(r.p50)} unit={layer.unit} caption="mediana na área analisada" figures={pair} />
       <Bands theme={theme} bins={r.bins} validHa={r.validHa} unit={layer.unit} color={theme.colors.accent} />
       <Footnote theme={theme} notes={[profile.note, coverageNote(r.validHa, polygonHa), sourceOf(layer)]} />
     </>
@@ -158,6 +156,15 @@ function FluxResult({ theme, layer, profile, r, polygonHa }: LayerResultViewProp
   // The net flux has no minus sign: its direction is the caption, in words, and
   // the number carries the emission or removal ink as a second cue.
   const direction = describeFlux(net).direction
+  const pair: Figure[] = profile.signed
+    ? [
+        { label: 'Área de sumidouro', value: share(r.negativeHa), aside: hectaresShort(r.negativeHa) },
+        { label: 'Área de fonte', value: share(r.positiveHa), aside: hectaresShort(r.positiveHa) },
+      ]
+    : [
+        { label: 'Por hectare', value: adaptive(Math.abs(shown) / r.validHa), aside: `${profile.totalUnit}/ha` },
+        { label: profile.totalUnit === 't CO2' ? 'Área com remoção' : 'Área com emissão', value: share(r.positiveHa), aside: hectaresShort(r.positiveHa) },
+      ]
   const hero = profile.signed ? (
     <Hero
       theme={theme}
@@ -169,25 +176,15 @@ function FluxResult({ theme, layer, profile, r, polygonHa }: LayerResultViewProp
           : direction === 'emission' ? 'de emissão líquida no período'
             : 'em equilíbrio entre emissões e remoções no período'
       }
+      figures={pair}
     />
   ) : (
-    <Hero theme={theme} value={scaled.value} unit={scaled.unit} caption={`de ${lowerFirst(profile.totalLabel)} no período`} />
+    <Hero theme={theme} value={scaled.value} unit={scaled.unit} caption={`de ${lowerFirst(profile.totalLabel)} no período`} figures={pair} />
   )
-
-  const pair: Figure[] = profile.signed
-    ? [
-        { label: 'Área de sumidouro', value: share(r.negativeHa), aside: hectaresShort(r.negativeHa) },
-        { label: 'Área de fonte', value: share(r.positiveHa), aside: hectaresShort(r.positiveHa) },
-      ]
-    : [
-        { label: 'Por hectare', value: adaptive(Math.abs(shown) / r.validHa), aside: `${profile.totalUnit}/ha` },
-        { label: profile.totalUnit === 't CO2' ? 'Área com remoção' : 'Área com emissão', value: share(r.positiveHa), aside: hectaresShort(r.positiveHa) },
-      ]
 
   return (
     <>
       {hero}
-      <Pair theme={theme} items={pair} />
       <Footnote theme={theme} notes={[
         profile.note,
         coverageNote(r.validHa, polygonHa, 'Floresta do modelo do GFW'),
@@ -206,8 +203,7 @@ function AnnualResult({ theme, layer, profile, r, polygonHa }: LayerResultViewPr
   }
   return (
     <>
-      <Hero theme={theme} value={adaptive(r.mean)} unit={profile.unit || undefined} caption={`${profile.meanLabel} na área analisada`} />
-      <Pair theme={theme} items={pair} />
+      <Hero theme={theme} value={adaptive(r.mean)} unit={profile.unit || undefined} caption={`${profile.meanLabel} na área analisada`} figures={pair} />
       <Footnote theme={theme} notes={[profile.note, coverageNote(r.validHa, polygonHa), sourceOf(layer)]} />
     </>
   )
@@ -226,11 +222,11 @@ function RecurrenceResult({ theme, layer, profile, r }: LayerResultViewProps & {
         value={percentShort(s.everShare)}
         aside={hectaresShort(s.everHa)}
         caption={`da área queimou ao menos uma vez desde ${profile.firstYear}`}
+        figures={[
+          { label: 'Queimou no ano', value: percentShort((s.yearHa / r.regionHa) * 100), aside: hectaresShort(s.yearHa) },
+          { label: `${profile.recurrentFrom} anos ou mais com fogo`, value: percentShort(s.recurrentShare), aside: hectaresShort(s.recurrentHa) },
+        ]}
       />
-      <Pair theme={theme} items={[
-        { label: 'Queimou no ano', value: percentShort((s.yearHa / r.regionHa) * 100), aside: hectaresShort(s.yearHa) },
-        { label: `${profile.recurrentFrom} anos ou mais com fogo`, value: percentShort(s.recurrentShare), aside: hectaresShort(s.recurrentHa) },
-      ]} />
       <BarList
         theme={theme}
         title="Área por anos com fogo"

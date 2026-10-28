@@ -10,6 +10,7 @@ import { Bar, BarChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { formatarCo2e, linhasPorSetor, seriesComDado, type SerieSetor } from '@/lib/emissoes/painel'
 import type { EmissoesUnidadePayload, Inventario } from '@/types/emissoes'
 import type { PlatformColors, PlatformTheme } from '@/types/mapa'
+import { ListCard } from './blocks'
 
 const nfEixo = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1, signDisplay: 'negative' })
 
@@ -39,13 +40,7 @@ export default function EmissionsCharts({ theme, payload, inventario, ano }: {
   const escala = escalaDe(maxAbs)
 
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>Por setor</h3>
-        <span style={{ fontSize: 13, color: c.textDim, whiteSpace: 'nowrap', fontVariantNumeric: 'lining-nums tabular-nums' }}>
-          {anos[0]} a {anos[anos.length - 1]}, {escala.u}
-        </span>
-      </div>
+    <ListCard title="Por setor" hint={`${anos[0]} a ${anos[anos.length - 1]}, ${escala.u}`}>
       <div style={{ width: '100%', height: 190, minWidth: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={linhas} stackOffset="sign" margin={{ top: 6, right: 6, left: -12, bottom: 0 }} barCategoryGap="20%" maxBarSize={14}>
@@ -74,14 +69,15 @@ export default function EmissionsCharts({ theme, payload, inventario, ano }: {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* The legend rows of the donut card (Donut.module.css), Figma 19432:60387. */}
+      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {series.map((s) => (
-          <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: c.body }}>
-            <span style={{ width: 11, height: 11, borderRadius: 2, background: corDaSerie(s, c), flexShrink: 0 }} />
+          <li key={s.key} className="text-ui-badge" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 400, color: 'var(--bg-texto-primario)' }}>
+            <span style={{ width: 16, height: 16, borderRadius: 2, background: corDaSerie(s, c), flexShrink: 0 }} />
             {s.label}
           </li>
         ))}
       </ul>
-    </section>
+    </ListCard>
   )
 }

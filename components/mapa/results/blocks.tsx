@@ -1,63 +1,25 @@
 'use client'
 
-// Building blocks of the per-layer results in the "Resultados" panel. One
-// reading per result: a context line, a single headline number with its
-// sentence, at most two secondary figures, one list of bars and a short
-// footnote. A figure appears once; the bars carry area and share on the same
-// row instead of a legend repeating them.
+// Building blocks of the per-layer results in the "Resultados" column, after
+// Figma 19430:59196. One reading per result: a headline card (the layer's name,
+// a single number with its sentence and at most two secondary figures), cards
+// of bars, and a short footnote. A figure appears once; the bars carry area and
+// share on the same row instead of a legend repeating them.
 //
 // Grids use `minmax(0, 1fr)` rather than `1fr`: a bare `1fr` floors a column at
-// its content's min-content width and overflows the 328 px the panel leaves.
+// its content's min-content width and overflows the column.
 
-import type { ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import type { PlatformTheme } from '@/types/mapa'
-import { layerTitle } from '@/lib/mapa/results/format'
-
-const NUMS: React.CSSProperties = { fontVariantNumeric: 'lining-nums tabular-nums' }
-
-/** Layer name and period, on a rule above the numbers. */
-export function ContextLine({ theme, title, period }: { theme: PlatformTheme; title: string; period?: string }) {
-  const c = theme.colors
-  return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12,
-      paddingTop: 16, borderTop: `1px solid ${c.border}`,
-      // With the Stack's 24 px, the headline sits 16 px below: the line and the
-      // number read as one block.
-      marginBottom: -8,
-    }}>
-      <span style={{ fontSize: 14, fontWeight: 600, color: c.text, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{layerTitle(title)}</span>
-      {period && <span style={{ fontSize: 14, color: c.textDim, whiteSpace: 'nowrap', ...NUMS }}>{period}</span>}
-    </div>
-  )
-}
+import styles from './blocks.module.css'
 
 /**
- * The headline number. `aside` sits on its baseline (an area) and `caption`
- * completes it as a sentence. `ink` colors the number, for a signed flux.
- * `children` replaces the value, for a class name.
+ * The layer's heading (its name, period and the card's toggle), drawn by
+ * LayerResultCard. The design puts it inside the headline card, which the
+ * result views render, so it travels down by context and the first Hero or
+ * Empty of a result draws it.
  */
-export function Hero({
-  theme, value, unit, aside, caption, ink, children,
-}: {
-  theme: PlatformTheme; value?: string; unit?: string; aside?: string; caption?: string; ink?: string; children?: ReactNode
-}) {
-  const c = theme.colors
-  return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {children ?? (
-        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 10, rowGap: 4 }}>
-          <span style={{ fontSize: 56, fontWeight: 800, lineHeight: 0.95, letterSpacing: '-0.03em', color: ink ?? c.text, ...NUMS }}>
-            {value}
-          </span>
-          {unit && <span style={{ fontSize: 20, fontWeight: 700, color: c.text, whiteSpace: 'nowrap' }}>{unit}</span>}
-          {aside && <span style={{ fontSize: 15, color: c.textDim, whiteSpace: 'nowrap', ...NUMS }}>{aside}</span>}
-        </div>
-      )}
-      {caption && <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.4, color: c.body }}>{caption}</p>}
-    </section>
-  )
-}
+export const LayerHeading = createContext<ReactNode>(null)
 
 export interface Figure {
   label: string
@@ -66,33 +28,88 @@ export interface Figure {
   aside?: string
 }
 
-/** One or two secondary figures, side by side in a single ruled box. */
-export function Pair({ theme, items }: { theme: PlatformTheme; items: Figure[] }) {
-  const c = theme.colors
+/** One or two secondary figures, side by side under a rule. */
+function Figures({ items }: { items: Figure[] }) {
   const shown = items.slice(0, 2)
   if (shown.length === 0) return null
   return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: `repeat(${shown.length}, minmax(0, 1fr))`,
-      border: `1px solid ${c.border}`, borderRadius: 12, background: c.bgCard,
-    }}>
-      {shown.map((it, i) => (
-        <div key={it.label} style={{
-          padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 4, minWidth: 0,
-          borderLeft: i > 0 ? `1px solid ${c.border}` : undefined,
-        }}>
-          <span style={{ fontSize: 13, color: c.textDim, lineHeight: 1.3 }}>{it.label}</span>
+    <div
+      className={styles.figures}
+      data-count={shown.length}
+      style={{ gridTemplateColumns: `repeat(${shown.length}, minmax(0, 1fr))` }}
+    >
+      {shown.map((it) => (
+        <div key={it.label} className={styles.figure}>
+          <span className="text-body">{it.label}</span>
           {/* The aside wraps whole to the next line rather than leaving its unit behind. */}
-          <span style={{
-            display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 6,
-            fontSize: 20, fontWeight: 800, color: c.text, lineHeight: 1.2, overflowWrap: 'anywhere', ...NUMS,
-          }}>
-            {it.value}
-            {it.aside && <span style={{ fontSize: 13, fontWeight: 400, color: c.textDim, whiteSpace: 'nowrap' }}>{it.aside}</span>}
+          <span className={styles.figureValue}>
+            <span className={styles.figureNumber}>{it.value}</span>
+            {it.aside && <span className={`${styles.figureAside} text-body`}>{it.aside}</span>}
           </span>
         </div>
       ))}
     </div>
+  )
+}
+
+/**
+ * The headline card (Figma 19432:60313): the layer's heading, the number
+ * with its unit, `aside` beside it (an area), `caption` completing it as a
+ * sentence, and `figures` under a rule. `ink` colors the number, for a signed
+ * flux. `children` replaces the value, for a class name.
+ */
+export function Hero({
+  value, unit, aside, caption, ink, figures, children,
+}: {
+  theme: PlatformTheme; value?: string; unit?: string; aside?: string; caption?: string; ink?: string
+  figures?: Figure[]; children?: ReactNode
+}) {
+  const heading = useContext(LayerHeading)
+  return (
+    <section className={styles.card} data-card="lead">
+      <div className={styles.leadTop}>
+        {heading}
+        {children ?? (
+          <div className={styles.valueRow}>
+            <span className={styles.value} style={ink ? { color: ink } : undefined}>{value}</span>
+            {unit && <span className={`${styles.unit} text-h4`}>{unit}</span>}
+            {aside && <span className={`${styles.aside} text-body`}>{aside}</span>}
+          </div>
+        )}
+        {caption && <p className="text-body">{caption}</p>}
+      </div>
+      {figures && <Figures items={figures} />}
+    </section>
+  )
+}
+
+/** Secondary figures on their own, as a card (the drawn line's length). */
+export function Pair({ items }: { theme: PlatformTheme; items: Figure[] }) {
+  if (items.length === 0) return null
+  return (
+    <section className={styles.card} data-card="figures">
+      <Figures items={items} />
+    </section>
+  )
+}
+
+/** A card's title row: the heading in capitals and, right, a hint. */
+export function ListHead({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className={styles.listHead}>
+      <h3 className={`${styles.heading} text-p-ui`}>{title}</h3>
+      {hint && <span className={`${styles.hint} text-subtle`}>{hint}</span>}
+    </div>
+  )
+}
+
+/** A titled card of what follows the headline: bars, a ring, a year strip, a chart. */
+export function ListCard({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  return (
+    <section className={`${styles.card} ${styles.list}`} data-card="list">
+      <ListHead title={title} hint={hint} />
+      {children}
+    </section>
   )
 }
 
@@ -108,62 +125,84 @@ export interface BarRow {
   share: string
 }
 
-/** A titled list of bars: label, bar, amount and share on one row. */
+/** A titled card of bars (Figma 19433:60433): label, bar, amount and share on one row. */
 export function BarList({
-  theme, title, hint, rows, labelWidth = 92,
+  title, hint, rows, labelWidth = 92,
 }: {
   theme: PlatformTheme; title: string; hint?: string; rows: BarRow[]
   /** Short labels (levels, siglas) give the bar the room. */
   labelWidth?: number
 }) {
-  const c = theme.colors
   if (rows.length === 0) return null
   const max = Math.max(...rows.map((r) => r.value), 0)
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>{title}</h3>
-        {hint && <span style={{ fontSize: 12, color: c.textDim, whiteSpace: 'nowrap' }}>{hint}</span>}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <ListCard title={title} hint={hint}>
+      <div className={styles.rows}>
         {rows.map((r) => {
           const zero = r.value <= 0
           const width = max > 0 && !zero ? Math.max((r.value / max) * 100, 2) : 0
           return (
-            <div key={r.key} style={{
-              display: 'grid', gridTemplateColumns: `${labelWidth}px minmax(0, 1fr) 72px 52px`, gap: 10,
-              alignItems: 'center', fontSize: 13.5, color: zero ? c.textDim : c.text, ...NUMS,
-            }}>
-              <span title={r.label} style={{ lineHeight: 1.25, overflowWrap: 'anywhere' }}>{r.label}</span>
-              <div style={{ height: 10, borderRadius: 5, background: c.chip, overflow: 'hidden' }}>
-                {width > 0 && <div style={{ width: `${width}%`, height: '100%', borderRadius: 5, background: r.color }} />}
+            <div
+              key={r.key}
+              className={`${styles.bar} ${zero ? styles.zero : ''} text-ui-badge`}
+              style={{ gridTemplateColumns: `${labelWidth}px minmax(0, 1fr) 64px 44px` }}
+            >
+              <span className={styles.barLabel} title={r.label}>{r.label}</span>
+              <div className={styles.track}>
+                {width > 0 && <div className={styles.fill} style={{ width: `${width}%`, background: r.color }} />}
               </div>
-              <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{r.amount}</span>
-              <span style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: zero ? 400 : 600 }}>{r.share}</span>
+              <span className={styles.amount}>{r.amount}</span>
+              <span className={styles.share}>{r.share}</span>
             </div>
           )
         })}
+      </div>
+    </ListCard>
+  )
+}
+
+/** Lines about the data under the result: what the value is, coverage, source. */
+export function Footnote({ notes }: { theme: PlatformTheme; notes: (string | null | undefined)[] }) {
+  const shown = notes.filter((n): n is string => Boolean(n))
+  if (shown.length === 0) return null
+  return <p className={`${styles.footnote} text-subtle`}>{shown.join(' ')}</p>
+}
+
+/**
+ * A result with nothing to show. Under a layer heading it is that layer's
+ * headline card, saying so; alone (the panel's hint), a bare line.
+ */
+export function Empty({ text }: { theme: PlatformTheme; text: string }) {
+  const heading = useContext(LayerHeading)
+  if (!heading) return <p className={`${styles.emptyText} text-body`}>{text}</p>
+  return (
+    <section className={styles.card} data-card="lead">
+      <div className={styles.leadTop}>
+        {heading}
+        <p className={`${styles.emptyText} text-body`}>{text}</p>
       </div>
     </section>
   )
 }
 
-/** Lines about the data under the result: what the value is, coverage, source. */
-export function Footnote({ theme, notes }: { theme: PlatformTheme; notes: (string | null | undefined)[] }) {
-  const shown = notes.filter((n): n is string => Boolean(n))
-  if (shown.length === 0) return null
+/** Vertical rhythm of one result: 16px between its cards. */
+export function Stack({ children }: { children: ReactNode }) {
+  return <div className={styles.stack}>{children}</div>
+}
+
+/** The headline card holding a layer heading and anything else: a chart, a
+ *  skeleton, an error. For what the views do not draw themselves. */
+export function LeadCard({ children }: { children: ReactNode }) {
+  const heading = useContext(LayerHeading)
   return (
-    <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: theme.colors.textDim }}>
-      {shown.join(' ')}
-    </p>
+    <section className={styles.card} data-card="lead">
+      <div className={styles.leadTop}>
+        {heading}
+        {children}
+      </div>
+    </section>
   )
 }
 
-export function Empty({ theme, text }: { theme: PlatformTheme; text: string }) {
-  return <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.4, color: theme.colors.body }}>{text}</p>
-}
-
-/** Vertical rhythm of one result: 24 px between its parts, tighter after the context line. */
-export function Stack({ children }: { children: ReactNode }) {
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>{children}</div>
-}
+/** The class name the heading row uses, for LayerResultCard's own heading. */
+export const headingClass = `${styles.heading} text-p-ui`

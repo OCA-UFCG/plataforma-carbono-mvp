@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { IcX, IcDownload } from './icons'
 import LayerResultCard from './LayerResultCard'
 import EmissionsCard from './results/EmissionsCard'
 import type { default as AnalysisSheet, SheetLayer } from './AnalysisSheet'
@@ -13,7 +12,8 @@ import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
 import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import { LAYER_META } from '@/config/mapa/layerMeta'
-import { ContextLine, Empty, Pair, Stack } from './results/blocks'
+import { Empty, LayerHeading, Pair } from './results/blocks'
+import styles from './ResultsSidebar.module.css'
 import type { EmissionsLayerConfig, LayerConfig, LayerResult, PlatformTheme, RasterLayerConfig } from '@/types/mapa'
 
 // pt-BR number formatting (comma decimal, dot thousands).
@@ -252,25 +252,6 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
   }, [sheet])
   const showEmptyHint = !hasContent && !!activeRaster
 
-  const downloadButton: React.CSSProperties = {
-    flex: 1,
-    minWidth: 0,
-    height: 44,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    background: c.accentInk,
-    border: 'none',
-    borderRadius: 10,
-    cursor: 'pointer',
-    color: c.bgCard,
-    fontFamily: 'var(--font-app), sans-serif',
-    fontSize: 14,
-    fontWeight: 600,
-    whiteSpace: 'nowrap',
-  }
-
   // Below 768px the panel becomes a bottom drawer over the map.
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768,
@@ -324,149 +305,103 @@ export default function ResultsSidebar({ theme, collapsed, onClose, captureMap }
       role="region"
       aria-label="Resultados"
       id="painel-resultados"
-      style={{
-        ...(narrow
-          ? {
-              position: 'absolute',
-              // The phone drawer rises into the map controls' column (zIndex 12),
-              // which would cover its close button; it goes above them.
-              zIndex: 13,
-              left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderRadius: '16px 16px 0 0',
-              background: c.glassBg,
-              backdropFilter: 'blur(11px)',
-              WebkitBackdropFilter: 'blur(11px)',
-              border: `1px solid ${c.glassBd}`,
-              boxShadow: 'var(--sh-panel)',
-            }
-            // The last column of Mapa.tsx's row, the whole height under the
-            // site header (Figma 19413:54279).
-          : {
-              position: 'relative', flex: 'none', width: COLUMN_WIDTH, height: '100%',
-              background: c.bgCard, borderLeft: `1px solid ${c.border}`,
-            }),
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--font-app), sans-serif',
-        // The clipping lives in the container and the scrolling in the body, so the
-        // header and the feature name do not go out of sight when scrolling a long result.
-        overflow: 'hidden',
-        padding: '20px 20px',
-      }}
+      className={`${styles.panel} ${narrow ? styles.drawer : styles.docked}`}
+      style={narrow ? undefined : { width: COLUMN_WIDTH }}
     >
-      {/* Header: what was analysed and how big it is. Stays in view while the
-          results scroll. */}
-      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: '0 0 24px', flexShrink: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, paddingTop: 4 }}>
+      {/* What was analysed and how big it is (Figma 19430:60127). Stays in
+          view while the results scroll. */}
+      <header className={styles.header}>
+        <div className={styles.headText}>
           {hasContent && analysisKind && analysisLabel && analysisKind !== analysisLabel && (
-            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: c.textDim }}>
-              {analysisKind}
-            </span>
+            <span className={`${styles.chip} text-ui-badge`}>{analysisKind}</span>
           )}
-          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.01em', color: c.text, overflowWrap: 'anywhere' }}>
-            {title}
-          </h2>
+          <h2 className={`${styles.title} text-h4`}>{title}</h2>
           {drawnArea !== null && (
-            <span style={{ fontSize: 14, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
-              {nfInt.format(drawnArea * 100)} ha analisados
-            </span>
+            <span className="text-body">{nfInt.format(drawnArea * 100)} ha analisados</span>
           )}
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Ocultar resultados"
-          title="Ocultar resultados"
-          style={{
-            width: 40, height: 40, borderRadius: 999, flexShrink: 0,
-            background: c.bgCard,
-            border: `1px solid ${c.border}`,
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: c.text,
-          }}
-        >
-          <IcX size={16} />
+        <button type="button" className={styles.close} onClick={onClose} aria-label="Ocultar resultados" title="Ocultar resultados">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+          <img src="/icons/mapa/close.svg" alt="" width={24} height={24} />
         </button>
       </header>
 
-      {/* Scrollable body: the header and the download stay in view. Its children
-          must not shrink -- the body scrolls instead; `LayerResultCard` carries
-          the same guard. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-
-      {drawnLength !== null && (
-        <div style={{ marginBottom: 24, flexShrink: 0 }}>
+      {/* The cards scroll between the header and the downloads. */}
+      <div className={styles.body}>
+        {drawnLength !== null && (
           <Pair theme={theme} items={[{ label: 'Comprimento', value: nf.format(drawnLength), aside: 'km' }]} />
-        </div>
-      )}
+        )}
 
-      {/* The emissions of the selected recorte feature, while an emissions
-          layer is on: one card, whichever of the exclusive layers it is. */}
-      {selectedGeometry && emissionsLayer && (
-        <EmissionsCard
-          theme={theme}
-          layer={emissionsLayer}
-          selection={selectedGeometry}
-          temporalDate={temporalDate[emissionsLayer.id]}
-        />
-      )}
-
-      {/* One card per visible raster. Gated on the selection because a card with
-          no result yet renders as "Calculando": with nothing selected -- or with
-          only a line drawn, which no raster is measured over -- that skeleton would
-          never resolve, and it would sit above the onboarding hint on first load. */}
-      {selectedGeometry && rasters.map((raster) => {
-        const stop = raster.gee?.temporal ? temporalDate[raster.id] : undefined
-        return (
-          <LayerResultCard
-            key={raster.id}
-            layer={raster}
-            result={cardResult(raster, stop)}
-            date={stop}
-            expanded={isExpanded(raster.id)}
-            onToggle={() => toggle(raster.id)}
+        {/* The emissions of the selected recorte feature, while an emissions
+            layer is on: one card, whichever of the exclusive layers it is. */}
+        {selectedGeometry && emissionsLayer && (
+          <EmissionsCard
             theme={theme}
-            geometry={selectedGeometry}
-            polygonHa={drawnArea !== null ? drawnArea * 100 : null}
+            layer={emissionsLayer}
+            selection={selectedGeometry}
+            temporalDate={temporalDate[emissionsLayer.id]}
           />
-        )
-      })}
+        )}
 
-      {showEmptyHint && (
-        <Stack>
-          <ContextLine theme={theme} title={activeRaster.name} />
-          <Empty theme={theme} text={analysisHint(recortes)} />
-        </Stack>
-      )}
+        {/* One card per visible raster. Gated on the selection because a card with
+            no result yet renders as "Calculando": with nothing selected -- or with
+            only a line drawn, which no raster is measured over -- that skeleton would
+            never resolve, and it would sit above the onboarding hint on first load. */}
+        {selectedGeometry && rasters.map((raster) => {
+          const stop = raster.gee?.temporal ? temporalDate[raster.id] : undefined
+          return (
+            <LayerResultCard
+              key={raster.id}
+              layer={raster}
+              result={cardResult(raster, stop)}
+              date={stop}
+              expanded={isExpanded(raster.id)}
+              onToggle={() => toggle(raster.id)}
+              theme={theme}
+              geometry={selectedGeometry}
+              polygonHa={drawnArea !== null ? drawnArea * 100 : null}
+            />
+          )
+        })}
+
+        {showEmptyHint && (
+          <LayerHeading.Provider value={<h3 className={`${styles.hintTitle} text-p-ui`}>{activeRaster.name}</h3>}>
+            <Empty theme={theme} text={analysisHint(recortes)} />
+          </LayerHeading.Provider>
+        )}
       </div>
 
       {/* Baixar a análise, pinned below the scrollable body like the header above
-          it, so the download stays in view however many cards are open. */}
+          it, so the download stays in view however many cards are open. The
+          design's label reads "Baixar CVV"; the file is a CSV. */}
       {canDownload && (
-        <div style={{ marginTop: 16, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <div className={styles.foot}>
+          <div className={styles.buttons}>
             <button
-              className="ui-press"
+              type="button"
+              className={`${styles.download} text-ui-medium`}
               onClick={handleDownload}
               title="Baixar esta análise em CSV"
-              style={downloadButton}
             >
-              <IcDownload size={16} />
               Baixar CSV
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/file-download.svg" alt="" width={16} height={16} />
             </button>
             <button
-              className="ui-press"
+              type="button"
+              className={`${styles.download} text-ui-medium`}
               onClick={() => void handleDownloadJpeg()}
               disabled={exporting}
               aria-busy={exporting}
               title="Baixar o mapa e esta análise em JPEG"
-              style={{ ...downloadButton, cursor: exporting ? 'progress' : 'pointer', opacity: exporting ? 0.7 : 1 }}
             >
-              <IcDownload size={16} />
               {exporting ? 'Gerando…' : 'Baixar JPEG'}
+              {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+              <img src="/icons/mapa/file-download.svg" alt="" width={16} height={16} />
             </button>
           </div>
           {jpegFailed && (
-            <span role="alert" style={{ fontSize: 13, color: c.textDim, textAlign: 'center' }}>
+            <span role="alert" className={`${styles.failed} text-subtle`}>
               Não foi possível gerar a imagem. Tente novamente.
             </span>
           )}

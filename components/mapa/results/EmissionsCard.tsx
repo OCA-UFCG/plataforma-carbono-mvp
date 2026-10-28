@@ -16,7 +16,8 @@ import { formatarCo2e, queimadasForaDoInventario, unidadeDaSelecao, valorDaMedid
 import type { EmissoesUnidadePayload } from '@/types/emissoes'
 import type { EmissionsLayerConfig, PlatformTheme, SelectedGeometry } from '@/types/mapa'
 import { SkeletonChart } from '../StatsCards'
-import { Empty, Footnote, Hero, Pair, Stack } from './blocks'
+import { Empty, Footnote, Hero, LayerHeading, LeadCard, Stack, headingClass } from './blocks'
+import heading from '../LayerResultCard.module.css'
 
 const EmissionsCharts = dynamic(() => import('./EmissionsCharts'), { ssr: false, loading: () => null })
 
@@ -82,7 +83,7 @@ export default function EmissionsCard({ theme, layer, selection, temporalDate }:
   if (!unidade) {
     body = <Empty theme={theme} text="Sem dado de emissões para esta seleção; selecione um município, um estado ou o bioma." />
   } else if (estado.status === 'loading') {
-    body = <SkeletonChart theme={theme} />
+    body = <LeadCard><SkeletonChart theme={theme} /></LeadCard>
   } else if (estado.status === 'error') {
     body = <Empty theme={theme} text="Os valores não carregaram; selecione a feição de novo para tentar outra vez." />
   } else {
@@ -117,8 +118,7 @@ export default function EmissionsCard({ theme, layer, selection, temporalDate }:
           aside={magnitude === null ? undefined : `${nfHa.format(magnitude / p.areaHa)} t CO2e/ha`}
           caption={`de ${medida} ${ESCOPO[spec.escopo]} em ${ano}, no ${INVENTARIO[spec.inventario]}`}
           ink={fluxo ? fluxInk(fluxo.direction, c) : undefined}
-        />
-        <Pair theme={theme} items={[
+          figures={[
           {
             label: `${rotuloOutra} ${ESCOPO[spec.escopo]}`,
             value: fOutra ? fOutra.valor : `sem dado em ${ano}`,
@@ -129,7 +129,8 @@ export default function EmissionsCard({ theme, layer, selection, temporalDate }:
             : brutasUso === 0
               ? { label: rotuloPosicao, value: 'sem emissão bruta' }
               : { label: rotuloPosicao, value: `${posicao}º`, aside: `de ${nfInt.format(p.posicao.de)}` },
-        ]} />
+          ]}
+        />
         <EmissionsCharts theme={theme} payload={p} inventario={spec.inventario} ano={ano} />
         <Footnote theme={theme} notes={[
           fQueimadas
@@ -141,13 +142,18 @@ export default function EmissionsCard({ theme, layer, selection, temporalDate }:
     )
   }
 
+  // The same heading as a raster's result (LayerResultCard), heading the
+  // first card, without the fold: there is one emissions card at a time.
+  const cabecalho = (
+    <div className={heading.heading}>
+      <span className={`${heading.title} ${headingClass}`}>Emissões de gases de efeito estufa</span>
+      <span className={`${heading.period} text-body`}>{ano}</span>
+    </div>
+  )
+
   return (
-    <section style={{ paddingTop: 16, borderTop: `1px solid ${c.border}`, marginBottom: 24, flexShrink: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 16 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: c.text, lineHeight: 1.3 }}>Emissões de gases de efeito estufa</span>
-        <span style={{ fontSize: 14, color: c.textDim, whiteSpace: 'nowrap', fontVariantNumeric: 'lining-nums tabular-nums' }}>{ano}</span>
-      </div>
-      {body}
+    <section className={heading.layer}>
+      <LayerHeading.Provider value={cabecalho}>{body}</LayerHeading.Provider>
     </section>
   )
 }
