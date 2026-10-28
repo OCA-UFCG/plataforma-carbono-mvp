@@ -43,10 +43,11 @@ export interface VectorLayerConfig {
   // rather than derived. Falls back to `name`.
   unitName?: string
   // Granularity of the recorte, used only to decide which layer wins a hover
-  // or click when several visible ones overlap (higher = finer = wins). The
-  // containment hierarchy runs bioma < estados < municipios < territories;
-  // without it the biome, which contains nearly everything, would swallow every
-  // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
+  // or click when several visible ones overlap (higher wins); without it the
+  // biome, which contains nearly everything, would swallow every click. It
+  // runs bioma < estados < municipios < territories and conservation units,
+  // the last two at one level: they nest both ways, so between them the
+  // smaller feature under the pointer wins. See lib/mapa/pickVector.ts.
   pickPriority?: number
   // A recorte scripts/build-recortes.py keeps whole past the biome edge instead
   // of clipping it, so its area and statistics include the part outside: the

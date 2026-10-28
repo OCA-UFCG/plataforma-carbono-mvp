@@ -38,14 +38,21 @@ export interface ReportLayerConfig {
    * state at native resolution does not return.
    *
    * A floor, never a fixed value: the effective scale is
-   * `max(seriesScale ?? 0, asset.scale ?? 500)`, so it can only coarsen. CHIRPS
-   * is natively 5566 m, and a literal 300 there would ask Earth Engine to
-   * resample finer than the data for no gain.
+   * `max(seriesScale ?? 0, asset.scale ?? 500)`, so it can only coarsen.
+   * BR-DWGD is natively 0.1° (11131.78 m), and a literal 300 there would ask
+   * Earth Engine to resample finer than the data for no gain.
    */
   seriesScale?: number
 }
 
 export const MAX_REPORT_LAYERS = 8
+
+/**
+ * First year the report form offers: MapBiomas's first, where land use, fire
+ * and soil carbon begin. BR-DWGD's precipitation goes back to 1961, but a year
+ * before 1985 would leave every other section without data.
+ */
+export const REPORT_FIRST_YEAR = 1985
 
 export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
   {
@@ -102,9 +109,9 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
     trend: { phenomenon: 'produtividade líquida', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {
-    layerId: 'chirps_precip', order: 90, sectionColor: '#2B4C7E',
+    layerId: 'brdwgd_pr', order: 90, sectionColor: '#2B4C7E',
     coverageContext: 'nesta faixa de precipitação',
-    methodology: 'Precipitação anual acumulada, CHIRPS diário somado no ano.',
+    methodology: 'Precipitação anual acumulada, BR-DWGD (Xavier et al., 2022): chuva diária interpolada das estações em grade de 0,1°, somada no ano.',
     trend: { phenomenon: 'precipitação', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {
@@ -118,4 +125,17 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
 /** The report config of a layer, or undefined when it is not eligible. */
 export function getReportLayer(layerId: string): ReportLayerConfig | undefined {
   return REPORT_LAYERS.find((entry) => entry.layerId === layerId)
+}
+
+/**
+ * Layers whose section another one took over. `chirps_precip` held the
+ * precipitation section until BR-DWGD replaced it, and a saved report URL that
+ * still names it gets the current section instead of a 400 for the whole
+ * document.
+ */
+const REPLACED_REPORT_LAYERS = new Map([['chirps_precip', 'brdwgd_pr']])
+
+/** The layer a report request means, after any replacement. */
+export function currentReportLayerId(layerId: string): string {
+  return REPLACED_REPORT_LAYERS.get(layerId) ?? layerId
 }
