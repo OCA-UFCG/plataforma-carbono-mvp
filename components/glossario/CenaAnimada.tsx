@@ -50,9 +50,10 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
   const [valor, setValor] = useState<ValorCena | null>(null);
   const [tempo, setTempo] = useState(false);
-  // Whether the reader has touched a control. Until then the scene tours its
-  // steps on its own, and reading each one aloud would talk over a reader still
-  // on the term's paragraphs.
+  // Whether the reader has chosen a step or a value. Until then the scene tours
+  // its steps on its own, and reading each one aloud would talk over a reader
+  // still on the term's paragraphs. Only those choices stop a tour: the time
+  // controls leave Fluxos touring its steps, so they don't count.
   const [interagiu, setInteragiu] = useState(false);
 
   useEffect(() => {
@@ -176,14 +177,14 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         )}
         {estado && tempo && (
           <div className={styles.linha}>
-            <BotaoReproduzir tocando={estado.tocando} onClick={() => agir((cena) => cena.tocar(!estado.tocando))} />
+            <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />
             <Regua
               rotulo="Velocidade"
               min={0.25}
               max={3}
               passo={0.25}
               valor={estado.velocidade}
-              onChange={(v) => agir((cena) => cena.velocidade(v))}
+              onChange={(v) => controle.current?.velocidade(v)}
               textoValor={`${estado.velocidade.toLocaleString("pt-BR")}×`}
             />
             {/* One step per day, the unit of the date the scene reports (day d
@@ -196,7 +197,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               max={364}
               passo={1}
               valor={Math.floor(estado.posicao * 365)}
-              onChange={(v) => agir((cena) => cena.posicao((v + 0.5) / 365))}
+              onChange={(v) => controle.current?.posicao((v + 0.5) / 365)}
               textoValor={estado.data}
             />
           </div>
