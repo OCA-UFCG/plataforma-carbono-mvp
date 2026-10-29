@@ -132,6 +132,11 @@ const PAIRS: [string, string][] = [
   ['--ctx-negativo-padrao', '--am-050'],
   ['--foreground', '--role-marca-ancora-container'],
   ['--role-marca-ancora-padrao', '--bg-fundo'],
+  // The Glossário's control panel (Figma 19401:22996): a step button's label
+  // on its hover fill (19403:26571). The rest are pairs above: the labels at
+  // rest and the sliders' text on the white box, a selected step on --am-100
+  // and "Reproduzir" on -marca-ancora-padrao and -hover.
+  ['--bg-texto-secundario', '--role-neutro-texto-desabilitado'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),

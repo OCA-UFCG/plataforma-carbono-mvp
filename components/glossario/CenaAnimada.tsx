@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AnimacaoId } from "@/lib/glossario/termos";
 import type { ControleCena, CriarCena, EstadoCena, EtapaCena } from "@/lib/cenas/tipos";
+import BotaoEtapa from "./painel/BotaoEtapa";
+import BotaoReproduzir from "./painel/BotaoReproduzir";
+import Regua from "./painel/Regua";
 import styles from "./CenaAnimada.module.css";
 
 // Each scene is its own chunk (about 100 KB), loaded only when its block comes
@@ -18,43 +21,77 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   agroecologia: () => import("@/lib/cenas/gerado/agroecologia"),
 };
 
-// One glossary animation with its controls, which live outside the canvas:
-// one button per step for a scene told in steps, the time controls for a
-// scene that plays a year (some have both). The scene pauses drawing while off screen or in a
-// hidden tab.
+// Rows of controls the page draws for each scene, known before its chunk
+// arrives so the panel does not grow when it does: one for steps (etapas()),
+// one for time (tempo()). The CUE and Manejo agroecológico build their own
+// controls for now (#150), at a height that depends on the width.
+const LINHAS: Record<AnimacaoId, number> = {
+  cicloAnual: 1,
+  torreFluxo: 1,
+  estoques: 1,
+  cisterna: 1,
+  fluxos: 2,
+  cue: 1,
+  degradacao: 1,
+  agroecologia: 1,
+};
+
+// One glossary animation with its control panel, which lives outside the
+// canvas (Figma "Painel de controle glossário", 19401:22996): a row of step
+// buttons for a scene told in steps, a row of time controls for a scene that
+// plays a year, both rows when it has both. The scene pauses drawing while off
+// screen or in a hidden tab.
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
-  const caixa = useRef<HTMLDivElement>(null);
+  const caixa = useRef<HTMLElement>(null);
   const tela = useRef<HTMLCanvasElement>(null);
   const painel = useRef<HTMLDivElement>(null);
   const controle = useRef<ControleCena | null>(null);
   const [estado, setEstado] = useState<EstadoCena | null>(null);
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
-  const [tempo, setTempo] = useState(true);
+  const [tempo, setTempo] = useState(false);
 
   useEffect(() => {
     const box = caixa.current;
     const canvas = tela.current;
+    const cenaPainel = painel.current;
     if (!box || !canvas) return;
     let cancelado = false;
     let naTela = false;
+    // Set before the chunk arrives: a block that leaves and comes back while it
+    // loads would otherwise start a second scene on the same canvas, which
+    // nothing would ever end. A failed load clears it, so the next time the
+    // block comes into view asks for the chunk again; Turbopack keeps the
+    // first failure, though, so for now only a reload brings the scene back.
+    let iniciada = false;
 
     const aplicarVisibilidade = () => controle.current?.visivel(naTela && !document.hidden);
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        naTela = entry.isIntersecting;
-        if (naTela && !controle.current) {
-          void CENAS[id]().then(({ criarCena }) => {
-            if (cancelado) return;
-            controle.current = criarCena(canvas, {
-              fonte: getComputedStyle(canvas).fontFamily,
-              aoMudar: setEstado,
-              painel: painel.current ?? undefined,
-            });
-            setEstado(controle.current.estado());
-            setEtapas(controle.current.etapas());
-            setTempo(controle.current.tempo());
-            aplicarVisibilidade();
-          });
+      (entries) => {
+        // One callback may carry several changes (the block leaving and coming
+        // back); the last one is where it is now.
+        naTela = entries[entries.length - 1].isIntersecting;
+        if (naTela && !iniciada) {
+          iniciada = true;
+          // The second handler takes only the chunk's failure: an error thrown
+          // while building the scene still surfaces, and does not let a second
+          // scene start on a canvas the first may already be drawing on.
+          void CENAS[id]().then(
+            ({ criarCena }) => {
+              if (cancelado) return;
+              controle.current = criarCena(canvas, {
+                fonte: getComputedStyle(canvas).fontFamily,
+                aoMudar: setEstado,
+                painel: cenaPainel ?? undefined,
+              });
+              setEstado(controle.current.estado());
+              setEtapas(controle.current.etapas());
+              setTempo(controle.current.tempo());
+              aplicarVisibilidade();
+            },
+            () => {
+              iniciada = false;
+            },
+          );
         }
         aplicarVisibilidade();
       },
@@ -69,65 +106,68 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       document.removeEventListener("visibilitychange", aplicarVisibilidade);
       controle.current?.encerrar();
       controle.current = null;
+      // Glossario remounts this component for each term (key), so this only
+      // matters if `id` ever changes in place: what the scene built in its
+      // panel is not React's, and the old scene's controls would otherwise
+      // stay up, doing nothing, while the next chunk loads.
+      cenaPainel?.replaceChildren();
+      setEstado(null);
+      setEtapas(null);
+      setTempo(false);
     };
   }, [id]);
 
   return (
     <figure className={styles.figura} ref={caixa}>
       <canvas ref={tela} className={styles.tela} width={960} height={540} role="img" aria-label={descricao} />
-      <figcaption className={styles.legenda}>{titulo}</figcaption>
-      {etapas && (
-        <div className={styles.etapas} role="group" aria-label={`Etapas de ${titulo}`}>
-          {etapas.map((etapa, i) => (
-            <button
-              key={etapa.nome}
-              type="button"
-              className={styles.etapa}
-              aria-pressed={estado?.etapa === i}
-              onClick={() => controle.current?.etapa(i)}
-            >
-              {etapa.cor && <span className={styles.amostra} style={{ background: etapa.cor }} aria-hidden="true" />}
-              {etapa.nome}
-            </button>
-          ))}
-          <p className={styles.leitor} aria-live="polite">{estado?.textoEtapa ?? ""}</p>
-        </div>
-      )}
-      {/* Controls a scene builds itself (the CUE value, the stage texts of the
-          two farming systems). */}
-      <div ref={painel} className={styles.painel} />
-      {tempo && (
-      <div className={styles.controles}>
-        <button
-          type="button"
-          className={styles.botao}
-          disabled={!estado}
-          onClick={() => controle.current?.tocar(!estado?.tocando)}
-        >
-          {estado?.tocando ? "Pausar" : "Reproduzir"}
-        </button>
-        <label className={styles.campo}>
-          Velocidade
-          <input
-            type="range" min={0.25} max={3} step={0.25}
-            value={estado?.velocidade ?? 1}
-            disabled={!estado}
-            onChange={(e) => controle.current?.velocidade(Number(e.target.value))}
-          />
-          <output className={styles.valor}>{(estado?.velocidade ?? 1).toLocaleString("pt-BR")}×</output>
-        </label>
-        <label className={styles.campo}>
-          Posição no ano
-          <input
-            type="range" min={0} max={999} step={1}
-            value={Math.round((estado?.posicao ?? 0) * 1000)}
-            disabled={!estado}
-            onChange={(e) => controle.current?.posicao(Number(e.target.value) / 1000)}
-          />
-          <output className={styles.valor} aria-live="polite">{estado?.data ?? "1 nov"}</output>
-        </label>
+      {/* The design shows no caption under the animation. */}
+      <figcaption className="sr-only">{titulo}</figcaption>
+      <div className={styles.caixa} style={{ "--linhas": LINHAS[id] } as CSSProperties}>
+        {estado && etapas && (
+          <div className={`${styles.linha} ${styles.etapas}`} role="group" aria-label={`Etapas de ${titulo}`}>
+            {etapas.map((etapa, i) => (
+              <BotaoEtapa
+                key={etapa.nome}
+                rotulo={etapa.nome}
+                cor={etapa.cor}
+                selecionado={estado.etapa === i}
+                onClick={() => controle.current?.etapa(i)}
+              />
+            ))}
+          </div>
+        )}
+        {/* Controls a scene builds itself (the CUE value, the stage texts of
+            the two farming systems), until they move to the components above. */}
+        <div ref={painel} className={styles.painel} />
+        {estado && tempo && (
+          <div className={styles.linha}>
+            <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />
+            <Regua
+              rotulo="Velocidade"
+              min={0.25}
+              max={3}
+              passo={0.25}
+              valor={estado.velocidade}
+              onChange={(v) => controle.current?.velocidade(v)}
+              textoValor={`${estado.velocidade.toLocaleString("pt-BR")}×`}
+            />
+            {/* One step per day, the unit of the date the scene reports (day d
+                is floor(posicao × 365)): a finer step could land on the same
+                day, which the scene does not report, and the slider would snap
+                back. Mid-day keeps the position clear of the day's edges. */}
+            <Regua
+              rotulo="Posição no ano"
+              min={0}
+              max={364}
+              passo={1}
+              valor={Math.floor(estado.posicao * 365)}
+              onChange={(v) => controle.current?.posicao((v + 0.5) / 365)}
+              textoValor={estado.data}
+            />
+          </div>
+        )}
+        {etapas && <p className="sr-only" aria-live="polite">{estado?.textoEtapa ?? ""}</p>}
       </div>
-      )}
     </figure>
   );
 }

@@ -1,0 +1,95 @@
+/* Figma "Date-slider" (7076:46472) between its label and its value, 8px apart:
+ * a 6px track in --role-neutro-texto-desabilitado (#94a6ac), the stretch up to
+ * the thumb in --role-marca-ancora-padrao, 8px tall so it stands out of the
+ * track, and a 20px white thumb with a 2px border in the same green. Label and
+ * value are Archivo SemiBold 16 in --am-400 (19401:23366). The slider takes the
+ * room its row leaves, and drops to a line of its own on a narrow screen. */
+.regua {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: min(100%, 280px);
+}
+
+.texto {
+  flex: none;
+  font-family: var(--font-archivo, var(--font-sans, var(--font-fallback)));
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 17.408px;
+  color: var(--am-400);
+  white-space: nowrap;
+}
+
+/* Wide enough for the widest date, "10 mar", so the track does not jitter while
+ * the date runs. */
+.valor {
+  min-width: 3.25em;
+  font-variant-numeric: tabular-nums;
+}
+
+.trilha {
+  --trilha: 6px;
+  --preenchimento: 8px;
+  --polegar: 20px;
+  /* The green stretch ends under the thumb's centre, which travels between
+   * half a thumb from each end. The 100% resolves in the track below. */
+  --preenchido: calc(var(--polegar) / 2 + (100% - var(--polegar)) * var(--fracao, 0));
+  /* The track box is as tall as the green stretch; the grey track is a
+   * thinner band across its middle. */
+  --fundo:
+    linear-gradient(var(--role-marca-ancora-padrao) 0 0) 0 50% / var(--preenchido) 100% no-repeat,
+    linear-gradient(var(--role-neutro-texto-desabilitado) 0 0) 0 50% / 100% var(--trilha) no-repeat;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--polegar);
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.trilha:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 4px;
+  border-radius: 9999px;
+}
+
+.trilha:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.trilha::-webkit-slider-runnable-track {
+  height: var(--preenchimento);
+  border-radius: 9999px;
+  background: var(--fundo);
+}
+
+.trilha::-moz-range-track {
+  height: var(--preenchimento);
+  border-radius: 9999px;
+  background: var(--fundo);
+}
+
+.trilha::-webkit-slider-thumb {
+  width: var(--polegar);
+  height: var(--polegar);
+  margin-top: calc((var(--preenchimento) - var(--polegar)) / 2);
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--role-primario-texto-sobre);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.trilha::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--polegar);
+  height: var(--polegar);
+  border: 2px solid var(--role-marca-ancora-padrao);
+  border-radius: 50%;
+  background: var(--role-primario-texto-sobre);
+}
