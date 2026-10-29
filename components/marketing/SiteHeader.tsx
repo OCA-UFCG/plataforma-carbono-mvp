@@ -10,20 +10,20 @@ import styles from "./SiteHeader.module.css";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
-// `.actions` are 188 + 584 + 107px with 16px gaps between them (911px), plus
+// `.actions` are 188 + 696 + 107px with 16px gaps between them (1023px), plus
 // `--gutter` (80px, still 80 in this range — it only drops to 24 at <=768px)
 // on both sides. The wordmark overruns `.brand` by 18px, 2px more than the
-// gap. 911 + 2 + 160 = 1073px is the narrowest viewport the inline header
-// fits at; 1200 clears it with margin. The platform's header is wider: the
-// ring of the active "Plataforma" adds 6px to `.nav`, and the account slot
-// adds 16 + 58px of "Sair" to `.actions`, 1153px in all, still under 1200.
-// The account e-mail is not counted: it is the one thing in the bar that
-// shrinks (SiteHeader.module.css). This is the only JS/CSS breakpoint pair on
-// the branch — this value, the `max-width: 1199px` / `min-width: 1200px` pair
-// in SiteHeader.module.css, and the `.toggle`/`.panel` rules they gate must
-// all move together, or the hamburger and the inline nav can both render, or
-// both vanish.
-const DESKTOP_QUERY = "(min-width: 1200px)";
+// gap. 1023 + 2 + 160 = 1185px is the narrowest viewport the marketing header
+// fits at. The platform's header is wider: the ring of the active
+// "Plataforma" adds 6px to `.nav`, and the account slot adds 16 + 58px of
+// "Sair" to `.actions`, 1265px in all; 1280 clears both. The account e-mail
+// is not counted: it is the one thing in the bar that shrinks, and it only
+// shows from 1400px (SiteHeader.module.css). This is the only JS/CSS
+// breakpoint pair on the branch — this value, the `max-width: 1279px` /
+// `min-width: 1280px` pair in SiteHeader.module.css, and the
+// `.toggle`/`.panel` rules they gate must all move together, or the hamburger
+// and the inline nav can both render, or both vanish.
+const DESKTOP_QUERY = "(min-width: 1280px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
 
@@ -195,8 +195,8 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
 
       {/* Mobile panel, styled after the Figma "Menu expandido mobile"
           component (8702:48799): a white, rounded, shadowed card holding the
-          nav stacked vertically, adapted to this header's own three links
-          instead of that component's unrelated example content. */}
+          nav stacked vertically, adapted to this header's own links instead
+          of that component's unrelated example content. */}
       <div id={MOBILE_PANEL_ID} className={styles.panel} hidden={!open}>
         <nav className={styles.panelNav} aria-label="Navegação móvel">
           {HEADER_LINKS.map((link) => (

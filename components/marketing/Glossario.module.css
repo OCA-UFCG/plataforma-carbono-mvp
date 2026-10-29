@@ -1,119 +1,43 @@
-/* Glossário, in the frame of the other Comunicação panels (Eventos.module.css):
- * 40px of block padding and the capitals label above the content. */
+/* The open term, Figma 19400:12120: 40px of block padding, 24px between the
+ * text, the animation and its controls, which span the full 1276px. */
 .glossario {
   background: var(--bg-fundo);
 }
 
 .inner {
-  padding-block: 40px 64px;
+  padding-block: 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.heading {
-  font-family: var(--font-sans, var(--font-fallback));
-  font-size: 16px;
-  font-weight: 700;
-  line-height: normal;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--bg-texto-secundario);
-  margin: 0;
-}
-
-.grade {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 48px;
-  align-items: start;
-}
-
-.termos {
-  position: sticky;
-  top: calc(var(--header-height, 72px) + 24px);
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* The title and the paragraphs below it, 8px apart (19401:13571). Paragraph
+ * metrics come from .text-body in Glossario.tsx. */
+.texto {
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--am-200);
-}
-
-.termo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  width: 100%;
-  margin-left: -1px;
-  padding: 10px 16px;
-  border: 0;
-  border-left: 2px solid transparent;
-  background: none;
-  font: inherit;
-  font-size: 16px;
-  line-height: 24px;
-  text-align: left;
-  color: var(--bg-texto-primario);
-  cursor: pointer;
 }
 
-.termo:hover {
-  background: var(--am-050);
-}
-
-.termoAberto {
-  border-left-color: var(--role-marca-ancora-padrao);
-  color: var(--role-marca-ancora-padrao);
-  font-weight: 600;
-}
-
-.termoEmBreve {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  color: var(--role-neutro-texto-desabilitado);
-  cursor: default;
-}
-
-.termoEmBreve:hover {
-  background: none;
-}
-
-.emBreve {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.conteudo {
-  max-width: 880px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
+/* Rubik SemiBold 24/32 (19401:13574); the style tracks at -0.6%, -0.144px at
+ * 24px, like the Sobre section titles (sobre/Section.module.css). */
 .titulo {
-  margin: 0 0 8px;
-  color: var(--bg-texto-primario);
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  color: var(--role-marca-ancora-padrao);
+  margin: 0;
 }
 
 .paragrafo {
   margin: 0;
-  font-size: 17px;
-  line-height: 28px;
-  color: var(--foreground);
+  color: var(--bg-texto-primario);
 }
 
-.animacao {
-  margin-block: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+/* The way into the platform and the sources are not in the design yet (issue
+ * #147, question 3); they keep the look they had in the Comunicação tab. */
 .acesso {
   align-self: flex-start;
   padding: 12px 20px;
@@ -126,12 +50,19 @@
   text-decoration: none;
 }
 
-.acesso:hover {
+.acesso:hover,
+.acesso:focus-visible {
   background: var(--role-marca-ancora-hover);
 }
 
+.fontesBloco {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .fontesTitulo {
-  margin: 24px 0 0;
+  margin: 0;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -149,33 +80,4 @@
   line-height: 22px;
   color: var(--am-400);
   overflow-wrap: anywhere;
-}
-
-/* No room for a second column: the terms become a row that scrolls
- * sideways above the open term. */
-@media (max-width: 860px) {
-  .grade {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-  }
-
-  .termos {
-    position: static;
-    flex-direction: row;
-    overflow-x: auto;
-    border-left: 0;
-    border-bottom: 1px solid var(--am-200);
-  }
-
-  .termo {
-    width: auto;
-    white-space: nowrap;
-    margin: 0 0 -1px;
-    border-left: 0;
-    border-bottom: 2px solid transparent;
-  }
-
-  .termoAberto {
-    border-bottom-color: var(--role-marca-ancora-padrao);
-  }
 }

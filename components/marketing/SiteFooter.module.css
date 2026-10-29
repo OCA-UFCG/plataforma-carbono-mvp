@@ -61,11 +61,12 @@
  * column 1 (x=80, 135, 190, 292 within the 1436 frame). Stacking them made the
  * column 184px tall against the design's 74 and pushed the whole footer from
  * 196 to 280. Wraps rather than overflowing if the labels ever grow, which
- * "Resumo territorial" made happen: the five links need about 404px against
- * the column's 350, so "Plataforma" takes a second row and the footer is 178
- * tall instead of the design's 156 (which predates that link). Inter
- * Regular 13px on its normal (16px) line box (18862:8259), set on the list so
- * each <li>'s line box takes it too. */
+ * "Glossário" and "Resumo territorial" made happen: the six links need about
+ * 477px against the column's 350, so "Resumo territorial" and "Plataforma"
+ * take a second row and the footer is 190 tall at 1436 instead of the
+ * design's 156 (which predates both links). Inter Regular 13px on its normal
+ * (16px) line box (18862:8259), set on the list so each <li>'s line box takes
+ * it too. */
 .navList {
   display: flex;
   flex-wrap: wrap;

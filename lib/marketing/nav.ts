@@ -41,19 +41,23 @@ export const TERRITORIOS_LINK: NavLink = {
 
 // Header labels after Figma node 18988:8612, which has "Sobre a plataforma"
 // (itself replacing the landing-era "Conheça a plataforma"); it is shortened
-// to "Sobre", the footer's label for the same page.
+// to "Sobre", the footer's label for the same page. "Glossário" sits between
+// "Sobre" and "Comunicação", as in the Glossário frames (19400:12116).
 export const HEADER_LINKS: NavLink[] = [
   { href: '/', label: 'Início', external: false },
   { href: '/sobre', label: 'Sobre', external: false },
+  { href: '/glossario', label: 'Glossário', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
 ]
 
 // The header's order, with "Resumo territorial" before the platform; Figma's
-// footer (18862:8257) predates the Territórios story and lists no entry for it.
+// footer (18862:8257) predates the Glossário page and the Territórios story
+// and lists no entry for either.
 // The first link reads "Início" as in the header, not the design's "Home".
 export const FOOTER_LINKS: NavLink[] = [
   { href: '/', label: 'Início', external: false },
   { href: '/sobre', label: 'Sobre', external: false },
+  { href: '/glossario', label: 'Glossário', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
   TERRITORIOS_LINK,
   MAPA_LINK,

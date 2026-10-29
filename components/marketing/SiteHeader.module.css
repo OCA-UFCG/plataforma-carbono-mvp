@@ -285,8 +285,8 @@
 }
 
 /* Breakpoint pair with SiteHeader.tsx's DESKTOP_QUERY — see the comment
- * there for why 1200px and why the two must move together. */
-@media (max-width: 1199px) {
+ * there for why 1280px and why the two must move together. */
+@media (max-width: 1279px) {
   .nav,
   .actions > .language,
   .actions > .account {
@@ -298,16 +298,17 @@
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1280px) {
   .panel,
   .panel:not([hidden]) {
     display: none;
   }
 }
 
-/* Under 1280px the bar would leave the e-mail a few letters and an ellipsis,
- * so it leaves the bar; "Sair" stays. The mobile panel keeps it. */
-@media (max-width: 1279px) {
+/* Under 1400px the bar would leave the e-mail a few letters and an ellipsis
+ * (at 1280 it has 7px), so it leaves the bar; "Sair" stays. The mobile panel
+ * keeps it. */
+@media (max-width: 1399px) {
   .actions .accountEmail {
     display: none;
   }

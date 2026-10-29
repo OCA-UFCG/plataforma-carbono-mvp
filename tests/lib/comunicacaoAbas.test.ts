@@ -8,7 +8,7 @@ describe('parseAba', () => {
   })
 
   it('opens the first tab for anything else', () => {
-    for (const value of [undefined, '', 'Eventos', 'outra', ['eventos', 'eventos']]) {
+    for (const value of [null, '', 'Eventos', 'outra']) {
       expect(parseAba(value), JSON.stringify(value)).toBe('conteudo')
     }
   })

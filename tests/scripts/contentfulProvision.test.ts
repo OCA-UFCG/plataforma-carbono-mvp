@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   CONTENT_TYPES,
+  onlyTypes,
   toCmaEntry,
   toCmaField,
   toEditorControl,
@@ -185,5 +186,25 @@ describe('the provisioned institutional copy', () => {
 
       expect(copyFromEntry(type, entry), type.id).toEqual(copyDefaults(type))
     }
+  })
+})
+
+describe('the --only option', () => {
+  it('provisions every type without it', () => {
+    expect(onlyTypes(['--apply'])).toBeNull()
+  })
+
+  it('names the types to provision, comma-separated or repeated', () => {
+    expect(onlyTypes(['--apply', '--only', 'glossarioPagina'])).toEqual(new Set(['glossarioPagina']))
+    expect(onlyTypes(['--only', 'glossarioPagina,cartilha', '--apply'])).toEqual(
+      new Set(['glossarioPagina', 'cartilha']),
+    )
+    expect(onlyTypes(['--only', 'cartilha', '--only', 'evento'])).toEqual(new Set(['cartilha', 'evento']))
+  })
+
+  it('refuses a type the model does not have, or no type at all', () => {
+    expect(() => onlyTypes(['--only', 'glossario'])).toThrow(/glossario/)
+    expect(() => onlyTypes(['--only'])).toThrow(/--only/)
+    expect(() => onlyTypes(['--only', '--apply'])).toThrow(/--only/)
   })
 })
