@@ -47,7 +47,7 @@ function mostrarAba(tab: HTMLButtonElement | null | undefined) {
 // Eight terms do not fit 1276px at the design's spacing, so the strip scrolls
 // sideways.
 export default function Glossario() {
-  const termo = parseTermo(useSearchParams()?.get(TERMO_PARAM) ?? undefined);
+  const termo = parseTermo(useSearchParams()?.get(TERMO_PARAM) ?? null);
   const activeIndex = TERMOS.indexOf(termo);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 

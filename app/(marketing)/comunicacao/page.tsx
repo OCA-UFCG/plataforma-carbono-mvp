@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import PageIntro from "@/components/marketing/PageIntro";
 import ComunicacaoAbas from "@/components/marketing/ComunicacaoAbas";
@@ -33,7 +33,7 @@ export default async function ComunicacaoPage({
 }) {
   const busca = await searchParams;
   const glossario = glossarioAntigoHref(busca);
-  if (glossario) permanentRedirect(glossario);
+  if (glossario) redirect(glossario);
 
   const getContent = getContentfulClient();
   const [conteudo, eventos, { pagina }] = await Promise.all([

@@ -120,19 +120,25 @@ export const TERMOS: Termo[] = [
 export const TERMO_PARAM = 'termo'
 
 /** The term the address names; anything else opens the first one. */
-export function parseTermo(value: string | string[] | undefined): Termo {
+export function parseTermo(value: string | null): Termo {
   return TERMOS.find((t) => t.slug === value) ?? TERMOS[0]
 }
 
 // The Glossário was a third tab of the Comunicação page while it was tested,
 // and links to it (/comunicacao?aba=glossario&termo=<slug>) went around. That
-// page sends them to /glossario, keeping the term; null for every other
-// address. Here rather than in lib/marketing/comunicacaoAbas.ts, which the
-// Comunicação tabs load on the client: importing TERMO_PARAM there pulled
+// page sends them to /glossario with everything else they carry (the term,
+// utm_* tags), all but `aba`; a repeated term goes along as it came, and the
+// page opens its first value, as it does for a direct link. null for every
+// other address. Here rather than in lib/marketing/comunicacaoAbas.ts, which
+// the Comunicação tabs load on the client: importing the terms there pulled
 // every term's text into that page's bundle.
 export function glossarioAntigoHref(params: Record<string, string | string[] | undefined>): string | null {
   if (params[ABA_PARAM] !== 'glossario') return null
 
-  const termo = params[TERMO_PARAM]
-  return typeof termo === 'string' ? `/glossario?${new URLSearchParams({ [TERMO_PARAM]: termo })}` : '/glossario'
+  const busca = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (key === ABA_PARAM || value === undefined) continue
+    for (const v of [value].flat()) busca.append(key, v)
+  }
+  return busca.size > 0 ? `/glossario?${busca}` : '/glossario'
 }

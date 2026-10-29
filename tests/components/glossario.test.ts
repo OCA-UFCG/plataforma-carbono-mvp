@@ -71,7 +71,7 @@ describe('parseTermo', () => {
   })
 
   it('opens the first term for anything else', () => {
-    for (const value of [undefined, '', 'Torre-de-fluxo', 'outro', ['degradacao', 'degradacao']]) {
+    for (const value of [null, '', 'Torre-de-fluxo', 'outro']) {
       expect(parseTermo(value).slug, JSON.stringify(value)).toBe(TERMOS[0].slug)
     }
   })

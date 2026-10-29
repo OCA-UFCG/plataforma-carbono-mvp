@@ -7,9 +7,18 @@ describe('glossarioAntigoHref', () => {
     expect(glossarioAntigoHref({ aba: 'glossario' })).toBe('/glossario')
   })
 
-  it('escapes the term and drops a repeated one', () => {
+  it('escapes the term and keeps a repeated one, whose first value the page opens', () => {
     expect(glossarioAntigoHref({ aba: 'glossario', termo: 'a&b=c' })).toBe('/glossario?termo=a%26b%3Dc')
-    expect(glossarioAntigoHref({ aba: 'glossario', termo: ['a', 'b'] })).toBe('/glossario')
+    expect(glossarioAntigoHref({ aba: 'glossario', termo: ['cue', 'degradacao'] })).toBe(
+      '/glossario?termo=cue&termo=degradacao',
+    )
+  })
+
+  it('keeps everything else the old link carried', () => {
+    expect(glossarioAntigoHref({ aba: 'glossario', termo: 'cue', utm_source: 'zap', utm_campaign: undefined })).toBe(
+      '/glossario?termo=cue&utm_source=zap',
+    )
+    expect(glossarioAntigoHref({ utm_source: 'zap', aba: 'glossario' })).toBe('/glossario?utm_source=zap')
   })
 
   it('leaves every other address on the Comunicação page', () => {
