@@ -17,8 +17,8 @@
   transition: background-color 0.15s ease;
 }
 
-.botao:hover,
-.botao:focus-visible {
+.botao:not(:disabled):hover,
+.botao:not(:disabled):focus-visible {
   background: var(--role-marca-ancora-hover);
 }
 
