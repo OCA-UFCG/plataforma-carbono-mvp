@@ -23,8 +23,10 @@ export const metadata: Metadata = { title: "Comunicação" };
 // The intro band is the same on both tabs. The design's photo band above the
 // footer, "Esse espaço está crescendo", was taken out on 2026-10-06; an "Em
 // breve" slot closes the grid instead (Publicacoes.tsx). ?aba=eventos opens
-// the second tab (lib/marketing/comunicacaoAbas.ts); ?aba=glossario, the
-// Glossário's address while it was a tab here, goes to its own page.
+// the second tab (lib/marketing/comunicacaoAbas.ts), which ComunicacaoAbas
+// reads with useSearchParams(), relying on the force-dynamic layout as
+// app/(marketing)/glossario/page.tsx explains; ?aba=glossario, the Glossário's
+// address while it was a tab here, goes to its own page.
 export default async function ComunicacaoPage({
   searchParams,
 }: {

@@ -13,7 +13,11 @@ export const metadata: Metadata = { title: "Glossário" };
 // (lib/content/paginas.ts) and the terms from the code (lib/glossario/termos.ts).
 // ?termo=<slug> names the open term, which Glossario reads from the address,
 // so the server renders the one a shared link asks for; the former tab,
-// /comunicacao?aba=glossario, redirects here.
+// /comunicacao?aba=glossario, redirects here. Glossario calls
+// useSearchParams() with no Suspense boundary, which builds only because the
+// marketing layout is force-dynamic. If that changes, read `searchParams`
+// here and pass the term down instead: a Suspense boundary would stop the
+// server rendering the linked term.
 export default async function GlossarioPage() {
   const { pagina } = await loadSiteCopy({ pagina: GLOSSARIO_PAGINA });
 
