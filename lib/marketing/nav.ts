@@ -25,6 +25,10 @@ export const SECTION_IDS: readonly string[] = [
 // The map lives in another route group, so it is a full page load, not a <Link>.
 export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Plataforma', external: true }
 
+// The platform's own route. MAPA_LINK points at MAPA_URL, which a deployment
+// may set to the login page, so the active entry is decided by this path.
+const MAPA_PATH = '/mapa'
+
 // The Territórios story, app/(territorios)/territorios: another route group too.
 // A path, not the beta host's URL, so each deployment opens its own copy and
 // keeps the visitor's session, whose cookie is scoped to the host. The story
@@ -37,19 +41,23 @@ export const TERRITORIOS_LINK: NavLink = {
 
 // Header labels after Figma node 18988:8612, which has "Sobre a plataforma"
 // (itself replacing the landing-era "Conheça a plataforma"); it is shortened
-// to "Sobre", the footer's label for the same page.
+// to "Sobre", the footer's label for the same page. "Glossário" sits between
+// "Sobre" and "Comunicação", as in the Glossário frames (19400:12116).
 export const HEADER_LINKS: NavLink[] = [
   { href: '/', label: 'Início', external: false },
   { href: '/sobre', label: 'Sobre', external: false },
+  { href: '/glossario', label: 'Glossário', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
 ]
 
 // The header's order, with "Resumo territorial" before the platform; Figma's
-// footer (18862:8257) predates the Territórios story and lists no entry for it.
+// footer (18862:8257) predates the Glossário page and the Territórios story
+// and lists no entry for either.
 // The first link reads "Início" as in the header, not the design's "Home".
 export const FOOTER_LINKS: NavLink[] = [
   { href: '/', label: 'Início', external: false },
   { href: '/sobre', label: 'Sobre', external: false },
+  { href: '/glossario', label: 'Glossário', external: false },
   { href: '/comunicacao', label: 'Comunicação', external: false },
   TERRITORIOS_LINK,
   MAPA_LINK,
@@ -67,14 +75,14 @@ export const SOBRE_PAGES: SobrePage[] = [
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the
-// path itself or a parent of it, so every /sobre/* page lights "Sobre" and the
-// story lights "Resumo territorial". "/" only owns itself, or it would own
-// everything.
+// path itself or a parent of it, so every /sobre/* page lights "Sobre", the
+// story lights "Resumo territorial" and the platform lights "Plataforma". "/"
+// only owns itself, or it would own everything.
 export function activeNavHref(pathname: string): string | null {
+  const owns = (route: string) =>
+    route === '/' ? pathname === '/' : pathname === route || pathname.startsWith(`${route}/`)
   for (const { href } of [...HEADER_LINKS, TERRITORIOS_LINK]) {
-    if (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)) {
-      return href
-    }
+    if (owns(href)) return href
   }
-  return null
+  return owns(MAPA_PATH) ? MAPA_LINK.href : null
 }

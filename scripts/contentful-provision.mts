@@ -4,7 +4,10 @@
 // --apply creates or updates the content types, publishes them, sets how their
 // fields are edited, and creates the copy entries that do not exist yet.
 //
-// Usage: CONTENTFUL_MANAGEMENT_TOKEN=... npm run contentful:provision [-- --apply]
+// Usage: CONTENTFUL_MANAGEMENT_TOKEN=... npm run contentful:provision [-- --apply] [--only <id>[,<id>]]
+//
+// --only limits both the content types and the seeded entries to the ids
+// given, so a new type can go in while another one still cannot.
 //
 // The token comes from Contentful under Settings > API keys > Content
 // management tokens, and is not the delivery token the application uses. The
@@ -16,6 +19,7 @@ import { readFileSync } from 'node:fs'
 import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 import {
   CONTENT_TYPES,
+  onlyTypes,
   toCmaContentType,
   toCmaEntry,
   toEditorControl,
@@ -70,12 +74,15 @@ async function main() {
   loadEnv()
 
   const apply = process.argv.includes('--apply')
+  const only = onlyTypes(process.argv)
+  const contentTypes = only ? CONTENT_TYPES.filter((t) => only.has(t.id)) : CONTENT_TYPES
+  const copyTypes = only ? SITE_COPY_TYPES.filter((t) => only.has(t.id)) : SITE_COPY_TYPES
   const space = process.env.CONTENTFUL_SPACE_ID
   const environment = process.env.CONTENTFUL_ENVIRONMENT || 'master'
   const token = process.env.CONTENTFUL_MANAGEMENT_TOKEN
 
   console.log(`${apply ? 'Applying' : 'Dry run of'} the content model:`)
-  for (const contentType of CONTENT_TYPES) {
+  for (const contentType of contentTypes) {
     const fields = contentType.fields
       .map((field) => `${field.id}${field.required ? '' : '?'}:${field.type}`)
       .join(', ')
@@ -91,7 +98,7 @@ async function main() {
 
   const env = `/spaces/${space}/environments/${environment}`
 
-  for (const contentType of CONTENT_TYPES) {
+  for (const contentType of contentTypes) {
     const path = `${env}/content_types/${contentType.id}`
     const existing = await cma(path, { token })
     const action = existing ? 'update' : 'create'
@@ -129,7 +136,7 @@ async function main() {
   const locales = await cma(`${env}/locales`, { token })
   const locale = locales.items.find((l: { default: boolean }) => l.default).code
 
-  for (const copyType of SITE_COPY_TYPES) {
+  for (const copyType of copyTypes) {
     // A content type that does not exist yet (a dry run before the first
     // --apply) has no entries either.
     const existing = await cma(`${env}/entries?content_type=${copyType.id}&limit=1`, { token }).catch(

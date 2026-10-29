@@ -5,6 +5,7 @@ import { MAPA_URL } from '@/lib/config'
 import {
   FOOTER_LINKS,
   HEADER_LINKS,
+  MAPA_LINK,
   SECTION_IDS,
   SOBRE_PAGES,
   TERRITORIOS_LINK,
@@ -93,6 +94,7 @@ describe('marketing nav registry', () => {
     expect(FOOTER_LINKS.map((l) => l.label)).toEqual([
       'Início',
       'Sobre',
+      'Glossário',
       'Comunicação',
       'Resumo territorial',
       'Plataforma',
@@ -108,6 +110,7 @@ describe('marketing nav registry', () => {
     expect(HEADER_LINKS.map((l) => l.label)).toEqual([
       'Início',
       'Sobre',
+      'Glossário',
       'Comunicação',
     ])
     expect(SOBRE_PAGES.map((p) => p.label)).toEqual([
@@ -160,12 +163,20 @@ describe('activeNavHref', () => {
     expect(activeNavHref('/')).toBe('/')
     expect(activeNavHref('/sobre')).toBe('/sobre')
     expect(activeNavHref('/sobre/como-funciona')).toBe('/sobre')
+    expect(activeNavHref('/glossario')).toBe('/glossario')
     expect(activeNavHref('/comunicacao')).toBe('/comunicacao')
   })
 
   it('marks "Resumo territorial" on the story, which renders this header too', () => {
     expect(activeNavHref('/territorios')).toBe(TERRITORIOS_LINK.href)
     expect(activeNavHref('/territoriosx')).toBeNull()
+  })
+
+  it('marks "Plataforma" on the platform, which renders this header too', () => {
+    // MAPA_LINK.href is MAPA_URL, which a deployment may point at the login
+    // page; the platform's own route is what marks the entry.
+    expect(activeNavHref('/mapa')).toBe(MAPA_LINK.href)
+    expect(activeNavHref('/mapax')).toBeNull()
   })
 
   it('marks nothing for a route no entry owns', () => {

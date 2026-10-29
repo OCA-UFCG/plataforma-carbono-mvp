@@ -8,6 +8,29 @@
   },
   "layers": [
     {
+      "id": "areas_monitoramento",
+      "name": "Áreas de Monitoramento",
+      "unitName": "Área de monitoramento",
+      "type": "vector",
+      "url": "/data/vector/areas_monitoramento.geojson",
+      "visible": false,
+      "opacity": 100,
+      "color": "#D62828",
+      "hoverLabelField": "nome",
+      "searchFields": [
+        "nome"
+      ],
+      "pickPriority": 60,
+      "theme": "localidades",
+      "subtheme": "monitoramento",
+      "pulse": true,
+      "model": {
+        "url": "/models/torre.glb",
+        "height": 22
+      },
+      "hidden": true
+    },
+    {
       "id": "bioma",
       "name": "Bioma Caatinga",
       "unitName": "Bioma",
@@ -99,24 +122,34 @@
       "subtheme": "territorios"
     },
     {
-      "id": "areas_monitoramento",
-      "name": "Áreas de Monitoramento",
-      "unitName": "Área de monitoramento",
+      "id": "uc_protecao_integral",
+      "name": "Unidades de Proteção Integral",
+      "unitName": "Unidade de Proteção Integral",
       "type": "vector",
-      "url": "/data/vector/areas_monitoramento.geojson",
+      "url": "/data/vector/uc_protecao_integral.geojson",
       "visible": false,
-      "opacity": 100,
-      "color": "#D62828",
-      "hoverLabelField": "nome",
-      "pickPriority": 60,
-      "theme": "localidades",
-      "subtheme": "monitoramento",
-      "pulse": true,
-      "model": {
-        "url": "/models/torre.glb",
-        "height": 22
-      },
-      "hidden": true
+      "opacity": 80,
+      "color": "#1f6b52",
+      "hoverLabelField": "nome_uc",
+      "contextField": "abbrev_state",
+      "pickPriority": 30,
+      "theme": "territorio",
+      "subtheme": "unidades_conservacao"
+    },
+    {
+      "id": "uc_uso_sustentavel",
+      "name": "Unidades de Uso Sustentável",
+      "unitName": "Unidade de Uso Sustentável",
+      "type": "vector",
+      "url": "/data/vector/uc_uso_sustentavel.geojson",
+      "visible": false,
+      "opacity": 80,
+      "color": "#5b9a8b",
+      "hoverLabelField": "nome_uc",
+      "contextField": "abbrev_state",
+      "pickPriority": 30,
+      "theme": "territorio",
+      "subtheme": "unidades_conservacao"
     },
     {
       "id": "estoque_carbono",
@@ -1093,6 +1126,155 @@
       ],
       "unit": "mm/ano",
       "theme": "ambiente",
+      "subtheme": "clima",
+      "hidden": true
+    },
+    {
+      "id": "brdwgd_pr",
+      "name": "Precipitação Anual",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "pr",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 200,
+          "max": 1400,
+          "palette": [
+            "#ffffd9",
+            "#edf8b1",
+            "#c7e9b4",
+            "#7fcdbb",
+            "#41b6c4",
+            "#1d91c0",
+            "#225ea8",
+            "#0c2c84"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        200,
+        1400
+      ],
+      "unit": "mm/ano",
+      "theme": "ambiente",
+      "subtheme": "clima"
+    },
+    {
+      "id": "brdwgd_tmed",
+      "name": "Temperatura do Ar",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "tmed",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 21,
+          "max": 29,
+          "palette": [
+            "#313695",
+            "#74add1",
+            "#e0f3f8",
+            "#fee090",
+            "#f46d43",
+            "#a50026"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        21,
+        29
+      ],
+      "unit": "°C",
+      "theme": "ambiente",
+      "subtheme": "clima"
+    },
+    {
+      "id": "brdwgd_eto",
+      "name": "Evapotranspiração de Referência",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/brdwgd_anual",
+          "band": "eto",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 11131.78
+        },
+        "visParams": {
+          "min": 1300,
+          "max": 2200,
+          "palette": [
+            "#ffffe5",
+            "#fff7bc",
+            "#fee391",
+            "#fec44f",
+            "#fe9929",
+            "#ec7014",
+            "#cc4c02",
+            "#8c2d04"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1961-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        1300,
+        2200
+      ],
+      "unit": "mm/ano",
+      "theme": "ambiente",
       "subtheme": "clima"
     },
     {
@@ -1184,8 +1366,7 @@
       ],
       "unit": "m",
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "declividade_fabdem",
@@ -1224,8 +1405,7 @@
       ],
       "unit": "%",
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "hillshade_fabdem",
@@ -1257,9 +1437,9 @@
         230
       ],
       "analysis": false,
+      "overlay": true,
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "sombreado_terreno",
@@ -1267,15 +1447,16 @@
       "type": "raster",
       "source": "dem",
       "dem": {
-        "url": "https://tiles.mapterhorn.com/tilejson.json"
+        "url": "https://tiles.mapterhorn.com/tilejson.json",
+        "maxzoom": 12
       },
       "visible": false,
       "opacity": 70,
       "colorType": "continuous",
       "analysis": false,
+      "overlay": true,
       "theme": "ambiente",
-      "subtheme": "relevo",
-      "hidden": true
+      "subtheme": "relevo"
     },
     {
       "id": "lulc_mapbiomas",
@@ -1645,6 +1826,174 @@
       "theme": "uso_solo",
       "subtheme": "degradacao",
       "hidden": true
+    },
+    {
+      "id": "emissoes_uso_brutas_seeg",
+      "name": "Emissões brutas do uso da terra (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "brutas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_brutas_ct",
+      "name": "Emissões brutas do uso da terra (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "brutas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_liquidas_seeg",
+      "name": "Emissões líquidas do uso da terra (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "liquidas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_uso_liquidas_ct",
+      "name": "Emissões líquidas do uso da terra (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "liquidas",
+        "escopo": "usoDaTerra"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_brutas_seeg",
+      "name": "Emissões brutas de todos os setores (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "brutas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_brutas_ct",
+      "name": "Emissões brutas de todos os setores (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "brutas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_liquidas_seeg",
+      "name": "Emissões líquidas de todos os setores (SEEG)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "seeg",
+        "medida": "liquidas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "1990-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
+    },
+    {
+      "id": "emissoes_total_liquidas_ct",
+      "name": "Emissões líquidas de todos os setores (Climate TRACE)",
+      "type": "emissions",
+      "emissoes": {
+        "inventario": "ct",
+        "medida": "liquidas",
+        "escopo": "total"
+      },
+      "visible": false,
+      "opacity": 80,
+      "unit": "t CO2e/ha",
+      "temporal": {
+        "dateRange": [
+          "2021-01-01",
+          "2025-01-01"
+        ]
+      },
+      "theme": "uso_solo",
+      "subtheme": "emissoes"
     }
   ]
 }

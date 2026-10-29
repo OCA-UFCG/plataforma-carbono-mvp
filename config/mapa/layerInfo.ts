@@ -49,9 +49,96 @@ const INVENTORY_LAYER = {
   period: 'Mapa único', resolution: '100 m', coverage: 96, source: INVENTORY_SOURCE, citation: INVENTORY_CITATION,
 }
 const INVENTORY_POOL_CAUTIONS = [INVENTORY_PER_CLASS, INVENTORY_PAST_VEGETATION, INVENTORY_GAP]
+const BRDWGD_SOURCE = 'BR-DWGD, Brazilian Daily Weather Gridded Data (Xavier et al., 2022)'
+const BRDWGD_CITATION = 'Xavier, A. C., Scanlon, B. R., King, C. W., & Alves, A. I. (2022). New improved Brazilian daily weather gridded data (1961-2020). International Journal of Climatology, 42(16), 8390-8404. https://doi.org/10.1002/joc.7731'
+// No license: the authors' README only asks for the citation, and the CC BY 4.0
+// some catalogs list is not theirs.
+const BRDWGD_LAYER = { period: '1961-2025', resolution: '11 km', source: BRDWGD_SOURCE, citation: BRDWGD_CITATION }
 const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
 const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
 const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
+
+// Municipal emissions (config/emissoes/emissoes.json). The SEEG data carry no
+// open license on the producer's pages (its platform reads "Todos os direitos
+// reservados"), so the sheet names the source and leaves the license out. The
+// access date is the day of the query the file was built from, not today.
+const SEEG_SOURCE = 'SEEG, Sistema de Estimativas de Emissões e Remoções de Gases de Efeito Estufa, coleção 14.0 (Observatório do Clima)'
+const SEEG_CITATION = 'SEEG. Sistema de Estimativas de Emissões e Remoções de Gases de Efeito Estufa, coleção 14.0. Observatório do Clima. https://plataforma.seeg.eco.br. Acessado em 25/10/2026.'
+const CT_SOURCE = 'Climate TRACE, inventário de emissões, versão 5.11.0'
+const CT_CITATION = 'Climate TRACE (2026). Climate TRACE Emissions Inventory, version 5.11.0. https://climatetrace.org. Acessado em 25/10/2026.'
+const EMISSIONS_WHOLE = 'Valores do município inteiro, mesmo onde parte dele fica fora da Caatinga, por hectare da sua área oficial (IBGE, 2022); por estado e no bioma, soma dos municípios de predominância Caatinga e das suas áreas.'
+const EMISSIONS_AR6 = 'CO2 equivalente com o potencial de aquecimento global de 100 anos do AR6; o site do SEEG mostra por padrão o do AR5.'
+// What gross and net hold follows the SEEG 13 MUT methodology note (written
+// for collection 13; collection 14 has no note yet, so its method is assumed
+// unchanged) and the CTrees forestry methodology with the 5.11 changelog; the
+// confidence levels are the API's 2025 records for a sample of Caatinga
+// municipalities (DOCUMENTACAO.md). The method rows cover land use only, so
+// the all-sector sheets leave them out.
+const SEEG_METHOD = 'Mapas anuais de uso e cobertura do MapBiomas combinados com os estoques de carbono e as taxas de remoção do Quarto Inventário Nacional (nota metodológica SEEG 13).'
+const CT_GROSS_METHOD = 'Carbono da biomassa viva (mapas da CTrees) multiplicado pela fração desmatada, degradada ou queimada de cada célula de 1 km e por um fator de emissão; área queimada do MODIS (MCD64) e perda florestal por fogo (Hansen/UMD); reservatórios pelo Tier 1 do IPCC.'
+const CT_NET_METHOD = 'Variação anual de mapas de biomassa viva da CTrees, de 1 km, feitos por aprendizado de máquina com lidar de satélite (GEDI e ICESat-2), radar e imagens ópticas; carbono do solo das lavouras pelo modelo SALUS; reservatórios pelo Tier 1 do IPCC.'
+const SEEG_LAYER = { period: '1990-2025', resolution: 'Município', source: SEEG_SOURCE, citation: SEEG_CITATION }
+const CT_LAYER = { period: '2021-2025', resolution: 'Município', source: CT_SOURCE, license: CC_BY, citation: CT_CITATION }
+const SEEG_GROSS_LAND = 'As emissões brutas do uso da terra são as que o inventário nacional contabiliza: mudança para usos com menos carbono por hectare, como a conversão de vegetação nativa, perda de carbono do solo e queima dos resíduos do desmatamento.'
+const SEEG_NO_NCI = 'Ficam fora as queimadas em vegetação nativa não desmatada, que o inventário nacional não contabiliza e o SEEG publica à parte como emissões não contabilizadas no inventário (NCI); o fogo ligado ao desmatamento está incluído.'
+const SEEG_REMOVALS = 'As remoções vêm da vegetação secundária, das áreas protegidas, das mudanças de uso que aumentam o estoque e de parte do carbono do solo, calculadas com valores fixos por hectare do Quarto Inventário Nacional; a série varia só com as áreas mapeadas a cada ano.'
+const SEEG_STEPS = 'No SEEG, a energia passa a ser atribuída quase toda aos municípios em 2007, e os processos industriais aparecem em 2015, com zero em 2019 e em 2023; a série tem degraus nesses anos.'
+const SEEG_NEGATIVE_WASTE = 'O SEEG registra emissão negativa na disposição final de resíduos de alguns municípios, e em dois deles a emissão bruta total fica abaixo de zero.'
+const SEEG_2025 = 'As emissões brutas do uso da terra caem 17% de 2024 para 2025 no conjunto dos municípios, e o SEEG não informa se 2025 é preliminar.'
+const CT_FIRE = 'Inclui o fogo em floresta, vegetação arbustiva e áreas úmidas, sem separar o ligado ao desmatamento, contado como CO2 no ano do fogo; a rebrota aparece só nas emissões líquidas, e a queima de lavouras fica na agropecuária.'
+const CT_GROSS_CONFIDENCE = 'A confiança que o Climate TRACE atribui às emissões brutas varia de muito baixa a alta entre os municípios.'
+const CT_BALANCE = 'O saldo é a variação anual do estoque de biomassa viva, que já inclui as perdas por desmatamento, degradação e fogo e o crescimento da vegetação; por isso não se soma às emissões brutas.'
+const CT_NET_CONFIDENCE = 'No registro de 2025, o Climate TRACE classifica como muito baixa a confiança no saldo de biomassa em todos os municípios de uma amostra da Caatinga. No conjunto dos municípios, as emissões líquidas do uso da terra vão de -388 Mt CO2e em 2022 a +3 Mt CO2e em 2025.'
+const CT_REVISIONS = 'O saldo é revisto a cada versão do Climate TRACE; da 5.10 para a 5.11, o de 2021 na Caatinga passou de +277 para -30 Mt CO2e.'
+const CT_EXCLUDED = 'Sem aviação e navegação internacionais e sem a produção e o transporte de petróleo e gás em terra do Brasil inteiro, que o Climate TRACE põe em Pintadas (BA).'
+const CT_UNSOURCED = 'O Climate TRACE distribui aos municípios, por critérios próprios, emissões sem fonte identificada, de 13 a 15 Mt CO2e por ano no conjunto dos 1.095.'
+
+const EMISSIONS_INFO: Record<string, LayerInfo> = {
+  emissoes_uso_brutas_seeg: {
+    summary: 'Emissões de gases de efeito estufa por mudança de uso da terra e florestas, sobretudo desmatamento, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, SEEG_GROSS_LAND, SEEG_NO_NCI, SEEG_2025, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+    method: SEEG_METHOD,
+  },
+  emissoes_uso_liquidas_seeg: {
+    summary: 'Emissões menos remoções de gases de efeito estufa por mudança de uso da terra e florestas, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, SEEG_GROSS_LAND, SEEG_REMOVALS, SEEG_NO_NCI, SEEG_2025, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+    method: SEEG_METHOD,
+  },
+  emissoes_uso_brutas_ct: {
+    summary: 'Emissões de gases de efeito estufa por desmatamento, degradação, fogo em vegetação e reservatórios, no ano em que ocorrem, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, CT_FIRE, CT_GROSS_CONFIDENCE],
+    ...CT_LAYER,
+    method: CT_GROSS_METHOD,
+  },
+  emissoes_uso_liquidas_ct: {
+    summary: 'Saldo de gases de efeito estufa do uso da terra: variação do estoque de biomassa viva, carbono do solo das lavouras e reservatórios, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, CT_BALANCE, CT_NET_CONFIDENCE, CT_REVISIONS],
+    ...CT_LAYER,
+    method: CT_NET_METHOD,
+  },
+  emissoes_total_brutas_seeg: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores (agropecuária, energia, uso da terra, processos industriais e resíduos), em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, SEEG_STEPS, SEEG_NEGATIVE_WASTE, SEEG_GROSS_LAND, SEEG_NO_NCI, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_total_liquidas_seeg: {
+    summary: 'Emissões menos remoções de gases de efeito estufa de todos os setores, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, SEEG_STEPS, SEEG_GROSS_LAND, SEEG_REMOVALS, SEEG_NEGATIVE_WASTE, SEEG_NO_NCI, EMISSIONS_AR6],
+    ...SEEG_LAYER,
+  },
+  emissoes_total_brutas_ct: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores, com as emissões brutas do uso da terra, em toneladas de CO2 equivalente por hectare.',
+    cautions: [EMISSIONS_WHOLE, CT_FIRE, CT_GROSS_CONFIDENCE, CT_UNSOURCED, CT_EXCLUDED],
+    ...CT_LAYER,
+  },
+  emissoes_total_liquidas_ct: {
+    summary: 'Emissões de gases de efeito estufa de todos os setores, com o saldo do uso da terra, em toneladas de CO2 equivalente por hectare; valores negativos indicam remoção líquida.',
+    cautions: [EMISSIONS_WHOLE, CT_BALANCE, CT_NET_CONFIDENCE, CT_REVISIONS, CT_UNSOURCED, CT_EXCLUDED],
+    ...CT_LAYER,
+  },
+}
 
 export const LAYER_INFO: Record<string, LayerInfo> = {
   bioma: {
@@ -92,6 +179,20 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     summary: 'Projetos de assentamento da reforma agrária no cadastro do Incra com mais da metade da área no bioma, recortados no limite dele.',
     period: 'Outubro de 2026',
     source: 'Incra, acervo fundiário (Assentamento Brasil)',
+  },
+  uc_protecao_integral: {
+    summary: 'Unidades de conservação de proteção integral do cadastro nacional (parques, monumentos naturais, refúgios de vida silvestre, estações ecológicas e reservas biológicas) com mais da metade da área no bioma, 79 ao todo, recortadas no limite dele.',
+    period: 'Agosto de 2025',
+    source: 'MMA, Cadastro Nacional de Unidades de Conservação (CNUC)',
+  },
+  uc_uso_sustentavel: {
+    summary: 'Unidades de conservação de uso sustentável do cadastro nacional (áreas de proteção ambiental, reservas particulares do patrimônio natural, áreas de relevante interesse ecológico, florestas, reservas de desenvolvimento sustentável e reservas extrativistas) com mais da metade da área no bioma, 198 ao todo, recortadas no limite dele.',
+    cautions: [
+      'As áreas de proteção ambiental admitem ocupação humana e terras privadas, e as maiores abrangem vários municípios.',
+      'No cadastro, 24 das 136 reservas particulares do patrimônio natural têm só um círculo com a área decretada, sem o contorno do imóvel.',
+    ],
+    period: 'Agosto de 2025',
+    source: 'MMA, Cadastro Nacional de Unidades de Conservação (CNUC)',
   },
   areas_monitoramento: {
     summary: 'Sítios em área de Caatinga com torre de fluxo, 5 ao todo, que mediram as trocas de CO2, água e energia entre a vegetação e a atmosfera pelo método de covariância de vórtices.',
@@ -324,6 +425,26 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     license: CC0,
     citation: 'Funk, C., Peterson, P., Landsfeld, M., Pedreros, D., Verdin, J., Shukla, S., Husak, G., Rowland, J., Harrison, L., Hoell, A., & Michaelsen, J. (2015). The climate hazards infrared precipitation with stations, a new environmental record for monitoring extremes. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66',
   },
+  brdwgd_pr: {
+    ...BRDWGD_LAYER,
+    summary: 'Chuva acumulada no ano, um mapa por ano de 1961 a 2025.',
+    method: 'Chuva diária interpolada das estações pluviométricas em grade de 0,1°, somada no ano.',
+  },
+  brdwgd_tmed: {
+    ...BRDWGD_LAYER,
+    summary: 'Temperatura média do ar no ano, média entre a máxima e a mínima diárias, um mapa por ano de 1961 a 2025.',
+    cautions: ['É a temperatura do ar, diferente da temperatura de superfície medida por satélite.'],
+    method: 'Temperaturas máxima e mínima diárias interpoladas das estações meteorológicas em grade de 0,1°, médias no ano.',
+  },
+  brdwgd_eto: {
+    ...BRDWGD_LAYER,
+    summary: 'Evapotranspiração de referência acumulada no ano, a demanda de água da atmosfera sobre uma grama de referência, um mapa por ano de 1961 a 2025.',
+    cautions: [
+      'Mede a demanda de água da atmosfera; quanto a vegetação de fato perde depende da água disponível no solo.',
+      'Em 1972 o vento da base está pela metade o ano inteiro, e a ETo sai cerca de 13% abaixo dos anos vizinhos.',
+    ],
+    method: 'Penman-Monteith (FAO-56) diário, a partir das variáveis interpoladas em grade de 0,1°, somado no ano.',
+  },
   lst_modis: {
     summary: 'Temperatura diurna da superfície terrestre, solo e vegetação, estimada pelo MODIS do satélite Terra perto das 10h30, um mapa por ano de 2001 a 2024.',
     cautions: [
@@ -369,4 +490,5 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     license: { label: 'Licença Copernicus', url: 'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/glo30/LICENSE.pdf' },
     citation: 'Copernicus DEM GLO-30, ' + COPERNICUS_DEM + ' Acessado via Mapterhorn.',
   },
+  ...EMISSIONS_INFO,
 }

@@ -2,10 +2,10 @@ import { defineCopy, line, optionalLine, paragraph } from './site/model'
 
 // Copy for the internal pages' shared frame: the grey intro band at the top
 // and the photo band above the footer. Taken verbatim from the Figma frames
-// "Sobre" (18988:8611, the same intro on all four Sobre pages) and
-// "Comunicação" (18978:2048). Each page's own content lives in its own module;
-// the band at the foot of "Conheça a plataforma" is part of that page's copy
-// (lib/content/sobre/plataforma.ts).
+// "Sobre" (18988:8611, the same intro on all four Sobre pages),
+// "Comunicação" (18978:2048) and "Glossário" (19400:12092). Each page's own
+// content lives in its own module; the band at the foot of "Conheça a
+// plataforma" is part of that page's copy (lib/content/sobre/plataforma.ts).
 
 export type PageIntroContent = {
   eyebrow?: string
@@ -50,6 +50,23 @@ export const COMUNICACAO_PAGINA = defineCopy({
     // platform, word for word; it looks like placeholder copy, and is an open
     // question to the content owner (issue #44, question 4).
     introTitulo: line('Introdução · Título', 'Comunicação'),
+    introTexto: paragraph(
+      'Introdução · Texto',
+      'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',
+    ),
+  },
+})
+
+export const GLOSSARIO_PAGINA = defineCopy({
+  id: 'glossarioPagina',
+  name: 'Glossário · Página',
+  description:
+    'Faixa cinza do topo da página Glossário. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
+  fields: {
+    // Figma node 19400:12094. The design repeats the Comunicação page's
+    // paragraph word for word, the same placeholder (issue #44, question 4);
+    // this page's own text is an open question too (issue #147, question 2).
+    introTitulo: line('Introdução · Título', 'Glossário'),
     introTexto: paragraph(
       'Introdução · Texto',
       'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',

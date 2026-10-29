@@ -1,0 +1,148 @@
+/* The "Resultados" column, Figma 19430:59196: on --am-050, its text 26px
+ * under the site header and 24px in from each side. Type comes from the
+ * .text-* utilities of app/globals.css. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 26px 24px 0;
+  background: var(--am-050);
+  color: var(--bg-texto-primario);
+}
+
+/* Desktop: the last column of Mapa.tsx's row, ruled off the map. Its width
+ * is the layout's COLUMN_WIDTH, set inline. */
+.docked {
+  position: relative;
+  flex: none;
+  height: 100%;
+  border-left: 1px solid var(--bg-borda);
+}
+
+/* Below 768px: a drawer over the bottom of the map, above the controls. */
+.drawer {
+  position: absolute;
+  z-index: 13;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 62dvh;
+  padding-top: 20px;
+  border-top: 1px solid var(--bg-borda);
+  border-radius: 16px 16px 0 0;
+  box-shadow: var(--shadow-lg);
+}
+
+/* What was analysed and how big it is (19430:60127), then a rule. */
+.header {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--bg-borda);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* The kind of recorte, as the ficha's chips (19430:60236). */
+.chip {
+  padding: 1px 9px;
+  border: 1px solid var(--bg-borda);
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.title {
+  color: var(--role-categorica1-padrao);
+  overflow-wrap: anywhere;
+}
+
+/* Not in the design, which leaves undoing the selection to the panel's
+ * "Município em foco" (#141); the ficha's Close icon until then. */
+.close {
+  flex: none;
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-interno);
+  background: none;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--am-100);
+}
+
+/* The cards scroll between the header and the downloads. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.body > * {
+  flex-shrink: 0;
+}
+
+/* "Baixar CSV" and "Baixar JPEG" (19435:60509), fixed under a rule. */
+.foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--bg-borda);
+}
+
+.buttons {
+  display: flex;
+  gap: 16px;
+}
+
+.download {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--role-marca-ancora-hover);
+  color: var(--primary-foreground);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.download:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+.download:disabled {
+  opacity: .7;
+  cursor: progress;
+}
+
+.failed {
+  color: var(--ctx-negativo-padrao);
+  text-align: center;
+}
+
+/* The hint's heading: the active layer's name, as a result's (LayerResultCard). */
+.hintTitle {
+  text-transform: uppercase;
+}

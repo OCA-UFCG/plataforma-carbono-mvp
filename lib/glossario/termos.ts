@@ -1,13 +1,16 @@
-// Terms of the Glossário tab (Comunicação page). A term with `paragrafos`
-// has its own page; one without is listed as "em breve". `animacao` names a
-// scene assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
+// Terms of the Glossário page (/glossario), one tab each, in the order of
+// the design's tab strip (Figma 19400:12117), with "Sequestro de carbono",
+// which the design does not draw yet, last. `animacao` names a scene
+// assembled in lib/cenas/gerado/ (scripts/montar-cenas.mjs).
+
+import { ABA_PARAM } from '@/lib/marketing/comunicacaoAbas'
 
 export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
 
 export interface Termo {
   slug: string
   titulo: string
-  paragrafos?: string[]
+  paragrafos: string[]
   animacao?: {
     id: AnimacaoId
     titulo: string
@@ -51,16 +54,6 @@ export const TERMOS: Termo[] = [
       descricao: 'Paisagem de Caatinga em corte mostrando onde o carbono fica guardado: solo, parte aérea, raízes, madeira morta, serapilheira e herbáceas. Os botões destacam cada compartimento.',
     },
     acesso: { href: naPlataforma('estoque_carbono'), rotulo: 'Acesse os dados de estoque no bioma Caatinga' },
-  },
-  {
-    slug: 'sequestro-de-carbono',
-    titulo: 'Sequestro de carbono',
-    paragrafos: [],
-    animacao: {
-      id: 'cisterna',
-      titulo: 'Guardar água, guardar carbono',
-      descricao: 'Casa do sertão com uma cisterna em corte ao lado de uma Caatinga com o solo em corte, comparando a água guardada na cisterna com o carbono guardado na vegetação e no solo: o que entra, o que sai, o saldo, como proteger, o vazamento e onde a comparação para. Os botões avançam as etapas.',
-    },
   },
   {
     slug: 'torre-de-fluxo',
@@ -112,12 +105,41 @@ export const TERMOS: Termo[] = [
       descricao: 'A mesma área de Caatinga com dois manejos separados por uma cerca: à esquerda, raleamento, cobertura morta e consórcio; à direita, corte raso, queima e roça em solo nu. Os botões avançam as etapas, e o painel compara o carbono dos dois lados.',
     },
   },
+  {
+    slug: 'sequestro-de-carbono',
+    titulo: 'Sequestro de carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'cisterna',
+      titulo: 'Guardar água, guardar carbono',
+      descricao: 'Casa do sertão com uma cisterna em corte ao lado de uma Caatinga com o solo em corte, comparando a água guardada na cisterna com o carbono guardado na vegetação e no solo: o que entra, o que sai, o saldo, como proteger, o vazamento e onde a comparação para. Os botões avançam as etapas.',
+    },
+  },
 ]
 
 export const TERMO_PARAM = 'termo'
 
-/** The term the address names, or the first one with a page. */
-export function parseTermo(value: string | string[] | undefined): Termo {
-  const comPagina = TERMOS.filter((t) => t.paragrafos)
-  return comPagina.find((t) => t.slug === value) ?? comPagina[0]
+/** The term the address names; anything else opens the first one. */
+export function parseTermo(value: string | null): Termo {
+  return TERMOS.find((t) => t.slug === value) ?? TERMOS[0]
+}
+
+// The Glossário was a third tab of the Comunicação page while it was tested,
+// and links to it (/comunicacao?aba=glossario&termo=<slug>) went around. That
+// page sends them to /glossario with everything else they carry (the term,
+// utm_* tags), all but `aba`; a repeated term goes along as it came, and the
+// page opens its first value, as it does for a direct link. A repeated `aba`
+// counts by its first value too, the one the Comunicação tabs would open.
+// null for every other address. Here rather than in lib/marketing/comunicacaoAbas.ts, which
+// the Comunicação tabs load on the client: importing the terms there pulled
+// every term's text into that page's bundle.
+export function glossarioAntigoHref(params: Record<string, string | string[] | undefined>): string | null {
+  if ([params[ABA_PARAM]].flat()[0] !== 'glossario') return null
+
+  const busca = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (key === ABA_PARAM || value === undefined) continue
+    for (const v of [value].flat()) busca.append(key, v)
+  }
+  return busca.size > 0 ? `/glossario?${busca}` : '/glossario'
 }

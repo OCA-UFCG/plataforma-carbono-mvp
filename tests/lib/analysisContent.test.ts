@@ -15,7 +15,7 @@ const ready: LayerResult = {
   pixelValue: null, error: null,
 }
 
-const empty = { drawnArea: null, drawnLength: null, results: {}, layers: [raster] }
+const empty = { drawnArea: null, results: {}, layers: [raster] }
 
 describe('hasAnalysisContent', () => {
   it('is false with no measurement and no result', () => {
@@ -24,10 +24,6 @@ describe('hasAnalysisContent', () => {
 
   it('is true for a drawn area even before any layer answers', () => {
     expect(hasAnalysisContent({ ...empty, drawnArea: 621.4 })).toBe(true)
-  })
-
-  it('is true for a drawn length', () => {
-    expect(hasAnalysisContent({ ...empty, drawnLength: 12.5 })).toBe(true)
   })
 
   it('is true when a visible raster has a result', () => {

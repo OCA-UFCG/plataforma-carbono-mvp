@@ -101,7 +101,7 @@ describe('every theme', () => {
   })
 
   it('keeps the layer visParams for stock and rain', () => {
-    for (const [theme, id] of [['estoque', 'estoque_carbono'], ['chuva', 'chirps_precip']] as const) {
+    for (const [theme, id] of [['estoque', 'estoque_carbono'], ['chuva', 'brdwgd_pr']] as const) {
       expect(themeRaster(theme).request.visParams).toEqual(layer(id).gee!.visParams)
     }
   })

@@ -1,7 +1,7 @@
 import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 import { defaultBasemapId, basemaps } from '@/config/mapa/basemaps'
-import { paradas } from '@/lib/mapa/temporal'
-import { sanitizeSubthemeOrder, sanitizeThemeOrder } from '@/lib/mapa/layerOrder'
+import { layerTemporal, paradas } from '@/lib/mapa/temporal'
+import { layerOrderFromGroups, sanitizeLayerOrder } from '@/lib/mapa/layerOrder'
 
 /** Key and version of the stored state. A payload from another version is discarded. */
 export const PERSIST_KEY = 'cc_mapa_v1'
@@ -25,9 +25,8 @@ export interface PersistedState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
-  themeOrder: string[]
-  subthemeOrder: Record<string, string[]>
+  /** The user's draw order of the thematic layers, top first. */
+  layerOrder: string[]
 }
 
 export interface LiveState {
@@ -36,9 +35,8 @@ export interface LiveState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
-  themeOrder: string[]
-  subthemeOrder: Record<string, string[]>
+  /** The user's draw order of the thematic layers, top first. */
+  layerOrder: string[]
 }
 
 export interface RestoredState {
@@ -49,9 +47,8 @@ export interface RestoredState {
   temporalDate: Record<string, string>
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  /** The user's draw order: thematic theme ids, then subtheme ids per theme. */
-  themeOrder: string[]
-  subthemeOrder: Record<string, string[]>
+  /** The user's draw order of the thematic layers, top first. */
+  layerOrder: string[]
 }
 
 export function buildPersisted(live: LiveState): PersistedState {
@@ -62,8 +59,7 @@ export function buildPersisted(live: LiveState): PersistedState {
     temporalDate: live.temporalDate,
     view: live.view,
     drawing: live.drawing,
-    themeOrder: live.themeOrder,
-    subthemeOrder: live.subthemeOrder,
+    layerOrder: live.layerOrder,
   }
 }
 
@@ -119,6 +115,9 @@ function restoreDrawing(stored: unknown): GeoJSON.Feature | null {
   if (!isRecord(stored)) return null
   if (stored.type !== 'Feature') return null
   if (!isRecord(stored.geometry) || typeof stored.geometry.type !== 'string') return null
+  // A line drawn before the redesign: its tool and its length left the
+  // platform (issue #136, question 2), and nothing would measure it.
+  if (stored.geometry.type === 'LineString') return null
   return stored as unknown as GeoJSON.Feature
 }
 
@@ -141,8 +140,8 @@ function restoreTemporalDate(
   for (const [layerId, date] of Object.entries(stored)) {
     if (typeof date !== 'string') continue
     const layer = config.find((l) => l.id === layerId)
-    if (!layer || !isGeeRaster(layer)) continue
-    const temporal = layer.gee?.temporal
+    if (!layer || (!isGeeRaster(layer) && layer.type !== 'emissions')) continue
+    const temporal = layerTemporal(layer)
     if (!temporal || !paradas(temporal).includes(date)) continue
     out[layerId] = date
   }
@@ -184,9 +183,12 @@ export function sanitizePersisted(raw: unknown, config: LayerConfig[]): Restored
     temporalDate: restoreTemporalDate(raw.temporalDate, config),
     view: restoreView(raw.view),
     drawing: restoreDrawing(raw.drawing),
-    // Optional in the payload: one saved before they existed gets the default.
-    themeOrder: sanitizeThemeOrder(raw.themeOrder),
-    subthemeOrder: sanitizeSubthemeOrder(raw.subthemeOrder),
+    // A payload saved before the redesign holds the theme and subtheme order
+    // instead (or, older still, no order at all): it becomes the layer order it
+    // drew, so the layers come back in the order they were left.
+    layerOrder: Array.isArray(raw.layerOrder)
+      ? sanitizeLayerOrder(raw.layerOrder)
+      : layerOrderFromGroups(raw.themeOrder, raw.subthemeOrder),
   }
 }
 

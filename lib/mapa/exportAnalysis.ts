@@ -39,7 +39,6 @@ export interface AnalysisSnapshot {
   analysisKind: string | null
   analysisLabel: string | null
   drawnArea: number | null
-  drawnLength: number | null
   generatedAt: Date
   layers: LayerSnapshot[]
 }
@@ -92,7 +91,6 @@ function measurementRows(snap: AnalysisSnapshot): string[] {
     out.push(row(['Área analisada', snap.drawnArea, 'km²']))
     out.push(row(['Área analisada', snap.drawnArea * 100, 'ha']))
   }
-  if (snap.drawnLength !== null) out.push(row(['Comprimento', snap.drawnLength, 'km']))
   return out.length ? [row(['medida', 'valor', 'unidade']), ...out] : []
 }
 

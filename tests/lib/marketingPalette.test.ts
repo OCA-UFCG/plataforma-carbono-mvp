@@ -114,6 +114,24 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-pressionado', '--bg-superficie'],
   ['--role-marca-ancora-padrao', '--bg-superficie'],
   ['--role-marca-ancora-hover', '--am-050'],
+  // The platform's layer sheet (Figma 19451:60761): "Saiba mais" on its
+  // container fill, a step darker than the design's -padrao (4.38:1), and
+  // the copy notices under the citation.
+  ['--role-marca-ancora-hover', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-pressionado', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-hover', '--bg-fundo'],
+  ['--ctx-negativo-padrao', '--bg-fundo'],
+  // The platform's "Camadas ativas" (Figma 19430:58765): "Limpar" on the
+  // section's --am-100 header, a step darker than the design's
+  // --ctx-negativo-padrao (4.2:1), and the cards' text on their cream fill.
+  ['--role-alerta-risco-hover', '--am-100'],
+  ['--foreground', '--bg-superficie-variante'],
+  // The platform's "Território" (Figma 19423:56814): "Limpar" in the
+  // design's red on the section's --am-050, a recorte ticked in the picker,
+  // and "Alterar" at rest and, a step darker, on its hover fill.
+  ['--ctx-negativo-padrao', '--am-050'],
+  ['--foreground', '--role-marca-ancora-container'],
+  ['--role-marca-ancora-padrao', '--bg-fundo'],
   // The Glossário's control panel (Figma 19401:22996): a step button's label
   // on its hover fill (19403:26571). The rest are pairs above: the labels at
   // rest and the sliders' text on the white box, a selected step on --am-100

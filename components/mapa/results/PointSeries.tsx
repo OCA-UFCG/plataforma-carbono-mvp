@@ -9,7 +9,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContai
 import type { ResultProfile } from '@/config/mapa/resultProfiles'
 import { adaptive } from '@/lib/mapa/results/format'
 import type { PlatformTheme, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
-import { Empty, Footnote, Hero, Pair, Stack } from './blocks'
+import { Empty, Footnote, Hero, ListCard, Stack } from './blocks'
 import { sourceOf } from './LayerResultView'
 
 interface Props {
@@ -57,8 +57,7 @@ function Strip({ theme, title, cells, selected }: {
 }) {
   const c = theme.colors
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>{title}</h3>
+    <ListCard title={title}>
       <div>
         <div style={{ display: 'flex', gap: 1, height: 24 }}>
           {cells.map((cell) => (
@@ -78,8 +77,13 @@ function Strip({ theme, title, cells, selected }: {
           <span>{cells[cells.length - 1]?.year}</span>
         </div>
       </div>
-    </section>
+    </ListCard>
   )
+}
+
+/** A class name in the headline's place, at the size of a secondary figure. */
+function ClassName({ children }: { children: React.ReactNode }) {
+  return <span className="text-h4" style={{ color: 'var(--role-categorica1-padrao)' }}>{children}</span>
 }
 
 function ClassStrip({ theme, layer, points, selected }: {
@@ -97,12 +101,9 @@ function ClassStrip({ theme, layer, points, selected }: {
 
   return (
     <>
-      <Hero theme={theme} caption={`classe neste ponto em ${selected}`}>
-        <span style={{ fontSize: 32, fontWeight: 800, lineHeight: 1.1, color: theme.colors.text }}>
-          {currentClass?.label ?? 'Sem dado'}
-        </span>
+      <Hero theme={theme} caption={`classe neste ponto em ${selected}`} figures={[{ label: 'Mudanças de classe', value: String(changes) }]}>
+        <ClassName>{currentClass?.label ?? 'Sem dado'}</ClassName>
       </Hero>
-      <Pair theme={theme} items={[{ label: 'Mudanças de classe', value: String(changes) }]} />
       <Strip theme={theme} title="Classe por ano" selected={selected} cells={points.map((p) => {
         const cls = classOf(p.value)
         return { year: p.year, color: cls?.color ?? theme.colors.chip, title: `${p.year}: ${cls?.label ?? 'sem dado'}` }
@@ -126,8 +127,8 @@ function FireYears({ theme, points, selected }: { theme: PlatformTheme; points: 
         theme={theme}
         value={String(Math.round(countAtSelected))}
         caption={selected === undefined || selected === counts[counts.length - 1]?.year ? 'anos com fogo neste ponto' : `anos com fogo neste ponto até ${selected}`}
+        figures={[{ label: 'Último fogo', value: lastFire ? String(lastFire) : 'nenhum' }]}
       />
-      <Pair theme={theme} items={[{ label: 'Último fogo', value: lastFire ? String(lastFire) : 'nenhum' }]} />
       <Strip theme={theme} title="Anos com fogo" selected={selected} cells={counts.map((p) => ({
         year: p.year,
         color: fired.has(p.year) ? theme.colors.terracota : theme.colors.chip,
@@ -157,13 +158,12 @@ function YearLine({ theme, points, selected, unit }: {
         value={current === null ? 'Sem dado' : adaptive(current)}
         unit={current === null ? undefined : unit || undefined}
         caption={`neste ponto em ${selected}`}
+        figures={[
+          { label: 'Média do período', value: adaptive(mean), aside: unit || undefined },
+          { label: 'Menor e maior', value: `${adaptive(min.value)} a ${adaptive(max.value)}`, aside: unit || undefined },
+        ]}
       />
-      <Pair theme={theme} items={[
-        { label: 'Média do período', value: adaptive(mean), aside: unit || undefined },
-        { label: 'Menor e maior', value: `${adaptive(min.value)} a ${adaptive(max.value)}`, aside: unit || undefined },
-      ]} />
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: c.text }}>Valor por ano</h3>
+      <ListCard title="Valor por ano">
         <div style={{ width: '100%', height: 170, minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 6, right: 10, left: -18, bottom: 0 }}>
@@ -187,7 +187,7 @@ function YearLine({ theme, points, selected, unit }: {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </ListCard>
     </>
   )
 }

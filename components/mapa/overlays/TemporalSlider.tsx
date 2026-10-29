@@ -1,42 +1,29 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '@/lib/mapa/store'
-import { paradas, ano } from '@/lib/mapa/temporal'
-import { centeredInGutters, gutterMaxWidth } from '@/lib/mapa/gutters'
-import type { PlatformTheme, RasterLayerConfig } from '@/types/mapa'
-
-interface Props {
-  theme: PlatformTheme
-  /** Free-strip anchors; see lib/mapa/gutters. */
-  leftEdge: number
-  rightOffset: number
-  /** Root box; MapView measures it to keep a fit clear of it. */
-  ref?: Ref<HTMLDivElement>
-}
+import { ano, labelSide, layerTemporal, paradas } from '@/lib/mapa/temporal'
+import styles from './TemporalSlider.module.css'
 
 /** Wait before fetching the tile while the handle is being dragged. */
 const ESPERA_MS = 400
 
 /**
- * Year slider of the time-navigable layers. It shows up on its own when there
- * is a visible temporal layer and disappears when there is none. It sits above
- * the drawing toolbar and the coordinates, which also occupy the bottom center
- * of the map.
+ * Year control of the time-navigable layers, Figma's "Slider de tempo"
+ * (19481:12692): ‹ and › around a track whose year rides beside the thumb.
+ * It shows up on its own when there is a visible temporal layer and
+ * disappears when there is none. The card draws no title, so the layer it
+ * drives is named only to screen readers, in the range's label.
  */
-export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Props) {
+export default function TemporalSlider() {
   const layers         = useStore((s) => s.layers)
   const temporalDate   = useStore((s) => s.temporalDate)
   const setTemporalDate = useStore((s) => s.setTemporalDate)
   const loadingLayers  = useStore((s) => s.loadingLayers)
-  const c = theme.colors
 
   // First visible temporal layer, in the order the panel lists them.
-  const camada = layers.find(
-    (l): l is RasterLayerConfig =>
-      l.type === 'raster' && l.visible && !!l.gee?.temporal,
-  )
-  const temporal = camada?.gee?.temporal
+  const camada = layers.find((l) => l.visible && !!layerTemporal(l))
+  const temporal = camada ? layerTemporal(camada) : undefined
   // Without the memo, the new list on every render destabilizes the debounced commit.
   const anos = useMemo(() => (temporal ? paradas(temporal) : []), [temporal])
   const atual = camada ? temporalDate[camada.id] : undefined
@@ -61,10 +48,32 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Pr
   // Cancels a scheduled commit if the component unmounts before the wait elapses.
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
+  // The label's side depends on two widths: the track follows the map's
+  // column, and the label its year. They are measured before the card is
+  // first painted, so a card that opens on an early year never shows its
+  // label over "‹" for a frame; the observer follows them from there.
+  const shown = !!camada && anos.length >= 2
+  const trackRef = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLSpanElement>(null)
+  const [widths, setWidths] = useState({ track: 0, label: 0 })
+  useLayoutEffect(() => {
+    const track = trackRef.current
+    const label = labelRef.current
+    if (!shown || !track || !label) return
+    const measure = () => setWidths({ track: track.clientWidth, label: label.offsetWidth })
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(track)
+    observer.observe(label)
+    return () => observer.disconnect()
+  }, [shown])
+
   if (!camada || anos.length < 2) return null
 
   const indice = arrastando ?? indiceReal
   const carregando = !!loadingLayers[camada.id]
+  const fraction = indice / (anos.length - 1)
+  const side = labelSide(fraction, widths.track, widths.label)
 
   const arrastar = (i: number) => {
     setArrastando(i)
@@ -78,73 +87,29 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Pr
     comitar(i)
   }
 
-  const seta = (esquerda: boolean) => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d={esquerda ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}
-        stroke="currentColor" strokeWidth="2.5"
-        strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  )
-
   const botao = (esquerda: boolean) => {
     const limite = esquerda ? indice === 0 : indice === anos.length - 1
+    const label = esquerda ? 'Ano anterior' : 'Próximo ano'
     return (
       <button
         type="button"
+        className={`${styles.step} ${esquerda ? '' : styles.next}`}
         onClick={() => passo(esquerda ? -1 : 1)}
         disabled={limite}
-        aria-label={esquerda ? 'Ano anterior' : 'Próximo ano'}
-        style={{
-          display: 'grid', placeItems: 'center', width: 26, height: 26,
-          borderRadius: 8, border: `1px solid ${c.glassBd}`,
-          background: 'transparent', color: limite ? c.textDim : c.text,
-          opacity: limite ? 0.4 : 1, cursor: limite ? 'default' : 'pointer',
-          padding: 0,
-        }}
+        aria-label={label}
+        title={label}
       >
-        {seta(esquerda)}
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+        <img src="/icons/mapa/keyboard-arrow-left.svg" alt="" width={24} height={24} />
       </button>
     )
   }
 
   return (
-    <div
-      ref={ref}
-      style={{
-        position: 'absolute', bottom: 88, ...centeredInGutters(leftEdge, rightOffset),
-        zIndex: 14, display: 'flex', alignItems: 'center', gap: 12,
-        padding: '10px 14px', borderRadius: 14,
-        background: c.glassBg, border: `1px solid ${c.glassBd}`,
-        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-        boxShadow: '0 6px 20px rgba(0,0,0,.14)',
-        fontFamily: 'var(--font-app), sans-serif',
-        maxWidth: `min(560px, ${gutterMaxWidth(leftEdge, rightOffset)})`,
-      }}
-    >
+    <div className={styles.card}>
       {botao(true)}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 240, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-          <span
-            style={{
-              fontSize: 12.5, fontWeight: 600, color: c.textDim,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}
-          >
-            {camada.name}
-          </span>
-          <span
-            style={{
-              fontSize: 18, fontWeight: 800, color: c.accent,
-              fontVariantNumeric: 'lining-nums tabular-nums', lineHeight: 1,
-            }}
-          >
-            {ano(anos[indice])}
-          </span>
-        </div>
-
+      <div ref={trackRef} className={styles.track} style={{ '--f': fraction } as CSSProperties}>
         <input
           type="range"
           min={0}
@@ -154,23 +119,15 @@ export default function TemporalSlider({ theme, leftEdge, rightOffset, ref }: Pr
           onChange={(e) => arrastar(Number(e.target.value))}
           aria-label={`Ano de ${camada.name}`}
           aria-valuetext={ano(anos[indice])}
-          style={{ width: '100%', accentColor: c.accent, cursor: 'pointer', margin: 0 }}
         />
-
-        <div
-          style={{
-            display: 'flex', justifyContent: 'space-between',
-            fontSize: 11.5, color: c.caption,
-            fontVariantNumeric: 'lining-nums tabular-nums',
-          }}
-        >
-          <span>{ano(anos[0])}</span>
-          <span style={{ color: carregando ? c.accent : 'transparent' }}>carregando</span>
-          <span>{ano(anos[anos.length - 1])}</span>
-        </div>
+        <span ref={labelRef} className={`${styles.label} text-ui-tab`} data-side={side} aria-hidden="true">
+          {ano(anos[indice])}
+        </span>
       </div>
 
       {botao(false)}
+
+      <span className="sr-only" aria-live="polite">{carregando ? 'carregando' : ''}</span>
     </div>
   )
 }

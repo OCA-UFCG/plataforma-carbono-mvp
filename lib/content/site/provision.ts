@@ -215,3 +215,23 @@ export function toCmaEntry(copyType: CopyType, locale: string) {
     ),
   }
 }
+
+// The content types named by `--only` (comma-separated, or the flag repeated),
+// or null to provision them all. Lets one type be provisioned while another
+// cannot be: the script stops at the first type the space refuses, such as one
+// whose fields the code dropped before the space may drop them.
+export function onlyTypes(argv: string[]): Set<string> | null {
+  const ids: string[] = []
+  argv.forEach((arg, i) => {
+    if (arg !== '--only') return
+    const value = argv[i + 1]
+    if (!value || value.startsWith('--')) throw new Error('--only needs a content type id, as in --only glossarioPagina.')
+    ids.push(...value.split(',').filter(Boolean))
+  })
+  if (ids.length === 0) return null
+
+  const known = new Set(CONTENT_TYPES.map((t) => t.id))
+  const unknown = ids.filter((id) => !known.has(id))
+  if (unknown.length > 0) throw new Error(`--only names no content type of the model: ${unknown.join(', ')}.`)
+  return new Set(ids)
+}

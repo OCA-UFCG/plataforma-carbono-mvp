@@ -1,13 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ABAS_COMUNICACAO,
+  ABA_PARAM,
   abaHref,
+  parseAba,
   type AbaComunicacao,
 } from "@/lib/marketing/comunicacaoAbas";
+import { useUrlTabs } from "./useUrlTabs";
 import styles from "./TabStrip.module.css";
+
+const IDS = ABAS_COMUNICACAO.map((aba) => aba.id);
 
 function tabId(id: AbaComunicacao) {
   return `comunicacao-tab-${id}`;
@@ -21,59 +26,16 @@ function panelId(id: AbaComunicacao) {
 // 19254:15623) and "Eventos e articulações" (19254:16041). The strip looks
 // like the Sobre sub-navigation and shares its stylesheet, but these swap
 // panels within one page, so this one is an ARIA tablist, following the
-// WAI-ARIA tabs pattern as Plataforma.tsx does (automatic activation, arrow
-// keys, Home/End). Both panels arrive rendered from the server and stay
-// mounted, hidden with the `hidden` attribute, so every aria-controls points
-// at an element in the DOM. The open tab is written into the address
-// (lib/marketing/comunicacaoAbas.ts) with replaceState: a shared link opens
-// the same tab, and switching tabs adds no history entry.
-export default function ComunicacaoAbas({
-  inicial,
-  paineis,
-}: {
-  inicial: AbaComunicacao;
-  paineis: Record<AbaComunicacao, ReactNode>;
-}) {
-  const [activeId, setActiveId] = useState<AbaComunicacao>(inicial);
-  const tabRefs = useRef<Partial<Record<AbaComunicacao, HTMLButtonElement | null>>>({});
-
-  const activeIndex = ABAS_COMUNICACAO.findIndex((aba) => aba.id === activeId);
-
-  function select(id: AbaComunicacao) {
-    setActiveId(id);
-    window.history.replaceState(window.history.state, "", abaHref(new URL(window.location.href), id));
-  }
-
-  function selectAndFocus(index: number) {
-    const { id } = ABAS_COMUNICACAO[index];
-    select(id);
-    tabRefs.current[id]?.focus();
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    const count = ABAS_COMUNICACAO.length;
-
-    switch (event.key) {
-      case "ArrowRight":
-        event.preventDefault();
-        selectAndFocus((activeIndex + 1) % count);
-        break;
-      case "ArrowLeft":
-        event.preventDefault();
-        selectAndFocus((activeIndex - 1 + count) % count);
-        break;
-      case "Home":
-        event.preventDefault();
-        selectAndFocus(0);
-        break;
-      case "End":
-        event.preventDefault();
-        selectAndFocus(count - 1);
-        break;
-      default:
-        break;
-    }
-  }
+// WAI-ARIA tabs pattern through useUrlTabs, as the Glossário does. Both panels
+// arrive rendered from the server and stay mounted, hidden with the `hidden`
+// attribute, so every aria-controls points at an element in the DOM. The open
+// tab lives in the address (lib/marketing/comunicacaoAbas.ts), with no state
+// of its own: a shared link opens the same tab, switching tabs adds no
+// history entry, and the header's "Comunicação" link opens "Conteúdo" again
+// even though the page stays mounted.
+export default function ComunicacaoAbas({ paineis }: { paineis: Record<AbaComunicacao, ReactNode> }) {
+  const activeId = parseAba(useSearchParams()?.get(ABA_PARAM) ?? null);
+  const { select, handleKeyDown, tabRef } = useUrlTabs(IDS, abaHref);
 
   return (
     <>
@@ -84,9 +46,7 @@ export default function ComunicacaoAbas({
             return (
               <button
                 key={aba.id}
-                ref={(el) => {
-                  tabRefs.current[aba.id] = el;
-                }}
+                ref={tabRef(aba.id)}
                 type="button"
                 role="tab"
                 id={tabId(aba.id)}

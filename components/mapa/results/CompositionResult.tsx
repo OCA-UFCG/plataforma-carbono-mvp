@@ -6,7 +6,7 @@
 import type { CompositionProfile } from '@/config/mapa/resultProfiles'
 import { nominalSummary, ordinalSummary } from '@/lib/mapa/results/composition'
 import { coverageNote, hectaresShort, percentShort } from '@/lib/mapa/results/format'
-import { BarList, Empty, Footnote, Hero, Pair, type Figure } from './blocks'
+import { BarList, Empty, Footnote, Hero, type Figure } from './blocks'
 import { sourceOf, type LayerResultViewProps } from './LayerResultView'
 
 /** Classes listed by name before the rest are grouped. */
@@ -48,8 +48,8 @@ export default function CompositionResult({
           value={percentShort(s.degradedShare)}
           aside={hectaresShort(degradedHa)}
           caption="da área com algum nível de degradação"
+          figures={pair}
         />
-        <Pair theme={theme} items={pair} />
         <BarList
           theme={theme}
           title="Área degradada por nível"
@@ -86,8 +86,8 @@ export default function CompositionResult({
         value={percentShort(s.nativeShare)}
         aside={hectaresShort(s.nativeHa)}
         caption="da área com vegetação nativa"
+        figures={farming ? [{ label: 'Agropecuária', value: percentShort(farming.share), aside: hectaresShort(farming.areaHa) }] : []}
       />
-      <Pair theme={theme} items={farming ? [{ label: 'Agropecuária', value: percentShort(farming.share), aside: hectaresShort(farming.areaHa) }] : []} />
       <BarList
         theme={theme}
         title="Área por classe"

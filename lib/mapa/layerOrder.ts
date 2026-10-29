@@ -1,21 +1,30 @@
 import appConfig from '@/config/mapa/layers.json'
-import { THEMES, TERRITORY_THEME_ID, type ThemeInfo } from '@/config/mapa/groups'
+import { THEMES, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import type { LayerConfig } from '@/types/mapa'
 
 /**
  * Draw order of the map layers. The store's `layers` array IS the draw order
- * (layers[0] is drawn on top): the recortes first, in layers.json order, then
- * the rasters by the user's theme order, then subtheme order. Recortes have to
- * sit above the rasters: a click resolves to a recorte and measures the rasters
- * under it (`clickableRecortes`). Every thematic subtheme but Relevo is
- * exclusive, so ordering subthemes orders the visible rasters; inside Relevo
- * the layers.json order decides.
+ * (layers[0] is drawn on top), set by one user order of every layer: the
+ * recortes are dragged in "Recorte em destaque" (Figma 19423:56814), the
+ * thematic layers (rasters and emissions) in "Camadas ativas" (19430:58765).
+ * Whatever that order says, the vectors are drawn above the thematic layers:
+ * a click resolves to a recorte and measures the rasters under it
+ * (`clickableRecortes`). Which recorte a click picks is `pickPriority`'s call,
+ * not this order's.
+ *
+ * By default an `overlay` layer (a Relevo hillshade) draws above the other
+ * layers of its subtheme (`overlayFirst`); the reader can drag it below.
+ *
+ * Until the redesign the user ordered themes and subthemes instead. That order
+ * is kept below only to translate a state saved back then
+ * (`layerOrderFromGroups`), so whoever returns finds the layers drawn as they
+ * left them.
  *
  * Every function returns the same array when nothing changes, so the store does
  * not notify, re-render or re-persist for a no-op.
  */
 
-// layers.json order: the recortes' order, and the tie-break inside a subtheme.
+// layers.json order: the recortes' default order, and every tie-break.
 const CATALOG = appConfig.layers as LayerConfig[]
 // Território is always on top, so it is not part of the user's order.
 const THEMATIC = THEMES.filter((theme) => theme.id !== TERRITORY_THEME_ID)
@@ -41,7 +50,34 @@ function rank(order: readonly string[] | undefined, id: string | undefined): num
   return index === -1 ? Number.MAX_SAFE_INTEGER : index
 }
 
-/** The draw order: vectors in catalog order, then rasters by theme, subtheme and catalog. */
+/**
+ * The draw order: the vectors, then the thematic layers, each in `layerOrder`
+ * and by catalog among those it does not list.
+ */
+export function applyLayerOrder(
+  layers: LayerConfig[],
+  layerOrder: string[],
+  catalog: readonly LayerConfig[] = CATALOG,
+): LayerConfig[] {
+  const catalogIndex = new Map(catalog.map((layer, index) => [layer.id, index]))
+  const byCatalog = (layer: LayerConfig) => catalogIndex.get(layer.id) ?? catalog.length
+  const byOrder = (a: LayerConfig, b: LayerConfig) =>
+    rank(layerOrder, a.id) - rank(layerOrder, b.id) || byCatalog(a) - byCatalog(b)
+  const vectors = layers.filter((layer) => layer.type === 'vector').sort(byOrder)
+  const thematic = layers.filter((layer) => layer.type !== 'vector').sort(byOrder)
+  const out = [...vectors, ...thematic]
+  return out.every((layer, index) => layer === layers[index]) ? layers : out
+}
+
+// Overlays sort ahead of the other layers of their subtheme, so they draw above them.
+const overlayFirst = (layer: LayerConfig) => (layer.type === 'raster' && layer.overlay ? 0 : 1)
+
+/**
+ * The draw order the theme and subtheme order gave: vectors in catalog
+ * order, then thematic layers by theme, subtheme, overlays first and
+ * catalog. Kept for migrating a saved state (`layerOrderFromGroups`) and for
+ * the default order.
+ */
 export function applyGroupOrder(
   layers: LayerConfig[],
   themeOrder: string[],
@@ -51,9 +87,10 @@ export function applyGroupOrder(
   const catalogIndex = new Map(catalog.map((layer, index) => [layer.id, index]))
   const byCatalog = (layer: LayerConfig) => catalogIndex.get(layer.id) ?? catalog.length
   const vectors = layers.filter((layer) => layer.type === 'vector').sort((a, b) => byCatalog(a) - byCatalog(b))
-  const rasters = layers.filter((layer) => layer.type === 'raster').sort((a, b) =>
+  const rasters = layers.filter((layer) => layer.type !== 'vector').sort((a, b) =>
     rank(themeOrder, a.theme) - rank(themeOrder, b.theme) ||
     rank(subthemeOrder[a.theme ?? ''], a.subtheme) - rank(subthemeOrder[b.theme ?? ''], b.subtheme) ||
+    overlayFirst(a) - overlayFirst(b) ||
     byCatalog(a) - byCatalog(b),
   )
   const out = [...vectors, ...rasters]
@@ -83,20 +120,25 @@ export function sanitizeSubthemeOrder(stored: unknown): Record<string, string[]>
   )
 }
 
-/** The panel's themes: Território first, then the user's order, subthemes included. */
-export function orderThemes(
-  themes: ThemeInfo[],
-  themeOrder: string[],
-  subthemeOrder: Record<string, string[]>,
-): ThemeInfo[] {
-  const fixed = themes.filter((theme) => theme.id === TERRITORY_THEME_ID)
-  const thematic = themes
-    .filter((theme) => theme.id !== TERRITORY_THEME_ID)
-    .sort((a, b) => rank(themeOrder, a.id) - rank(themeOrder, b.id))
-    .map((theme) => ({
-      ...theme,
-      subthemes: [...theme.subthemes].sort((a, b) =>
-        rank(subthemeOrder[theme.id], a.id) - rank(subthemeOrder[theme.id], b.id)),
-    }))
-  return [...fixed, ...thematic]
+/**
+ * Every layer, top first, in the order a stored theme and subtheme order drew
+ * them: the recortes in catalog order, then the thematic layers. Anything
+ * missing or invalid falls back to the defaults, so with nothing stored this
+ * is the default layer order.
+ */
+export function layerOrderFromGroups(
+  themeOrder: unknown,
+  subthemeOrder: unknown,
+  catalog: readonly LayerConfig[] = CATALOG,
+): string[] {
+  return applyGroupOrder([...catalog], sanitizeThemeOrder(themeOrder), sanitizeSubthemeOrder(subthemeOrder), catalog)
+    .map((layer) => layer.id)
+}
+
+/** Every layer of layers.json, top first, as the catalog and the themes ordered them by default. */
+export const DEFAULT_LAYER_ORDER: string[] = layerOrderFromGroups(DEFAULT_THEME_ORDER, DEFAULT_SUBTHEME_ORDER)
+
+/** A stored layer order checked against layers.json; layers added since go last. */
+export function sanitizeLayerOrder(stored: unknown): string[] {
+  return sanitizeList(stored, DEFAULT_LAYER_ORDER)
 }

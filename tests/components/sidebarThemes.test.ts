@@ -1,0 +1,71 @@
+import { describe, expect, it, vi } from 'vitest'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { buildSiteTheme } from '@/config/mapa/platforms'
+
+const state = vi.hoisted(() => ({
+  layers: [
+    { id: 'bioma', name: 'Bioma Caatinga', type: 'vector', visible: true, opacity: 70, theme: 'territorio', subtheme: 'limites' },
+    { id: 'estados', name: 'Estados', type: 'vector', visible: false, opacity: 80, theme: 'territorio', subtheme: 'limites' },
+    { id: 'estoque', name: 'Estoque Total', type: 'raster', visible: true, opacity: 100, unit: 't C/ha', theme: 'carbono', subtheme: 'estoques' },
+    { id: 'biomassa', name: 'Biomassa', type: 'raster', visible: false, opacity: 100, unit: 't/ha', theme: 'carbono', subtheme: 'estoques' },
+    { id: 'cobertura', name: 'Uso e Cobertura da Terra', type: 'raster', visible: false, opacity: 100, theme: 'uso_solo', subtheme: 'cobertura' },
+    { id: 'altitude', name: 'Altitude', type: 'raster', visible: false, opacity: 100, unit: 'm', theme: 'ambiente', subtheme: 'relevo' },
+  ],
+  loadingLayers: {}, layerErrors: {}, selectedGeometry: null, analysisLabel: null,
+  clearThematicLayers: () => {}, clearRecortes: () => {}, moveLayer: () => {},
+  toggleLayer: () => {}, setOpacity: () => {}, clearLayerError: () => {},
+}))
+vi.mock('@/lib/mapa/store', () => ({
+  useStore: (select: (s: typeof state) => unknown) => select(state),
+}))
+
+import Sidebar from '@/components/mapa/Sidebar'
+
+const markup = renderToStaticMarkup(createElement(Sidebar, {
+  theme: buildSiteTheme(), infoId: null, onInfo: () => {}, onSelectFeature: () => {}, onDismissSelection: () => {},
+}))
+const header = (label: string) =>
+  markup.match(new RegExp(`<button [^>]*aria-expanded="(?:true|false)"[^>]*>(?:(?!</button>).)*${label}(?:(?!</button>).)*</button>`))?.[0] ?? ''
+
+describe('Sidebar themes (Figma 19430:58769)', () => {
+  it('searches with the design\'s field', () => {
+    expect(markup).toMatch(/<input [^>]*placeholder="Buscar Camadas"/)
+  })
+
+  it('heads each theme with its icon and the count of layers on', () => {
+    expect(header('Vegetação')).toContain('/icons/mapa/grass.svg')
+    expect(header('Vegetação')).toMatch(/data-count="1"/)
+    expect(header('Uso do solo e pressões')).toContain('/icons/mapa/landslide.svg')
+    expect(header('Uso do solo e pressões')).toMatch(/data-count="0"/)
+    expect(header('Ambiente')).toContain('/icons/mapa/nature.svg')
+  })
+
+  it('names the subthemes of the open theme in plain text, not as toggles', () => {
+    // The first theme opens on arrival.
+    expect(markup).toContain('Estoques de carbono')
+    expect(markup).not.toMatch(/<button [^>]*>(?:(?!<\/button>).)*Estoques de carbono/)
+  })
+
+  it('lists each layer with its switch, name, unit and ficha button', () => {
+    expect(markup).toMatch(/role="switch" aria-checked="true" aria-label="Ocultar camada Estoque Total"/)
+    expect(markup).toMatch(/aria-label="Ficha da camada Estoque Total"/)
+  })
+
+  it('opens with the Território section, and lists no Territórios theme below (#140)', () => {
+    expect(markup.indexOf('>Território</h2>')).toBeGreaterThan(-1)
+    expect(markup.indexOf('>Território</h2>')).toBeLessThan(markup.indexOf('Camadas ativas'))
+    expect(header('Territórios')).toBe('')
+    expect(markup).not.toMatch(/role="switch"[^>]*aria-label="[^"]*Bioma Caatinga"/)
+  })
+
+  it('has no "Temas" header nor "Início", which the design does not draw', () => {
+    expect(markup).not.toMatch(/>Temas</)
+    expect(markup).not.toContain('Início')
+    expect(markup).not.toContain('Recolher painel')
+  })
+
+  it('has no 3D terrain switch (issue #136, question 2)', () => {
+    expect(markup).not.toContain('Terreno em 3D')
+  })
+})

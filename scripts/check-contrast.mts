@@ -2,7 +2,7 @@
 // dois modos. Roda o codigo real (buildAccent), nao uma copia. Uso: npm run contrast
 import { MONTHS } from '@/lib/phenology'
 import { contrast } from '@/lib/color'
-import { buildAccent, buildFluxInks, buildReportTheme } from '@/config/mapa/platforms'
+import { buildAccent, buildFluxInks, buildReportTheme, buildSiteTheme } from '@/config/mapa/platforms'
 import { REPORT_LAYERS } from '@/config/mapa/reportLayers'
 
 const CARD = { light: '#ffffff', dark: '#211f18' }
@@ -103,6 +103,29 @@ for (const [label, fg, bg] of reportTextPairs) {
   if (!ok) failures++
   console.log(
     label.padEnd(32), fg.padEnd(9), bg.padEnd(9), ratio.toFixed(2).padStart(6),
+    ok ? '' : '  <-- FALHA',
+  )
+}
+
+// The platform wears the site's fixed green since the redesign (Figma
+// 19437:60649), not the month accent above: its accent set goes through the
+// same gate, along with the flux inks over its own accentBg.
+console.log('\nplataforma                     cor       fundo     vs fundo')
+
+const siteTheme = buildSiteTheme()
+const sitePairs: [string, string, string][] = [
+  ['accentInk vs card', siteTheme.colors.accentInk, siteTheme.colors.bgCard],
+  ['onAccent vs accent', siteTheme.colors.onAccent, siteTheme.colors.accent],
+  ['emissionInk vs accentBg', siteTheme.colors.emissionInk, siteTheme.colors.accentBg],
+  ['removalInk vs accentBg', siteTheme.colors.removalInk, siteTheme.colors.accentBg],
+]
+
+for (const [label, fg, bg] of sitePairs) {
+  const ratio = contrast(fg, bg)
+  const ok = ratio >= MIN
+  if (!ok) failures++
+  console.log(
+    label.padEnd(30), fg.padEnd(9), bg.padEnd(9), ratio.toFixed(2).padStart(9),
     ok ? '' : '  <-- FALHA',
   )
 }
