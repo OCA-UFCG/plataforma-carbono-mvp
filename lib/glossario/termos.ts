@@ -128,12 +128,13 @@ export function parseTermo(value: string | null): Termo {
 // and links to it (/comunicacao?aba=glossario&termo=<slug>) went around. That
 // page sends them to /glossario with everything else they carry (the term,
 // utm_* tags), all but `aba`; a repeated term goes along as it came, and the
-// page opens its first value, as it does for a direct link. null for every
-// other address. Here rather than in lib/marketing/comunicacaoAbas.ts, which
+// page opens its first value, as it does for a direct link. A repeated `aba`
+// counts by its first value too, the one the Comunicação tabs would open.
+// null for every other address. Here rather than in lib/marketing/comunicacaoAbas.ts, which
 // the Comunicação tabs load on the client: importing the terms there pulled
 // every term's text into that page's bundle.
 export function glossarioAntigoHref(params: Record<string, string | string[] | undefined>): string | null {
-  if (params[ABA_PARAM] !== 'glossario') return null
+  if ([params[ABA_PARAM]].flat()[0] !== 'glossario') return null
 
   const busca = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {

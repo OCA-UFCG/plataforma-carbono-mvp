@@ -21,6 +21,11 @@ describe('glossarioAntigoHref', () => {
     expect(glossarioAntigoHref({ utm_source: 'zap', aba: 'glossario' })).toBe('/glossario?utm_source=zap')
   })
 
+  it('reads a repeated aba by its first value, as the Comunicação tabs do', () => {
+    expect(glossarioAntigoHref({ aba: ['glossario', 'eventos'], termo: 'cue' })).toBe('/glossario?termo=cue')
+    expect(glossarioAntigoHref({ aba: ['eventos', 'glossario'] })).toBeNull()
+  })
+
   it('leaves every other address on the Comunicação page', () => {
     for (const params of [{}, { aba: 'eventos' }, { aba: 'Glossario' }, { termo: 'degradacao' }]) {
       expect(glossarioAntigoHref(params), JSON.stringify(params)).toBeNull()
