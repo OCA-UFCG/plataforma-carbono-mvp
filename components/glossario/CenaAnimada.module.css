@@ -53,6 +53,14 @@
   align-items: stretch;
 }
 
+/* The CUE's presets keep their natural width, 24px apart, and the "Ajuste
+ * manual" slider takes the rest of the row (19401:24802). */
+.predefinidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
 /* What a scene builds in its panel, with the package's class names. */
 .painel:empty {
   display: none;

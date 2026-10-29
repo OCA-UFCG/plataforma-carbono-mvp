@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AnimacaoId } from "@/lib/glossario/termos";
-import type { ControleCena, CriarCena, EstadoCena, EtapaCena } from "@/lib/cenas/tipos";
+import type { ControleCena, CriarCena, EstadoCena, EtapaCena, ValorCena } from "@/lib/cenas/tipos";
 import BotaoEtapa from "./painel/BotaoEtapa";
 import BotaoReproduzir from "./painel/BotaoReproduzir";
 import Regua from "./painel/Regua";
@@ -38,9 +38,10 @@ const LINHAS: Record<AnimacaoId, number> = {
 
 // One glossary animation with its control panel, which lives outside the
 // canvas (Figma "Painel de controle glossário", 19401:22996): a row of step
-// buttons for a scene told in steps, a row of time controls for a scene that
-// plays a year, both rows when it has both. The scene pauses drawing while off
-// screen or in a hidden tab.
+// buttons for a scene told in steps, a row with presets and a slider for a
+// scene with a value the reader sets (the CUE), a row of time controls for a
+// scene that plays a year. The scene pauses drawing while off screen or in a
+// hidden tab.
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
   const caixa = useRef<HTMLElement>(null);
   const tela = useRef<HTMLCanvasElement>(null);
@@ -48,6 +49,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const controle = useRef<ControleCena | null>(null);
   const [estado, setEstado] = useState<EstadoCena | null>(null);
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
+  const [valor, setValor] = useState<ValorCena | null>(null);
   const [tempo, setTempo] = useState(false);
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               });
               setEstado(controle.current.estado());
               setEtapas(controle.current.etapas());
+              setValor(controle.current.valor());
               setTempo(controle.current.tempo());
               aplicarVisibilidade();
             },
@@ -113,9 +116,12 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       cenaPainel?.replaceChildren();
       setEstado(null);
       setEtapas(null);
+      setValor(null);
       setTempo(false);
     };
   }, [id]);
+
+  const valorAtual = estado?.valor ?? null;
 
   return (
     <figure className={styles.figura} ref={caixa}>
@@ -139,6 +145,29 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         {/* Controls a scene builds itself (the CUE value, the stage texts of
             the two farming systems), until they move to the components above. */}
         <div ref={painel} className={styles.painel} />
+        {estado && valor && valorAtual !== null && (
+          <div className={styles.linha}>
+            <div className={styles.predefinidos} role="group" aria-label={`Valores medidos de ${titulo}`}>
+              {valor.predefinidos.map((p) => (
+                <BotaoEtapa
+                  key={p.rotulo}
+                  rotulo={p.rotulo}
+                  selecionado={Math.abs(valorAtual - p.valor) < valor.passo / 2}
+                  onClick={() => controle.current?.definirValor(p.valor)}
+                />
+              ))}
+            </div>
+            <Regua
+              rotulo={valor.rotulo}
+              min={valor.min}
+              max={valor.max}
+              passo={valor.passo}
+              valor={valorAtual}
+              onChange={(v) => controle.current?.definirValor(v)}
+              textoValor={estado.textoValor ?? ""}
+            />
+          </div>
+        )}
         {estado && tempo && (
           <div className={styles.linha}>
             <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />

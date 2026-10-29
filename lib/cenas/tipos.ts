@@ -13,12 +13,27 @@ export interface EstadoCena {
   etapa: number | null
   /** Name and text of the open step, read by screen readers. */
   textoEtapa: string | null
+  /** The value the reader sets, in a scene that has one (valor()); null otherwise. */
+  valor: number | null
+  /** The value as the page shows it, "0,31". */
+  textoValor: string | null
 }
 
 export interface EtapaCena {
   nome: string
   /** Colour of the step's swatch, when it has one. */
   cor: string | null
+}
+
+/** A value the reader sets, with presets: the CUE of each measured site. */
+export interface ValorCena {
+  /** Label of the slider, "Ajuste manual". */
+  rotulo: string
+  min: number
+  max: number
+  passo: number
+  /** Values offered as buttons, "Área cristalina: 0,31". */
+  predefinidos: { rotulo: string; valor: number }[]
 }
 
 export interface OpcoesCena {
@@ -38,6 +53,9 @@ export interface ControleCena {
   /** The steps of an animation told in steps; null for one that plays a year. */
   etapas(): EtapaCena[] | null
   etapa(i: number): void
+  /** The value the reader sets, in a scene that has one; null otherwise. */
+  valor(): ValorCena | null
+  definirValor(v: number): void
   /** Whether the page shows the time controls; false for a scene told only in steps. */
   tempo(): boolean
   estado(): EstadoCena
