@@ -169,7 +169,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               passo={valor.passo}
               valor={valorAtual}
               onChange={(v) => agir((cena) => cena.definirValor(v))}
-              textoValor={estado.textoValor ?? ""}
+              textoValor={estado.textoValor ?? valorAtual.toLocaleString("pt-BR")}
               descricaoValor={estado.descricaoValor ?? undefined}
             />
           </div>
