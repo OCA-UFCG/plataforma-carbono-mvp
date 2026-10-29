@@ -61,7 +61,8 @@
   gap: 16px 24px;
 }
 
-/* What a scene builds in its panel, with the package's class names. */
+/* What a scene writes under the panel (the Manejo agroecológico's legend and
+ * stage texts), with the package's class names. */
 .painel:empty {
   display: none;
 }
@@ -74,43 +75,6 @@
   color: var(--bg-texto-primario);
   --ag: #2e6b57;
   --tr: #8a4b2a;
-}
-
-.painel :global(.chips) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.painel :global(.chip) {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid var(--am-200);
-  border-radius: 999px;
-  background: var(--bg-fundo);
-  color: var(--bg-texto-primario);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.painel :global(.chip[aria-pressed="true"]) {
-  border: 2px solid var(--role-marca-ancora-padrao);
-  padding: 7px 13px;
-  font-weight: 700;
-}
-
-.painel :global(.sr) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
 
 .painel :global(.legend) {
@@ -150,7 +114,7 @@
   gap: 10px;
 }
 
-.painel :global(.stage h2) {
+.painel :global(.stage h3) {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
@@ -180,7 +144,7 @@
   border-top-color: var(--tr);
 }
 
-.painel :global(.col h3) {
+.painel :global(.col h4) {
   margin: 0 0 4px;
   font-size: 12px;
   font-weight: 600;
@@ -189,7 +153,7 @@
   color: var(--ag);
 }
 
-.painel :global(.col.tr h3) {
+.painel :global(.col.tr h4) {
   color: var(--tr);
 }
 

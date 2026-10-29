@@ -23,9 +23,7 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
 
 // Rows of controls the page draws for each scene, known before its chunk
 // arrives so the panel does not grow when it does: one for steps (etapas()),
-// one for the value the reader sets (valor()), one for time (tempo()). The
-// Manejo agroecológico builds its own controls for now, at a height that
-// depends on the width.
+// one for the value the reader sets (valor()), one for time (tempo()).
 const LINHAS: Record<AnimacaoId, number> = {
   cicloAnual: 1,
   torreFluxo: 1,
@@ -111,9 +109,9 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       controle.current?.encerrar();
       controle.current = null;
       // Glossario remounts this component for each term (key), so this only
-      // matters if `id` ever changes in place: what the scene built in its
-      // panel is not React's, and the old scene's controls would otherwise
-      // stay up, doing nothing, while the next chunk loads.
+      // matters if `id` ever changes in place: what the scene wrote in its
+      // element is not React's, and the old scene's texts would otherwise stay
+      // up while the next chunk loads.
       cenaPainel?.replaceChildren();
       setEstado(null);
       setEtapas(null);
@@ -143,9 +141,6 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
             ))}
           </div>
         )}
-        {/* Controls a scene builds itself (the Manejo agroecológico's steps and
-            stage texts), until they move to the components above. */}
-        <div ref={painel} className={styles.painel} />
         {estado && valor && valorAtual !== null && (
           <div className={styles.linha}>
             <div className={styles.predefinidos} role="group" aria-label={`Valores medidos de ${titulo}`}>
@@ -198,6 +193,9 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         )}
         {etapas && <p className="sr-only" aria-live="polite">{estado?.textoEtapa ?? ""}</p>}
       </div>
+      {/* Text a scene writes itself, under the panel: the Manejo agroecológico's
+          legend and the texts of each stage, with their sources. */}
+      <div ref={painel} className={styles.painel} />
     </figure>
   );
 }
