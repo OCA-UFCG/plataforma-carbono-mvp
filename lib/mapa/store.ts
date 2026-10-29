@@ -294,9 +294,11 @@ export const useStore = create<MapaStore>((set, get) => ({
       //    uploading the (multi-MB) boundary on every activation.
       const clipId = layer.clipToLayerId
 
-      // 2. Determine if this is a temporal layer
+      // 2. Determine if this is a temporal layer. It opens on the year it was
+      //    left on, which after a reload is the one read from localStorage
+      //    (already checked against today's stops), else on the most recent.
       const temporal = layer.gee.temporal
-      const temporalDate = temporal ? paradaInicial(temporal) : undefined
+      const temporalDate = temporal ? (get().temporalDate[id] ?? paradaInicial(temporal)) : undefined
 
       // 3. Call the generic tile endpoint
       const res = await fetch('/api/gee/tile', {
