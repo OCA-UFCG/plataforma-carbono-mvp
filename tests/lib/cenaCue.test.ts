@@ -92,6 +92,13 @@ describe('CUE scene value', () => {
     expect(cena.estado()).toMatchObject({ etapa: 2, valor: 0.58 })
   })
 
+  it('stops the tour when the reader presses the preset it is showing', () => {
+    cena.definirValor(0.58)
+    quadros(180)
+
+    expect(cena.estado()).toMatchObject({ etapa: 0, valor: 0.58 })
+  })
+
   it('keeps the value in the measured range, on the slider step, and ignores NaN', () => {
     cena.definirValor(0.1)
     expect(cena.estado().valor).toBe(0.31)
