@@ -12,9 +12,9 @@ export type AbaComunicacao = (typeof ABAS_COMUNICACAO)[number]['id']
 
 export const ABA_PARAM = 'aba'
 
-// Anything else in the address, a repeated or unknown value included, opens
-// the first tab.
-export function parseAba(value: string | string[] | undefined): AbaComunicacao {
+// Anything else in the address opens the first tab. A repeated value reaches
+// here as its first one, which is what useSearchParams().get() returns.
+export function parseAba(value: string | null): AbaComunicacao {
   return ABAS_COMUNICACAO.find((aba) => aba.id === value)?.id ?? ABAS_COMUNICACAO[0].id
 }
 

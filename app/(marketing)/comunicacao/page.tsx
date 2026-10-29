@@ -11,7 +11,6 @@ import { getComunicacaoContent, listPublicacoes } from "@/lib/content/comunicaca
 import { getEventos } from "@/lib/content/eventos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 import { getContentfulClient } from "@/lib/contentful";
-import { ABA_PARAM, parseAba } from "@/lib/marketing/comunicacaoAbas";
 import { glossarioAntigoHref } from "@/lib/glossario/termos";
 
 export const metadata: Metadata = { title: "Comunicação" };
@@ -48,7 +47,6 @@ export default async function ComunicacaoPage({
       <main>
         <PageIntro title={pagina.introTitulo} intro={pagina.introTexto} />
         <ComunicacaoAbas
-          inicial={parseAba(busca[ABA_PARAM])}
           paineis={{
             conteudo: <Publicacoes publicacoes={listPublicacoes(conteudo)} />,
             eventos: <Eventos eventos={eventos} />,
