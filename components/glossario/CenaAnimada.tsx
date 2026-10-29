@@ -50,6 +50,10 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
   const [valor, setValor] = useState<ValorCena | null>(null);
   const [tempo, setTempo] = useState(false);
+  // Whether the reader has touched a control. Until then the scene tours its
+  // steps on its own, and reading each one aloud would talk over a reader still
+  // on the term's paragraphs.
+  const [interagiu, setInteragiu] = useState(false);
 
   useEffect(() => {
     const box = caixa.current;
@@ -117,10 +121,15 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       setEtapas(null);
       setValor(null);
       setTempo(false);
+      setInteragiu(false);
     };
   }, [id]);
 
   const valorAtual = estado?.valor ?? null;
+  const agir = (comando: (cena: ControleCena) => void) => {
+    setInteragiu(true);
+    if (controle.current) comando(controle.current);
+  };
 
   return (
     <figure className={styles.figura} ref={caixa}>
@@ -136,7 +145,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
                 rotulo={etapa.nome}
                 cor={etapa.cor}
                 selecionado={estado.etapa === i}
-                onClick={() => controle.current?.etapa(i)}
+                onClick={() => agir((cena) => cena.etapa(i))}
               />
             ))}
           </div>
@@ -149,7 +158,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
                   key={p.rotulo}
                   rotulo={p.rotulo}
                   selecionado={Math.abs(valorAtual - p.valor) < valor.passo / 2}
-                  onClick={() => controle.current?.definirValor(p.valor)}
+                  onClick={() => agir((cena) => cena.definirValor(p.valor))}
                 />
               ))}
             </div>
@@ -159,21 +168,21 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               max={valor.max}
               passo={valor.passo}
               valor={valorAtual}
-              onChange={(v) => controle.current?.definirValor(v)}
+              onChange={(v) => agir((cena) => cena.definirValor(v))}
               textoValor={estado.textoValor ?? ""}
             />
           </div>
         )}
         {estado && tempo && (
           <div className={styles.linha}>
-            <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />
+            <BotaoReproduzir tocando={estado.tocando} onClick={() => agir((cena) => cena.tocar(!estado.tocando))} />
             <Regua
               rotulo="Velocidade"
               min={0.25}
               max={3}
               passo={0.25}
               valor={estado.velocidade}
-              onChange={(v) => controle.current?.velocidade(v)}
+              onChange={(v) => agir((cena) => cena.velocidade(v))}
               textoValor={`${estado.velocidade.toLocaleString("pt-BR")}×`}
             />
             {/* One step per day, the unit of the date the scene reports (day d
@@ -186,12 +195,18 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               max={364}
               passo={1}
               valor={Math.floor(estado.posicao * 365)}
-              onChange={(v) => controle.current?.posicao((v + 0.5) / 365)}
+              onChange={(v) => agir((cena) => cena.posicao((v + 0.5) / 365))}
               textoValor={estado.data}
             />
           </div>
         )}
-        {etapas && <p className="sr-only" aria-live="polite">{estado?.textoEtapa ?? ""}</p>}
+        {/* Live from the start and empty until the reader acts: a region that
+            turns live in the same render as its first text is often not read. */}
+        {etapas && (
+          <p className="sr-only" aria-live="polite">
+            {interagiu ? (estado?.textoEtapa ?? "") : ""}
+          </p>
+        )}
       </div>
       {/* Text a scene writes itself, under the panel: the Manejo agroecológico's
           legend and the texts of each stage, with their sources. */}
