@@ -23,7 +23,7 @@ interface Props {
  * layer (Figma 19481:12692, which no frame places). The column is the only
  * place it fits: at 1436px the map is 672px wide, too narrow for the 397px
  * slider beside the 302px legend, and with the ficha open it is 290px. Folding
- * the legend leaves the slider out.
+ * the legend leaves the slider in place.
  */
 export default function FloatingLegend({ theme, rightOffset, ref }: Props) {
   const layers = useStore((s) => s.layers)

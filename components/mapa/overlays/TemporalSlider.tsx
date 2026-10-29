@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '@/lib/mapa/store'
 import { ano, labelSide, layerTemporal, paradas } from '@/lib/mapa/temporal'
 import styles from './TemporalSlider.module.css'
@@ -49,17 +49,20 @@ export default function TemporalSlider() {
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   // The label's side depends on two widths: the track follows the map's
-  // column, and the label its year. Zero until measured, which keeps the
-  // label where the design puts it.
+  // column, and the label its year. They are measured before the card is
+  // first painted, so a card that opens on an early year never shows its
+  // label over "‹" for a frame; the observer follows them from there.
   const shown = !!camada && anos.length >= 2
   const trackRef = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLSpanElement>(null)
   const [widths, setWidths] = useState({ track: 0, label: 0 })
-  useEffect(() => {
+  useLayoutEffect(() => {
     const track = trackRef.current
     const label = labelRef.current
     if (!shown || !track || !label) return
-    const observer = new ResizeObserver(() => setWidths({ track: track.clientWidth, label: label.offsetWidth }))
+    const measure = () => setWidths({ track: track.clientWidth, label: label.offsetWidth })
+    measure()
+    const observer = new ResizeObserver(measure)
     observer.observe(track)
     observer.observe(label)
     return () => observer.disconnect()
