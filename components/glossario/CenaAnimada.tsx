@@ -152,7 +152,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         )}
         {estado && valor && valorAtual !== null && (
           <div className={styles.linha}>
-            <div className={styles.predefinidos} role="group" aria-label={`Valores medidos de ${titulo}`}>
+            <div className={`${styles.linha} ${styles.predefinidos}`} role="group" aria-label={`Valores medidos de ${titulo}`}>
               {valor.predefinidos.map((p) => (
                 <BotaoEtapa
                   key={p.rotulo}

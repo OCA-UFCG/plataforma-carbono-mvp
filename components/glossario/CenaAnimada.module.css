@@ -53,12 +53,12 @@
   align-items: stretch;
 }
 
-/* The CUE's presets keep their natural width, 24px apart, and the "Ajuste
- * manual" slider takes the rest of the row (19401:24802). */
+/* The CUE's presets, a .linha of their own inside the value row: they keep
+ * their natural width, 24px apart, and the "Ajuste manual" slider takes the
+ * rest of the outer row (19401:24802). Unlike .linha they stretch, so both
+ * keep one height when a label wraps. */
 .predefinidos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 24px;
+  align-items: stretch;
 }
 
 /* What a scene writes under the panel (the Manejo agroecológico's legend and
