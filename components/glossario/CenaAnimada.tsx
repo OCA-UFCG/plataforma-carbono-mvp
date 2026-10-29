@@ -91,9 +91,14 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       document.removeEventListener("visibilitychange", aplicarVisibilidade);
       controle.current?.encerrar();
       controle.current = null;
-      // What the scene built in its panel is not React's, so React would leave
-      // it behind for the next scene.
+      // Glossario remounts this component for each term (key), so this only
+      // matters if `id` ever changes in place: what the scene built in its
+      // panel is not React's, and the old scene's controls would otherwise
+      // stay up, doing nothing, while the next chunk loads.
       cenaPainel?.replaceChildren();
+      setEstado(null);
+      setEtapas(null);
+      setTempo(false);
     };
   }, [id]);
 
