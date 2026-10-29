@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AnimacaoId } from "@/lib/glossario/termos";
-import type { ControleCena, CriarCena, EstadoCena, EtapaCena } from "@/lib/cenas/tipos";
+import type { ControleCena, CriarCena, EstadoCena, EtapaCena, ValorCena } from "@/lib/cenas/tipos";
 import BotaoEtapa from "./painel/BotaoEtapa";
 import BotaoReproduzir from "./painel/BotaoReproduzir";
 import Regua from "./painel/Regua";
@@ -23,24 +23,24 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
 
 // Rows of controls the page draws for each scene, known before its chunk
 // arrives so the panel does not grow when it does: one for steps (etapas()),
-// one for time (tempo()). The CUE and Manejo agroecológico build their own
-// controls for now (#150), at a height that depends on the width.
+// one for the value the reader sets (valor()), one for time (tempo()).
 const LINHAS: Record<AnimacaoId, number> = {
   cicloAnual: 1,
   torreFluxo: 1,
   estoques: 1,
   cisterna: 1,
   fluxos: 2,
-  cue: 1,
+  cue: 2,
   degradacao: 1,
   agroecologia: 1,
 };
 
 // One glossary animation with its control panel, which lives outside the
 // canvas (Figma "Painel de controle glossário", 19401:22996): a row of step
-// buttons for a scene told in steps, a row of time controls for a scene that
-// plays a year, both rows when it has both. The scene pauses drawing while off
-// screen or in a hidden tab.
+// buttons for a scene told in steps, a row with presets and a slider for a
+// scene with a value the reader sets (the CUE), a row of time controls for a
+// scene that plays a year. The scene pauses drawing while off screen or in a
+// hidden tab.
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
   const caixa = useRef<HTMLElement>(null);
   const tela = useRef<HTMLCanvasElement>(null);
@@ -48,7 +48,13 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const controle = useRef<ControleCena | null>(null);
   const [estado, setEstado] = useState<EstadoCena | null>(null);
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
+  const [valor, setValor] = useState<ValorCena | null>(null);
   const [tempo, setTempo] = useState(false);
+  // Whether the reader has chosen a step or a value. Until then the scene tours
+  // its steps on its own, and reading each one aloud would talk over a reader
+  // still on the term's paragraphs. Only those choices stop a tour: the time
+  // controls leave Fluxos touring its steps, so they don't count.
+  const [interagiu, setInteragiu] = useState(false);
 
   useEffect(() => {
     const box = caixa.current;
@@ -85,6 +91,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               });
               setEstado(controle.current.estado());
               setEtapas(controle.current.etapas());
+              setValor(controle.current.valor());
               setTempo(controle.current.tempo());
               aplicarVisibilidade();
             },
@@ -107,15 +114,23 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       controle.current?.encerrar();
       controle.current = null;
       // Glossario remounts this component for each term (key), so this only
-      // matters if `id` ever changes in place: what the scene built in its
-      // panel is not React's, and the old scene's controls would otherwise
-      // stay up, doing nothing, while the next chunk loads.
+      // matters if `id` ever changes in place: what the scene wrote in its
+      // element is not React's, and the old scene's texts would otherwise stay
+      // up while the next chunk loads.
       cenaPainel?.replaceChildren();
       setEstado(null);
       setEtapas(null);
+      setValor(null);
       setTempo(false);
+      setInteragiu(false);
     };
   }, [id]);
+
+  const valorAtual = estado?.valor ?? null;
+  const agir = (comando: (cena: ControleCena) => void) => {
+    setInteragiu(true);
+    if (controle.current) comando(controle.current);
+  };
 
   return (
     <figure className={styles.figura} ref={caixa}>
@@ -131,14 +146,35 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
                 rotulo={etapa.nome}
                 cor={etapa.cor}
                 selecionado={estado.etapa === i}
-                onClick={() => controle.current?.etapa(i)}
+                onClick={() => agir((cena) => cena.etapa(i))}
               />
             ))}
           </div>
         )}
-        {/* Controls a scene builds itself (the CUE value, the stage texts of
-            the two farming systems), until they move to the components above. */}
-        <div ref={painel} className={styles.painel} />
+        {estado && valor && valorAtual !== null && (
+          <div className={styles.linha}>
+            <div className={`${styles.linha} ${styles.predefinidos}`} role="group" aria-label={`Valores medidos de ${titulo}`}>
+              {valor.predefinidos.map((p) => (
+                <BotaoEtapa
+                  key={p.rotulo}
+                  rotulo={p.rotulo}
+                  selecionado={Math.abs(valorAtual - p.valor) < valor.passo / 2}
+                  onClick={() => agir((cena) => cena.definirValor(p.valor))}
+                />
+              ))}
+            </div>
+            <Regua
+              rotulo={valor.rotulo}
+              min={valor.min}
+              max={valor.max}
+              passo={valor.passo}
+              valor={valorAtual}
+              onChange={(v) => agir((cena) => cena.definirValor(v))}
+              textoValor={estado.textoValor ?? valorAtual.toLocaleString("pt-BR")}
+              descricaoValor={estado.descricaoValor ?? undefined}
+            />
+          </div>
+        )}
         {estado && tempo && (
           <div className={styles.linha}>
             <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />
@@ -166,8 +202,17 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
             />
           </div>
         )}
-        {etapas && <p className="sr-only" aria-live="polite">{estado?.textoEtapa ?? ""}</p>}
+        {/* Live from the start and empty until the reader acts: a region that
+            turns live in the same render as its first text is often not read. */}
+        {etapas && (
+          <p className="sr-only" aria-live="polite">
+            {interagiu ? (estado?.textoEtapa ?? "") : ""}
+          </p>
+        )}
       </div>
+      {/* Text a scene writes itself, under the panel: the Manejo agroecológico's
+          legend and the texts of each stage, with their sources. */}
+      <div ref={painel} className={styles.painel} />
     </figure>
   );
 }

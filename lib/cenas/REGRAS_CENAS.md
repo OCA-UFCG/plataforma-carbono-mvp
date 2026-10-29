@@ -7,7 +7,7 @@ Valem para tudo em `lib/cenas/` e para os componentes que mostram as cenas (`com
 - `fonte/paisagem.js` é o motor: a paisagem da Caatinga em canvas de 960 × 540, em JavaScript puro, com o estado dentro da função que `scripts/montar-cenas.mjs` cria.
 - Cada animação é um arquivo em `fonte/` com o código da cena e um objeto `cena` com os ganchos: `torre`, `primeiroPlano`, `interface`, `atualizar(dt)`, `reiniciar`. A cena compartilha o escopo do motor.
 - `gerado/` sai de `node scripts/montar-cenas.mjs` e não se edita à mão. Depois de mudar o motor ou uma cena, rodar o script e o teste `tests/lib/cenas.test.ts`, que falha se `gerado/` estiver desatualizado.
-- A página comanda a cena por `tocar`, `velocidade`, `posicao`, `visivel`, `estado` e `encerrar` (`tipos.ts`). Os controles ficam fora do canvas.
+- A página comanda a cena por `tocar`, `velocidade`, `posicao`, `visivel`, `etapa`, `definirValor`, `estado` e `encerrar` (`tipos.ts`). Os controles ficam fora do canvas e são todos da página: a cena entrega as etapas (`etapas()`) e o valor ajustável (`valor()`), e não monta botões nem réguas. `opcoes.painel` serve só para texto da cena (a legenda e os textos do manejo agroecológico).
 
 ## Convenções visuais
 

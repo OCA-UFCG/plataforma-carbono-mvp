@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Write code, comments, and documentation in English. Every source comment is already in English; keep it that way. The Portuguese prose docs (`DOCUMENTACAO.md`, `README.md`, `REVISAO_TECNICA.md`) stay as-is unless asked.
+Write code, comments, and documentation in English. Source comments are in English; keep it that way. The one exception is the glossary's scenes: `lib/cenas/fonte/` was ported from a Portuguese package and keeps its Portuguese comments, so a new comment there is written in Portuguese to match its file, as is `lib/cenas/REGRAS_CENAS.md`. The Portuguese prose docs (`DOCUMENTACAO.md`, `README.md`, `REVISAO_TECNICA.md`) stay as-is unless asked.
 
 User-facing UI strings stay in Portuguese — the product is for a Brazilian audience. An English comment still quotes those strings verbatim when it cites a UI label or a data value (`"Área desenhada"`, `'chuva'`), and keeps the domain terms the codebase uses untranslated (`recorte`, `mata branca`).
 
