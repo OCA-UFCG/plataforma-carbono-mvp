@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AnimacaoId } from "@/lib/glossario/termos";
 import type { ControleCena, CriarCena, EstadoCena, EtapaCena } from "@/lib/cenas/tipos";
 import BotaoEtapa from "./painel/BotaoEtapa";
@@ -19,6 +19,21 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   cue: () => import("@/lib/cenas/gerado/cue"),
   degradacao: () => import("@/lib/cenas/gerado/degradacao"),
   agroecologia: () => import("@/lib/cenas/gerado/agroecologia"),
+};
+
+// Rows of controls the page draws for each scene, known before its chunk
+// arrives so the panel does not grow when it does: one for steps (etapas()),
+// one for time (tempo()). The CUE and Manejo agroecológico build their own
+// controls for now (#150), at a height that depends on the width.
+const LINHAS: Record<AnimacaoId, number> = {
+  cicloAnual: 1,
+  torreFluxo: 1,
+  estoques: 1,
+  cisterna: 1,
+  fluxos: 2,
+  cue: 1,
+  degradacao: 1,
+  agroecologia: 1,
 };
 
 // One glossary animation with its control panel, which lives outside the
@@ -107,7 +122,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       <canvas ref={tela} className={styles.tela} width={960} height={540} role="img" aria-label={descricao} />
       {/* The design shows no caption under the animation. */}
       <figcaption className="sr-only">{titulo}</figcaption>
-      <div className={styles.caixa}>
+      <div className={styles.caixa} style={{ "--linhas": LINHAS[id] } as CSSProperties}>
         {estado && etapas && (
           <div className={`${styles.linha} ${styles.etapas}`} role="group" aria-label={`Etapas de ${titulo}`}>
             {etapas.map((etapa, i) => (
