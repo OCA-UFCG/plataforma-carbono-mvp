@@ -1511,8 +1511,8 @@ useEffect(() => {
       return { width: r.width, height: r.height, bottom: box.bottom - r.bottom, right: box.right - r.right }
     }
     const legend = measure(legendRef.current)
-    // The year slider rides inside the legend (FloatingLegend), so clearing
-    // the legend clears it too.
+    // The year slider sits above the legend in the same corner column
+    // (FloatingLegend), so clearing that column clears both.
     const padding = spotlightPadding({ width: box.width, height: box.height }, panels, { legend })
     if (fitRequest.pitch !== undefined) {
       const [w, s, e, n] = fitRequest.bbox

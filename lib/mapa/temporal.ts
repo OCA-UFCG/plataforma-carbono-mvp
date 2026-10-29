@@ -43,3 +43,31 @@ export function layerTemporal(layer: LayerConfig): TemporalConfig | undefined {
 export function ano(parada: string): string {
   return parada.slice(0, 4)
 }
+
+/**
+ * The slider's thumb (Figma 19481:12700), and the gap between it and the year
+ * label. TemporalSlider.module.css draws the same numbers in px (the thumb's
+ * 10px half and 20px width, the 15px offset of half plus gap): change both
+ * together, or the side picked here stops matching where the label lands.
+ */
+const THUMB_PX = 20
+const LABEL_GAP_PX = 5
+
+/**
+ * Which side of the thumb the year label rides on. Figma draws it on the
+ * left; near the first years there is no room there, so it moves right, and
+ * on a track too short for either side it takes the roomier one. `fraction`
+ * is the stop's place along the track, from 0 to 1. Before the track is
+ * measured (a static render, as in the tests: /mapa renders only on the
+ * client, and measures before its first paint), it stays where the design
+ * puts it.
+ */
+export function labelSide(fraction: number, trackWidth: number, labelWidth: number): 'left' | 'right' {
+  if (trackWidth <= 0) return 'left'
+  const thumbLeft = fraction * (trackWidth - THUMB_PX)
+  const left = thumbLeft - LABEL_GAP_PX
+  const right = trackWidth - thumbLeft - THUMB_PX - LABEL_GAP_PX
+  if (left >= labelWidth) return 'left'
+  if (right >= labelWidth) return 'right'
+  return left >= right ? 'left' : 'right'
+}
