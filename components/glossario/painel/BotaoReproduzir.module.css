@@ -31,11 +31,13 @@
   display: block;
 }
 
-.rotulos {
+.rotulos,
+.icones {
   display: grid;
 }
 
-.rotulos > * {
+.rotulos > *,
+.icones > * {
   grid-area: 1 / 1;
 }
 

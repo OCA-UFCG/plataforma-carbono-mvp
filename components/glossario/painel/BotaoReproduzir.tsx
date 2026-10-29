@@ -19,13 +19,26 @@ export default function BotaoReproduzir({ tocando, onClick, desativado }: BotaoR
         <span className={tocando ? styles.oculto : undefined}>Reproduzir</span>
         <span className={tocando ? undefined : styles.oculto}>Pausar</span>
       </span>
-      {/* eslint-disable-next-line @next/next/no-img-element -- exported icon */}
-      <img
-        src={tocando ? "/icons/glossario/pause-circle.svg" : "/icons/glossario/play-circle-filled.svg"}
-        alt=""
-        width={16}
-        height={16}
-      />
+      {/* Both icons stay in the page the same way, so the pause icon is
+          already loaded at the first press. */}
+      <span className={styles.icones}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- exported icon */}
+        <img
+          src="/icons/glossario/play-circle-filled.svg"
+          className={tocando ? styles.oculto : undefined}
+          alt=""
+          width={16}
+          height={16}
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element -- exported icon */}
+        <img
+          src="/icons/glossario/pause-circle.svg"
+          className={tocando ? undefined : styles.oculto}
+          alt=""
+          width={16}
+          height={16}
+        />
+      </span>
     </button>
   );
 }
