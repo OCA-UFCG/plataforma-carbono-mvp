@@ -31,10 +31,13 @@
   color: var(--bg-texto-primario);
 }
 
+/* The border keeps pale step colours (Estoque's "Raízes", #f3e2b0) visible
+ * on the white box and on the selected fill. */
 .amostra {
   flex: none;
   width: 16px;
   height: 16px;
+  border: 1px solid var(--role-neutro-borda);
   border-radius: 2px;
 }
 
