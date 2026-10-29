@@ -44,7 +44,9 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
     let naTela = false;
     // Set before the chunk arrives: a block that leaves and comes back while it
     // loads would otherwise start a second scene on the same canvas, which
-    // nothing would ever end.
+    // nothing would ever end. A failed load clears it, so the next time the
+    // block comes into view asks for the chunk again; Turbopack keeps the
+    // first failure, though, so for now only a reload brings the scene back.
     let iniciada = false;
 
     const aplicarVisibilidade = () => controle.current?.visivel(naTela && !document.hidden);
@@ -55,18 +57,26 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         naTela = entries[entries.length - 1].isIntersecting;
         if (naTela && !iniciada) {
           iniciada = true;
-          void CENAS[id]().then(({ criarCena }) => {
-            if (cancelado) return;
-            controle.current = criarCena(canvas, {
-              fonte: getComputedStyle(canvas).fontFamily,
-              aoMudar: setEstado,
-              painel: cenaPainel ?? undefined,
-            });
-            setEstado(controle.current.estado());
-            setEtapas(controle.current.etapas());
-            setTempo(controle.current.tempo());
-            aplicarVisibilidade();
-          });
+          // The second handler takes only the chunk's failure: an error thrown
+          // while building the scene still surfaces, and does not let a second
+          // scene start on a canvas the first may already be drawing on.
+          void CENAS[id]().then(
+            ({ criarCena }) => {
+              if (cancelado) return;
+              controle.current = criarCena(canvas, {
+                fonte: getComputedStyle(canvas).fontFamily,
+                aoMudar: setEstado,
+                painel: cenaPainel ?? undefined,
+              });
+              setEstado(controle.current.estado());
+              setEtapas(controle.current.etapas());
+              setTempo(controle.current.tempo());
+              aplicarVisibilidade();
+            },
+            () => {
+              iniciada = false;
+            },
+          );
         }
         aplicarVisibilidade();
       },
