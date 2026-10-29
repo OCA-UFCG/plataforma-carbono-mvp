@@ -49,8 +49,10 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
 
     const aplicarVisibilidade = () => controle.current?.visivel(naTela && !document.hidden);
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        naTela = entry.isIntersecting;
+      (entries) => {
+        // One callback may carry several changes (the block leaving and coming
+        // back); the last one is where it is now.
+        naTela = entries[entries.length - 1].isIntersecting;
         if (naTela && !iniciada) {
           iniciada = true;
           void CENAS[id]().then(({ criarCena }) => {
