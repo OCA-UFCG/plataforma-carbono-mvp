@@ -170,6 +170,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               valor={valorAtual}
               onChange={(v) => agir((cena) => cena.definirValor(v))}
               textoValor={estado.textoValor ?? ""}
+              descricaoValor={estado.descricaoValor ?? undefined}
             />
           </div>
         )}

@@ -17,6 +17,9 @@ export interface EstadoCena {
   valor: number | null
   /** The value as the page shows it, "0,31". */
   textoValor: string | null
+  /** What screen readers hear for the value, when the number alone says too
+   *  little: "0,31, Área cristalina: 31 de cada 100 ficam". Null: textoValor. */
+  descricaoValor: string | null
 }
 
 export interface EtapaCena {

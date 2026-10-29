@@ -10,12 +10,15 @@ export type ReguaProps = {
   passo: number;
   valor: number;
   onChange: (valor: number) => void;
-  /** Shown on the right and read by screen readers: "1×", "9 fev", "0,31". */
+  /** Shown on the right and, without descricaoValor, read by screen readers: "1×", "9 fev", "0,31". */
   textoValor: string;
+  /** Read by screen readers in place of textoValor, when the number alone says
+   *  too little: "0,31, Área cristalina: 31 de cada 100 ficam". */
+  descricaoValor?: string;
   desativada?: boolean;
 };
 
-export default function Regua({ rotulo, min, max, passo, valor, onChange, textoValor, desativada }: ReguaProps) {
+export default function Regua({ rotulo, min, max, passo, valor, onChange, textoValor, descricaoValor, desativada }: ReguaProps) {
   const id = useId();
   const fracao = max > min ? Math.min(1, Math.max(0, (valor - min) / (max - min))) : 0;
   return (
@@ -30,7 +33,7 @@ export default function Regua({ rotulo, min, max, passo, valor, onChange, textoV
         step={passo}
         value={valor}
         disabled={desativada}
-        aria-valuetext={textoValor}
+        aria-valuetext={descricaoValor ?? textoValor}
         onChange={(e) => onChange(Number(e.target.value))}
         style={{ "--fracao": fracao } as CSSProperties}
       />
