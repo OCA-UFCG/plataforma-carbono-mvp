@@ -1,5 +1,6 @@
 /* Figma "toggle" (164:1573), outline variant, size default: 40px tall, 12px
- * of side padding, Inter Medium 14/20 (.text-ui-tab). The states follow
+ * of side padding, Inter Medium 14/20 (.text-ui-tab). A label longer than its
+ * column wraps inside the button rather than spilling out. The states follow
  * 19403:26571: no fill at rest, --role-neutro-texto-desabilitado (#94a6ac) under
  * --bg-texto-secundario on hover and --am-100 when selected. The panel is
  * white, so the label at rest sits on --role-primario-texto-sobre. */
@@ -9,12 +10,13 @@
   justify-content: center;
   gap: 10px;
   min-height: 40px;
-  padding: 0 12px;
+  padding: 9px 12px;
   border: 1px solid var(--role-neutro-borda);
   border-radius: var(--radius-interno);
   background: transparent;
   color: var(--bg-texto-primario);
-  white-space: nowrap;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }

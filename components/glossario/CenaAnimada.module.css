@@ -45,10 +45,12 @@
  * longer fit side by side they wrap into equal columns too, so a button left
  * alone on the last line keeps its column's width instead of spanning the row.
  * 148px is the widest step button, "Madeira morta" with its swatch
- * (19401:23427); seven of them still fit the 1276px column on one line. */
+ * (19401:23427); seven of them still fit the 1276px column on one line. The
+ * buttons of a line keep one height when a label wraps in one of them. */
 .etapas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
+  align-items: stretch;
 }
 
 /* What a scene builds in its panel, with the package's class names. */
