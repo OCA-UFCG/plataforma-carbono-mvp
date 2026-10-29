@@ -127,17 +127,20 @@ export default function AnalysisSheet({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
           {/* Bare marks, no chip: each has a variant drawn for its ground (the
-              color lockup and Sudene's black shadow disappear on a dark one). */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              color lockup and Sudene's black shadow disappear on a dark one).
+              Both files are cropped to the mark, so a height is the mark's
+              own; Sudene's solid mass outweighs Caativar's outline at one
+              height, so it stands a step shorter. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <img
               src={dark ? '/logos/caativar-branco.svg' : '/logos/caativar.svg'}
               alt="Caativar"
-              style={{ height: 36, width: 'auto', display: 'block' }}
+              style={{ height: 56, width: 'auto', display: 'block' }}
             />
             <img
               src={dark ? '/logos/logo_sudene_escuro.png' : '/logos/logo_sudene.png'}
               alt="Sudene"
-              style={{ height: 36, width: 'auto', display: 'block' }}
+              style={{ height: 48, width: 'auto', display: 'block' }}
             />
           </div>
           <div style={{ fontSize: 13, color: c.textDim, fontVariantNumeric: 'lining-nums tabular-nums' }}>
