@@ -1,0 +1,285 @@
+/* The layer sheet, Figma "ficha" 19451:60761, docked as a column in the
+ * platform frame 19451:60959. Font sizes, weights and line heights come from
+ * the .text-* utilities of app/globals.css, applied in LayerInfoCard.tsx; this
+ * file handles color, spacing and layout. */
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-fundo);
+  color: var(--bg-texto-primario);
+}
+
+/* Desktop: a column of Mapa.tsx's row, ruled off the map on its right. The
+ * width is the layout's COLUMN_WIDTH, set inline. */
+.docked {
+  position: relative;
+  flex: none;
+  height: 100%;
+  border-right: 1px solid var(--bg-borda);
+}
+
+/* Below 768px there is no room for a column: an overlay over the drawer. */
+.overlay {
+  position: absolute;
+  top: 16px;
+  left: 8px;
+  z-index: 16;
+  width: calc(100vw - 16px);
+  max-height: calc(100% - 32px);
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Title, chips and the rule under them stay in place while the body scrolls.
+ * The content starts 26px under the site header and 24px in from each side,
+ * the 334px column of the 382px frame. */
+.head {
+  flex: none;
+  padding: 26px 24px 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  min-width: 0;
+  color: var(--role-marca-ancora-padrao);
+}
+
+/* The 24px Close icon (19451:60879), level with the title's 28px line. */
+.close {
+  flex: none;
+  display: flex;
+  margin-top: 2px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-interno);
+  background: none;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--am-100);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Figma "badge" (19451:60886): a 1px outline drawn inside the 20px box, so
+ * 1 + 1 = 2px above and 9 + 1 = 10px beside the label. */
+.chip {
+  padding: 1px 9px;
+  border: 1px solid var(--bg-borda);
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.rule {
+  margin-top: 16px;
+  border-top: 1px solid var(--bg-borda);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+/* "Ficha técnica" and "Como citar": Rubik Medium 16/24 (.text-p-ui), in
+ * capitals. */
+.heading {
+  text-transform: uppercase;
+}
+
+/* A heading and what it introduces, 8px apart (19451:60915). */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coverageTrack {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--am-100);
+}
+
+.coverageFill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+/* Reading cautions: not in the design's sample layer, which has none, so they
+ * borrow the citation card's outline and the map's warm warning mark. */
+.cautions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.caution {
+  padding: 7px 11px;
+  border: 1px solid var(--bg-borda);
+  border-left: 3px solid var(--terracota);
+  border-radius: var(--radius);
+  background: var(--bg-superficie-variante);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Each entry: its bold name over its value, 4px apart. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.term {
+  font-weight: 700;
+}
+
+.value {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* globals.css strips every underline; the licence keeps the design's. */
+.value a {
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+/* The citation card (19451:60785): a 1px outline drawn inside, so the text
+ * sits 8 and 16px from its edges, and the copy button beside it. */
+.citation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 15px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--bg-fundo);
+}
+
+.citationText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Figma "button" 19451:60949: 40x40 with the 16px Content copy icon. */
+.copy {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: var(--radius);
+  background: var(--bg-fundo);
+  cursor: pointer;
+}
+
+.copy:hover {
+  background: var(--role-marca-ancora-container);
+}
+
+/* The live region stays in the tree, empty, so the notice is announced; it
+ * takes room only while it says something. */
+.copyStatus:not(:empty) {
+  margin-top: 6px;
+}
+
+.copied {
+  color: var(--role-marca-ancora-hover);
+}
+
+.copyFailed {
+  color: var(--ctx-negativo-padrao);
+}
+
+/* "Ativar camada" and "Saiba mais" (19451:60850), under a rule as wide as the
+ * content, fixed at the foot while the body scrolls. */
+.foot {
+  flex: none;
+  display: flex;
+  gap: 16px;
+  margin: 0 24px;
+  padding: 16px 0;
+  border-top: 1px solid var(--bg-borda);
+}
+
+.action {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.primary {
+  padding: 8px 16px;
+  border: none;
+  background: var(--role-marca-ancora-hover);
+  color: var(--primary-foreground);
+}
+
+.primary:hover {
+  background: var(--role-marca-ancora-pressionado);
+}
+
+/* The design sets "Saiba mais" in -marca-ancora-padrao on the container fill,
+ * 4.38:1, short of AA for its 14px label; the role's -hover tone passes
+ * (tests/lib/marketingPalette.test.ts holds the pair), as in the Carbono
+ * label of StepCard.module.css. */
+.secondary {
+  padding: 7px 15px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  background: var(--role-marca-ancora-container);
+  color: var(--role-marca-ancora-hover);
+}
+
+.secondary:hover {
+  border-color: var(--role-marca-ancora-hover);
+  color: var(--role-marca-ancora-pressionado);
+}
+
+/* A layer whose Comunicação page does not exist yet: the place is held, so
+ * the sheet does not change shape when it arrives. */
+.secondary:disabled {
+  border-color: var(--am-200);
+  background: var(--am-050);
+  color: var(--role-neutro-texto-desabilitado);
+  cursor: not-allowed;
+}

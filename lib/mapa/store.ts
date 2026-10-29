@@ -8,22 +8,19 @@ import type {
   PanelResult,
   SelectedGeometry,
 } from '@/types/mapa'
+import type { EmissoesEntry } from '@/lib/emissoes/mapa'
 import appConfig from '@/config/mapa/layers.json'
 import { defaultBasemapId } from '@/config/mapa/basemaps'
-import { isMonthPref, type MonthPref } from '@/lib/phenology'
 import { paradaInicial } from '@/lib/mapa/temporal'
 import { isExclusiveSubtheme, TERRITORY_THEME_ID } from '@/config/mapa/groups'
 import {
-  DEFAULT_SUBTHEME_ORDER, DEFAULT_THEME_ORDER, applyGroupOrder, moveInList,
+  DEFAULT_LAYER_ORDER, applyLayerOrder, moveInList,
 } from '@/lib/mapa/layerOrder'
 import {
   readPersisted,
   writePersisted,
   type PersistedView,
 } from '@/lib/mapa/persistState'
-
-const DARK_MODE_KEY = 'cc_dark_mode_v1'
-const DARK_MODE_KEY_LEGADA = 'websig-dark-mode'
 
 // The layers the panel offers. A `hidden` layer stays in layers.json, so the
 // GEE allowlist and the Territórios story still reach it, but the map module
@@ -43,17 +40,20 @@ const restaurado = readPersisted(PANEL_LAYERS)
 export const camadasARestaurar: string[] = restaurado?.activateLayerIds ?? []
 
 // The user's draw order, and `layers` sorted by it from the first render on.
-const ordemTemas = restaurado?.themeOrder ?? DEFAULT_THEME_ORDER
-const ordemSubtemas = restaurado?.subthemeOrder ?? DEFAULT_SUBTHEME_ORDER
+const ordemCamadas = restaurado?.layerOrder ?? DEFAULT_LAYER_ORDER
+
+const isOverlay = (layer: LayerConfig) => layer.type === 'raster' && layer.overlay === true
 
 export function setLayerVisibility(layers: LayerConfig[], id: string, visible: boolean) {
   const selected = layers.find((layer) => layer.id === id)
   if (!selected) return layers
 
-  const exclusive = visible && isExclusiveSubtheme(selected.theme, selected.subtheme)
+  // An overlay (a hillshade) neither replaces nor is replaced by the layer it
+  // is laid over; only the layers that are not overlays exclude each other.
+  const exclusive = visible && !isOverlay(selected) && isExclusiveSubtheme(selected.theme, selected.subtheme)
   return layers.map((layer) => {
     if (layer.id === id) return { ...layer, visible }
-    if (exclusive && layer.theme === selected.theme && layer.subtheme === selected.subtheme) {
+    if (exclusive && !isOverlay(layer) && layer.theme === selected.theme && layer.subtheme === selected.subtheme) {
       return { ...layer, visible: false }
     }
     return layer
@@ -71,13 +71,12 @@ export function hideThematicLayers(layers: LayerConfig[]) {
 
 interface MapaStore {
   layers: LayerConfig[]
-  /** Thematic theme ids, top of the map first. Território is always above them. */
-  themeOrder: string[]
-  /** Subtheme ids per thematic theme, top of the map first. */
-  subthemeOrder: Record<string, string[]>
+  /** Every layer id, top of the map first: the user's order of the recortes
+   *  and of the thematic layers. The recortes are drawn above the thematic
+   *  layers whatever it says. */
+  layerOrder: string[]
   drawMode: DrawMode
   drawnArea: number | null
-  drawnLength: number | null
   // One result per visible raster, keyed by layer id. Nothing prunes it when a
   // layer is switched off: the panel renders the intersection with the visible
   // rasters, so the card disappears on its own and switching the layer back on
@@ -94,19 +93,11 @@ interface MapaStore {
   // rendered as the chip above the label in the results panel.
   analysisKind: string | null
   clearSignal: number
-  /** Bumped by showOnlyMunicipios; MapView flies back to the biome view. */
-  homeSignal: number
   basemapId: string
-  /** Relief in 3D, from the elevation tiles of the Relevo subtheme. Not persisted. */
-  terrain3d: boolean
-  darkMode: boolean
   // Current viewport and drawing. They live in the store so persistence has a
   // single read point; MapView consumes them on mount and feeds them afterwards.
   view: PersistedView | null
   drawing: GeoJSON.Feature | null
-  // Month dressing the interface ('auto' follows the date) + welcome-seen flag.
-  month: MonthPref
-  welcomeSeen: boolean
 
   // Dynamic layer (GEE) state
   fetchedTileUrls:  Record<string, string>
@@ -120,37 +111,34 @@ interface MapaStore {
   temporalTileUrls: Record<string, Record<string, string>>  // layerId -> { dateKey -> tileUrl }
   temporalDate:     Record<string, string>                   // layerId -> current dateKey
 
+  // The values of each emissions layer (lib/emissoes/runner.ts), keyed by
+  // layer id. Not persisted.
+  emissoes: Record<string, EmissoesEntry>
+
   // Stats cache (avoids re-fetching stats from GEE/TiTiler)
   // Key format: "layerId:dateOrStatic:geomHash"
   statsCache: Record<string, PanelResult>
   pixelCache: Record<string, PixelValueResult | null>
 
   toggleLayer:   (id: string) => void
-  /** Turns every layer off, leaves only the municipal boundaries on and returns to the biome view. */
-  showOnlyMunicipios: () => void
   showLayer:     (id: string) => void
   clearThematicLayers: () => void
+  /** Turns off every layer of the Território theme, and only those. */
+  clearRecortes: () => void
   setOpacity:    (id: string, opacity: number) => void
-  /** Moves a thematic theme in front of `beforeId` (null = the end) and redraws. */
-  moveTheme:     (id: string, beforeId: string | null) => void
-  /** Moves a subtheme within its theme in front of `beforeId` (null = the end) and redraws. */
-  moveSubtheme:  (themeId: string, id: string, beforeId: string | null) => void
+  /** Moves a layer in front of `beforeId` (null = the end) and redraws. */
+  moveLayer:     (id: string, beforeId: string | null) => void
 
   setDrawMode:    (mode: DrawMode) => void
   setDrawnArea:   (area: number | null) => void
-  setDrawnLength: (length: number | null) => void
   setLayerResult:      (result: LayerResult) => void
   clearResults:        () => void
   setSelectedGeometry: (geom: SelectedGeometry | null) => void
   setAnalysisLabel: (v: string | null) => void
   setAnalysisKind:  (v: string | null) => void
   setBasemap:     (id: string) => void
-  setTerrain3d:   (on: boolean) => void
   setView:        (v: PersistedView) => void
   setDrawing:     (f: GeoJSON.Feature | null) => void
-  toggleDarkMode: () => void
-  setMonth:       (m: MonthPref) => void
-  setWelcomeSeen: (v: boolean) => void
   clearDrawings:  () => void
 
   activateDynamicLayer: (layer: RasterLayerConfig) => Promise<void>
@@ -162,44 +150,16 @@ interface MapaStore {
 
 export const useStore = create<MapaStore>((set, get) => ({
   // Initial layers come entirely from config/layers.json, in the draw order.
-  layers: applyGroupOrder(restaurado?.layers ?? PANEL_LAYERS, ordemTemas, ordemSubtemas),
-  themeOrder: ordemTemas,
-  subthemeOrder: ordemSubtemas,
+  layers: applyLayerOrder(restaurado?.layers ?? PANEL_LAYERS, ordemCamadas),
+  layerOrder: ordemCamadas,
   drawMode: null,
   drawnArea: null,
-  drawnLength: null,
   results: {},
   selectedGeometry: null,
   analysisLabel: null,
   analysisKind: null,
   clearSignal: 0,
-  homeSignal: 0,
   basemapId: restaurado?.basemapId ?? defaultBasemapId,
-  terrain3d: false,
-  // Dark mode: hydrates from localStorage on the client and, with no stored
-  // mark, follows the operating system preference.
-  // LEGACY: until 2026-07 the key was 'websig-dark-mode'. It is still read once
-  // so we do not discard the choice of existing users; from the first tap on
-  // the button onwards, only the new key is written.
-  darkMode: typeof window !== 'undefined'
-    ? (() => {
-        const stored = window.localStorage?.getItem(DARK_MODE_KEY)
-          ?? window.localStorage?.getItem(DARK_MODE_KEY_LEGADA)
-        if (stored === 'true') return true
-        if (stored === 'false') return false
-        return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
-      })()
-    : false,
-  // New key (v2) because v1 stored a season ('chuva'/'transicao'/'seca'), which
-  // no longer exists; isMonthPref discards the old value instead of accepting
-  // an invalid month coming from localStorage.
-  month: (() => {
-    if (typeof window === 'undefined') return 'auto'
-    const stored = window.localStorage?.getItem('cc_month_v2')
-    return isMonthPref(stored) ? stored : 'auto'
-  })(),
-  welcomeSeen: typeof window !== 'undefined'
-    && window.localStorage?.getItem('cc_welcome_v1') === '1',
 
   view:    restaurado?.view ?? null,
   drawing: restaurado?.drawing ?? null,
@@ -210,6 +170,7 @@ export const useStore = create<MapaStore>((set, get) => ({
   jenksBreaks:      {},
   temporalTileUrls: {},
   temporalDate:     restaurado?.temporalDate ?? {},
+  emissoes:         {},
   statsCache:       {},
   pixelCache:       {},
 
@@ -233,20 +194,11 @@ export const useStore = create<MapaStore>((set, get) => ({
       return
     }
 
+    // Turning an emissions layer on is how a failed fetch of its values is retried.
+    const retriesEmissoes = layer?.type === 'emissions' && !layer.visible && state.emissoes[id]?.status === 'error'
     set((s) => ({
       layers: setLayerVisibility(s.layers, id, !layer?.visible),
-    }))
-  },
-
-  // A vector layer needs no fetch to turn on, so a plain visibility flip is
-  // enough; rasters only go off here. Every loading mark goes too, as in
-  // clearThematicLayers, or a GEE raster still being fetched would light up
-  // once its tile arrives.
-  showOnlyMunicipios: () => {
-    set((s) => ({
-      layers: s.layers.map((l) => ({ ...l, visible: l.id === 'municipios' })),
-      loadingLayers: {},
-      homeSignal: s.homeSignal + 1,
+      ...(retriesEmissoes ? { emissoes: omitKey(s.emissoes, id) } : {}),
     }))
   },
 
@@ -270,6 +222,15 @@ export const useStore = create<MapaStore>((set, get) => ({
       }
     }),
 
+  // The recortes are vectors: nothing to fetch, so no loading mark to drop.
+  clearRecortes: () =>
+    set((s) => {
+      if (!s.layers.some((l) => l.visible && l.theme === TERRITORY_THEME_ID)) return s
+      return {
+        layers: s.layers.map((l) => (l.visible && l.theme === TERRITORY_THEME_ID ? { ...l, visible: false } : l)),
+      }
+    }),
+
   setOpacity: (id, opacity) =>
     set((s) => ({
       layers: s.layers.map((l) =>
@@ -277,26 +238,15 @@ export const useStore = create<MapaStore>((set, get) => ({
       ),
     })),
 
-  moveTheme: (id, beforeId) =>
+  moveLayer: (id, beforeId) =>
     set((s) => {
-      const themeOrder = moveInList(s.themeOrder, id, beforeId)
-      if (themeOrder === s.themeOrder) return s
-      return { themeOrder, layers: applyGroupOrder(s.layers, themeOrder, s.subthemeOrder) }
-    }),
-
-  moveSubtheme: (themeId, id, beforeId) =>
-    set((s) => {
-      const current = s.subthemeOrder[themeId]
-      if (!current) return s
-      const next = moveInList(current, id, beforeId)
-      if (next === current) return s
-      const subthemeOrder = { ...s.subthemeOrder, [themeId]: next }
-      return { subthemeOrder, layers: applyGroupOrder(s.layers, s.themeOrder, subthemeOrder) }
+      const layerOrder = moveInList(s.layerOrder, id, beforeId)
+      if (layerOrder === s.layerOrder) return s
+      return { layerOrder, layers: applyLayerOrder(s.layers, layerOrder) }
     }),
 
   setDrawMode:    (mode)   => set({ drawMode: mode }),
   setDrawnArea:   (area)   => set({ drawnArea: area }),
-  setDrawnLength: (length) => set({ drawnLength: length }),
   // A full replace, not a merge: a layer moving back to 'loading' must drop the
   // previous stop's numbers, or the card would show last year's mean under this
   // year's header while the request is in flight.
@@ -307,30 +257,12 @@ export const useStore = create<MapaStore>((set, get) => ({
   setAnalysisLabel: (v)    => set({ analysisLabel: v }),
   setAnalysisKind:  (v)    => set({ analysisKind: v }),
   setBasemap:     (id)     => set({ basemapId: id }),
-  setTerrain3d:   (on)     => set({ terrain3d: on }),
-  toggleDarkMode: () =>
-    set((s) => {
-      const next = !s.darkMode
-      if (typeof window !== 'undefined') {
-        window.localStorage?.setItem(DARK_MODE_KEY, String(next))
-      }
-      return { darkMode: next }
-    }),
-  setMonth: (month) => {
-    if (typeof window !== 'undefined') window.localStorage?.setItem('cc_month_v2', month)
-    set({ month })
-  },
-  setWelcomeSeen: (v) => {
-    if (typeof window !== 'undefined') window.localStorage?.setItem('cc_welcome_v1', v ? '1' : '0')
-    set({ welcomeSeen: v })
-  },
   setView:    (v) => set({ view: v }),
   setDrawing: (f) => set({ drawing: f }),
   clearDrawings:  ()       =>
     set((s) => ({
       drawing: null,
       drawnArea: null,
-      drawnLength: null,
       drawMode: null,
       results: {},
       selectedGeometry: null,
@@ -396,8 +328,8 @@ export const useStore = create<MapaStore>((set, get) => ({
       }
 
       // 4. Success: cache URL, flip visible, clear loading. A missing loading
-      //    mark means clearThematicLayers or showOnlyMunicipios ran while the
-      //    request was in flight: the tile is kept, but the layer stays off.
+      //    mark means clearThematicLayers ran while the request was in
+      //    flight: the tile is kept, but the layer stays off.
       const stillWanted = !!get().loadingLayers[id]
       if (temporal && temporalDate) {
         // Temporal: cache under date key, set initial date
@@ -503,11 +435,10 @@ export const useStore = create<MapaStore>((set, get) => ({
  */
 export function hasAnalysisContent(s: {
   drawnArea:   number | null
-  drawnLength: number | null
   results:     Record<string, LayerResult>
   layers:      LayerConfig[]
 }): boolean {
-  if (s.drawnArea !== null || s.drawnLength !== null) return true
+  if (s.drawnArea !== null) return true
   return s.layers.some(
     (l) => l.type === 'raster' && l.visible && s.results[l.id] !== undefined,
   )
@@ -525,7 +456,7 @@ function omitKey<T extends Record<string, unknown>>(obj: T, key: string): T {
 export const mapConfig = appConfig.map
 
 // Persistence: a single subscriber, instead of a setItem scattered across
-// toggleLayer, setOpacity, moveTheme, setBasemap and setTemporalDate. Five
+// toggleLayer, setOpacity, moveLayer, setBasemap and setTemporalDate. Five
 // write points drift out of sync; one subscriber does not. The debounce avoids
 // writing on every frame while the user drags the map or the opacity.
 if (typeof window !== 'undefined') {
@@ -540,8 +471,7 @@ if (typeof window !== 'undefined') {
         temporalDate: s.temporalDate,
         view: s.view,
         drawing: s.drawing,
-        themeOrder: s.themeOrder,
-        subthemeOrder: s.subthemeOrder,
+        layerOrder: s.layerOrder,
       })
     }, 400)
   })

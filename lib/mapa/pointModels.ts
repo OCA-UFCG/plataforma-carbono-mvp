@@ -2,17 +2,16 @@
 // "Áreas de Monitoramento"), drawn by three.js inside a MapLibre custom layer.
 //
 // three.js is imported here and nowhere else, and MapView loads this module
-// with a dynamic import only when such a layer is switched on, so the ~600 kB
-// library stays out of the bundle everyone downloads.
+// with a dynamic import only once such a layer is on and the map reaches the
+// zoom the towers draw from, so the ~600 kB library and the model stay out of
+// what everyone downloads.
 
 import maplibregl from 'maplibre-gl'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
+import { POINT_MODEL_MIN_ZOOM } from '@/lib/mapa/pointModelZoom'
 import type { VectorLayerConfig } from '@/types/mapa'
-
-// Below this zoom a tower is a pixel or two: the pulsing point says more.
-const MIN_ZOOM = 14
 
 interface Placement {
   lngLat: [number, number]
@@ -60,7 +59,7 @@ export async function createPointModelLayer(
       renderer.autoClear = false
     },
     render(_gl, args) {
-      if (map.getZoom() < MIN_ZOOM) return
+      if (map.getZoom() < POINT_MODEL_MIN_ZOOM) return
       const projection = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix)
       for (const p of placements) {
         // On the 3D terrain the base follows the ground; flat, it sits at 0.

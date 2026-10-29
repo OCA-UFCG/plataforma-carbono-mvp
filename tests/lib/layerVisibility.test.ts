@@ -28,6 +28,39 @@ describe('setLayerVisibility', () => {
     expect(territorial.find((layer) => layer.id === 'bioma')?.visible).toBe(true)
     expect(territorial.find((layer) => layer.id === 'estados')?.visible).toBe(true)
   })
+
+  describe('with overlays', () => {
+    const relevo: LayerConfig[] = [
+      { id: 'hillshade', name: 'Hillshade', type: 'raster', visible: false, opacity: 40, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo', overlay: true },
+      { id: 'altitude', name: 'Altitude', type: 'raster', visible: true, opacity: 80, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo' },
+      { id: 'declividade', name: 'Declividade', type: 'raster', visible: false, opacity: 80, colorType: 'continuous', theme: 'ambiente', subtheme: 'relevo' },
+    ]
+    const visibilityOf = (list: LayerConfig[]) =>
+      Object.fromEntries(list.map((layer) => [layer.id, layer.visible]))
+
+    it('combines an overlay with the layer on', () => {
+      expect(visibilityOf(setLayerVisibility(relevo, 'hillshade', true)))
+        .toEqual({ hillshade: true, altitude: true, declividade: false })
+    })
+
+    it('keeps the overlay on when the other layers replace each other', () => {
+      const shaded = setLayerVisibility(relevo, 'hillshade', true)
+      expect(visibilityOf(setLayerVisibility(shaded, 'declividade', true)))
+        .toEqual({ hillshade: true, altitude: false, declividade: true })
+    })
+  })
+
+  it('makes Altitude and Declividade exclusive and lets the hillshades combine with them', () => {
+    const catalog = useStore.getState().layers
+    const on = (list: LayerConfig[]) => list.filter((layer) => layer.visible).map((layer) => layer.id).sort()
+    let updated = setLayerVisibility(catalog, 'altitude_fabdem', true)
+    updated = setLayerVisibility(updated, 'hillshade_fabdem', true)
+    updated = setLayerVisibility(updated, 'sombreado_terreno', true)
+    updated = setLayerVisibility(updated, 'declividade_fabdem', true)
+
+    const relevoOn = on(updated).filter((id) => catalog.find((layer) => layer.id === id)?.subtheme === 'relevo')
+    expect(relevoOn).toEqual(['declividade_fabdem', 'hillshade_fabdem', 'sombreado_terreno'])
+  })
 })
 
 describe('hideThematicLayers', () => {
@@ -74,80 +107,87 @@ describe('clearThematicLayers', () => {
   })
 })
 
-describe('showOnlyMunicipios', () => {
+describe('clearRecortes', () => {
   const initial = useStore.getState()
-  afterEach(() => {
-    useStore.setState(initial, true)
-    vi.unstubAllGlobals()
+  afterEach(() => useStore.setState(initial, true))
+  const visible = (id: string) => useStore.getState().layers.find((layer) => layer.id === id)?.visible
+
+  it('turns off every Território layer and nothing else', () => {
+    const on = new Set(['bioma', 'municipios', 'quilombolas', 'biomassa_gedi'])
+    // A vector outside Território, as Localidades' points are: not a recorte.
+    const pontos: LayerConfig = {
+      id: 'pontos', name: 'Pontos', type: 'vector', url: '/data/pontos.geojson', visible: true, opacity: 100,
+      color: '#000', theme: 'localidades', subtheme: 'monitoramento',
+    }
+    useStore.setState((s) => ({ layers: [pontos, ...s.layers.map((layer) => ({ ...layer, visible: on.has(layer.id) }))] }))
+
+    useStore.getState().clearRecortes()
+
+    expect(visible('bioma')).toBe(false)
+    expect(visible('municipios')).toBe(false)
+    expect(visible('quilombolas')).toBe(false)
+    expect(visible('pontos')).toBe(true)
+    expect(visible('biomassa_gedi')).toBe(true)
   })
 
-  it('keeps a GEE raster that was still loading off once its tile arrives', async () => {
-    let respond!: (res: Response) => void
-    vi.stubGlobal('fetch', () => new Promise<Response>((resolve) => { respond = resolve }))
+  it('leaves the state untouched with no recorte on', () => {
+    useStore.setState((s) => ({ layers: s.layers.map((layer) => ({ ...layer, visible: false })) }))
+    const before = useStore.getState().layers
 
-    const gedi = useStore.getState().layers.find((layer) => layer.id === 'biomassa_gedi') as RasterLayerConfig
-    const activation = useStore.getState().activateDynamicLayer(gedi)
-    useStore.getState().showOnlyMunicipios()
-    respond(new Response(JSON.stringify({ tileUrl: 'https://tiles.example/gedi' })))
-    await activation
+    useStore.getState().clearRecortes()
 
-    const state = useStore.getState()
-    expect(state.layers.find((layer) => layer.id === 'biomassa_gedi')?.visible).toBe(false)
-    expect(state.layers.find((layer) => layer.id === 'municipios')?.visible).toBe(true)
-    expect(state.loadingLayers).toEqual({})
-    expect(state.fetchedTileUrls.biomassa_gedi).toBe('https://tiles.example/gedi')
+    expect(useStore.getState().layers).toBe(before)
   })
 })
 
-describe('draw order by theme and subtheme', () => {
+describe('draw order by layer', () => {
   const initial = useStore.getState()
   afterEach(() => {
     useStore.setState(initial, true)
     vi.unstubAllGlobals()
   })
   const order = () => useStore.getState().layers.map((layer) => layer.id)
-  const topOf = (theme: string) => {
-    const o = order()
-    return Math.min(...useStore.getState().layers.filter((l) => l.theme === theme).map((l) => o.indexOf(l.id)))
-  }
-
-  it('starts in the panel order: Carbono, then Uso do solo, then Ambiente', () => {
-    expect(useStore.getState().themeOrder).toEqual(['carbono', 'uso_solo', 'ambiente', 'localidades'])
+  it('starts in the order the themes gave: Carbono, then Uso do solo, then Ambiente', () => {
     expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('ndvi_modis'))
     expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('lulc_mapbiomas'))
   })
 
-  it('draws a theme moved up above the themes it passed', () => {
-    useStore.getState().moveTheme('uso_solo', 'carbono')
+  it('draws a layer moved up above the layer it was put before', () => {
+    useStore.getState().moveLayer('lulc_mapbiomas', 'biomassa_gedi')
 
-    expect(useStore.getState().themeOrder).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
-    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(topOf('carbono'))
+    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('biomassa_gedi'))
+    expect(useStore.getState().layerOrder.indexOf('lulc_mapbiomas'))
+      .toBeLessThan(useStore.getState().layerOrder.indexOf('biomassa_gedi'))
   })
 
-  it('draws a subtheme moved up above its sibling', () => {
-    expect(order().indexOf('solo_carbono')).toBeLessThan(order().indexOf('biomassa_gedi'))
+  it('draws a layer moved to the end below every other', () => {
+    useStore.getState().moveLayer('biomassa_gedi', null)
 
-    useStore.getState().moveSubtheme('carbono', 'estrutura', 'estoques')
-
-    expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('solo_carbono'))
+    const thematic = order().filter((id) => useStore.getState().layerOrder.includes(id))
+    expect(thematic[thematic.length - 1]).toBe('biomassa_gedi')
   })
 
-  it('keeps the recortes above every raster whatever the order', () => {
-    useStore.getState().moveTheme('ambiente', 'carbono')
+  it('draws a recorte moved up above the recorte it was put before', () => {
+    useStore.getState().moveLayer('municipios', 'bioma')
+
+    expect(order().indexOf('municipios')).toBeLessThan(order().indexOf('bioma'))
+  })
+
+  it('keeps the recortes above every thematic layer whatever the order', () => {
+    useStore.getState().moveLayer('ndvi_modis', 'biomassa_gedi')
     const { layers } = useStore.getState()
     const lastVector = layers.map((layer) => layer.type).lastIndexOf('vector')
-    expect(layers.findIndex((layer) => layer.type === 'raster')).toBe(lastVector + 1)
+    expect(layers.findIndex((layer) => layer.type !== 'vector')).toBe(lastVector + 1)
   })
 
   it('leaves the state untouched for a move that changes nothing', () => {
     const before = useStore.getState()
-    useStore.getState().moveTheme('carbono', 'uso_solo')
-    useStore.getState().moveSubtheme('carbono', 'estoques', 'reservatorios')
-    useStore.getState().moveSubtheme('nope', 'x', null)
+    const [first, second] = before.layerOrder
+    useStore.getState().moveLayer(first, second)
+    useStore.getState().moveLayer('nope', null)
 
     expect(useStore.getState().layers).toBe(before.layers)
-    expect(useStore.getState().themeOrder).toBe(before.themeOrder)
-    expect(useStore.getState().subthemeOrder).toBe(before.subthemeOrder)
+    expect(useStore.getState().layerOrder).toBe(before.layerOrder)
   })
 
   it('does not move a raster the user switches on', () => {

@@ -197,10 +197,12 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     threshold: { value: 5, label: 'Área com dossel de 5 m ou mais' },
     period: '2023',
   },
+  // FABDEM goes down to -29.9 m inside the biome (dataRanges.json), and the
+  // first band takes every pixel below the second edge, so it starts there.
   altitude_fabdem: {
     archetype: 'distribution',
     scale: 30,
-    bins: [0, 200, 400, 600, 800, 1000],
+    bins: [-30, 200, 400, 600, 800, 1000],
   },
   // The edges are the Embrapa relief classes, from "plano" (0 to 3%) to
   // "escarpado" (above 75%).
@@ -266,9 +268,24 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     meanLabel: 'Chuva no ano',
     unit: 'mm',
   },
+  brdwgd_pr: {
+    archetype: 'annual',
+    meanLabel: 'Chuva no ano',
+    unit: 'mm',
+  },
+  brdwgd_tmed: {
+    archetype: 'annual',
+    meanLabel: 'Temperatura média do ar',
+    unit: '°C',
+  },
+  brdwgd_eto: {
+    archetype: 'annual',
+    meanLabel: 'Evapotranspiração de referência no ano',
+    unit: 'mm',
+  },
   lst_modis: {
     archetype: 'annual',
-    meanLabel: 'Temperatura média',
+    meanLabel: 'Temperatura média da superfície',
     unit: '°C',
     note: 'Temperatura da superfície, passagem diurna; não é temperatura do ar.',
   },

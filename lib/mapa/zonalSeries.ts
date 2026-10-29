@@ -13,9 +13,10 @@ import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { evaluate } from '@/lib/mapa/geeEvaluate'
 import type { TimeSeriesPoint } from '@/types/mapa'
 
-// Cap of years per request. MapBiomas covers 1985 to 2024, forty stops, so the
-// old twenty-year limit would leave half of the series out.
-export const MAX_ANOS = 50
+// Cap of years per request. BR-DWGD covers 1961 to 2025, 65 stops, the longest
+// series of the platform; the old twenty-year limit already left half of
+// MapBiomas's 1985-2024 out.
+export const MAX_ANOS = 70
 
 export type SeriesRegion =
   | { kind: 'point'; lon: number; lat: number }
@@ -40,7 +41,7 @@ export function anosDoIntervalo(r: unknown): number[] | null {
   const ini = Number(a.slice(0, 4))
   const fim = Number(b.slice(0, 4))
   if (!Number.isInteger(ini) || !Number.isInteger(fim)) return null
-  if (ini < 1970 || fim > 2100 || ini > fim) return null
+  if (ini < 1950 || fim > 2100 || ini > fim) return null
   if (fim - ini + 1 > MAX_ANOS) return null
   return Array.from({ length: fim - ini + 1 }, (_, i) => ini + i)
 }

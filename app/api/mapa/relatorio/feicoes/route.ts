@@ -2,8 +2,9 @@
  * GET /api/mapa/relatorio/feicoes?recorte=municipios
  *
  * Features of a recorte, for the report form's picker. It exists so the form
- * does not have to download the GeoJSON: FloatingSearchBar pulls the whole
- * 1,1 MB of municipalities to search, and repeating that just to populate a
+ * does not have to download the GeoJSON: the platform's search
+ * (components/mapa/panel/TerritorySearch.tsx) pulls the whole 1,1 MB of
+ * municipalities to search, and repeating that just to populate a
  * select would be wasteful.
  */
 

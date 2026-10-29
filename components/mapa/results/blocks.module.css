@@ -1,0 +1,187 @@
+/* Result cards of the "Resultados" column, after Figma 19430:59196. Type
+ * comes from the .text-* utilities of app/globals.css; this file handles
+ * color, spacing and layout. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Every card: the column's 1px rule as an outline on the page's fill. */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  background: var(--bg-fundo);
+}
+
+/* The headline card (19432:60313): its top part, then the figures under a
+ * rule. The text sits 8px and 16px in from the outline. */
+.leadTop {
+  display: flex;
+  flex-direction: column;
+  padding: 7px 15px;
+}
+
+/* The layer's name heads the card in capitals (19432:60316). */
+.heading {
+  text-transform: uppercase;
+}
+
+.valueRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: 8px;
+}
+
+/* Rubik Bold 48/64, the platform's teal (19432:60319); a signed flux takes
+ * its direction's ink inline. */
+.value {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 64px;
+  letter-spacing: -0.576px;
+  color: var(--role-categorica1-padrao);
+  overflow-wrap: anywhere;
+}
+
+.unit {
+  padding-bottom: 6px;
+  color: var(--role-marca-ancora-pressionado);
+  white-space: nowrap;
+}
+
+.aside {
+  padding-bottom: 8px;
+  color: var(--am-400);
+  white-space: nowrap;
+}
+
+.figures {
+  display: grid;
+  border-top: 1px solid var(--bg-borda);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 7px 15px;
+}
+
+.figure + .figure {
+  border-left: 1px solid var(--bg-borda);
+}
+
+.figureValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: 8px;
+}
+
+/* Rubik Bold 32/32 (19432:60343). */
+.figureNumber {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 32px;
+  letter-spacing: -0.384px;
+  color: var(--bg-texto-primario);
+  overflow-wrap: anywhere;
+}
+
+/* Two figures share the row: the number drops to the h4 step so both fit
+ * the 300px card. */
+.figures[data-count='2'] .figureNumber {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+}
+
+.figureAside {
+  font-weight: 700;
+  color: var(--role-marca-ancora-pressionado);
+  white-space: nowrap;
+}
+
+/* A card of a list (bars, the donut): 16px padding, title over rows, 8px
+ * apart (19432:60432). */
+.list {
+  gap: 8px;
+  padding: 15px;
+}
+
+.listHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hint {
+  color: var(--am-400);
+  white-space: nowrap;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* A bar row (19434:60483): label, bar, amount and share, 16px apart. */
+.bar {
+  display: grid;
+  align-items: center;
+  column-gap: 16px;
+  color: var(--bg-texto-primario);
+}
+
+.barLabel {
+  overflow-wrap: anywhere;
+}
+
+.track {
+  height: 11px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--role-neutro-texto-desabilitado);
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.share {
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.zero {
+  color: var(--am-400);
+}
+
+/* A result with nothing to show: its text inside the headline card, or a
+ * bare line when no layer heads it. */
+.emptyText {
+  color: var(--bg-texto-primario);
+}
+
+.footnote {
+  color: var(--am-400);
+}

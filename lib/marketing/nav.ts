@@ -25,6 +25,10 @@ export const SECTION_IDS: readonly string[] = [
 // The map lives in another route group, so it is a full page load, not a <Link>.
 export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Plataforma', external: true }
 
+// The platform's own route. MAPA_LINK points at MAPA_URL, which a deployment
+// may set to the login page, so the active entry is decided by this path.
+const MAPA_PATH = '/mapa'
+
 // The Territórios story, app/(territorios)/territorios: another route group too.
 // A path, not the beta host's URL, so each deployment opens its own copy and
 // keeps the visitor's session, whose cookie is scoped to the host. The story
@@ -71,14 +75,14 @@ export const SOBRE_PAGES: SobrePage[] = [
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the
-// path itself or a parent of it, so every /sobre/* page lights "Sobre" and the
-// story lights "Resumo territorial". "/" only owns itself, or it would own
-// everything.
+// path itself or a parent of it, so every /sobre/* page lights "Sobre", the
+// story lights "Resumo territorial" and the platform lights "Plataforma". "/"
+// only owns itself, or it would own everything.
 export function activeNavHref(pathname: string): string | null {
+  const owns = (route: string) =>
+    route === '/' ? pathname === '/' : pathname === route || pathname.startsWith(`${route}/`)
   for (const { href } of [...HEADER_LINKS, TERRITORIOS_LINK]) {
-    if (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)) {
-      return href
-    }
+    if (owns(href)) return href
   }
-  return null
+  return owns(MAPA_PATH) ? MAPA_LINK.href : null
 }

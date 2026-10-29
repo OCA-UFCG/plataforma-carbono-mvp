@@ -1,16 +1,18 @@
 import type { PlatformTheme } from '@/types/mapa'
-import { MONTHS, resolveMonth, type MonthInfo } from '@/lib/phenology'
+import { MONTHS } from '@/lib/phenology'
 import { mix, readableOn, adjustContrast, luminance } from '@/lib/color'
 
 /**
- * Theme = fixed "mata branca" neutrals (light or dark) plus the month accent.
- * Only the accent changes over the year; the neutrals are the fixed chrome.
- * `buildTheme(month, dark)` composes the effective PlatformTheme.
+ * Theme = fixed "mata branca" neutrals (light or dark) plus an accent set.
+ * The platform wears the site's brand green (`buildSiteTheme`), the report the
+ * OCA olive (`buildReportTheme`).
  *
- * The accent set comes out computed from the month color (see lib/mapa/color.ts),
- * not written by hand: there are twelve months in two modes, and the text ink
- * has to pass 4.5:1 against the card both in April's olive green and in
- * October's light orange.
+ * The accent set comes out computed from one base color (see lib/color.ts),
+ * not written by hand. It was built for the month accent the platform wore
+ * until the redesign, twelve colors in two modes, so the text ink passes
+ * 4.5:1 against the card from April's olive green to October's light orange;
+ * `npm run contrast` still checks every month, and the flux inks below are
+ * still derived against the hardest of them.
  */
 
 // Fixed neutrals, kept in sync with the CSS vars in mapa.css.
@@ -94,19 +96,23 @@ export function buildFluxInks(dark: boolean): FluxInkSet {
   }
 }
 
-export function buildTheme(month: MonthInfo, dark: boolean): PlatformTheme {
-  const neutrals = dark ? darkNeutrals : lightNeutrals
+/**
+ * The site's brand green, ROLE-MarcaAncora-Padrao (`--role-marca-ancora-padrao`
+ * in app/globals.css): the platform's accent since the redesign of Figma
+ * section "Plataforma" (19437:60649), which draws the platform in the site's
+ * fixed palette, light only, with no month accent.
+ */
+const SITE_GREEN = '#587c22'
+
+export function buildSiteTheme(): PlatformTheme {
   return {
     id: 'carbono',
     name: 'Caativar',
     fullName: 'Observatório da Caatinga, OCA',
     footer: 'OCA / UFCG-INSA',
-    colors: { ...neutrals, ...buildAccent(month.color, dark), ...buildFluxInks(dark) },
+    colors: { ...lightNeutrals, ...buildAccent(SITE_GREEN, false), ...buildFluxInks(false) },
   }
 }
-
-/** Default theme for any non-reactive importer. */
-export const theme = buildTheme(resolveMonth('auto'), false)
 
 /**
  * Brand green of the OCA logo, the accent of the printed document.

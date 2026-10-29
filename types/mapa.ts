@@ -1,3 +1,5 @@
+import type { EmissoesCamadaSpec } from '@/types/emissoes'
+
 // Layer configs (shape of layers.json)
 
 export interface RasterClass {
@@ -19,6 +21,10 @@ export interface VectorLayerConfig {
   color: string            // hex, used for fill + outline
   labelField?: string      // property name rendered as a persistent symbol label
   hoverLabelField?: string // property name shown in a popup on mouse hover
+  // The only properties the search matches, for a layer whose features carry
+  // free text beside their name (the citations and soils of the monitoring
+  // sites). Without it the search matches every string property.
+  searchFields?: string[]
   // Point layer drawn as a sonar: a larger dot with a ring pulsing around it,
   // and a round swatch in the legend.
   pulse?: true
@@ -43,10 +49,11 @@ export interface VectorLayerConfig {
   // rather than derived. Falls back to `name`.
   unitName?: string
   // Granularity of the recorte, used only to decide which layer wins a hover
-  // or click when several visible ones overlap (higher = finer = wins). The
-  // containment hierarchy runs bioma < estados < municipios < territories;
-  // without it the biome, which contains nearly everything, would swallow every
-  // click. Layer order only breaks ties. See lib/mapa/pickVector.ts.
+  // or click when several visible ones overlap (higher wins); without it the
+  // biome, which contains nearly everything, would swallow every click. It
+  // runs bioma < estados < municipios < territories and conservation units,
+  // the last two at one level: they nest both ways, so between them the
+  // smaller feature under the pointer wins. See lib/mapa/pickVector.ts.
   pickPriority?: number
   // A recorte scripts/build-recortes.py keeps whole past the biome edge instead
   // of clipping it, so its area and statistics include the part outside: the
@@ -95,6 +102,10 @@ export interface RasterLayerConfig {
   // and not a quantity: it gets no result card, and on its own it gives a
   // click nothing to measure (lib/mapa/analysisTargets.ts).
   analysis?: false
+  // Combined with the layers of an exclusive subtheme instead of replacing
+  // them (lib/mapa/store.ts), and drawn above them (lib/mapa/layerOrder.ts):
+  // the Relevo hillshades, laid over altitude or slope.
+  overlay?: true
   // Left out of the map panel for now (lib/mapa/store.ts): set aside, or not
   // released yet. Deleting the flag brings the layer back.
   hidden?: true
@@ -112,7 +123,9 @@ export interface RasterLayerConfig {
   source?: 'titiler' | 'gee' | 'dem'
   // `source: 'dem'`: elevation tiles (TileJSON) that MapLibre shades by itself,
   // with no GEE request. The same tiles feed the 3D terrain.
-  dem?: { url: string }
+  // `maxzoom` is the deepest zoom the tiles exist at, for a TileJSON that does
+  // not declare it: MapLibre would assume 22 and request tiles that 404.
+  dem?: { url: string; maxzoom?: number }
   clipToLayerId?: string         // vector layer id whose bbox clips the GEE image
   gee?: {
     asset: {
@@ -168,7 +181,28 @@ export interface RasterLayerConfig {
   }
 }
 
-export type LayerConfig = VectorLayerConfig | RasterLayerConfig
+// Municipal GHG emissions, a table and not an image: drawn as a fill over the
+// finest of the bioma, estados and municipios recortes on, from the values
+// /api/mapa/emissoes builds out of config/emissoes/emissoes.json. It sits in
+// the panel and in the raster order like a thematic raster, but has no GEE
+// asset, no tile, no pixel and no zonal statistics.
+export interface EmissionsLayerConfig {
+  id: string
+  name: string
+  type: 'emissions'
+  theme?: string
+  subtheme?: string
+  visible: boolean
+  opacity: number   // 0-100
+  hidden?: true
+  /** Which series of which inventory (lib/emissoes/series.ts). */
+  emissoes: EmissoesCamadaSpec
+  unit: string
+  /** Years of the slider, as `gee.temporal` of the rasters. */
+  temporal: { dateRange: [string, string] }
+}
+
+export type LayerConfig = VectorLayerConfig | RasterLayerConfig | EmissionsLayerConfig
 
 // App config (full layers.json shape)
 
@@ -182,10 +216,9 @@ export interface AppConfig {
 
 // Drawing
 
+/** The drawing buttons of the panel: "Delimitar recorte" and "Marcar ponto". */
 export type DrawMode =
   | 'polygon'
-  | 'rectangle'
-  | 'linestring'
   | 'point'
   | null
 
@@ -308,6 +341,8 @@ export interface SelectedGeometry {
   geometryType: 'polygon' | 'point'
   lon?:         number
   lat?:         number
+  /** The recorte feature clicked or searched, absent for a drawing. */
+  feature?:     { recorteId: string; properties: Record<string, unknown> }
 }
 
 // Basemap (raster XYZ tiles)

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import appConfig from '@/config/mapa/layers.json'
+import ranges from '@/config/mapa/dataRanges.json'
 import { RESULT_PROFILES } from '@/config/mapa/resultProfiles'
+import type { DataRangesFile } from '@/lib/mapa/dataRange'
 import type { LayerConfig, RasterLayerConfig } from '@/types/mapa'
 
 // The profile decides which aggregation a layer's numbers go through, and a
@@ -92,6 +94,20 @@ describe('result profiles', () => {
     for (const [id, p] of Object.entries(RESULT_PROFILES)) {
       if (p.archetype !== 'amount' && p.archetype !== 'distribution') continue
       for (let i = 1; i < p.bins.length; i++) expect(p.bins[i], `${id}`).toBeGreaterThan(p.bins[i - 1])
+    }
+  })
+
+  // binIndex files every pixel below the second edge into the first band, so a
+  // first edge above the data minimum would label those pixels with a range
+  // they are not in ("0 a 200 m" for an altitude below sea level).
+  it('start the first band at or below the data minimum', () => {
+    const layerRanges = (ranges as DataRangesFile).layers
+    for (const [id, p] of Object.entries(RESULT_PROFILES)) {
+      if (p.archetype !== 'distribution') continue
+      const range = layerRanges[id]
+      if (!range) continue
+      const mins = 'byYear' in range ? Object.values(range.byYear).map((year) => year.min) : [range.min]
+      expect(p.bins[0], id).toBeLessThanOrEqual(Math.min(...mins))
     }
   })
 
