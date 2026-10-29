@@ -22,7 +22,7 @@
 /* Figma "Painel de controle glossário" (19401:22996): a white box with a
  * border, 24px inside and 24px between its rows of 40px. The min-height holds
  * the scene's rows (--linhas, from CenaAnimada.tsx) while it loads: 90px for
- * one, 154px for two. */
+ * one, 154px for two (Fluxos, the CUE). */
 .caixa {
   display: flex;
   flex-direction: column;
@@ -111,18 +111,6 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-
-.painel :global(.cuectl) {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-}
-
-.painel :global(.cuectl input) {
-  width: 200px;
-  accent-color: var(--role-marca-ancora-padrao);
 }
 
 .painel :global(.legend) {

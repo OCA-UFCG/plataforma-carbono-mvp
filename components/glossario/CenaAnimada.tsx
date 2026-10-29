@@ -23,15 +23,16 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
 
 // Rows of controls the page draws for each scene, known before its chunk
 // arrives so the panel does not grow when it does: one for steps (etapas()),
-// one for time (tempo()). The CUE and Manejo agroecológico build their own
-// controls for now (#150), at a height that depends on the width.
+// one for the value the reader sets (valor()), one for time (tempo()). The
+// Manejo agroecológico builds its own controls for now, at a height that
+// depends on the width.
 const LINHAS: Record<AnimacaoId, number> = {
   cicloAnual: 1,
   torreFluxo: 1,
   estoques: 1,
   cisterna: 1,
   fluxos: 2,
-  cue: 1,
+  cue: 2,
   degradacao: 1,
   agroecologia: 1,
 };
@@ -142,8 +143,8 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
             ))}
           </div>
         )}
-        {/* Controls a scene builds itself (the CUE value, the stage texts of
-            the two farming systems), until they move to the components above. */}
+        {/* Controls a scene builds itself (the Manejo agroecológico's steps and
+            stage texts), until they move to the components above. */}
         <div ref={painel} className={styles.painel} />
         {estado && valor && valorAtual !== null && (
           <div className={styles.linha}>
