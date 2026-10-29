@@ -65,6 +65,14 @@
     var(--am-050);
 }
 
+/* With a roving tabindex the focused tab is always the current one, which the
+ * rule above skips, so it gets the browser's outline. `.list` scrolls, which
+ * clips whatever leaves its box, and the 52px tabs sit flush with its bottom:
+ * the ring is drawn inside the tab. */
+.itemCurrent:focus-visible {
+  outline-offset: -2px;
+}
+
 /* A Comunicação or Glossário tab panel takes focus (tabIndex 0, as the
  * WAI-ARIA tabs pattern asks); it spans the page, so its ring is drawn inside
  * it. */
