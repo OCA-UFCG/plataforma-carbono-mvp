@@ -6,8 +6,11 @@ export interface EstadoCena {
   velocidade: number
   /** Position in the year, 0 to 1; the year starts on 1 November. */
   posicao: number
-  /** Day and month at the position, "2 nov". */
+  /** Day and month at the position, "2 nov". Not shown: the page names the phase. */
   data: string
+  /** Phase of the year at the position, "Primeiras chuvas": the page shows it in
+   *  place of the date, since the rainy season's months vary across the Caatinga. */
+  fase: string
   movimentoReduzido: boolean
   /** Open step, in an animation told in steps; null otherwise. */
   etapa: number | null
@@ -20,6 +23,15 @@ export interface EstadoCena {
   /** What screen readers hear for the value, when the number alone says too
    *  little: "0,31, Área cristalina: 31 de cada 100 ficam". Null: textoValor. */
   descricaoValor: string | null
+}
+
+/** One of the five phases of the year, as a stretch of `posicao` (0 to 1). */
+export interface FaseAno {
+  nome: string
+  inicio: number
+  fim: number
+  /** Colour of the phase's band on the time slider. */
+  cor: string
 }
 
 export interface EtapaCena {
@@ -62,6 +74,8 @@ export interface ControleCena {
   definirValor(v: number): void
   /** Whether the page shows the time controls; false for a scene told only in steps. */
   tempo(): boolean
+  /** The phases of the year, in order, for the time slider's bands. */
+  fases(): FaseAno[]
   estado(): EstadoCena
   encerrar(): void
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AnimacaoId } from "@/lib/glossario/termos";
-import type { ControleCena, CriarCena, EstadoCena, EtapaCena, ValorCena } from "@/lib/cenas/tipos";
+import type { ControleCena, CriarCena, EstadoCena, EtapaCena, FaseAno, ValorCena } from "@/lib/cenas/tipos";
 import BotaoEtapa from "./painel/BotaoEtapa";
 import BotaoReproduzir from "./painel/BotaoReproduzir";
 import Regua from "./painel/Regua";
@@ -50,6 +50,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
   const [etapas, setEtapas] = useState<EtapaCena[] | null>(null);
   const [valor, setValor] = useState<ValorCena | null>(null);
   const [tempo, setTempo] = useState(false);
+  const [fases, setFases] = useState<FaseAno[]>([]);
   // Whether the reader has chosen a step or a value. Until then the scene tours
   // its steps on its own, and reading each one aloud would talk over a reader
   // still on the term's paragraphs. Only those choices stop a tour: the time
@@ -93,6 +94,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               setEtapas(controle.current.etapas());
               setValor(controle.current.valor());
               setTempo(controle.current.tempo());
+              setFases(controle.current.fases());
               aplicarVisibilidade();
             },
             () => {
@@ -122,6 +124,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       setEtapas(null);
       setValor(null);
       setTempo(false);
+      setFases([]);
       setInteragiu(false);
     };
   }, [id]);
@@ -192,13 +195,14 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
                 day, which the scene does not report, and the slider would snap
                 back. Mid-day keeps the position clear of the day's edges. */}
             <Regua
-              rotulo="Posição no ano"
+              rotulo="Época do ano"
               min={0}
               max={364}
               passo={1}
               valor={Math.floor(estado.posicao * 365)}
               onChange={(v) => controle.current?.posicao((v + 0.5) / 365)}
-              textoValor={estado.data}
+              textoValor={estado.fase}
+              faixas={fases}
             />
           </div>
         )}

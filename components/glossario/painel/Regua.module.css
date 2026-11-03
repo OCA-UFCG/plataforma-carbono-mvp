@@ -22,11 +22,24 @@
   white-space: nowrap;
 }
 
-/* Wide enough for the widest date, "10 mar", so the track does not jitter while
- * the date runs. */
+/* Wide enough for the widest value, "0,31" or "2,75×", so the track does not
+ * jitter while it runs. */
 .valor {
   min-width: 3.25em;
   font-variant-numeric: tabular-nums;
+}
+
+/* The time slider takes twice the speed slider's share of the row, since its
+ * value, the phase's name, is the longest. */
+.reguaFases {
+  flex-grow: 2;
+  min-width: min(100%, 360px);
+}
+
+/* The time slider names the phase of the year; wide enough for the longest,
+ * "Primeiras chuvas". */
+.valorFase {
+  min-width: 8.6em;
 }
 
 .trilha {
