@@ -7,10 +7,10 @@ import { useUrlTabs } from '@/components/marketing/useUrlTabs'
 // refs are filled by hand, and window carries only what the hook touches.
 const IDS = ['a', 'b', 'c'] as const
 
-function setup() {
+function setup(options?: Parameters<typeof useUrlTabs>[2]) {
   let tabs!: ReturnType<typeof useUrlTabs<(typeof IDS)[number]>>
   const Probe = () => {
-    tabs = useUrlTabs(IDS, (current, id) => `${current.pathname}?aba=${id}`)
+    tabs = useUrlTabs(IDS, (current, id) => `${current.pathname}?aba=${id}`, options)
     return null
   }
   renderToStaticMarkup(createElement(Probe))
@@ -72,5 +72,33 @@ describe('useUrlTabs', () => {
 
     expect(press('Tab', 'a')).not.toHaveBeenCalled()
     expect(replaceState).not.toHaveBeenCalled()
+  })
+
+  it('leaves the up and down arrows to the page in a horizontal strip', () => {
+    const { replaceState, press } = setup()
+
+    expect(press('ArrowDown', 'a')).not.toHaveBeenCalled()
+    expect(press('ArrowUp', 'a')).not.toHaveBeenCalled()
+    expect(replaceState).not.toHaveBeenCalled()
+  })
+
+  it('moves with the up and down arrows in a vertical list, wrapping around', () => {
+    const { el, replaceState, press } = setup({ orientation: 'vertical' })
+    const last = () => replaceState.mock.lastCall?.[2]
+
+    expect(press('ArrowDown', 'a')).toHaveBeenCalled()
+    expect(last()).toBe('/pagina?aba=b')
+    expect(el.b.focus).toHaveBeenCalled()
+    press('ArrowUp', 'a')
+    expect(last()).toBe('/pagina?aba=c')
+    press('ArrowDown', 'c')
+    expect(last()).toBe('/pagina?aba=a')
+  })
+
+  it('keeps the side arrows in a vertical list, which lies sideways on narrow screens', () => {
+    const { replaceState, press } = setup({ orientation: 'vertical' })
+
+    press('ArrowRight', 'a')
+    expect(replaceState).toHaveBeenLastCalledWith(null, '', '/pagina?aba=b')
   })
 })
