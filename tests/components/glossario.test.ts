@@ -16,7 +16,7 @@ const html = (busca: string) => {
 }
 
 describe('Glossario', () => {
-  it('renders one tab per term, in the design order with "Sequestro de carbono" last', () => {
+  it('renders one tab per term, in the design order followed by the terms the design does not draw yet', () => {
     const markup = html('')
     const tabs = markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []
 
@@ -29,6 +29,7 @@ describe('Glossario', () => {
       'Degradação',
       'Manejo agroecológico',
       'Sequestro de carbono',
+      'Inventário de carbono',
     ])
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
   })
