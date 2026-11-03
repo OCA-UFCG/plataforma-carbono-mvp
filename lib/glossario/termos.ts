@@ -1,5 +1,5 @@
 // Terms of the Glossário page (/glossario), one tab each, in the order of
-// the design's tab strip (Figma 19400:12117), followed by the terms the
+// the design's sidebar (Figma 19507:16678), followed by the terms the
 // design does not draw yet: "Sequestro de carbono", then "Inventário de
 // carbono". `animacao` names a scene assembled in lib/cenas/gerado/
 // (scripts/montar-cenas.mjs).
