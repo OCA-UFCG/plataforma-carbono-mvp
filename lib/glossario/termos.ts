@@ -19,6 +19,12 @@ export interface Termo {
     /** Read by screen readers in place of the canvas. */
     descricao: string
   }
+  /**
+   * Text under the animation's control panel, which the redesign (Figma
+   * 19507:16694) adds below the scene; `paragrafos` stay above it. No term
+   * has it yet: the frame repeats the Fotossíntese paragraph as a placeholder.
+   */
+  paragrafosAposCena?: string[]
   /** References in APA, in the order they are cited. */
   fontes?: string[]
   /** A way into the platform from the term, under the animation. */

@@ -4,9 +4,11 @@ import styles from "./TermoAberto.module.css";
 
 // The open term of the Glossário, in the column beside the sidebar (Figma
 // 19507:16686): its title (in the global .text-h3) and text, its animation
-// with the control panel, then the way into the platform and the sources.
-// Glossario.tsx wraps it in the tab panel, which spaces these blocks 24px
-// apart.
+// with the control panel, the text written for under it, then the way into
+// the platform and the sources. Glossario.tsx wraps it in the tab panel,
+// which spaces these blocks 24px apart, as it does the paragraphs under the
+// scene: the frame draws a single one (19507:16694), so the gap between two
+// is a guess.
 export default function TermoAberto({ termo }: { termo: Termo }) {
   return (
     <>
@@ -19,6 +21,9 @@ export default function TermoAberto({ termo }: { termo: Termo }) {
       {termo.animacao && (
         <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
       )}
+      {termo.paragrafosAposCena?.map((p, i) => (
+        <p key={i} className={`${styles.paragrafo} text-body`}>{p}</p>
+      ))}
       {termo.acesso && (
         // The platform is another root layout: a plain link, a full page load.
         <a className={styles.acesso} href={termo.acesso.href}>{termo.acesso.rotulo}</a>
