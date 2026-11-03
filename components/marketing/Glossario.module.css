@@ -142,3 +142,37 @@
   outline: 2px solid var(--role-marca-ancora-padrao);
   outline-offset: -2px;
 }
+
+/* No frame draws the Glossário narrow. Below 900px the sidebar would leave
+ * the term too little room, so it goes on top: the title and the search box
+ * across the gutters, over a rule instead of beside one, and the terms in a
+ * strip that scrolls sideways from edge to edge, as the Comunicação tabs do
+ * (TabStrip.module.css). Glossario.tsx scrolls the open term into the strip,
+ * and useUrlTabs keeps the side arrows for it. The strip's 4px of block
+ * padding leaves room for the focus ring, which its scrolling would clip. */
+@media (max-width: 900px) {
+  .linha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lateral {
+    padding: 24px var(--gutter) 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
+  }
+
+  .termos {
+    flex-direction: row;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 4px var(--gutter);
+  }
+
+  .termo {
+    flex: none;
+  }
+
+  .conteudo {
+    padding: 24px var(--gutter) 40px;
+  }
+}
