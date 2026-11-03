@@ -57,9 +57,13 @@ export async function openRoute(
   if (opts.reducedMotion) {
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
   }
-  const response = await page.goto(new URL(route.path, baseUrl).href, { waitUntil: 'networkidle2' })
+  // 'load', then puppeteer's own count of requests in flight. Chrome's
+  // networkidle2 lifecycle event never fired for /glossario at 1440 px under
+  // reduced motion, with nothing in flight, so goto is not left waiting on it.
+  const response = await page.goto(new URL(route.path, baseUrl).href, { waitUntil: 'load' })
   const status = response?.status()
   if (status !== 200) throw new Error(`status ${status ?? 'none'}`)
+  await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 30_000 })
   await page.waitForSelector(route.ready, { timeout: READY_TIMEOUT_MS })
   return page
 }
