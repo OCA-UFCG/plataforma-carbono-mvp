@@ -19,6 +19,7 @@ const CENAS: Record<AnimacaoId, () => Promise<{ criarCena: CriarCena }>> = {
   cue: () => import("@/lib/cenas/gerado/cue"),
   degradacao: () => import("@/lib/cenas/gerado/degradacao"),
   agroecologia: () => import("@/lib/cenas/gerado/agroecologia"),
+  medirCarbono: () => import("@/lib/cenas/gerado/medirCarbono"),
 };
 
 // Rows of controls the page draws for each scene, known before its chunk
@@ -33,6 +34,7 @@ const LINHAS: Record<AnimacaoId, number> = {
   cue: 2,
   degradacao: 1,
   agroecologia: 1,
+  medirCarbono: 2,
 };
 
 // One glossary animation with its control panel, which lives outside the

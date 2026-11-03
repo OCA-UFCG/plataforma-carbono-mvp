@@ -5,7 +5,7 @@
 
 import { ABA_PARAM } from '@/lib/marketing/comunicacaoAbas'
 
-export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia'
+export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia' | 'medirCarbono'
 
 export interface Termo {
   slug: string
@@ -113,6 +113,16 @@ export const TERMOS: Termo[] = [
       id: 'cisterna',
       titulo: 'Guardar água, guardar carbono',
       descricao: 'Casa do sertão com uma cisterna em corte ao lado de uma Caatinga com o solo em corte, comparando a água guardada na cisterna com o carbono guardado na vegetação e no solo: o que entra, o que sai, o saldo, como proteger, o vazamento e onde a comparação para. Os botões avançam as etapas.',
+    },
+  },
+  {
+    slug: 'inventario-de-carbono',
+    titulo: 'Inventário de carbono',
+    paragrafos: [],
+    animacao: {
+      id: 'medirCarbono',
+      titulo: 'Medir o carbono de uma área',
+      descricao: 'Paisagem de Caatinga com três estratos, densa, aberta e degradada, mostrando o inventário em campo: o mapa dos estratos, as parcelas, a medição da circunferência dos caules a 1,30 m, a equação alométrica, a coleta de serapilheira, madeira morta e solo, a conversão da biomassa em carbono e a extrapolação para a área com a faixa de incerteza. Os botões avançam as etapas, e a régua muda o número de parcelas.',
     },
   },
 ]
