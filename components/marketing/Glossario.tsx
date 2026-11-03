@@ -1,15 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import CenaAnimada from "@/components/glossario/CenaAnimada";
-import { TERMOS, TERMO_PARAM, parseTermo } from "@/lib/glossario/termos";
+import { TERMOS, TERMO_PARAM, abaFocavel, filtrarTermos, parseTermo } from "@/lib/glossario/termos";
 import { useUrlTabs } from "./useUrlTabs";
 import styles from "./Glossario.module.css";
 
 const PANEL_ID = "glossario-painel";
 
-const SLUGS = TERMOS.map((t) => t.slug);
+const LISTA_ID = "glossario-termos";
+
+// What the live region reads once the reader has typed in the search box.
+function contagem(n: number) {
+  if (n === 0) return "Nenhum termo encontrado";
+
+  return n === 1 ? "1 termo encontrado" : `${n} termos encontrados`;
+}
 
 // The address of a term, keeping whatever else the current one carries.
 function termoHref(current: URL, slug: string) {
@@ -53,9 +60,17 @@ function mostrarAba(tab: HTMLButtonElement | null | undefined) {
 // useSearchParams, so a shared link opens the same term on the server, and a
 // link back to the bare /glossario (the header's) opens the first term again
 // even though the page stays mounted.
+// The "Buscar termo" box filters the list as the reader types, and only the
+// list: the open term stays open until a tab is chosen. A term the search
+// leaves out is hidden rather than unmounted, so the panel keeps the label its
+// tab gives it (aria-labelledby reads hidden elements), and the arrow keys
+// move among the terms shown.
 export default function Glossario({ titulo }: { titulo: string }) {
   const termo = parseTermo(useSearchParams()?.get(TERMO_PARAM) ?? null);
-  const { select, handleKeyDown, tabRef, tab } = useUrlTabs(SLUGS, termoHref, { orientation: "vertical" });
+  const [busca, setBusca] = useState("");
+  const visiveis = filtrarTermos(TERMOS, busca).map((t) => t.slug);
+  const focavel = abaFocavel(visiveis, termo.slug);
+  const { select, handleKeyDown, tabRef, tab } = useUrlTabs(visiveis, termoHref, { orientation: "vertical" });
 
   // A link may open a term past the list's edge on a narrow screen.
   useEffect(() => mostrarAba(tab(termo.slug)), [tab, termo.slug]);
@@ -65,7 +80,22 @@ export default function Glossario({ titulo }: { titulo: string }) {
       <div className={styles.linha}>
         <div className={styles.lateral}>
           <h1 className={`${styles.titulo} ${styles.tituloPagina}`}>{titulo}</h1>
-          <div className={styles.termos} role="tablist" aria-orientation="vertical" aria-label="Termos do glossário">
+          {/* 19507:16677: the design names it "select", but draws a search
+              box, a magnifier where a select's arrow would be. */}
+          <div className={styles.busca}>
+            <input
+              type="search"
+              className={`${styles.buscaCampo} text-ui-regular`}
+              placeholder="Buscar termo"
+              aria-label="Buscar termo"
+              aria-controls={LISTA_ID}
+              value={busca}
+              onChange={(event) => setBusca(event.target.value)}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
+            <img className={styles.buscaIcone} src="/icons/mapa/search.svg" alt="" width={16} height={16} />
+          </div>
+          <div id={LISTA_ID} className={styles.termos} role="tablist" aria-orientation="vertical" aria-label="Termos do glossário">
             {TERMOS.map((t) => {
               const selected = t.slug === termo.slug;
               return (
@@ -77,7 +107,8 @@ export default function Glossario({ titulo }: { titulo: string }) {
                   id={tabId(t.slug)}
                   aria-selected={selected}
                   aria-controls={selected ? PANEL_ID : undefined}
-                  tabIndex={selected ? 0 : -1}
+                  tabIndex={t.slug === focavel ? 0 : -1}
+                  hidden={!visiveis.includes(t.slug)}
                   className={`${styles.termo} text-ui-tab${selected ? ` ${styles.termoAtual}` : ""}`}
                   onClick={() => select(t.slug)}
                   onKeyDown={handleKeyDown}
@@ -87,6 +118,13 @@ export default function Glossario({ titulo }: { titulo: string }) {
               );
             })}
           </div>
+          {visiveis.length === 0 && <p className={`${styles.semResultado} text-body`}>Nenhum termo encontrado</p>}
+          {/* Live from the start and empty until the reader types: a region
+              that turns live in the same render as its first text is often
+              not read. */}
+          <p className="sr-only" aria-live="polite">
+            {busca.trim() ? contagem(visiveis.length) : ""}
+          </p>
         </div>
 
         <section

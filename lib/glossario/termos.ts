@@ -149,6 +149,16 @@ export function filtrarTermos(termos: readonly Termo[], busca: string): Termo[] 
   return termos.filter((t) => normalizeSearch(t.titulo).includes(alvo))
 }
 
+/**
+ * The one tab of the sidebar that Tab reaches (the roving tabindex of the
+ * WAI-ARIA tabs pattern): the open term while the search shows it, otherwise
+ * the first term shown, so a search that hides the open term does not leave
+ * the list with no way in. undefined when the search shows none.
+ */
+export function abaFocavel(visiveis: readonly string[], aberto: string): string | undefined {
+  return visiveis.includes(aberto) ? aberto : visiveis[0]
+}
+
 // The Glossário was a third tab of the Comunicação page while it was tested,
 // and links to it (/comunicacao?aba=glossario&termo=<slug>) went around. That
 // page sends them to /glossario with everything else they carry (the term,

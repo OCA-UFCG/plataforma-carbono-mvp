@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TERMOS, filtrarTermos, glossarioAntigoHref } from '@/lib/glossario/termos'
+import { TERMOS, abaFocavel, filtrarTermos, glossarioAntigoHref } from '@/lib/glossario/termos'
 
 const titulos = (busca: string) => filtrarTermos(TERMOS, busca).map((t) => t.titulo)
 
@@ -25,6 +25,20 @@ describe('filtrarTermos', () => {
 
   it('finds nothing when no title holds the text', () => {
     expect(filtrarTermos(TERMOS, 'mandacaru')).toEqual([])
+  })
+})
+
+describe('abaFocavel', () => {
+  it('lets Tab reach the open term while the search shows it', () => {
+    expect(abaFocavel(['torre-de-fluxo', 'fluxos-de-carbono'], 'fluxos-de-carbono')).toBe('fluxos-de-carbono')
+  })
+
+  it('lets Tab reach the first term shown once the search hides the open one', () => {
+    expect(abaFocavel(['torre-de-fluxo', 'fluxos-de-carbono'], 'degradacao')).toBe('torre-de-fluxo')
+  })
+
+  it('names no term when the search shows none', () => {
+    expect(abaFocavel([], 'degradacao')).toBeUndefined()
   })
 })
 

@@ -49,6 +49,44 @@
   color: var(--role-categorica1-padrao);
 }
 
+/* The search box (19507:16677): 40px tall, 12px inside, a 1px --bg-borda
+ * border with 8px corners on white, the placeholder in --bg-texto-secundario
+ * (Inter 400 14/24, the global .text-ui-regular) and a 16px magnifier 12px
+ * from the right edge, where the text stops short of it. The focus ring is
+ * the site's brand green, which the design does not draw. */
+.busca {
+  position: relative;
+}
+
+.buscaCampo {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 36px 0 12px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  margin: 0;
+  background: var(--role-primario-texto-sobre);
+  color: var(--bg-texto-primario);
+}
+
+.buscaCampo::placeholder {
+  color: var(--bg-texto-secundario);
+  opacity: 1;
+}
+
+.buscaCampo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+.buscaIcone {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  pointer-events: none;
+}
+
 /* The terms, 4px apart (19507:16678). */
 .termos {
   display: flex;
@@ -86,6 +124,14 @@
 .termo:focus-visible {
   outline: 2px solid var(--role-marca-ancora-padrao);
   outline-offset: 2px;
+}
+
+/* In place of the list when the search finds nothing; the design draws no
+ * such state. */
+.semResultado {
+  margin: 0;
+  padding-inline: 16px;
+  color: var(--bg-texto-secundario);
 }
 
 /* The open term's column (19507:16686): 40px of block padding, 24px from the
