@@ -2,6 +2,14 @@
 export const GEE_TIMEOUT_MS = 65_000
 
 /**
+ * Deadline for the results panel's reductions. A cold reduction over the whole
+ * biome took 40 to 65 s even with its boundary simplified, so the panel waits
+ * longer than the other routes; the server caches the answer
+ * (lib/mapa/resultCache.ts), and only the first person to ask pays for it.
+ */
+export const GEE_RESULT_TIMEOUT_MS = 150_000
+
+/**
  * Reject with a timeout error if `p` doesn't settle within `ms`. The
  * underlying GEE request may keep running server-side, but the HTTP handler
  * is freed instead of hanging indefinitely (the `ee.evaluate` callback has

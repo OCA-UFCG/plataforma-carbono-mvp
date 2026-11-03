@@ -6,7 +6,7 @@
 // degrees of latitude: assuming a constant area would overestimate the total by
 // about 0.7% (measured against the inventory).
 
-import { evaluate } from './geeEvaluate'
+import { evaluate, GEE_TIMEOUT_MS } from './geeEvaluate'
 
 export interface StocksConfig {
   pools:      { band: string; label: string }[]
@@ -68,6 +68,8 @@ export function summarizeStockGroups(
  * Crosses the pools with the class and returns the complete table.
  *
  * `ee` and `geometry` are `any` because @google/earthengine ships no types.
+ * `timeoutMs` is the route's bound: the results panel waits longer than the
+ * territorial report.
  */
 export async function buildStockReport(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,6 +81,7 @@ export async function buildStockReport(
   cfg: StocksConfig,
   legenda: LegendaClasse[],
   scale: number,
+  timeoutMs = GEE_TIMEOUT_MS,
 ) {
   const bands = cfg.pools.map((p) => p.band)
   const classe = ee.Image(cfg.classAsset).select(cfg.classBand)
@@ -104,6 +107,7 @@ export async function buildStockReport(
       bestEffort: true,
       tileScale:  4,
     }),
+    timeoutMs,
   )
 
   return summarizeStockGroups(bruto?.groups, cfg, legenda)

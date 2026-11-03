@@ -7,14 +7,18 @@
 // - a total or an area is always value × `ee.Image.pixelArea()`, never a pixel
 //   count, which stops meaning anything the moment the scale changes;
 // - one `evaluate` per click, so a result costs one request against the
-//   per-IP limit.
+//   per-IP limit;
+// - the region is the recorte simplified to the scale it is read at
+//   (lib/mapa/simplifyGeometry.ts): the biome's 108k vertices alone pushed its
+//   reductions past the deadline.
 //
 // The territorial report does not come through here: it keeps
 // `computeZonalStats`, so this panel can change without touching it.
 
 import { area as turfArea } from '@turf/area'
 import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
-import { evaluate } from '@/lib/mapa/geeEvaluate'
+import { evaluate, GEE_RESULT_TIMEOUT_MS } from '@/lib/mapa/geeEvaluate'
+import { simplifyForScale } from '@/lib/mapa/simplifyGeometry'
 import { buildStockReport } from '@/lib/mapa/stockReport'
 import { yearOfBand } from '@/lib/mapa/results/period'
 import type { ResultLayer } from '@/lib/mapa/resultsRegistry'
@@ -95,8 +99,19 @@ type Groups<K extends string> = { groups?: ({ sum: number } & Record<K, number>)
 export async function computeLayerResult(ee: any, input: LayerResultInput): Promise<PanelResult> {
   const { entry, geometry, temporalDate } = input
   const { asset, profile } = entry
-  const region = ee.Geometry(geometry)
   const regionM2 = turfArea(geometry as GeoJSON.Geometry)
+  // One simplified region per scale: the branches that reduce twice at the
+  // same scale share it instead of simplifying 108k vertices again.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const regions = new Map<number, any>()
+  const regionAt = (scale: number) => {
+    let region = regions.get(scale)
+    if (!region) {
+      region = ee.Geometry(simplifyForScale(geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon, scale))
+      regions.set(scale, region)
+    }
+    return region
+  }
   // Built on use: the stock report brings its own area image.
   const hectares = () => ee.Image.pixelArea().divide(1e4)
 
@@ -108,7 +123,7 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
   const groupedHa = (key: any, groupName: string, scale: number, bestEffort: boolean, mask?: any) =>
     (mask ? hectares().updateMask(mask) : hectares()).addBands(key.rename(groupName)).reduceRegion({
       reducer:  ee.Reducer.sum().group({ groupField: 1, groupName }),
-      geometry: region,
+      geometry: regionAt(scale),
       scale,
       maxPixels: 1e9,
       tileScale: 4,
@@ -119,7 +134,7 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
   const sums = (image: any, scale: number) =>
     image.reduceRegion({
       reducer:    ee.Reducer.sum(),
-      geometry:   region,
+      geometry:   regionAt(scale),
       scale,
       maxPixels:  1e9,
       tileScale:  4,
@@ -139,7 +154,8 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
     case 'stocks': {
       const stocks = entry.stocks!
       const report = await buildStockReport(
-        ee, ee.Image(stocks.assetId), region, stocks.cfg, stocks.legenda, stocks.scale,
+        ee, ee.Image(stocks.assetId), regionAt(stocks.scale), stocks.cfg, stocks.legenda,
+        stocks.scale, GEE_RESULT_TIMEOUT_MS,
       )
       return { kind: 'stocks', report }
     }
@@ -158,6 +174,7 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
       const hist = groupedHa(binIndex(v, profile.bins), 'bin', scale, true, v.mask())
       const raw = await evaluate<{ t: Record<string, unknown>; h: Groups<'bin'> }>(
         ee.Dictionary({ t: totals, h: hist }),
+        GEE_RESULT_TIMEOUT_MS,
       )
       return {
         kind:    'amount',
@@ -170,7 +187,7 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
     }
 
     case 'distribution':
-      return distribution(ee, profile, asset, region, regionM2, temporalDate, groupedHa, binIndex)
+      return distribution(ee, profile, asset, regionAt, regionM2, temporalDate, groupedHa, binIndex)
 
     case 'flux':
       return flux(ee, asset, regionM2, temporalDate, sums, hectares())
@@ -184,12 +201,13 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
       const raw = await evaluate<Groups<'class'>>(
         ee.Image.pixelArea().addBands(v.rename('class')).reduceRegion({
           reducer:    ee.Reducer.sum().group({ groupField: 1, groupName: 'class' }),
-          geometry:   region,
+          geometry:   regionAt(scale),
           scale,
           maxPixels:  1e9,
           tileScale:  4,
           bestEffort: true,
         }),
+        GEE_RESULT_TIMEOUT_MS,
       )
       // Area in m² per class code, the convention of the categorical kind.
       const areas: Record<string, number> = {}
@@ -210,7 +228,7 @@ type Fn = (...args: any[]) => any
 
 async function distribution(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ee: any, profile: DistributionProfile, asset: GeeAssetConfig, region: any,
+  ee: any, profile: DistributionProfile, asset: GeeAssetConfig, regionAt: Fn,
   regionM2: number, temporalDate: string | undefined, groupedHa: Fn, binIndex: Fn,
 ): Promise<PanelResult> {
   // A fixed scale and no `bestEffort`: coarsening reads the mean pyramid,
@@ -221,7 +239,7 @@ async function distribution(
   const stats = v.reduceRegion({
     reducer: ee.Reducer.percentile([10, 50, 90])
       .combine({ reducer2: ee.Reducer.mean(), sharedInputs: true }),
-    geometry:  region,
+    geometry:  regionAt(scale),
     scale,
     maxPixels: 1e9,
     tileScale: 4,
@@ -229,6 +247,7 @@ async function distribution(
   const hist = groupedHa(binIndex(v, profile.bins), 'bin', scale, false, v.mask())
   const raw = await evaluate<{ s: Record<string, unknown>; h: Groups<'bin'> }>(
     ee.Dictionary({ s: stats, h: hist }),
+    GEE_RESULT_TIMEOUT_MS,
   )
   const bins = binsFromGroups(profile.bins, raw.h.groups ?? [])
   return {
@@ -262,7 +281,7 @@ async function flux(
       areaWhere(hectares, v).rename('valid'),
     ),
     scale,
-  ))
+  ), GEE_RESULT_TIMEOUT_MS)
   return {
     kind:       'flux',
     positive:   num(raw.pos),
@@ -288,7 +307,7 @@ async function annual(
   const raw = await evaluate<Record<string, unknown>>(sums(
     ee.Image.cat(v.multiply(m2).rename('vA'), m2.updateMask(v.mask()).rename('A')),
     scale,
-  ))
+  ), GEE_RESULT_TIMEOUT_MS)
   const vA = num(raw.vA)
   const A = num(raw.A)
   return {
@@ -325,7 +344,7 @@ async function recurrence(
   // of 12,8%). Reprojected, each coarse pixel takes the key of one real pixel.
   const key = count.multiply(2).add(count.gt(previous)).toInt().reproject(current.projection())
 
-  const raw = await evaluate<Groups<'k'>>(groupedHa(key, 'k', scale, false))
+  const raw = await evaluate<Groups<'k'>>(groupedHa(key, 'k', scale, false), GEE_RESULT_TIMEOUT_MS)
   const byCount = countsFromGroups(raw.groups ?? [])
   return {
     kind:     'recurrence',
