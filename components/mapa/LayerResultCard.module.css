@@ -57,6 +57,11 @@ button.heading {
   overflow-wrap: anywhere;
 }
 
+/* Folded over a failure: the headline is the failure. */
+.failed {
+  color: var(--role-alerta-risco-hover);
+}
+
 .retry {
   margin-top: 12px;
   width: 100%;
