@@ -162,6 +162,7 @@ export default function RecortePicker({ layers, onToggle }: {
             {group.layers.map((layer) => {
               const at = options.indexOf(layer)
               return (
+                // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard selection lives on the listbox (onListKeyDown + aria-activedescendant)
                 <li
                   key={layer.id}
                   id={optionId(at)}

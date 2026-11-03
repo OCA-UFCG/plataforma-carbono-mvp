@@ -19,7 +19,7 @@ python tests/scripts/test_build_sif.py           # unit tests of scripts/build-s
 npm run contrast         # WCAG contrast check of the 12 monthly accents; runs in CI
 ```
 
-CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run build` and `npm run contrast` — it does **not** run `npm test` or `npm run lint`, so run those locally.
+CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm run build` and `npm run contrast` — it does **not** run `npm test`, so run that locally.
 
 Data/GEE scripts (require the service account credential): `npm run breaks` (Jenks, writes into `config/mapa/layers.json`), `npm run clip`, `npm run trim`, `npm run prewarm`, `node scripts/verify-assets.mjs`, `node scripts/list-assets.mjs`, `python scripts/build-recortes.py`.
 

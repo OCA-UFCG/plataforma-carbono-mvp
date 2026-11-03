@@ -324,6 +324,7 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
 
       <div className={leitor.area}>
         {/* A labelled, focusable region, so keyboard users can scroll it. */}
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrollable region must take focus so the keyboard can scroll it (WCAG 2.1.1) */}
         <div ref={containerRef} className={styles.container} role="region" tabIndex={0} aria-label="Documento PDF">
           <div ref={viewerElementRef} className="pdfViewer" />
         </div>
