@@ -1,7 +1,7 @@
 # Accessibility — design
 
 **Date:** 2026-11-03
-**Status:** draft awaiting the user's approval. A builder check has been run, and its questions are settled in §3. After the check the user ruled out visual changes, except what only keyboard use brings up (decisions 2 and 2b). This version is written around that rule.
+**Status:** approved by the user on 2026-11-03. A builder check has been run, and its questions are settled in §3. After the check the user ruled out visual changes, except what only keyboard use brings up (decisions 2 and 2b). This version is written around that rule. Each workstream gets its own implementation plan in `docs/superpowers/plans/`, written when the one before it is under way; A's is `2026-11-03-accessibility-a-foundations.md`.
 
 Built from a read of `main` at `82e17f5`/`6d5a3af` and an axe run on production (`carbono-caatinga.oca.ufcg.edu.br`, 11 public pages), before any code was written.
 
