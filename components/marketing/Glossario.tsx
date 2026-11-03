@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import CenaAnimada from "@/components/glossario/CenaAnimada";
+import TermoAberto from "@/components/glossario/TermoAberto";
 import { TERMOS, TERMO_PARAM, abaFocavel, filtrarTermos, parseTermo } from "@/lib/glossario/termos";
 import { useUrlTabs } from "./useUrlTabs";
 import styles from "./Glossario.module.css";
@@ -49,7 +49,8 @@ function mostrarAba(tab: HTMLButtonElement | null | undefined) {
 
 // The Glossário page, Figma frame 19507:12478: a sidebar with the page's title
 // (its h1) over the list of terms, and beside it the open term's title, text
-// and animation. The list is an ARIA tablist after the WAI-ARIA tabs pattern,
+// and animation (components/glossario/TermoAberto.tsx, which keys the
+// animation by term). The list is an ARIA tablist after the WAI-ARIA tabs pattern,
 // vertical, through useUrlTabs as ComunicacaoAbas.tsx does, except that only
 // the open term is rendered: each term mounts its own scene, and
 // lib/cenas/REGRAS_CENAS.md loads one at a time, so switching tabs unmounts
@@ -79,7 +80,7 @@ export default function Glossario({ titulo }: { titulo: string }) {
     <div className={styles.glossario}>
       <div className={styles.linha}>
         <div className={styles.lateral}>
-          <h1 className={`${styles.titulo} ${styles.tituloPagina}`}>{titulo}</h1>
+          <h1 className={`${styles.titulo} text-h3`}>{titulo}</h1>
           {/* 19507:16677: the design names it "select", but draws a search
               box, a magnifier where a select's arrow would be. */}
           <div className={styles.busca}>
@@ -134,27 +135,7 @@ export default function Glossario({ titulo }: { titulo: string }) {
           className={styles.conteudo}
           tabIndex={0}
         >
-          <div className={styles.texto}>
-            <h2 className={`${styles.titulo} ${styles.tituloTermo}`}>{termo.titulo}</h2>
-            {termo.paragrafos.map((p, i) => (
-              <p key={i} className={`${styles.paragrafo} text-body`}>{p}</p>
-            ))}
-          </div>
-          {termo.animacao && (
-            <CenaAnimada key={termo.slug} id={termo.animacao.id} titulo={termo.animacao.titulo} descricao={termo.animacao.descricao} />
-          )}
-          {termo.acesso && (
-            // The platform is another root layout: a plain link, a full page load.
-            <a className={styles.acesso} href={termo.acesso.href}>{termo.acesso.rotulo}</a>
-          )}
-          {termo.fontes && termo.fontes.length > 0 && (
-            <div className={styles.fontesBloco}>
-              <h3 className={styles.fontesTitulo}>Fontes</h3>
-              <ol className={styles.fontes}>
-                {termo.fontes.map((f) => <li key={f}>{f}</li>)}
-              </ol>
-            </div>
-          )}
+          <TermoAberto termo={termo} />
         </section>
       </div>
     </div>

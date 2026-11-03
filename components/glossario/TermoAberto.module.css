@@ -1,0 +1,65 @@
+/* The title and the paragraphs below it, 8px apart (19507:16687). Paragraph
+ * metrics come from .text-body in TermoAberto.tsx. */
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The term's title is in the first categorical green (19507:16690); the
+ * page's, over the sidebar, in the brand green. */
+.titulo {
+  margin: 0;
+  color: var(--role-categorica1-padrao);
+}
+
+.paragrafo {
+  margin: 0;
+  color: var(--bg-texto-primario);
+}
+
+/* The way into the platform and the sources are not in the design yet (issue
+ * #147, question 3); they keep the look they had in the Comunicação tab. */
+.acesso {
+  align-self: flex-start;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 24px;
+  text-decoration: none;
+}
+
+.acesso:hover,
+.acesso:focus-visible {
+  background: var(--role-marca-ancora-hover);
+}
+
+.fontesBloco {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fontesTitulo {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--bg-texto-secundario);
+}
+
+.fontes {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--am-400);
+  overflow-wrap: anywhere;
+}

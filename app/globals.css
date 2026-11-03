@@ -168,6 +168,17 @@ section {
   letter-spacing: -0.225px;
 }
 
+/* Rubik SemiBold 24/32, the Figma h3 style; it tracks at -0.6%, which is
+ * -0.144px at 24px. The Glossário's titles (19507:12478) wear it; the Sobre
+ * section titles still spell it out in sobre/Section.module.css. */
+.text-h3 {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+}
+
 /* Rubik SemiBold 20/28, the Figma h4 style; it tracks at -0.5%, which is
  * -0.1px at 20px. */
 .text-h4 {
