@@ -21,7 +21,9 @@ export type HiddenDataTableProps = {
  *
  * Values arrive formatted (number, unit, pt-BR separators), by the same
  * formatters the chart uses. Pair it with Recharts' accessibilityLayer={false}
- * and role="img" plus a one-line aria-label on the chart's wrapper.
+ * and role="img" plus a one-line aria-label on the chart's wrapper. Render the
+ * table beside that wrapper, never inside it: role="img" makes everything it
+ * contains presentational, and a table inside would be silenced.
  *
  * The clip sits on a wrapper, not on the table: some screen readers lose table
  * navigation when the table itself is clipped. No hooks, so server and client
