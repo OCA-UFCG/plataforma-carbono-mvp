@@ -1,34 +1,118 @@
-/* The open term, Figma 19400:12120: 40px of block padding, 24px between the
- * text, the animation and its controls, which span the full 1276px. */
+/* The Glossário, Figma frame 19507:12478: a 275px sidebar and the open term's
+ * column, spanning the design's 1436px frame (the container plus its gutters)
+ * and centred past it. Beyond that width the sidebar's grey carries on to the
+ * left edge of the window and the column's background to the right one, so
+ * the sidebar still reads as one: the outer box paints each half, and the row
+ * covers the middle with the sidebar and the column themselves. */
 .glossario {
-  background: var(--bg-fundo);
+  background: linear-gradient(to right, var(--am-050) 50%, var(--bg-fundo) 50%);
 }
 
-.inner {
-  padding-block: 40px;
+.linha {
+  display: grid;
+  grid-template-columns: 275px minmax(0, 1fr);
+  max-width: calc(var(--container-max) + 2 * var(--gutter));
+  margin-inline: auto;
+}
+
+/* 19507:16676: 40px above, 24px each side of its 226px column, 16px between
+ * the title, the search box and the list, over --am-050 with a 1px rule in the
+ * disabled-text grey (#94a6ac, the design's BG-TextoDesabilitado). 275px is
+ * those 226 + 2 × 24 and the rule. */
+.lateral {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+  padding: 40px 24px;
+  background: var(--am-050);
+  border-right: 1px solid var(--role-neutro-texto-desabilitado);
 }
 
-/* The title and the paragraphs below it, 8px apart (19401:13571). Paragraph
- * metrics come from .text-body in Glossario.tsx. */
-.texto {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Rubik SemiBold 24/32 (19401:13574); the style tracks at -0.6%, -0.144px at
- * 24px, like the Sobre section titles (sobre/Section.module.css). */
+/* Rubik SemiBold 24/32 (19507:16727, 19507:16690); the style tracks at -0.6%,
+ * -0.144px at 24px, like the Sobre section titles (sobre/Section.module.css).
+ * The page's title is in the brand green, the term's in the first categorical
+ * green, as the frame draws them. */
 .titulo {
   font-family: var(--font-sans, var(--font-fallback));
   font-weight: 600;
   font-size: 24px;
   line-height: 32px;
   letter-spacing: -0.144px;
-  color: var(--role-marca-ancora-padrao);
   margin: 0;
+}
+
+.tituloPagina {
+  color: var(--role-marca-ancora-padrao);
+}
+
+.tituloTermo {
+  color: var(--role-categorica1-padrao);
+}
+
+/* The terms, 4px apart (19507:16678). */
+.termos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* A "tab item" of the sidebar (19507:16680): 16px inside, 8px corners, the
+ * label in Inter 500 14/20 (the global .text-ui-tab, applied in Glossario.tsx)
+ * in #001d27. The design draws no hover; this one borrows the light grey the
+ * step buttons wear when selected (--role-categorica2-container, the
+ * "Estados" frame 19403:26571), which stands out from the sidebar's --am-050. */
+.termo {
+  padding: 16px;
+  border: 0;
+  border-radius: var(--radius);
+  margin: 0;
+  background: none;
+  color: var(--ctx-positivo-texto-sobre-container);
+  text-align: left;
+  cursor: pointer;
+}
+
+.termo:not(.termoAtual):hover {
+  background: var(--role-categorica2-container);
+}
+
+/* The open term (19507:16679): white Inter Bold on the brand green. */
+.termoAtual {
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+  font-weight: 700;
+}
+
+.termo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+/* The open term's column (19507:16686): 40px of block padding, 24px from the
+ * sidebar and the gutter (80px on a desktop) on the right, 24px between the
+ * text, the animation with its controls and what follows. */
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 40px var(--gutter) 40px 24px;
+  background: var(--bg-fundo);
+}
+
+/* The tab panel takes focus (tabIndex 0, as the WAI-ARIA tabs pattern asks);
+ * it fills the column, so its ring is drawn inside it. */
+.conteudo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: -2px;
+}
+
+/* The title and the paragraphs below it, 8px apart (19507:16687). Paragraph
+ * metrics come from .text-body in Glossario.tsx. */
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .paragrafo {

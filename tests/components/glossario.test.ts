@@ -12,7 +12,7 @@ import { TERMOS, parseTermo } from '@/lib/glossario/termos'
 
 const html = (busca: string) => {
   endereco.busca = busca
-  return renderToStaticMarkup(createElement(Glossario))
+  return renderToStaticMarkup(createElement(Glossario, { titulo: 'Glossário' }))
 }
 
 describe('Glossario', () => {
@@ -32,6 +32,16 @@ describe('Glossario', () => {
       'Inventário de carbono',
     ])
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
+  })
+
+  it('heads the sidebar with the page title, the page\'s only h1', () => {
+    const markup = html('')
+
+    expect(markup.match(/<h1[^>]*>[^<]*<\/h1>/g)).toEqual([expect.stringMatching(/>Glossário<\/h1>$/)])
+  })
+
+  it('lays the terms out as a vertical tab list', () => {
+    expect(html('')).toMatch(/role="tablist"[^>]*aria-orientation="vertical"|aria-orientation="vertical"[^>]*role="tablist"/)
   })
 
   it('opens the term the address names, and only that one', () => {
