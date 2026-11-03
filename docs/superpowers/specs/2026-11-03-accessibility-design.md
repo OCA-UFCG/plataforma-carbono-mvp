@@ -101,13 +101,14 @@ These are out of reach under decision 2 and stay in §8:
 | 11 | Convert font sizes from `px` to `rem`? | **No.** The conversion changes text size for people who enlarge the browser font, which decision 2b rules out. It is listed in §8. | User, through 2b |
 | 12 | Where does the `/acessibilidade` copy live? | **Prose in Contentful, lists in code.** Prod deploys from tags while Contentful publishes at once, so a list kept in Contentful would promise fixes prod does not have yet. | Claude's call |
 | 13 | Who runs a real screen-reader pass? | **Not a merge gate.** On each PR, Claude runs axe, inspects the accessibility tree (names, roles, states, live regions, through Chrome DevTools Protocol) and walks the Tab order. A pass with NVDA or Orca by a person is recommended once per workstream, on beta, and does not block the stack. | Claude's call |
+| 14 | Card links (Caminhos, Comunicação, Publicações) are named only by their title, while the card also shows a badge and a description. axe 4.14 flags this as `label-content-name-mismatch` (2.5.3). Change it? | **No, keep it.** The title is the card's visible label, so the name contains it and 2.5.3 holds. The description already reaches screen readers through `aria-describedby`, and a name that started with the badge would read worse. The axe check lists these cards in `scripts/a11y/known.ts` as accepted by this decision; they are not a limitation in §8. | User (2026-11-03) |
 
 ## 4. Goals, non-goals, anti-goals
 
 **Goals**
 
 - Every success scenario in §2 works, within decision 2.
-- No serious or critical axe violation on any page, public or logged in, except those §8 names.
+- No serious or critical axe violation on any page, public or logged in, except those §8 names and those decision 14 accepts.
 - Every finding in §6 is either fixed or listed in §8.
 - A guard in lint and CI keeps the fixes from regressing.
 
