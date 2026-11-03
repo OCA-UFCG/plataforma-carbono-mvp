@@ -82,4 +82,5 @@ The platform wears the site's fixed palette, light only: `config/mapa/platforms.
 - `lib/cenas/REGRAS_CENAS.md` — rules for the Glossário animations (engine, scenes, visual conventions, sources). Read it before touching `lib/cenas/` or `components/glossario/`.
 - `DOCUMENTACAO.md` — full technical inventory: layer table with asset/band/unit, GEE pipeline, data decisions and TODOs. Read it before touching layers.
 - `README.md` — Firebase setup, Docker, CI/CD and the required GitHub Actions secrets.
+- `docs/superpowers/specs/2026-11-03-accessibility-design.md` — the accessibility rules. Nothing a mouse user sees may change (decision 2); UI only the keyboard brings up may (2b); the rest is a known limitation (§8). The shared pieces are `announce()` (`lib/a11y/announce.ts`), `focusFirst()` (`lib/a11y/focus.ts`) and `HiddenDataTable` (`components/a11y/`); every PR runs `npm run a11y` and the `npm run a11y:screens` comparison.
 - `REVISAO_TECNICA.md` — the security/bug/performance review already implemented. Paths quoted there predate the merge: read `lib/` as `lib/mapa/`, `config/` as `config/mapa/`, `components/` as `components/mapa/`.
