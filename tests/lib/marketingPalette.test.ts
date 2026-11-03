@@ -137,6 +137,12 @@ const PAIRS: [string, string][] = [
   // rest and the sliders' text on the white box, a selected step on --am-100
   // and "Reproduzir" on -marca-ancora-padrao and -hover.
   ['--bg-texto-secundario', '--role-neutro-texto-desabilitado'],
+  // The Glossário's sidebar (Figma 19507:16676): a term at rest on its
+  // --am-050 and on the hover fill the page gives it. The rest are pairs
+  // above: the open term on -marca-ancora-padrao, the search box's text on
+  // white and "Nenhum termo encontrado" on --am-050.
+  ['--ctx-positivo-texto-sobre-container', '--am-050'],
+  ['--ctx-positivo-texto-sobre-container', '--role-categorica2-container'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
@@ -153,6 +159,9 @@ const LARGE_TEXT_PAIRS: [string, string][] = [
   // (Figma 19257:13575), on the page and on a summary card: 4.4:1.
   ['--ar-800', '--bg-fundo'],
   ['--ar-800', '--bg-superficie'],
+  // The Glossário's h1, 24px semibold, at the top of its sidebar's --am-050
+  // (Figma 19507:16727): 4.40:1.
+  ['--role-marca-ancora-padrao', '--am-050'],
 ]
 
 describe('landing palette', () => {
