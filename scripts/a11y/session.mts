@@ -10,41 +10,22 @@
  * lib/auth.ts) treats the cookie as it would a login. Needs .env.local.
  *
  * lib/firebase-admin.ts is not imported: its `import 'server-only'` throws
- * outside Next, so the Admin app is initialized here the same way.
+ * outside Next, so the Admin app is initialized here the same way, from the
+ * credentials sessionEnv.ts reads as the app does.
  */
-import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { cert, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
+import { adminCredentials, loadLocalEnv } from './sessionEnv'
 
 const ONE_HOUR_MS = 60 * 60 * 1000
 
-// Loads the credentials from .env.local (without depending on dotenv), as the
-// other scripts do (scripts/contentful-provision.mts).
-function loadEnv() {
-  try {
-    const txt = readFileSync(new URL('../../.env.local', import.meta.url), 'utf-8')
-    for (const line of txt.split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/)
-      if (m) process.env[m[1]] ??= m[2].replace(/^['"]|['"]$/g, '')
-    }
-  } catch {}
-}
-
-// As lib/firebase-admin.ts reads it.
-function privateKey() {
-  const base64Key = process.env.FIREBASE_PRIVATE_KEY_BASE64
-  if (base64Key) return Buffer.from(base64Key, 'base64').toString('utf8')
-  return process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-}
-
 async function mintSession(email: string): Promise<string> {
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
-  const key = privateKey()
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
-  if (!projectId || !clientEmail || !key || !apiKey) throw new Error('Firebase configuration is incomplete in .env.local.')
+  const credentials = adminCredentials(process.env)
+  if (!credentials) throw new Error('Firebase configuration is incomplete in .env.local.')
+  const { projectId, clientEmail, privateKey, apiKey } = credentials
 
-  const auth = getAuth(initializeApp({ credential: cert({ projectId, clientEmail, privateKey: key }) }))
+  const auth = getAuth(initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) }))
   const { uid } = await auth.getUserByEmail(email)
   const customToken = await auth.createCustomToken(uid)
 
@@ -59,7 +40,7 @@ async function mintSession(email: string): Promise<string> {
   return auth.createSessionCookie(body.idToken, { expiresIn: ONE_HOUR_MS })
 }
 
-loadEnv()
+loadLocalEnv(fileURLToPath(new URL('../..', import.meta.url)))
 const email = process.argv[2] ?? process.env.A11Y_EMAIL
 if (!email) {
   console.error('usage: npx tsx scripts/a11y/session.mts <email>')
