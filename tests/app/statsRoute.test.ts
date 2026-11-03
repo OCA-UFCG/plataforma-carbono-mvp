@@ -20,6 +20,7 @@ vi.mock('@/lib/auth', () => ({
 }))
 
 import { POST } from '@/app/api/gee/stats/route'
+import { clearResultCache } from '@/lib/mapa/resultCache'
 
 const asset = {
   type: 'image' as const,
@@ -37,7 +38,18 @@ function request(body: unknown) {
 }
 
 describe('POST /api/gee/stats stock branch', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    clearResultCache()
+  })
+
+  it('answers a repeated result request from the server cache', async () => {
+    await POST(request({ geometry, layerId: 'estoque_carbono' }))
+    const response = await POST(request({ geometry, layerId: 'estoque_carbono' }))
+
+    await expect(response.json()).resolves.toMatchObject({ kind: 'stocks', report: { totalTc: 12 } })
+    expect(mocks.buildStockReport).toHaveBeenCalledOnce()
+  })
 
   it('requires an authenticated session', async () => {
     mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
