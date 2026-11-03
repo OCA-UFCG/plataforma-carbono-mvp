@@ -96,7 +96,9 @@
 
 /* A "tab item" of the sidebar (19507:16680): 16px inside, 8px corners, the
  * label in Inter 500 14/20 (the global .text-ui-tab, applied in Glossario.tsx)
- * in #001d27. The design draws no hover; this one borrows the light grey the
+ * in #001d27, on one line as the design sets it: "Eficiência de uso do
+ * carbono" is 194.3px wide in the 194px the padding leaves, and would
+ * otherwise wrap. The design draws no hover; this one borrows the light grey the
  * step buttons wear when selected (--role-categorica2-container, the
  * "Estados" frame 19403:26571), which stands out from the sidebar's --am-050. */
 .termo {
@@ -107,6 +109,7 @@
   background: none;
   color: var(--ctx-positivo-texto-sobre-container);
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 
