@@ -17,9 +17,11 @@ npx vitest run tests/lib/stockReport.test.ts     # a single test file
 npx vitest run -t "case name"                    # a single case by name
 python tests/scripts/test_build_sif.py           # unit tests of scripts/build-sif.py (stdlib unittest)
 npm run contrast         # WCAG contrast check of the 12 monthly accents; runs in CI
+npm run a11y             # axe on scripts/a11y/routes.ts (A11Y_BASE_URL, A11Y_SESSION); runs in CI
+npm run a11y:screens -- capture <dir> | compare <before> <after> <diff>   # the no-visual-change guard
 ```
 
-CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm run build` and `npm run contrast` — it does **not** run `npm test`, so run that locally.
+CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm run build`, `npm run contrast` and the axe check (`npm run a11y`) — it does **not** run `npm test`, so run that locally.
 
 Data/GEE scripts (require the service account credential): `npm run breaks` (Jenks, writes into `config/mapa/layers.json`), `npm run clip`, `npm run trim`, `npm run prewarm`, `node scripts/verify-assets.mjs`, `node scripts/list-assets.mjs`, `python scripts/build-recortes.py`.
 
