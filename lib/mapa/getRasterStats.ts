@@ -1,6 +1,7 @@
 import type { PanelResult, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
 import { useStore } from '@/lib/mapa/store'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
+import { createLimiter } from '@/lib/mapa/concurrency'
 
 /** Response kinds of the results panel's own computation (lib/mapa/layerResult.ts). */
 const LAYER_RESULT_KINDS = new Set(['amount', 'distribution', 'flux', 'annual', 'recurrence'])
@@ -32,6 +33,12 @@ export async function getRasterStats(
 // clicks before the first response fills the store cache). Keyed by the exact
 // request body; the entry is cleared when the request settles.
 const inFlightStats = new Map<string, Promise<PanelResult>>()
+
+// A click fans out one request per visible raster. All at once, ten reductions
+// over the biome competed in Earth Engine and nine ran past the deadline; three
+// at a time, each finishes and the cards still land one by one.
+const MAX_CONCURRENT_STATS = 3
+const statsSlots = createLimiter(MAX_CONCURRENT_STATS)
 
 async function getGeeStats(
   layer: RasterLayerConfig,
@@ -68,11 +75,11 @@ async function getGeeStats(
   if (existing) return existing
 
   const request = (async (): Promise<PanelResult> => {
-    const res = await fetch('/api/gee/stats', {
+    const res = await statsSlots(() => fetch('/api/gee/stats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
-    })
+    }))
 
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}))
