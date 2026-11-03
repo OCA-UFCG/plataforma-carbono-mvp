@@ -1,5 +1,32 @@
 import { describe, expect, it } from 'vitest'
-import { glossarioAntigoHref } from '@/lib/glossario/termos'
+import { TERMOS, filtrarTermos, glossarioAntigoHref } from '@/lib/glossario/termos'
+
+const titulos = (busca: string) => filtrarTermos(TERMOS, busca).map((t) => t.titulo)
+
+describe('filtrarTermos', () => {
+  it('keeps every term, in order, while the search box is empty or blank', () => {
+    expect(filtrarTermos(TERMOS, '')).toEqual(TERMOS)
+    expect(filtrarTermos(TERMOS, '   ')).toEqual(TERMOS)
+  })
+
+  it('matches a piece of the title anywhere in it', () => {
+    expect(titulos('fluxo')).toEqual(['Torre de fluxo', 'Fluxos de carbono'])
+  })
+
+  it('ignores case and accents, in the title and in what the reader types', () => {
+    expect(titulos('fotossintese')).toEqual(['Fotossíntese'])
+    expect(titulos('DEGRADAÇÃO')).toEqual(['Degradação'])
+    expect(titulos('agroecológico')).toEqual(['Manejo agroecológico'])
+  })
+
+  it('ignores the spaces around what the reader types', () => {
+    expect(titulos('  torre ')).toEqual(['Torre de fluxo'])
+  })
+
+  it('finds nothing when no title holds the text', () => {
+    expect(filtrarTermos(TERMOS, 'mandacaru')).toEqual([])
+  })
+})
 
 describe('glossarioAntigoHref', () => {
   it('sends the former Glossário tab to its own page, keeping the term', () => {

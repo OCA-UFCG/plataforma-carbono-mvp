@@ -5,6 +5,7 @@
 // (scripts/montar-cenas.mjs).
 
 import { ABA_PARAM } from '@/lib/marketing/comunicacaoAbas'
+import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 
 export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia' | 'medirCarbono'
 
@@ -133,6 +134,19 @@ export const TERMO_PARAM = 'termo'
 /** The term the address names; anything else opens the first one. */
 export function parseTermo(value: string | null): Termo {
   return TERMOS.find((t) => t.slug === value) ?? TERMOS[0]
+}
+
+/**
+ * The terms whose title holds what the reader typed in the sidebar's "Buscar
+ * termo" box, in their order; every term while the box is blank. Case and
+ * accents fold away on both sides, as in the platform's territory search, so
+ * "fotossintese" finds "Fotossíntese".
+ */
+export function filtrarTermos(termos: readonly Termo[], busca: string): Termo[] {
+  const alvo = normalizeSearch(busca.trim())
+  if (!alvo) return [...termos]
+
+  return termos.filter((t) => normalizeSearch(t.titulo).includes(alvo))
 }
 
 // The Glossário was a third tab of the Comunicação page while it was tested,
