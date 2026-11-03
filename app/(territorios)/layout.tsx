@@ -4,6 +4,7 @@ import '../territorios.css'
 import { archivoNarrow, dDin, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { FAVICON } from '@/lib/favicon'
+import { Announcer } from '@/components/a11y/Announcer'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
 // its summary, so it cannot share (mapa)'s locked viewport; being a sibling
@@ -34,6 +35,7 @@ export default function TerritoriosLayout({
     <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${dDin.variable}`}>
       <body>
         <AuthProvider>{children}</AuthProvider>
+        <Announcer />
       </body>
     </html>
   )

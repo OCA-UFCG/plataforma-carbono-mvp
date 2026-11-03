@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { Analytics } from "@/components/Analytics";
 import { FAVICON } from "@/lib/favicon";
+import { Announcer } from "@/components/a11y/Announcer";
 import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 
 // Root layout of the marketing pages. The maps module has its own root layout
@@ -36,6 +37,7 @@ export default function MarketingLayout({
       <body className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${archivo.variable}`}>
         {children}
         <Analytics />
+        <Announcer />
       </body>
     </html>
   );

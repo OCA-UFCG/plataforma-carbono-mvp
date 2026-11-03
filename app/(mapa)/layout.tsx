@@ -6,6 +6,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { Analytics } from '@/components/Analytics'
 import { FAVICON } from '@/lib/favicon'
+import { Announcer } from '@/components/a11y/Announcer'
 import { inter, rubik } from '../fonts/marketing'
 
 // Root layout of the maps and analysis module: full screen, under the site
@@ -37,6 +38,7 @@ export default async function MapaLayout({
       <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100dvh' }}>
         <AuthProvider>{children}</AuthProvider>
         <Analytics />
+        <Announcer />
       </body>
     </html>
   )
