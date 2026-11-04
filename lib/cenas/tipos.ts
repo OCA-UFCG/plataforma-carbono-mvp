@@ -1,3 +1,5 @@
+import type { SiteLocale } from '@/lib/locale'
+
 // Contract between a glossary animation (lib/cenas/gerado/*.js, assembled by
 // scripts/montar-cenas.mjs) and the page that hosts it.
 
@@ -54,6 +56,9 @@ export interface ValorCena {
 export interface OpcoesCena {
   /** Font stack for the text drawn on the canvas, the page's own. */
   fonte?: string
+  /** Language of every text the scene shows or hands the page; Portuguese
+   *  when left out. */
+  idioma?: SiteLocale
   aoMudar?: (estado: EstadoCena) => void
   /** Element under the control panel where a scene writes text of its own (the
    *  Manejo agroecológico's legend and stage texts). */

@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import Glossario from "@/components/marketing/Glossario";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import { GLOSSARIO_PAGINA } from "@/lib/content/paginas";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
+import { getSiteLocale } from "@/i18n/siteLocale";
+import { HTML_LANG } from "@/lib/locale";
 
-export const metadata: Metadata = { title: "Glossário" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Nav"))("glossario") };
+}
 
 // Glossário, Figma frame 19507:12478 (Fotossíntese open). The page has no
 // intro band: its title heads the sidebar, from Contentful
@@ -19,12 +24,13 @@ export const metadata: Metadata = { title: "Glossário" };
 // here and pass the term down instead: a Suspense boundary would stop the
 // server rendering the linked term.
 export default async function GlossarioPage() {
-  const { pagina } = await loadSiteCopy({ pagina: GLOSSARIO_PAGINA });
+  const locale = await getSiteLocale();
+  const { pagina } = await loadSiteCopy({ pagina: GLOSSARIO_PAGINA }, undefined, locale);
 
   return (
     <>
       <SiteHeader />
-      <main>
+      <main lang={HTML_LANG[locale]}>
         <Glossario titulo={pagina.introTitulo} />
       </main>
       <SiteFooter />

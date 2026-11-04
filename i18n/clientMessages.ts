@@ -19,6 +19,8 @@ export const MARKETING_NAMESPACES = [
   'Eventos',
   'PdfViewer',
   'Sobre',
+  'Glossario',
+  'CenaAnimada',
 ] as const
 
 export async function clientMessages(namespaces: readonly string[]): Promise<AbstractIntlMessages> {

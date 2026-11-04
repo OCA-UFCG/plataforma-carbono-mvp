@@ -135,6 +135,7 @@ describe('the provisioned institutional copy', () => {
     const translated = [
       ...['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos'],
       'comunicacaoPagina',
+      'glossarioPagina',
       ...['sobreIntro', 'sobrePlataforma', 'sobreCaatinga', 'sobreCarbonoComunidades', 'sobreComoFunciona'],
     ]
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TERMOS, abaFocavel, filtrarTermos, glossarioAntigoHref } from '@/lib/glossario/termos'
 
-const titulos = (busca: string) => filtrarTermos(TERMOS, busca).map((t) => t.titulo)
+const titulos = (busca: string) => filtrarTermos(TERMOS, busca).map((t) => t.titulo.pt)
 
 describe('filtrarTermos', () => {
   it('keeps every term, in order, while the search box is empty or blank', () => {
@@ -25,6 +25,12 @@ describe('filtrarTermos', () => {
 
   it('finds nothing when no title holds the text', () => {
     expect(filtrarTermos(TERMOS, 'mandacaru')).toEqual([])
+  })
+
+  // An English reader sees, and so searches, the English titles.
+  it('searches the titles in the reader’s language', () => {
+    expect(filtrarTermos(TERMOS, 'flux', 'en').map((t) => t.titulo.en)).toEqual(['Flux tower', 'Carbon fluxes'])
+    expect(filtrarTermos(TERMOS, 'fluxo', 'en')).toEqual([])
   })
 })
 

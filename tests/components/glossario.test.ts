@@ -8,12 +8,18 @@ const endereco = vi.hoisted(() => ({ busca: '' }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(endereco.busca) }))
 
 import Glossario from '@/components/marketing/Glossario'
+import BotaoReproduzir from '@/components/glossario/painel/BotaoReproduzir'
 import { TERMOS, parseTermo } from '@/lib/glossario/termos'
+import type { SiteLocale } from '@/lib/locale'
+import { withIntl } from '@/tests/helpers/intl'
 
-const html = (busca: string) => {
+const html = (busca: string, locale: SiteLocale = 'pt') => {
   endereco.busca = busca
-  return renderToStaticMarkup(createElement(Glossario, { titulo: 'Glossário' }))
+  return renderToStaticMarkup(withIntl(createElement(Glossario, { titulo: 'Glossário' }), locale))
 }
+
+const tabLabels = (markup: string) =>
+  (markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []).map((tab) => tab.replace(/<[^>]+>/g, ''))
 
 describe('Glossario', () => {
   it('renders one tab per term, in the design order followed by the terms the design does not draw yet', () => {
@@ -84,6 +90,66 @@ describe('Glossario', () => {
     expect(html('?termo=estoque-de-carbono')).toContain(
       `href="/login?redirect=${encodeURIComponent('/mapa?camada=estoque_carbono')}"`,
     )
+  })
+})
+
+describe('Glossario in English', () => {
+  it('names the terms, the list and the search box in English', () => {
+    const markup = html('', 'en')
+
+    expect(tabLabels(markup)).toEqual([
+      'Photosynthesis',
+      'Carbon stock',
+      'Flux tower',
+      'Carbon fluxes',
+      'Carbon use efficiency',
+      'Degradation',
+      'Agroecological management',
+      'Carbon sequestration',
+      'Carbon inventory',
+    ])
+    expect(markup).toMatch(/role="tablist"[^>]*aria-label="Glossary terms"/)
+    expect(markup).toMatch(/<input [^>]*placeholder="Search terms"[^>]*aria-label="Search terms"|<input [^>]*aria-label="Search terms"[^>]*placeholder="Search terms"/)
+  })
+
+  it('heads the open term, describes its animation and links to the platform in English', () => {
+    const markup = html('?termo=estoque-de-carbono', 'en')
+
+    expect(markup).toMatch(/<h2[^>]*>Carbon stock<\/h2>/)
+    expect(markup).toMatch(/<canvas [^>]*aria-label="Cross-section of a Caatinga landscape showing where carbon is stored/)
+    expect(markup).toMatch(/<figcaption[^>]*>Where carbon is stored<\/figcaption>/)
+    expect(markup).toMatch(/<a [^>]*href="\/login[^"]*"[^>]*>Access stock data for the Caatinga biome<\/a>/)
+  })
+
+  it('keeps the address of each term in Portuguese, the same in both languages', () => {
+    expect(html('?termo=torre-de-fluxo', 'en')).toMatch(/id="glossario-tab-torre-de-fluxo"[^>]*aria-selected="true"/)
+  })
+})
+
+// Each term carries its words in both languages, side by side, so a term
+// added in one cannot ship without the other.
+describe('the glossary terms', () => {
+  it('has every text in both languages', () => {
+    for (const termo of TERMOS) {
+      for (const texto of [termo.titulo, termo.animacao?.titulo, termo.animacao?.descricao, termo.acesso?.rotulo]) {
+        if (texto === undefined) continue
+        expect(texto.pt, termo.slug).toBeTruthy()
+        expect(texto.en, termo.slug).toBeTruthy()
+        expect(texto.en, termo.slug).not.toBe(texto.pt)
+      }
+      expect(termo.paragrafos.en, termo.slug).toHaveLength(termo.paragrafos.pt.length)
+      expect(termo.paragrafosAposCena?.en.length, termo.slug).toBe(termo.paragrafosAposCena?.pt.length)
+    }
+  })
+})
+
+describe('BotaoReproduzir', () => {
+  it('labels play and pause in the reader’s language', () => {
+    const markup = (locale: SiteLocale) =>
+      renderToStaticMarkup(withIntl(createElement(BotaoReproduzir, { tocando: false, onClick: () => {} }), locale))
+
+    expect(markup('pt')).toMatch(/>Reproduzir<.*>Pausar</)
+    expect(markup('en')).toMatch(/>Play<.*>Pause</)
   })
 })
 
