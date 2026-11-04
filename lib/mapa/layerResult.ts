@@ -7,7 +7,10 @@
 // - a total or an area is always value × `ee.Image.pixelArea()`, never a pixel
 //   count, which stops meaning anything the moment the scale changes;
 // - one `evaluate` per click, so a result costs one request against the
-//   per-IP limit.
+//   per-IP limit;
+// - the region is the recorte with a huge boundary thinned
+//   (lib/mapa/simplifyGeometry.ts): the biome's 108k vertices alone pushed its
+//   reductions past the deadline. Every other recorte goes through as drawn.
 //
 // The territorial report does not come through here: it keeps
 // `computeZonalStats`, so this panel can change without touching it.
@@ -15,6 +18,7 @@
 import { area as turfArea } from '@turf/area'
 import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
 import { evaluate } from '@/lib/mapa/geeEvaluate'
+import { simplifyForAnalysis } from '@/lib/mapa/simplifyGeometry'
 import { buildStockReport } from '@/lib/mapa/stockReport'
 import { yearOfBand } from '@/lib/mapa/results/period'
 import type { ResultLayer } from '@/lib/mapa/resultsRegistry'
@@ -95,8 +99,10 @@ type Groups<K extends string> = { groups?: ({ sum: number } & Record<K, number>)
 export async function computeLayerResult(ee: any, input: LayerResultInput): Promise<PanelResult> {
   const { entry, geometry, temporalDate } = input
   const { asset, profile } = entry
-  const region = ee.Geometry(geometry)
   const regionM2 = turfArea(geometry as GeoJSON.Geometry)
+  // One region for every reduction of the request, so the branches that reduce
+  // twice share it instead of simplifying 108k vertices again.
+  const region = ee.Geometry(simplifyForAnalysis(geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon))
   // Built on use: the stock report brings its own area image.
   const hectares = () => ee.Image.pixelArea().divide(1e4)
 

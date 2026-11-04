@@ -103,9 +103,13 @@ export default function LayerResultCard({
 
   let body: ReactNode
   if (!expanded) {
+    // A failed card used to read "Sem resultado" folded, the same as a layer
+    // with no data in the recorte, so a timeout passed for an empty answer.
+    const failed = result?.status === 'error'
+    const collapsed = summary ?? (loading ? 'Calculando' : failed ? 'Falha ao calcular' : 'Sem resultado')
     body = (
       <LeadCard>
-        <span className={`${styles.summary} text-h4`}>{summary ?? (loading ? 'Calculando' : 'Sem resultado')}</span>
+        <span className={`${styles.summary} ${failed ? styles.failed : ''} text-h4`}>{collapsed}</span>
       </LeadCard>
     )
   } else if (loading) {

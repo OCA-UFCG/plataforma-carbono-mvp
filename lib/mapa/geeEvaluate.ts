@@ -1,5 +1,17 @@
-/** Default deadline for a single GEE computation before the route gives up. */
-export const GEE_TIMEOUT_MS = 65_000
+/**
+ * Deadline of a single Earth Engine RPC, process-wide. A cold reduction over
+ * the whole biome takes 40 to 65 s even with its boundary simplified; the
+ * server caches the answer (lib/mapa/resultCache.ts), so only the first person
+ * to ask pays for it.
+ */
+export const GEE_DEADLINE_MS = 150_000
+
+/**
+ * How long every route's handler waits for a computation before it gives up.
+ * A few seconds past the RPC deadline, so no handler gives up before its
+ * Earth Engine request ends.
+ */
+export const GEE_TIMEOUT_MS = GEE_DEADLINE_MS + 5_000
 
 /**
  * Reject with a timeout error if `p` doesn't settle within `ms`. The
