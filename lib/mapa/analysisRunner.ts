@@ -95,7 +95,14 @@ export function timeSeriesCacheKey(layerId: string, lon: number, lat: number): s
 // Discards superseded responses. It was a ref inside MapView while one click
 // meant one request; a fan-out has no other way to share it.
 let analysisSeq = 0
-export function bumpAnalysisSeq(): number { return ++analysisSeq }
+// Cancels the requests of the selection the sequence number belongs to: a click
+// on another recorte must not wait in the client's queue behind the biome.
+let analysisAbort = new AbortController()
+export function bumpAnalysisSeq(): number {
+  analysisAbort.abort()
+  analysisAbort = new AbortController()
+  return ++analysisSeq
+}
 export function currentAnalysisSeq(): number { return analysisSeq }
 
 /** A result the caches can answer with, without touching the network. */
@@ -154,6 +161,10 @@ export async function runLayerAnalysis(
 
   land({ ...base, status: 'loading' })
 
+  // A superseded caller (a retry from an old card) gets a signal that is
+  // already aborted, so it sends nothing.
+  const signal = seq === analysisSeq ? analysisAbort.signal : AbortSignal.abort()
+
   try {
     if (geom.geometryType === 'polygon') {
       const stats = await getRasterStats(layer, {
@@ -162,7 +173,7 @@ export async function runLayerAnalysis(
           | { type: 'Polygon';      coordinates: number[][][] }
           | { type: 'MultiPolygon'; coordinates: number[][][][] },
         properties: {},
-      }, date)
+      }, date, signal)
       const key = statsCacheKey(layer.id, date, geom.geometry)
       useStore.setState((s) => ({ statsCache: { ...s.statsCache, [key]: stats } }))
       land({ ...base, status: 'ready', stats })
@@ -199,6 +210,8 @@ export async function runLayerAnalysis(
     useStore.setState((s) => ({ pixelCache: { ...s.pixelCache, [key]: pixelValue } }))
     land({ ...base, status: 'ready', pixelValue })
   } catch (err) {
+    // Abandoned with its selection: no card to write, and nothing went wrong.
+    if (signal.aborted) return
     console.error(`[analysisRunner] ${layer.id}`, err)
     const pointValue = geom.geometryType === 'point' && !layer.gee?.temporal
     land({
