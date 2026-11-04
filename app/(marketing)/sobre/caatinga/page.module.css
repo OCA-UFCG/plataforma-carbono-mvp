@@ -18,27 +18,18 @@
   gap: 24px;
 }
 
-/* A single indicator card is half the column, 626px (18988:8714). */
-.indicador {
-  width: min(626px, 100%);
-}
-
-/* The pair of storage cards, sharing the row 16px apart (18988:8730). */
-.indicadores {
-  display: flex;
-  gap: 16px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.indicadores > li {
-  flex: 1;
-  min-width: 0;
+/* A question's text and its figure card side by side, two 626px columns 24px
+ * apart, the text centred on the card (18988:8708, 18988:8716). One column on
+ * a narrow screen. */
+.linha {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: center;
 }
 
 @media (max-width: 640px) {
-  .indicadores {
-    flex-direction: column;
+  .linha {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

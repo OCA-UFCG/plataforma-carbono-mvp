@@ -50,13 +50,9 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-primario', '--am-100'],
   ['--bg-texto-secundario', '--am-050'],
   ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
-  // Shared Sobre blocks (issue #46): the 'outlined' IndicatorCard's value,
-  // unit and description on its cream fill.
-  ['--bg-texto-secundario', '--bg-superficie-variante'],
-  ['--am-400', '--bg-superficie-variante'],
+  // The Sobre FigureCard (Figma "Cards sobre", 19406:47719): its label and
+  // description, its number and its unit on the cream fill.
   ['--bg-texto-primario', '--bg-superficie-variante'],
-  // The Sobre FigureCard (Figma "Cards sobre", 19406:47719): its number and
-  // its unit on the cream fill; the label and description are the pair above.
   ['--role-categorica1-padrao', '--bg-superficie-variante'],
   ['--role-marca-ancora-pressionado', '--bg-superficie-variante'],
   // Comunicação page (issue #49): the PDF badge and the type chip.
