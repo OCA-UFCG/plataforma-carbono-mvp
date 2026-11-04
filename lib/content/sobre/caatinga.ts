@@ -42,6 +42,9 @@ export const CAATINGA = defineCopy({
       'Clima · Indicador · Texto',
       'removidos em 2022 — cerca de 38% das remoções realizadas pelos biomas brasileiros naquele ano, mais do que qualquer outro bioma (Costa et al., 2025)',
     ),
+    // The share the progress bar under the card fills (Figma 19406:47719),
+    // digits only; left empty, the card draws no bar.
+    climaIndicadorBarra: optionalLine('Clima · Indicador · Barra (0 a 100)', '38'),
     climaDepois: paragraph(
       'Clima · Texto depois do indicador',
       'Mesmo ocupando aproximadamente 10% do território nacional, a Caatinga apresentou uma contribuição expressiva para o balanço de carbono do país.',
@@ -59,6 +62,9 @@ export const CAATINGA = defineCopy({
       'Eficiência · Indicador · Texto',
       'indica quanto do carbono capturado é convertido e mantido na biomassa — um dos maiores valores entre os ecossistemas do Brasil e do mundo',
     ),
+    // As the climate card's bar (19407:47745). The default follows this
+    // file's '60%'; the entry holds the published figure's share.
+    eficienciaIndicadorBarra: optionalLine('Eficiência · Indicador · Barra (0 a 100)', '60'),
     eficienciaDepois: paragraph(
       'Eficiência · Texto depois do indicador',
       'Isso ajuda a explicar por que o bioma possui um papel tão importante na remoção de carbono, especialmente durante os períodos chuvosos.',

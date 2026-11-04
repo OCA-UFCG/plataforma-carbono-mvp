@@ -1,32 +1,21 @@
 /* IndicatorCard, Figma component "Cards de indicadores em destaque" 8689:52527
  * (variant "formato2", 18808:5911). Extracted from Destaques.module.css, whose
- * rules it carries over unchanged for the 'raised' variant. Font metrics come
- * from the .text-* utilities applied in IndicatorCard.tsx; this file handles
- * color, spacing and layout only. */
+ * rules it carries over unchanged. Font metrics come from the .text-*
+ * utilities applied in IndicatorCard.tsx; this file handles color, spacing and
+ * layout only. */
 
 /* `height: 100%` lets the card fill a stretched grid cell, so a row of cards
- * with descriptions of different lengths still lines up at the bottom. */
+ * with descriptions of different lengths still lines up at the bottom. White,
+ * not the cream page background: Figma fills the landing card with
+ * ROLE-Primario-TextoSobre (#ffffff, 18862:8542..8545). */
 .card {
   display: flex;
   flex-direction: column;
   height: 100%;
   border-radius: var(--radius);
   overflow: clip;
-}
-
-/* White, not the cream page background: Figma fills the landing card with
- * ROLE-Primario-TextoSobre (#ffffff, 18862:8542..8545). */
-.raised {
   background: var(--role-primario-texto-sobre);
   box-shadow: var(--shadow);
-}
-
-/* Figma 18988:8714 / 18988:8731: a 1px --bg-borda outline around a
- * --bg-superficie-variante fill. The instance also carries a faint inner drop
- * shadow, which the border covers at this size; it is left out. */
-.outlined {
-  background: var(--bg-superficie-variante);
-  border: 1px solid var(--bg-borda);
 }
 
 .header {
@@ -41,19 +30,6 @@
   flex: none;
   width: 24px;
   height: 24px;
-}
-
-/* The Sobre instances are 166px tall whatever their text (18988:8714,
- * 18988:8731), with the 1px stroke drawn inside the card, as Figma draws
- * strokes. A CSS border adds to the box instead, so the bottom padding gives
- * up those 2px. min-height rather than height, so a description that wraps
- * further at narrow widths grows the card instead of being clipped. */
-.outlined {
-  min-height: 166px;
-}
-
-.outlined .body {
-  padding-bottom: 22px;
 }
 
 .label {
@@ -75,7 +51,7 @@
   margin: 0;
 }
 
-/* Both variants set the figure in a 34px box with its 36px line centred in it
+/* The figure sits in a 34px box with its 36px line centred in it
  * (I18862:8542;18808:5950); a 34px line height reproduces that. */
 .value {
   line-height: 34px;

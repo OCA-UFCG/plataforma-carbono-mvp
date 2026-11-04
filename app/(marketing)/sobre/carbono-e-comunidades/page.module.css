@@ -10,3 +10,14 @@
   flex-direction: column;
   gap: 24px;
 }
+
+/* The two law figures (19408:47967). Figma sets them 16px from the text above
+ * and below (18988:8818), while Section's body puts 24px between its
+ * children; the -8px block margins take the difference back without changing
+ * Section for every other page. Flex items' margins do not collapse, so the
+ * net gap is 16px at every width, stacked or not. Two classes, so the rule
+ * outweighs FigureList's own `margin: 0` whatever order the stylesheets load
+ * in. */
+.inner .garantias {
+  margin: -8px 0;
+}
