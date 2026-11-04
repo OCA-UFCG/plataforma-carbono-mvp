@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/mapa/geeEvaluate', () => ({
-  evaluate: mocks.evaluate, GEE_TIMEOUT_MS: 1000, GEE_RESULT_TIMEOUT_MS: 5000,
+  evaluate: mocks.evaluate, GEE_TIMEOUT_MS: 1000,
 }))
 vi.mock('@/lib/mapa/stockReport', () => ({ buildStockReport: mocks.buildStockReport }))
 vi.mock('@/lib/mapa/geeImage', async (importOriginal) => ({
@@ -52,17 +52,6 @@ const biome = JSON.parse(
 describe('computeLayerResult', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('gives the panel its longer deadline', async () => {
-    mocks.evaluate.mockResolvedValueOnce({ vA: 10, A: 1e4 })
-    const entry = getResultLayer('gpp_modis')!
-    const { ee } = eeWithGeometrySpy()
-
-    await computeLayerResult(ee, { entry, geometry: biome, temporalDate: '2024-01-01' })
-
-    expect(mocks.evaluate).toHaveBeenCalledOnce()
-    expect(mocks.evaluate.mock.calls[0][1]).toBe(5000)
-  })
-
   it('reduces over the boundary simplified to the scale it reads', async () => {
     mocks.evaluate.mockResolvedValueOnce({ vA: 10, A: 1e4 })
     const entry = getResultLayer('gpp_modis')!
@@ -75,13 +64,18 @@ describe('computeLayerResult', () => {
     expect(countVertices(sent.coordinates)).toBeLessThan(countVertices(biome.coordinates) / 4)
   })
 
-  it('passes the deadline down to the stock report', async () => {
+  it('builds the stock report over the same region', async () => {
     const entry = getResultLayer('estoque_carbono')!
-    const { ee } = eeWithGeometrySpy()
+    const { ee, Geometry } = eeWithGeometrySpy()
+    const region = {}
+    Geometry.mockReturnValueOnce(region)
 
     await computeLayerResult(ee, { entry, geometry: biome })
 
     expect(mocks.buildStockReport).toHaveBeenCalledOnce()
-    expect((mocks.buildStockReport.mock.calls[0] as unknown[]).at(-1)).toBe(5000)
+    const args = mocks.buildStockReport.mock.calls[0] as unknown[]
+    expect(args[2]).toBe(region)
+    // No deadline of its own: the stock report waits as long as every route.
+    expect(args).toHaveLength(6)
   })
 })

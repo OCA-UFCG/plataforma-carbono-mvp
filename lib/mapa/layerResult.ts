@@ -17,7 +17,7 @@
 
 import { area as turfArea } from '@turf/area'
 import { buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeImage'
-import { evaluate, GEE_RESULT_TIMEOUT_MS } from '@/lib/mapa/geeEvaluate'
+import { evaluate } from '@/lib/mapa/geeEvaluate'
 import { simplifyForScale } from '@/lib/mapa/simplifyGeometry'
 import { buildStockReport } from '@/lib/mapa/stockReport'
 import { yearOfBand } from '@/lib/mapa/results/period'
@@ -155,7 +155,7 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
       const stocks = entry.stocks!
       const report = await buildStockReport(
         ee, ee.Image(stocks.assetId), regionAt(stocks.scale), stocks.cfg, stocks.legenda,
-        stocks.scale, GEE_RESULT_TIMEOUT_MS,
+        stocks.scale,
       )
       return { kind: 'stocks', report }
     }
@@ -174,7 +174,6 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
       const hist = groupedHa(binIndex(v, profile.bins), 'bin', scale, true, v.mask())
       const raw = await evaluate<{ t: Record<string, unknown>; h: Groups<'bin'> }>(
         ee.Dictionary({ t: totals, h: hist }),
-        GEE_RESULT_TIMEOUT_MS,
       )
       return {
         kind:    'amount',
@@ -207,7 +206,6 @@ export async function computeLayerResult(ee: any, input: LayerResultInput): Prom
           tileScale:  4,
           bestEffort: true,
         }),
-        GEE_RESULT_TIMEOUT_MS,
       )
       // Area in m² per class code, the convention of the categorical kind.
       const areas: Record<string, number> = {}
@@ -247,7 +245,6 @@ async function distribution(
   const hist = groupedHa(binIndex(v, profile.bins), 'bin', scale, false, v.mask())
   const raw = await evaluate<{ s: Record<string, unknown>; h: Groups<'bin'> }>(
     ee.Dictionary({ s: stats, h: hist }),
-    GEE_RESULT_TIMEOUT_MS,
   )
   const bins = binsFromGroups(profile.bins, raw.h.groups ?? [])
   return {
@@ -281,7 +278,7 @@ async function flux(
       areaWhere(hectares, v).rename('valid'),
     ),
     scale,
-  ), GEE_RESULT_TIMEOUT_MS)
+  ))
   return {
     kind:       'flux',
     positive:   num(raw.pos),
@@ -307,7 +304,7 @@ async function annual(
   const raw = await evaluate<Record<string, unknown>>(sums(
     ee.Image.cat(v.multiply(m2).rename('vA'), m2.updateMask(v.mask()).rename('A')),
     scale,
-  ), GEE_RESULT_TIMEOUT_MS)
+  ))
   const vA = num(raw.vA)
   const A = num(raw.A)
   return {
@@ -344,7 +341,7 @@ async function recurrence(
   // of 12,8%). Reprojected, each coarse pixel takes the key of one real pixel.
   const key = count.multiply(2).add(count.gt(previous)).toInt().reproject(current.projection())
 
-  const raw = await evaluate<Groups<'k'>>(groupedHa(key, 'k', scale, false), GEE_RESULT_TIMEOUT_MS)
+  const raw = await evaluate<Groups<'k'>>(groupedHa(key, 'k', scale, false))
   const byCount = countsFromGroups(raw.groups ?? [])
   return {
     kind:     'recurrence',
