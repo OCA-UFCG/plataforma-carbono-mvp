@@ -58,6 +58,14 @@ describe('POST /api/gee/stats stock branch', () => {
     expect(mocks.buildStockReport).toHaveBeenCalledOnce()
   })
 
+  it('answers every stock layer from the one report they share', async () => {
+    const first = await POST(request({ geometry, layerId: 'estoque_carbono' }))
+    const pool = await POST(request({ geometry, layerId: 'estoque_c_solo' }))
+
+    expect(mocks.buildStockReport).toHaveBeenCalledOnce()
+    expect(await pool.json()).toEqual(await first.json())
+  })
+
   it('requires an authenticated session', async () => {
     mocks.getAuthenticatedRequest.mockResolvedValueOnce(null)
 

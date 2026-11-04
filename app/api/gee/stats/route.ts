@@ -84,7 +84,10 @@ export async function POST(req: Request) {
     }
     // A cold reduction over the biome takes up to a minute; the answer is kept
     // so only the first person to ask for it waits (lib/mapa/resultCache.ts).
-    const key = resultCacheKey(entry.layer.id, temporalDate, body.geometry)
+    // The stock layers (total and pools) share one profile and one report, so
+    // they share one entry too.
+    const layerKey = entry.profile.archetype === 'stocks' ? `stocks:${entry.profile.source}` : entry.layer.id
+    const key = resultCacheKey(layerKey, temporalDate, body.geometry)
     try {
       const result = await withResultCache(key, () =>
         computeLayerResult(getEe(), { entry, geometry: body.geometry, temporalDate }),
