@@ -78,7 +78,7 @@ The site speaks Portuguese and, page by page, English. The visitor's choice is t
 - **Contentful copy.** A translated copy type sets `localized: true` (`defineCopy`); its English lives in the space's `en-US` locale, which falls back to `pt-BR` field by field, so an untranslated field shows in Portuguese. Pages pass the locale to `loadSiteCopy` and `getComunicacaoContent`; Portuguese, the default locale, names none. Provisioning puts the whole content type, so a type marked localized in the space must be marked here too, or the next `--apply` drops its English.
 - **Interface labels and alt texts** live in `messages/pt.json` and `messages/en.json`; `tests/i18n/messages.test.ts` keeps their keys and placeholders in step. Each root layout's `NextIntlClientProvider` sends the browser only the namespaces its client components read (`i18n/clientMessages.ts`): a new client component that calls `useTranslations` needs its namespace listed there.
 - `<html lang>` stays `pt-BR`; the header, the footer and a translated page's `<main>` declare their own `lang` (`HTML_LANG`).
-- Translated so far: the landing page.
+- Translated so far: the landing page and Comunicação, its publication pages included.
 
 ### Platform theme
 

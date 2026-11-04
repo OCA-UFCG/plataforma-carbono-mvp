@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createElement, type ComponentType } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import ConteudoHeader from '@/components/marketing/conteudo/ConteudoHeader'
@@ -8,6 +8,8 @@ import PublicationCard from '@/components/marketing/PublicationCard'
 import Publicacoes from '@/components/marketing/Publicacoes'
 import Comunicacao from '@/components/marketing/Comunicacao'
 import RelatedContent from '@/components/marketing/conteudo/RelatedContent'
+import LeitorCarregando from '@/components/marketing/conteudo/LeitorCarregando'
+import PdfViewer from '@/components/marketing/conteudo/PdfViewer'
 import { getComunicacaoContent } from '@/lib/content/comunicacao'
 import type { SiteLocale } from '@/lib/locale'
 import { MESSAGES, withIntl } from '@/tests/helpers/intl'
@@ -18,7 +20,7 @@ const html = <P extends object>(component: ComponentType<P>, props: P, locale: S
 const PUBLICACAO: Publicacao = {
   key: 'cartilha-0',
   slug: 'cartilha-1-o-que-e-credito-de-carbono',
-  tipo: 'Cartilha',
+  tipo: 'cartilha',
   title: 'O que é crédito de carbono?',
   description: 'Uma cartilha introdutória.',
   publicationDate: '2025-05-14T00:00:00.000Z',
@@ -65,6 +67,25 @@ describe('ConteudoHeader type', () => {
   })
 })
 
+describe('ConteudoHeader in English', () => {
+  it('labels the way back, the date and the download in English', () => {
+    const markup = html(ConteudoHeader, { publicacao: { ...PUBLICACAO, pdf: 'https://x/v1.pdf' } }, 'en')
+
+    expect(markup).toMatch(/<a[^>]*href="\/comunicacao"[^>]*>.*Back<\/a>/)
+    expect(markup).toMatch(/Published: <time datetime="2025-05-14">14 May 2025<\/time>/i)
+    expect(markup).toMatch(/>.*Download PDF<\/a>/)
+    expect(markup).not.toMatch(/Voltar|Publicado em|Baixar PDF/)
+  })
+
+  // The series copy, in the reader's language, as on the landing's card.
+  it('describes a cartilha without a description of its own in the reader’s language', () => {
+    const semDescricao = { ...PUBLICACAO, description: undefined }
+
+    expect(html(ConteudoHeader, { publicacao: semDescricao })).toContain(MESSAGES.pt.Comunicacao.cartilhaDescription)
+    expect(html(ConteudoHeader, { publicacao: semDescricao }, 'en')).toContain(MESSAGES.en.Comunicacao.cartilhaDescription)
+  })
+})
+
 describe('ConteudoSemPdf', () => {
   it('shows the title and the cover, with nothing to download', () => {
     const markup = html(ConteudoSemPdf, { publicacao: PUBLICACAO })
@@ -105,6 +126,25 @@ describe('Publicacoes', () => {
     expect(items).toHaveLength(2)
     expect(markup).toMatch(/Em breve<\/p><\/div><\/li><\/ul>/)
     expect(markup.match(/<a /g)).toHaveLength(1)
+  })
+})
+
+describe('the publication grid in English', () => {
+  it('names the type, the heading and the empty slot in English', () => {
+    const markup = html(Publicacoes, { publicacoes: [PUBLICACAO, { ...PUBLICACAO, key: 'caderno', tipo: 'caderno' }] }, 'en')
+
+    expect(markup).toMatch(/<h2[^>]*>Content<\/h2>/)
+    expect(markup).toContain('>Booklet</span>')
+    expect(markup).toContain('>Thematic report</span>')
+    expect(markup).toContain('Coming soon</p>')
+    expect(markup).not.toMatch(/Cartilha<|Caderno temático|Em breve/)
+  })
+
+  it('names the type in Portuguese for a Portuguese reader', () => {
+    const markup = html(Publicacoes, { publicacoes: [PUBLICACAO, { ...PUBLICACAO, key: 'caderno', tipo: 'caderno' }] })
+
+    expect(markup).toContain('>Cartilha</span>')
+    expect(markup).toContain('>Caderno temático</span>')
   })
 })
 
@@ -170,7 +210,36 @@ describe('RelatedContent', () => {
     expect(markup.match(/<li/g)).toHaveLength(2)
   })
 
+  it('names the heading in English for an English reader', () => {
+    expect(html(RelatedContent, { publicacoes: [PUBLICACAO] }, 'en')).toMatch(/<h2[^>]*>Related content<\/h2>/)
+  })
+
   it('renders nothing when there is nothing related', () => {
     expect(html(RelatedContent, { publicacoes: [] })).toBe('')
+  })
+})
+
+describe('the PDF reader in English', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  // Rendered on the server only to read its first paint: the reader asks
+  // `document` whether it can go fullscreen as it mounts.
+  it('labels its controls in English for an English reader', () => {
+    vi.stubGlobal('document', { fullscreenEnabled: true })
+    const markup = html(PdfViewer, { url: 'https://x/v1.pdf', title: 'T', fileName: 'v1.pdf', cover: '/c.jpg' }, 'en')
+
+    for (const label of ['Page', 'Zoom in', 'Zoom', 'Zoom out', 'Full screen', 'PDF document']) {
+      expect(markup, label).toContain(`aria-label="${label}"`)
+    }
+    expect(markup).toContain('<span class="sr-only">of</span>')
+    expect(markup).toMatch(/>.*Download PDF<\/a>/)
+    expect(markup).toContain('Loading document…')
+    expect(markup).not.toMatch(/Página|Aumentar|Diminuir|Tela cheia|Baixar|Documento PDF|Carregando|>de</)
+  })
+
+  it('says it is loading in English while the reader downloads', () => {
+    expect(html(LeitorCarregando, {}, 'en')).toContain('Loading document…')
   })
 })

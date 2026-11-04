@@ -1,5 +1,9 @@
 import 'server-only'
 
+import { localeVariables, type ContentfulVariables } from '@/lib/contentful'
+import type { SiteLocale } from '@/lib/locale'
+import { calendarDate, dayMonthYear } from './dates'
+
 // The "Eventos e articulações" tab of the Comunicação page (Figma 19254:16041):
 // the meetings, visits and partnerships the observatory takes part in, newest
 // first. Editors publish them in Contentful as `evento` entries; the two below
@@ -54,7 +58,7 @@ export const DEFAULT_EVENTOS: Evento[] = [
   },
 ]
 
-type GetContent = <T>(query: string) => Promise<T>
+type GetContent = <T>(query: string, variables?: ContentfulVariables) => Promise<T>
 
 type ContentfulAsset = { url?: string | null } | null
 
@@ -76,8 +80,8 @@ type ContentfulEventos = {
 // Sorted by the event's own date, so the newest one leads without the editor
 // keeping an order field in step.
 export const EVENTOS_QUERY = `
-  query($preview: Boolean) {
-    eventoCollection(order: date_DESC, preview: $preview) {
+  query($preview: Boolean, $locale: String) {
+    eventoCollection(order: date_DESC, preview: $preview, locale: $locale) {
       items {
         categoria
         title
@@ -127,11 +131,14 @@ function mapEventos(entries: ContentfulEventos): Evento[] {
   })
 }
 
-export async function getEventos(getContent: GetContent | null): Promise<Evento[]> {
+// In English, every word of an event reads in English where Contentful has
+// it, and falls back to Portuguese field by field. The design's two events,
+// the fallback, are Portuguese only.
+export async function getEventos(getContent: GetContent | null, locale: SiteLocale = 'pt'): Promise<Evento[]> {
   if (!getContent) return DEFAULT_EVENTOS
 
   try {
-    const eventos = mapEventos(await getContent<ContentfulEventos>(EVENTOS_QUERY))
+    const eventos = mapEventos(await getContent<ContentfulEventos>(EVENTOS_QUERY, localeVariables(locale)))
 
     // A space with no event published yet still shows the design's two, as
     // the cartilhas fall back when none is published.
@@ -145,18 +152,9 @@ export async function getEventos(getContent: GetContent | null): Promise<Evento[
   }
 }
 
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+// "17 set 2026" (Figma I19254:16515;19254:16466), "17 Sep 2026" in English.
+export function formatEventoDate(value?: string | null, locale: SiteLocale = 'pt'): string | null {
+  const date = calendarDate(value)
 
-// "17 set 2026" (Figma I19254:16515;19254:16466). The calendar date is read
-// off the ISO string rather than through Date, for the reason
-// formatPublicationDate (lib/content/comunicacao.ts) gives: midnight UTC
-// formatted in the Northeast's UTC-3 would print the day before.
-export function formatEventoDate(value?: string | null): string | null {
-  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (!match) return null
-
-  const [, year, month, day] = match
-  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return null
-
-  return `${Number(day)} ${MESES[Number(month) - 1]} ${year}`
+  return date && dayMonthYear(date, locale)
 }

@@ -131,8 +131,13 @@ describe('the provisioned institutional copy', () => {
     expect(toProvisionedType(naoTraduzido).fields.map((f) => toCmaField(f).localized)).toEqual([false])
   })
 
-  it('translates every copy type of the landing page', () => {
-    for (const id of ['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos']) {
+  it('translates every copy type of the translated pages', () => {
+    const translated = [
+      ...['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos'],
+      'comunicacaoPagina',
+    ]
+
+    for (const id of translated) {
       const type = CONTENT_TYPES.find((c) => c.id === id)
 
       expect(type?.fields.map((f) => toCmaField(f).localized), id).toEqual(type?.fields.map(() => true))
@@ -149,14 +154,19 @@ describe('the provisioned institutional copy', () => {
     }
   })
 
-  // The events and the training photos live off the landing, still in
-  // Portuguese only.
-  it('leaves the events and the training photos untranslated', () => {
-    for (const id of ['evento', 'fotoFormacao']) {
-      const fields = CONTENT_TYPES.find((c) => c.id === id)!.fields
+  // The Comunicação page's events tab reads every word of an event in the
+  // visitor's language; the date and the photo are the same in both.
+  it('translates the words of an event, and not its date or its photo', () => {
+    const localized = CONTENT_TYPES.find((c) => c.id === 'evento')!.fields.filter((f) => toCmaField(f).localized)
 
-      expect(fields.filter((f) => toCmaField(f).localized).map((f) => f.id), id).toEqual([])
-    }
+    expect(localized.map((f) => f.id)).toEqual(['categoria', 'title', 'local', 'description', 'photoAlt', 'caption'])
+  })
+
+  // No page shows the training photos any more.
+  it('leaves the training photos untranslated', () => {
+    const fields = CONTENT_TYPES.find((c) => c.id === 'fotoFormacao')!.fields
+
+    expect(fields.filter((f) => toCmaField(f).localized).map((f) => f.id)).toEqual([])
   })
 
   it('carries every field the copy queries select', () => {

@@ -15,6 +15,9 @@ export const MARKETING_NAMESPACES = [
   'Hero',
   'Plataforma',
   'MoreLink',
+  'ComunicacaoAbas',
+  'Eventos',
+  'PdfViewer',
 ] as const
 
 export async function clientMessages(namespaces: readonly string[]): Promise<AbstractIntlMessages> {

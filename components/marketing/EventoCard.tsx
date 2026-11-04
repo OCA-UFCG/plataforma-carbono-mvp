@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Evento } from "@/lib/content/eventos";
 import Linhas from "./Linhas";
 import styles from "./EventoCard.module.css";
@@ -11,9 +12,10 @@ import styles from "./EventoCard.module.css";
 // place, the text, and the photo's caption on the right. The text shows two
 // lines until "Mostrar mais" opens it whole ("Mostrar menos" closes it).
 //
-// `data` is the event's date already formatted ("17 set 2026"), done on the
-// server with the rest of the content.
+// `data` is the event's date already formatted in the reader's language ("17
+// set 2026", "17 Sep 2026"), done on the server with the rest of the content.
 export default function EventoCard({ evento, data }: { evento: Evento; data: string | null }) {
+  const t = useTranslations("Eventos");
   const { categoria, title, date, local, description, photo, photoAlt, caption } = evento;
   const descricaoId = useId();
   const descricaoRef = useRef<HTMLParagraphElement>(null);
@@ -81,7 +83,7 @@ export default function EventoCard({ evento, data }: { evento: Evento; data: str
               aria-controls={descricaoId}
               onClick={() => setAberto((valor) => !valor)}
             >
-              {aberto ? "Mostrar menos" : "Mostrar mais"}
+              {aberto ? t("showLess") : t("showMore")}
             </button>
           )}
         </div>

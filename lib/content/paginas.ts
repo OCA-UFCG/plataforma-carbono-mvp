@@ -44,6 +44,7 @@ export const COMUNICACAO_PAGINA = defineCopy({
   name: 'Comunicação · Página',
   description:
     'Textos da página Comunicação ao redor da lista de publicações. As publicações em si são as entradas de Cartilha e Caderno Temático. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // Figma node 18978:2050, without its "Materiais" eyebrow, taken out on
     // 2026-10-06. The paragraph is the landing's former description of the

@@ -8,16 +8,21 @@ const endereco = vi.hoisted(() => ({ busca: '' }))
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(endereco.busca) }))
 
 import ComunicacaoAbas from '@/components/marketing/ComunicacaoAbas'
+import type { SiteLocale } from '@/lib/locale'
+import { withIntl } from '@/tests/helpers/intl'
 
 const paineis = {
   conteudo: createElement('p', null, 'painel de conteúdo'),
   eventos: createElement('p', null, 'painel de eventos'),
 }
 
-const html = (busca: string) => {
+const html = (busca: string, locale: SiteLocale = 'pt') => {
   endereco.busca = busca
-  return renderToStaticMarkup(createElement(ComunicacaoAbas, { paineis }))
+  return renderToStaticMarkup(withIntl(createElement(ComunicacaoAbas, { paineis }), locale))
 }
+
+const tabLabels = (markup: string) =>
+  (markup.match(/<button [^>]*role="tab"[^>]*>[^<]*<\/button>/g) ?? []).map((tab) => tab.replace(/<[^>]+>/g, ''))
 
 describe('ComunicacaoAbas', () => {
   it('renders every tab in the Inter tab style, and every panel', () => {
@@ -28,6 +33,13 @@ describe('ComunicacaoAbas', () => {
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
     expect(markup).toContain('painel de conteúdo')
     expect(markup).toContain('painel de eventos')
+  })
+
+  it('names the tabs and the tab list in English for an English reader', () => {
+    const markup = html('', 'en')
+
+    expect(tabLabels(markup)).toEqual(['Content', 'Events and partnerships'])
+    expect(markup).toContain('role="tablist" aria-label="Communication"')
   })
 
   it('opens the tab the address names and hides the other panel', () => {
