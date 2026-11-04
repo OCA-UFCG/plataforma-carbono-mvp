@@ -12,6 +12,8 @@ import { CAATINGA, CAATINGA_PESSOAS_IMAGEM } from '@/lib/content/sobre/caatinga'
 import { INICIO_DESTAQUES, destaquesCards } from '@/lib/content/destaques'
 import { SOBRE_FAIXA_IMAGEM } from '@/lib/content/paginas'
 import { copyDefaults } from '@/lib/content/site/model'
+import { barFill } from '@/lib/marketing/figure'
+import { MESSAGES } from '@/tests/helpers/intl'
 
 const DESTAQUES = destaquesCards(copyDefaults(INICIO_DESTAQUES))
 
@@ -59,6 +61,20 @@ describe('Entenda essa relação (/sobre/carbono-e-comunidades)', () => {
   // The design marks "consulta livre, prévia e informada" with "ⓘ" for a
   // glossary it does not define (issue #44, question 3). Until it exists, the
   // words appear without it.
+  // The 2026-11-04 Figma frame (18988:8769) brings back what commit 438ec35
+  // removed: the law figures, two sections and the closing paragraph.
+  it('brings back the law figures, the decisions, the benefits and the closing', () => {
+    expect([c.garantia1Valor, c.garantia2Valor]).toEqual(['mín. 50%', 'mín. 70%'])
+    expect([c.garantia1Rotulo, c.garantia2Rotulo]).toEqual(['créditos de remoção', 'redução do desmatamento'])
+    expect([c.decisoesTitulo, c.beneficiosTitulo]).toEqual([
+      'Quem decide sobre os projetos?',
+      'Como os benefícios devem ser repartidos?',
+    ])
+    expect(c.decisoesTexto).toHaveLength(3)
+    expect(c.beneficiosTexto).toHaveLength(3)
+    expect(c.fechamento).toMatch(/^Compreender essas questões/)
+  })
+
   it('carries no glossary marker yet', () => {
     expect(JSON.stringify(c)).not.toContain('ⓘ')
   })
@@ -114,6 +130,15 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
 
   // The 2026-10-05 meeting dropped the vegetation section's highlight; the
   // field is optional, and empty it leaves the quote out.
+  // The bars under the climate and efficiency cards (Figma 19406:47719) fill
+  // to the share their own card states.
+  it('fills each bar to the share its card states', () => {
+    expect(c.climaIndicadorTexto).toContain(`cerca de ${c.climaIndicadorBarra}%`)
+    expect(c.eficienciaIndicadorValor).toContain(`${c.eficienciaIndicadorBarra}%`)
+    expect(barFill(c.climaIndicadorBarra)).toBe(38)
+    expect(barFill(c.eficienciaIndicadorBarra)).toBe(60)
+  })
+
   it('ships the vegetation section without its highlight', () => {
     expect(c.vegetacaoDestaque).toBe('')
   })
@@ -130,5 +155,28 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
 
   it('points its photo at a file that exists', () => {
     expect(inPublic(CAATINGA_PESSOAS_IMAGEM.src)).toBe(true)
+  })
+})
+
+// Each photo's description follows the visitor's language, so it lives with
+// the interface labels (messages/<locale>.json, "Sobre.imageAlt"), keyed by
+// the page, and not beside the photo's address.
+describe('the Sobre photos’ descriptions', () => {
+  const photos = {
+    plataforma: SOBRE_PLATAFORMA_IMAGEM,
+    caatinga: CAATINGA_PESSOAS_IMAGEM,
+    'carbono-e-comunidades': CARBONO_E_COMUNIDADES_IMAGEM,
+  } as const
+
+  it('describes every page photo in both languages', () => {
+    for (const locale of ['pt', 'en'] as const) {
+      for (const slug of Object.keys(photos) as Array<keyof typeof photos>) {
+        expect(MESSAGES[locale].Sobre.imageAlt[slug], `${locale} ${slug}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('keeps the descriptions out of the content modules', () => {
+    for (const photo of Object.values(photos)) expect(photo).not.toHaveProperty('alt')
   })
 })

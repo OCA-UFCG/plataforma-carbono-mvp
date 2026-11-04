@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import PageIntro from "@/components/marketing/PageIntro";
 import ComunicacaoAbas from "@/components/marketing/ComunicacaoAbas";
@@ -13,7 +13,8 @@ import { getEventos } from "@/lib/content/eventos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 import { getContentfulClient } from "@/lib/contentful";
 import { glossarioAntigoHref } from "@/lib/glossario/termos";
-import { HTML_LANG, readSiteLocale } from "@/lib/locale";
+import { getSiteLocale } from "@/i18n/siteLocale";
+import { HTML_LANG } from "@/lib/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("Nav"))("comunicacao") };
@@ -40,7 +41,7 @@ export default async function ComunicacaoPage({
   const glossario = glossarioAntigoHref(busca);
   if (glossario) redirect(glossario);
 
-  const locale = readSiteLocale(await getLocale());
+  const locale = await getSiteLocale();
   const getContent = getContentfulClient();
   const [conteudo, eventos, { pagina }] = await Promise.all([
     getComunicacaoContent(getContent, locale),

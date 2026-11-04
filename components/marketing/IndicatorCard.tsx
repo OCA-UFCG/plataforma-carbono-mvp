@@ -4,43 +4,29 @@ export type IndicatorCardProps = {
   label: string;
   value: string;
   // Set at body size beside the value. Write sub/superscripts as the Unicode
-  // characters ("t CO₂/ha/ano", "km²"), never "CO2". A unit set at display
-  // size, as the Sobre cards do ("1,5–5tCO₂/ha/ano"), goes in `value` instead.
+  // characters ("t CO₂/ha/ano", "km²"), never "CO2".
   unit?: string;
   description: string;
-  // Defaults to the component's own 24px "Map" icon, the artwork of the Sobre
-  // pages (Figma I18988:8714;18808:5943). The landing passes one per card
-  // (lib/content/destaques.ts).
-  icon?: string;
-  // 'raised': white card with a shadow, on the landing's grey band (Figma
-  // 18862:8542..8545). 'outlined': cream fill inside a 1px border, on the page
-  // background of the Sobre pages (18988:8714, 18988:8731).
-  variant?: "raised" | "outlined";
+  // One per card, from lib/content/destaques.ts.
+  icon: string;
 };
 
 // "Cards de indicadores em destaque", Figma component 8689:52527 (variant
-// "formato2", 18808:5911): a green header with icon and label over the figure
-// and its description. Renders a <div>; a caller listing several cards wraps
-// each in its own <li>, as Destaques does.
-export default function IndicatorCard({
-  label,
-  value,
-  unit,
-  description,
-  icon,
-  variant = "raised",
-}: IndicatorCardProps) {
-  const iconSrc = icon ?? "/icons/indicator-card/map.svg";
-
+// "formato2", 18808:5911), as the landing's highlights draw it (18862:8542..
+// 8545): a white card with a shadow, a green header with icon and label over
+// the figure and its description. The Sobre pages use FigureCard instead
+// (components/marketing/sobre/FigureCard.tsx). Renders a <div>; a caller
+// listing several cards wraps each in its own <li>, as Destaques does.
+export default function IndicatorCard({ label, value, unit, description, icon }: IndicatorCardProps) {
   return (
-    <div className={`${styles.card} ${styles[variant]}`}>
+    <div className={styles.card}>
       <div className={styles.header}>
         {/* Decorative: the icon repeats what `label` already says in text,
             so it carries no information of its own. A plain <img>, not
             next/image, matches Hero.tsx: these are small static SVGs, not
             photos worth the optimizer. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={iconSrc} alt="" width={24} height={24} className={styles.icon} />
+        <img src={icon} alt="" width={24} height={24} className={styles.icon} />
         <p className={`${styles.label} text-subtle-semibold`}>{label}</p>
       </div>
       <div className={styles.body}>

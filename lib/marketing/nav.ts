@@ -68,13 +68,17 @@ export const FOOTER_LINKS: NavLink[] = [
 
 // The four "Sobre" pages, in the order of their sub-navigation (Figma node
 // 18988:8635). Each href must have a page under app/(marketing)/.
-export type SobrePage = { slug: string; href: string; label: string }
+// Each page's name, in the sub-navigation and its browser tab, is in
+// messages/<locale>.json, under "Sobre.pages.<slug>".
+export type SobreSlug = 'plataforma' | 'caatinga' | 'carbono-e-comunidades' | 'como-funciona'
+
+export type SobrePage = { slug: SobreSlug; href: string }
 
 export const SOBRE_PAGES: SobrePage[] = [
-  { slug: 'plataforma', href: '/sobre', label: 'Conheça a plataforma' },
-  { slug: 'caatinga', href: '/sobre/caatinga', label: 'Conheça a Caatinga' },
-  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades', label: 'Entenda essa relação' },
-  { slug: 'como-funciona', href: '/sobre/como-funciona', label: 'Como funciona' },
+  { slug: 'plataforma', href: '/sobre' },
+  { slug: 'caatinga', href: '/sobre/caatinga' },
+  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades' },
+  { slug: 'como-funciona', href: '/sobre/como-funciona' },
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the

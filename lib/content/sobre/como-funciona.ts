@@ -27,6 +27,7 @@ export const COMO_FUNCIONA = defineCopy({
   name: 'Sobre · Como funciona',
   description:
     'Textos da página /sobre/como-funciona: os seis passos de uso do mapa, na ordem em que aparecem, e as dúvidas frequentes. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     passo1Titulo: line('Passo 1 · Título', 'Encontre a área de interesse'),
     passo1Texto: text('Passo 1 · Texto', [

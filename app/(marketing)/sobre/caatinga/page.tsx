@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Section from "@/components/marketing/sobre/Section";
 import Quote from "@/components/marketing/sobre/Quote";
 import MediaText from "@/components/marketing/sobre/MediaText";
-import IndicatorCard from "@/components/marketing/IndicatorCard";
+import FigureCard, { FigureList } from "@/components/marketing/sobre/FigureCard";
 import Paragrafos from "@/components/marketing/Paragrafos";
 import { CAATINGA, CAATINGA_PESSOAS_IMAGEM } from "@/lib/content/sobre/caatinga";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
+import { barFill } from "@/lib/marketing/figure";
+import { getSiteLocale } from "@/i18n/siteLocale";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = { title: "Conheça a Caatinga" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Sobre"))("pages.caatinga") };
+}
 
 // "Conheça a Caatinga", Figma frame 18988:8667 (content 18988:8696), under the
 // shared intro band and sub-navigation of sobre/layout.tsx. Copy lives in
 // Contentful, shipped with lib/content/sobre/caatinga.ts.
 export default async function SobreCaatingaPage() {
-  const { c } = await loadSiteCopy({ c: CAATINGA });
+  const t = await getTranslations("Sobre");
+  const { c } = await loadSiteCopy({ c: CAATINGA }, undefined, await getSiteLocale());
 
   return (
     <div className={styles.page}>
@@ -28,58 +34,52 @@ export default async function SobreCaatingaPage() {
           {c.vegetacaoDestaque && <Quote>{c.vegetacaoDestaque}</Quote>}
         </Section>
 
-        <Section title={c.climaTitulo}>
-          <Paragrafos textos={[c.climaAntes]} />
-          <div className={styles.indicador}>
-            <IndicatorCard
-              label={c.climaIndicadorRotulo}
-              value={c.climaIndicadorValor}
-              description={c.climaIndicadorTexto}
-              variant="outlined"
-            />
-          </div>
-          <Paragrafos textos={[c.climaDepois]} />
-        </Section>
+        {/* 18988:8708 and 18988:8716: each question's text beside its
+            figure card, the text centred on the card. */}
+        <div className={styles.linha}>
+          <Section title={c.climaTitulo}>
+            <Paragrafos textos={[c.climaAntes, c.climaDepois]} />
+          </Section>
+          <FigureCard
+            label={c.climaIndicadorRotulo}
+            value={c.climaIndicadorValor}
+            description={c.climaIndicadorTexto}
+            bar={barFill(c.climaIndicadorBarra)}
+          />
+        </div>
 
-        <Section title={c.eficienciaTitulo}>
-          <Paragrafos textos={[c.eficienciaAntes]} />
-          <div className={styles.indicador}>
-            <IndicatorCard
-              label={c.eficienciaIndicadorRotulo}
-              value={c.eficienciaIndicadorValor}
-              description={c.eficienciaIndicadorTexto}
-              variant="outlined"
-            />
-          </div>
-          <Paragrafos textos={[c.eficienciaDepois]} />
-        </Section>
+        <div className={styles.linha}>
+          <Section title={c.eficienciaTitulo}>
+            <Paragrafos textos={[c.eficienciaAntes, c.eficienciaDepois]} />
+          </Section>
+          <FigureCard
+            label={c.eficienciaIndicadorRotulo}
+            value={c.eficienciaIndicadorValor}
+            description={c.eficienciaIndicadorTexto}
+            bar={barFill(c.eficienciaIndicadorBarra)}
+          />
+        </div>
 
         <Section title={c.armazenamentoTitulo}>
           <Paragrafos textos={[c.armazenamentoAntes]} />
-          <ul className={styles.indicadores} role="list">
-            <li role="listitem">
-              <IndicatorCard
-                label={c.armazenamentoIndicador1Rotulo}
-                value={c.armazenamentoIndicador1Valor}
-                description={c.armazenamentoIndicador1Texto}
-                variant="outlined"
-              />
-            </li>
-            <li role="listitem">
-              <IndicatorCard
-                label={c.armazenamentoIndicador2Rotulo}
-                value={c.armazenamentoIndicador2Valor}
-                description={c.armazenamentoIndicador2Texto}
-                variant="outlined"
-              />
-            </li>
-          </ul>
+          <FigureList>
+            <FigureCard
+              label={c.armazenamentoIndicador1Rotulo}
+              value={c.armazenamentoIndicador1Valor}
+              description={c.armazenamentoIndicador1Texto}
+            />
+            <FigureCard
+              label={c.armazenamentoIndicador2Rotulo}
+              value={c.armazenamentoIndicador2Valor}
+              description={c.armazenamentoIndicador2Texto}
+            />
+          </FigureList>
           <Paragrafos textos={c.armazenamentoDepois} />
         </Section>
 
         <MediaText
           image={CAATINGA_PESSOAS_IMAGEM.src}
-          imageAlt={CAATINGA_PESSOAS_IMAGEM.alt}
+          imageAlt={t("imageAlt.caatinga")}
           imageSide="left"
           imageSize="small"
         >
