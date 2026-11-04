@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FaBars, FaXmark } from "react-icons/fa6";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { HEADER_LINKS, MAPA_LINK, TERRITORIOS_LINK, activeNavHref } from "@/lib/marketing/nav";
+import { HTML_LANG, type SiteLocale } from "@/lib/locale";
 import styles from "./SiteHeader.module.css";
+import { useSiteLocale } from "./useSiteLocale";
 
 // Below this width the inline nav/actions collapse into the hamburger panel.
 // Measured, not inherited from the pre-redesign header: `.brand` + `.nav` +
@@ -27,31 +30,41 @@ const DESKTOP_QUERY = "(min-width: 1280px)";
 
 const MOBILE_PANEL_ID = "site-header-mobile-panel";
 
-// The PT-BR / En control from the Figma design (19272:44342),
-// rendered as designed but inert: internationalisation is out of scope, so
-// selecting "En" does nothing. --role-neutro-texto-desabilitado is the token
-// for that disabled state; it measures 2.50:1 against the background, which
-// WCAG allows for an inactive control but not for informative text, so it is
-// used only here. `aria-disabled` is documentation for the next developer,
-// not something assistive tech consumes — the <span> has no role (it maps
-// to `generic`, which does not support `aria-disabled`), so without the
-// visually-hidden suffix below it would announce as plain "En", giving no
-// indication it does nothing. `title` is not announced on a non-focusable
-// element and does not exist on touch, so it is decorative only.
+// Each language names itself, so these two labels are not translated.
+const LANGUAGES: { locale: SiteLocale; label: string }[] = [
+  { locale: "pt", label: "PT-BR" },
+  { locale: "en", label: "En" },
+];
+
+// The PT-BR / En control from the Figma design (19272:44342). Each option is a
+// toggle button, the chosen one pressed and filled; `lang` makes a screen
+// reader say "En" in English. Choosing writes the NEXT_LOCALE cookie and
+// renders the page again. So far only the landing page is in English: the
+// other pages keep their Portuguese under this header.
 function LanguageSwitch({ className }: { className?: string }) {
+  const t = useTranslations("SiteHeader");
+  const [locale, chooseLocale] = useSiteLocale();
+
   return (
-    <div className={className} role="group" aria-label="Idioma">
-      <span className={`${styles.languageOption} ${styles.languageOptionActive} text-ui-tab`}>
-        PT-BR
-      </span>
-      <span
-        className={`${styles.languageOption} text-ui-tab`}
-        aria-disabled="true"
-        title="Disponível em breve"
-      >
-        En
-        <span className="sr-only"> (disponível em breve)</span>
-      </span>
+    <div className={className} role="group" aria-label={t("language")}>
+      {LANGUAGES.map((option) => {
+        const active = option.locale === locale;
+
+        return (
+          <button
+            key={option.locale}
+            type="button"
+            lang={HTML_LANG[option.locale]}
+            className={`${styles.languageOption} ${active ? styles.languageOptionActive : ""} text-ui-tab`}
+            aria-pressed={active}
+            onClick={() => {
+              if (!active) chooseLocale(option.locale);
+            }}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -61,6 +74,7 @@ function LanguageSwitch({ className }: { className?: string }) {
 // "Sair". Its own component because it reads the session, which only the
 // platform's header asks for.
 function AccountSlot({ className }: { className?: string }) {
+  const t = useTranslations("SiteHeader");
   const { user, signOut } = useAuth();
   const [leaving, setLeaving] = useState(false);
 
@@ -78,7 +92,7 @@ function AccountSlot({ className }: { className?: string }) {
         </span>
       )}
       <button type="button" className={`${styles.signOut} text-ui-medium`} onClick={leave} disabled={leaving}>
-        Sair
+        {t("signOut")}
       </button>
     </div>
   );
@@ -91,6 +105,9 @@ function AccountSlot({ className }: { className?: string }) {
 // `account` adds the session slot; the platform passes it, the marketing pages
 // and the story do not.
 export default function SiteHeader({ account = false }: { account?: boolean }) {
+  const t = useTranslations("SiteHeader");
+  const nav = useTranslations("Nav");
+  const [locale] = useSiteLocale();
   const [open, setOpen] = useState(false);
   const activeHref = activeNavHref(usePathname());
   const territoriosActive = activeHref === TERRITORIOS_LINK.href;
@@ -102,7 +119,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
       className={`${styles.mapaButton} text-ui-medium`}
       aria-current={mapaActive ? "page" : undefined}
     >
-      {MAPA_LINK.label}
+      {nav(MAPA_LINK.key)}
     </a>
   );
 
@@ -138,15 +155,15 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
   }, [open]);
 
   return (
-    <header className={styles.siteHeader} aria-label="Cabeçalho">
+    <header className={styles.siteHeader} aria-label={t("region")} lang={HTML_LANG[locale]}>
       <div className={`container ${styles.bar}`}>
-        <Link href="/" className={styles.brand} aria-label="Página inicial da Caativar">
+        <Link href="/" className={styles.brand} aria-label={t("home")}>
           {/* Decorative: the link's aria-label already names the brand. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo */}
           <img src="/logos/caativar-cabecalho.svg" alt="" width={232} height={95} className={styles.brandLogo} />
         </Link>
 
-        <nav className={styles.nav} aria-label="Navegação principal">
+        <nav className={styles.nav} aria-label={t("mainNav")}>
           {HEADER_LINKS.map((link) => {
             // The entry that owns the current route (activeNavHref): "Início"
             // on the landing, "Sobre" on every /sobre/* page, as in Figma node
@@ -159,7 +176,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
                 className={`${styles.navLink} ${active ? `text-ui-bold ${styles.navLinkActive}` : "text-ui-medium"}`}
                 aria-current={active ? "page" : undefined}
               >
-                {link.label}
+                {nav(link.key)}
               </Link>
             );
           })}
@@ -172,7 +189,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
             className={`${styles.navLink} ${territoriosActive ? `text-ui-bold ${styles.navLinkActive}` : "text-ui-medium"}`}
             aria-current={territoriosActive ? "page" : undefined}
           >
-            {TERRITORIOS_LINK.label}
+            {nav(TERRITORIOS_LINK.key)}
           </a>
           {mapaActive ? <span className={styles.mapaRing}>{mapaLink}</span> : mapaLink}
         </nav>
@@ -185,7 +202,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
             className={styles.toggle}
             aria-expanded={open}
             aria-controls={MOBILE_PANEL_ID}
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            aria-label={open ? t("closeMenu") : t("openMenu")}
             onClick={() => setOpen((value) => !value)}
           >
             {open ? <FaXmark aria-hidden /> : <FaBars aria-hidden />}
@@ -198,7 +215,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
           nav stacked vertically, adapted to this header's own links instead
           of that component's unrelated example content. */}
       <div id={MOBILE_PANEL_ID} className={styles.panel} hidden={!open}>
-        <nav className={styles.panelNav} aria-label="Navegação móvel">
+        <nav className={styles.panelNav} aria-label={t("mobileNav")}>
           {HEADER_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -207,7 +224,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
               aria-current={link.href === activeHref ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
-              {link.label}
+              {nav(link.key)}
             </Link>
           ))}
           <a
@@ -216,7 +233,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
             aria-current={territoriosActive ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
-            {TERRITORIOS_LINK.label}
+            {nav(TERRITORIOS_LINK.key)}
           </a>
           <a
             href={MAPA_LINK.href}
@@ -224,7 +241,7 @@ export default function SiteHeader({ account = false }: { account?: boolean }) {
             aria-current={mapaActive ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
-            {MAPA_LINK.label}
+            {nav(MAPA_LINK.key)}
           </a>
         </nav>
         <div className={styles.panelActions}>

@@ -34,6 +34,7 @@ export const INICIO_CAMINHOS = defineCopy({
   name: 'Início · Duas formas de explorar',
   description:
     'Seção da página inicial com os dois cartões que levam ao resumo territorial e à plataforma de dados. A lista de cada cartão aparece ao passar o mouse. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     chamada: line('Chamada acima do título', 'Duas formas de explorar os dados'),
     titulo: line('Título', 'Os mesmos dados de carbono, dois caminhos'),

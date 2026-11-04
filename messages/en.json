@@ -1,0 +1,59 @@
+{
+  "Metadata": {
+    "description": "Integrated monitoring system for forest carbon in the Caatinga biome: spatial data, a methodology adapted to the semi-arid region, governance and integrity of carbon markets."
+  },
+  "Nav": {
+    "inicio": "Home",
+    "sobre": "About",
+    "glossario": "Glossary",
+    "comunicacao": "Communication",
+    "territorios": "Territory summary",
+    "plataforma": "Platform"
+  },
+  "SiteHeader": {
+    "region": "Header",
+    "home": "Caativar home page",
+    "mainNav": "Main navigation",
+    "mobileNav": "Mobile navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "language": "Language",
+    "signOut": "Sign out"
+  },
+  "SiteFooter": {
+    "region": "Footer",
+    "nav": "Footer navigation",
+    "contact": "CONTACT"
+  },
+  "MoreLink": {
+    "label": "See more"
+  },
+  "Hero": {
+    "region": "Introduction",
+    "photoAlt": "Photo {number} of the Caatinga",
+    "photoPicker": "Choose the background photo",
+    "showPhoto": "Show {alt}",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "announcement": "Photo {number} of {total}: {title}",
+    "credit": "Photo: {name}"
+  },
+  "Plataforma": {
+    "region": "Platform",
+    "moreContext": "about the platform",
+    "imageAlt": {
+      "o-que-e": "View of a Caatinga valley with vegetation and a town in the background",
+      "a-caatinga": "View from the top of a Caatinga mountain range, with dry vegetation in the foreground under a blue sky",
+      "carbono-e-comunidades": "House of a rural Caatinga community, with a packed-earth yard and vegetation around it",
+      "como-funciona": "Corn field in front of a hill covered by Caatinga vegetation"
+    }
+  },
+  "Comunicacao": {
+    "heading": "Communication",
+    "moreContext": "communication materials",
+    "cartilha": "BOOKLET",
+    "caderno": "THEMATIC REPORT",
+    "cta": "View material",
+    "cartilhaDescription": "An introductory booklet, in plain language, for communities and anyone interested in learning about the topic."
+  }
+}

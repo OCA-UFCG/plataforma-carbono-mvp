@@ -4,6 +4,7 @@ import {
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
   DESCRICAO_CARTILHA,
+  COMUNICACAO_QUERY,
   findPublicacao,
   formatPublicationDate,
   getComunicacaoContent,
@@ -269,6 +270,25 @@ describe('publication fields', () => {
     expect(queries[0]).toContain('slug')
     expect(queries[0]).toContain('publicationDate')
     expect(queries[0]).toContain('pdf { url fileName }')
+  })
+})
+
+describe('getComunicacaoContent in a language', () => {
+  it('asks every collection in the locale the page passes', () => {
+    expect(COMUNICACAO_QUERY).toContain('query($preview: Boolean, $locale: String)')
+    for (const collection of ['cartilhaCollection', 'cadernoCollection', 'fotoFormacaoCollection']) {
+      expect(COMUNICACAO_QUERY).toMatch(new RegExp(`${collection}\\([^)]*locale: \\$locale\\)`))
+    }
+  })
+
+  it('asks Contentful for English when the page is in English, and names no locale in Portuguese', async () => {
+    const getContent = vi.fn().mockResolvedValue(PUBLISHED)
+
+    await getComunicacaoContent(getContent, 'en')
+    await getComunicacaoContent(getContent, 'pt')
+    await getComunicacaoContent(getContent)
+
+    expect(getContent.mock.calls.map(([, variables]) => variables?.locale)).toEqual(['en-US', undefined, undefined])
   })
 })
 

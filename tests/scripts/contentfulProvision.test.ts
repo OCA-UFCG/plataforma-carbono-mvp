@@ -114,6 +114,51 @@ describe('the provisioned content model', () => {
 })
 
 describe('the provisioned institutional copy', () => {
+  // Provisioning puts the whole content type, so a localized type left
+  // unmarked here would lose its translations at the next --apply.
+  it('localizes the fields of a type the site translates, and no other', () => {
+    const TRADUZIDO = defineCopy({
+      id: 'traduzido',
+      name: 'Traduzido',
+      description: 'Tipo de teste traduzido.',
+      localized: true,
+      fields: { titulo: line('Título', 'Olá') },
+    })
+    const { localized, ...naoTraduzido } = TRADUZIDO
+
+    expect(localized).toBe(true)
+    expect(toProvisionedType(TRADUZIDO).fields.map((f) => toCmaField(f).localized)).toEqual([true])
+    expect(toProvisionedType(naoTraduzido).fields.map((f) => toCmaField(f).localized)).toEqual([false])
+  })
+
+  it('translates every copy type of the landing page', () => {
+    for (const id of ['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos']) {
+      const type = CONTENT_TYPES.find((c) => c.id === id)
+
+      expect(type?.fields.map((f) => toCmaField(f).localized), id).toEqual(type?.fields.map(() => true))
+    }
+  })
+
+  // The landing shows each publication's title and description; the address,
+  // the files and the order are the same in every language.
+  it('translates the title and the description of the publications, and nothing else of them', () => {
+    for (const id of ['cartilha', 'caderno']) {
+      const localized = CONTENT_TYPES.find((c) => c.id === id)!.fields.filter((f) => toCmaField(f).localized)
+
+      expect(localized.map((f) => f.id), id).toEqual(['title', 'description'])
+    }
+  })
+
+  // The events and the training photos live off the landing, still in
+  // Portuguese only.
+  it('leaves the events and the training photos untranslated', () => {
+    for (const id of ['evento', 'fotoFormacao']) {
+      const fields = CONTENT_TYPES.find((c) => c.id === id)!.fields
+
+      expect(fields.filter((f) => toCmaField(f).localized).map((f) => f.id), id).toEqual([])
+    }
+  })
+
   it('carries every field the copy queries select', () => {
     for (const type of SITE_COPY_TYPES) {
       const query = copyQuery({ [type.id]: type })

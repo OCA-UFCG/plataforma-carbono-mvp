@@ -27,6 +27,8 @@ export type ProvisionedField = {
   copy?: CopyKind
   // Set on a copy field the page fills in: what each placeholder becomes.
   placeholders?: Placeholders
+  // Set on the fields of a copy type the site translates.
+  localized?: boolean
 }
 
 export type ProvisionedType = {
@@ -46,9 +48,9 @@ const PUBLICATION_TYPES: ProvisionedType[] = [
     displayField: 'title',
     fields: [
       { id: 'volume', name: 'Volume', type: 'Symbol', required: true },
-      { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'title', name: 'Título', type: 'Symbol', required: true, localized: true },
       { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true, slug: true },
-      { id: 'description', name: 'Descrição', type: 'Text', required: false },
+      { id: 'description', name: 'Descrição', type: 'Text', required: false, localized: true },
       { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
@@ -61,9 +63,9 @@ const PUBLICATION_TYPES: ProvisionedType[] = [
     description: 'Caderno temático em destaque na seção Comunicação. A página usa a entrada mais recente.',
     displayField: 'title',
     fields: [
-      { id: 'title', name: 'Título', type: 'Symbol', required: true },
+      { id: 'title', name: 'Título', type: 'Symbol', required: true, localized: true },
       { id: 'slug', name: 'Endereço', type: 'Symbol', required: true, unique: true, slug: true },
-      { id: 'description', name: 'Descrição', type: 'Text', required: true },
+      { id: 'description', name: 'Descrição', type: 'Text', required: true, localized: true },
       { id: 'publicationDate', name: 'Data de publicação', type: 'Date', required: false },
       { id: 'cover', name: 'Capa', type: 'Link', linkType: 'Asset', required: true, image: true },
       { id: 'pdf', name: 'PDF', type: 'Link', linkType: 'Asset', required: false, pdf: true },
@@ -122,6 +124,7 @@ export function toProvisionedType(copyType: CopyType): ProvisionedType {
       required: !field.optional,
       copy: field.kind,
       ...(field.placeholders && { placeholders: field.placeholders }),
+      ...(copyType.localized && { localized: true }),
     })),
   }
 }
@@ -187,7 +190,7 @@ export function toCmaField(field: ProvisionedField) {
     type: field.type,
     ...(field.linkType ? { linkType: field.linkType } : {}),
     required: field.required,
-    localized: false,
+    localized: field.localized ?? false,
     disabled: false,
     omitted: false,
     validations,

@@ -13,6 +13,7 @@ export const INICIO_HERO = defineCopy({
   name: 'Início · Hero',
   description:
     'Textos dos quatro cartões do topo da página inicial, um por foto, na ordem em que aparecem. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     foto1Titulo: line('Foto 1 · Título', 'Dados abertos e mapas para entender o carbono na Caatinga'),
     foto1Texto: paragraph(

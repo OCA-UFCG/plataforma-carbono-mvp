@@ -1,0 +1,59 @@
+{
+  "Metadata": {
+    "description": "Sistema integrado de monitoramento do carbono florestal do bioma Caatinga: dados espaciais, metodologia adaptada ao semiárido, governança e integridade dos mercados de carbono."
+  },
+  "Nav": {
+    "inicio": "Início",
+    "sobre": "Sobre",
+    "glossario": "Glossário",
+    "comunicacao": "Comunicação",
+    "territorios": "Resumo territorial",
+    "plataforma": "Plataforma"
+  },
+  "SiteHeader": {
+    "region": "Cabeçalho",
+    "home": "Página inicial da Caativar",
+    "mainNav": "Navegação principal",
+    "mobileNav": "Navegação móvel",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "language": "Idioma",
+    "signOut": "Sair"
+  },
+  "SiteFooter": {
+    "region": "Rodapé",
+    "nav": "Navegação do rodapé",
+    "contact": "CONTATO"
+  },
+  "MoreLink": {
+    "label": "Ver mais"
+  },
+  "Hero": {
+    "region": "Apresentação",
+    "photoAlt": "Foto {number} da Caatinga",
+    "photoPicker": "Selecionar foto de fundo",
+    "showPhoto": "Mostrar {alt}",
+    "previous": "Foto anterior",
+    "next": "Próxima foto",
+    "announcement": "Foto {number} de {total}: {title}",
+    "credit": "Foto: {name}"
+  },
+  "Plataforma": {
+    "region": "Plataforma",
+    "moreContext": "sobre a plataforma",
+    "imageAlt": {
+      "o-que-e": "Vista de um vale da Caatinga com vegetação e cidade ao fundo",
+      "a-caatinga": "Vista do alto de uma serra da Caatinga, com vegetação seca em primeiro plano sob céu azul",
+      "carbono-e-comunidades": "Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor",
+      "como-funciona": "Plantação de milho diante de um morro coberto pela vegetação da Caatinga"
+    }
+  },
+  "Comunicacao": {
+    "heading": "Comunicação",
+    "moreContext": "materiais de comunicação",
+    "cartilha": "CARTILHA",
+    "caderno": "CADERNO TEMÁTICO",
+    "cta": "Ver material",
+    "cartilhaDescription": "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema."
+  }
+}

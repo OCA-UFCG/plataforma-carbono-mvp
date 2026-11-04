@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Write code, comments, and documentation in English. Source comments are in English; keep it that way. The one exception is the glossary's scenes: `lib/cenas/fonte/` was ported from a Portuguese package and keeps its Portuguese comments, so a new comment there is written in Portuguese to match its file, as is `lib/cenas/REGRAS_CENAS.md`. The Portuguese prose docs (`DOCUMENTACAO.md`, `README.md`, `REVISAO_TECNICA.md`) stay as-is unless asked.
 
-User-facing UI strings stay in Portuguese — the product is for a Brazilian audience. An English comment still quotes those strings verbatim when it cites a UI label or a data value (`"Área desenhada"`, `'chuva'`), and keeps the domain terms the codebase uses untranslated (`recorte`, `mata branca`).
+User-facing UI strings are written in Portuguese first — the product is for a Brazilian audience — and the translated pages carry English beside them (see "Languages" below). An English comment still quotes those strings verbatim when it cites a UI label or a data value (`"Área desenhada"`, `'chuva'`), and keeps the domain terms the codebase uses untranslated (`recorte`, `mata branca`).
 
 ## Commands
 
@@ -65,11 +65,20 @@ The platform renders the site header (`SiteHeader` with `account`) and, under it
 
 ### Institutional copy in Contentful
 
-The words of the marketing pages (`/`, `/sobre/*`, `/comunicacao`) come from Contentful, one content type per section or page, each holding a single entry. The types are declared in `lib/content/` with `defineCopy` (`lib/content/site/model.ts`): each field is a `line`, `paragraph`, `text` (paragraphs split on a blank line) or `list` (one item per line), and its value in the code is both the fallback and what seeds a new space. Pages read them with `loadSiteCopy` (`lib/content/site/fetch.ts`); a failed request, a missing entry or an empty required field falls back to the code, field by field. Images, their alt text, icons, links and interface labels (`"Ver mais"`, `"Plataforma"`) stay in the code, and so does the number of cards in each section.
+The words of the marketing pages (`/`, `/sobre/*`, `/comunicacao`) come from Contentful, one content type per section or page, each holding a single entry. The types are declared in `lib/content/` with `defineCopy` (`lib/content/site/model.ts`): each field is a `line`, `paragraph`, `text` (paragraphs split on a blank line) or `list` (one item per line), and its value in the code is both the fallback and what seeds a new space. Pages read them with `loadSiteCopy` (`lib/content/site/fetch.ts`); a failed request, a missing entry or an empty required field falls back to the code, field by field. Images, icons, links and interface labels (`"Ver mais"`, `"Plataforma"`) stay in the code, the labels and alt texts in `messages/<locale>.json`, and so does the number of cards in each section.
 
 Changing a field means changing three things together: the definition in `lib/content/`, the content type in the space (`npm run contentful:provision -- --apply` with `CONTENTFUL_MANAGEMENT_TOKEN`; it never overwrites an existing entry) and, when the copy itself changes, the entry. The entry wins over the code, so new copy committed to `lib/content/` does not reach the page until the entry is updated too. `tests/lib/contentfulSpace.test.ts` runs every copy query against the configured space and fails on a missing type or field. Published edits reach the pages within the hour (`REVALIDATE_SECONDS` in `lib/contentful.ts`).
 
 The Territórios story (`/territorios`) reads its copy the same way: one type per tab, plus the presentation over the gallery and the shared part of "Sobre os dados" (`lib/content/territorios.ts`). The page loads it on the server, and `StoryScriptProvider` (`components/territorios/StoryScriptContext.tsx`) turns it into the script `lib/territorios/storyText.ts` fills, through `storyScript()` in `config/territorios/storyScript.ts`; panels read it with `useStoryScript()`. A copy field may declare placeholders (`line('Pergunta', 'Como mudou a vegetação nativa desde {anoInicial}?', { anoInicial: '…' })`). An entry naming any other placeholder, or leaving a brace unpaired, falls back to the code for that field. The years of each series are always placeholders, so a data update reaches the copy. Interface labels, chart descriptions, the summary's badges and the grammar tables stay in `config/territorios/`.
+
+### Languages (Portuguese and English)
+
+The site speaks Portuguese and, page by page, English. The visitor's choice is the `NEXT_LOCALE` cookie (`lib/locale.ts`), set by the header's PT-BR/En switch (`components/marketing/useSiteLocale.ts`); the URLs carry no locale. next-intl reads the cookie on the server (`i18n/request.ts`).
+
+- **Contentful copy.** A translated copy type sets `localized: true` (`defineCopy`); its English lives in the space's `en-US` locale, which falls back to `pt-BR` field by field, so an untranslated field shows in Portuguese. Pages pass the locale to `loadSiteCopy` and `getComunicacaoContent`; Portuguese, the default locale, names none. Provisioning puts the whole content type, so a type marked localized in the space must be marked here too, or the next `--apply` drops its English.
+- **Interface labels and alt texts** live in `messages/pt.json` and `messages/en.json`; `tests/i18n/messages.test.ts` keeps their keys and placeholders in step. Each root layout's `NextIntlClientProvider` sends the browser only the namespaces its client components read (`i18n/clientMessages.ts`): a new client component that calls `useTranslations` needs its namespace listed there.
+- `<html lang>` stays `pt-BR`; the header, the footer and a translated page's `<main>` declare their own `lang` (`HTML_LANG`).
+- Translated so far: the landing page.
 
 ### Platform theme
 

@@ -9,9 +9,11 @@ import Publicacoes from '@/components/marketing/Publicacoes'
 import Comunicacao from '@/components/marketing/Comunicacao'
 import RelatedContent from '@/components/marketing/conteudo/RelatedContent'
 import { getComunicacaoContent } from '@/lib/content/comunicacao'
+import type { SiteLocale } from '@/lib/locale'
+import { MESSAGES, withIntl } from '@/tests/helpers/intl'
 
-const html = <P extends object>(component: ComponentType<P>, props: P) =>
-  renderToStaticMarkup(createElement(component, props))
+const html = <P extends object>(component: ComponentType<P>, props: P, locale: SiteLocale = 'pt') =>
+  renderToStaticMarkup(withIntl(createElement(component, props), locale))
 
 const PUBLICACAO: Publicacao = {
   key: 'cartilha-0',
@@ -133,6 +135,28 @@ describe('the landing Comunicação cards', () => {
     expect(markup.indexOf('href="/comunicacao/cartilha-1-o-que-e-credito-de-carbono"')).toBeLessThan(
       markup.indexOf('href="/comunicacao/caderno-mercado-de-carbono-florestal-na-caatinga"'),
     )
+  })
+
+  // The publications' own titles stay as Contentful has them; the section's
+  // labels follow the visitor's language.
+  it('labels the section in English for an English visitor', async () => {
+    const markup = html(Comunicacao, { conteudo: await getComunicacaoContent(null) }, 'en')
+
+    expect(markup).toMatch(/<h2 [^>]*>Communication<\/h2>/)
+    expect(markup).toContain('BOOKLET')
+    expect(markup).toContain('THEMATIC REPORT')
+    expect(markup).toContain('View material')
+    expect(markup).toMatch(/See more<span class="sr-only"> communication materials<\/span>/)
+    expect(markup).not.toContain('Ver material')
+  })
+
+  // The series copy stands in for a cartilha with no description of its own.
+  it('describes a cartilha without a description in the visitor’s language', async () => {
+    const conteudo = await getComunicacaoContent(null)
+    const semDescricao = { ...conteudo, cartilhas: conteudo.cartilhas.map((c) => ({ ...c, description: undefined })) }
+
+    expect(html(Comunicacao, { conteudo: semDescricao })).toContain(MESSAGES.pt.Comunicacao.cartilhaDescription)
+    expect(html(Comunicacao, { conteudo: semDescricao }, 'en')).toContain(MESSAGES.en.Comunicacao.cartilhaDescription)
   })
 })
 

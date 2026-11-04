@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { NextIntlClientProvider } from 'next-intl'
 import '../globals.css'
 import '../territorios.css'
 import { archivoNarrow, dDin, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { FAVICON } from '@/lib/favicon'
+import { HEADER_NAMESPACES, clientMessages } from '@/i18n/clientMessages'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
 // its summary, so it cannot share (mapa)'s locked viewport; being a sibling
@@ -25,7 +27,9 @@ export const metadata: Metadata = {
 
 // Public, like the marketing pages: no session check. Its API routes and the
 // story's tiles from /api/gee/tile answer without one (lib/territorios/storyTiles.ts).
-export default function TerritoriosLayout({
+// The provider serves the site header, which follows the visitor's language;
+// the story itself is still in Portuguese only.
+export default async function TerritoriosLayout({
   children,
 }: {
   children: React.ReactNode
@@ -33,7 +37,9 @@ export default function TerritoriosLayout({
   return (
     <html lang="pt-BR" className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${dDin.variable}`}>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <NextIntlClientProvider messages={await clientMessages(HEADER_NAMESPACES)}>
+          <AuthProvider>{children}</AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

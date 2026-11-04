@@ -46,6 +46,10 @@ export type CopyType<F extends CopyFields = CopyFields> = {
   id: string
   name: string
   description: string
+  // Set on a type the site translates: Contentful keeps one value per locale
+  // in each of its fields. A type without it reads in Portuguese on an English
+  // page too.
+  localized?: boolean
   fields: F
 }
 

@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import Hero from "@/components/marketing/Hero";
 import Destaques from "@/components/marketing/Destaques";
@@ -12,22 +13,30 @@ import { INICIO_DESTAQUES } from "@/lib/content/destaques";
 import { INICIO_PLATAFORMA, abasPlataforma } from "@/lib/content/plataforma";
 import { INICIO_CAMINHOS, caminhosCards } from "@/lib/content/caminhos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
+import { HTML_LANG, readSiteLocale } from "@/lib/locale";
 
 export default async function LandingPage() {
+  // The visitor's language, as i18n/request.ts read it from the cookie: the
+  // interface labels and the Contentful copy follow the same one.
+  const locale = readSiteLocale(await getLocale());
   const [conteudo, copy] = await Promise.all([
-    getComunicacaoContent(getContentfulClient()),
-    loadSiteCopy({
-      hero: INICIO_HERO,
-      destaques: INICIO_DESTAQUES,
-      plataforma: INICIO_PLATAFORMA,
-      caminhos: INICIO_CAMINHOS,
-    }),
+    getComunicacaoContent(getContentfulClient(), locale),
+    loadSiteCopy(
+      {
+        hero: INICIO_HERO,
+        destaques: INICIO_DESTAQUES,
+        plataforma: INICIO_PLATAFORMA,
+        caminhos: INICIO_CAMINHOS,
+      },
+      getContentfulClient(),
+      locale,
+    ),
   ]);
 
   return (
     <>
       <SiteHeader />
-      <main>
+      <main lang={HTML_LANG[locale]}>
         <Hero copy={copy.hero} />
         <Destaques copy={copy.destaques} />
         <Plataforma titulo={copy.plataforma.titulo} abas={abasPlataforma(copy.plataforma)} />
