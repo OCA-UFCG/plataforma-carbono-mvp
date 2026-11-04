@@ -12,6 +12,7 @@ import { CAATINGA, CAATINGA_PESSOAS_IMAGEM } from '@/lib/content/sobre/caatinga'
 import { INICIO_DESTAQUES, destaquesCards } from '@/lib/content/destaques'
 import { SOBRE_FAIXA_IMAGEM } from '@/lib/content/paginas'
 import { copyDefaults } from '@/lib/content/site/model'
+import { MESSAGES } from '@/tests/helpers/intl'
 
 const DESTAQUES = destaquesCards(copyDefaults(INICIO_DESTAQUES))
 
@@ -130,5 +131,28 @@ describe('Conheça a Caatinga (/sobre/caatinga)', () => {
 
   it('points its photo at a file that exists', () => {
     expect(inPublic(CAATINGA_PESSOAS_IMAGEM.src)).toBe(true)
+  })
+})
+
+// Each photo's description follows the visitor's language, so it lives with
+// the interface labels (messages/<locale>.json, "Sobre.imageAlt"), keyed by
+// the page, and not beside the photo's address.
+describe('the Sobre photos’ descriptions', () => {
+  const photos = {
+    plataforma: SOBRE_PLATAFORMA_IMAGEM,
+    caatinga: CAATINGA_PESSOAS_IMAGEM,
+    'carbono-e-comunidades': CARBONO_E_COMUNIDADES_IMAGEM,
+  } as const
+
+  it('describes every page photo in both languages', () => {
+    for (const locale of ['pt', 'en'] as const) {
+      for (const slug of Object.keys(photos) as Array<keyof typeof photos>) {
+        expect(MESSAGES[locale].Sobre.imageAlt[slug], `${locale} ${slug}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('keeps the descriptions out of the content modules', () => {
+    for (const photo of Object.values(photos)) expect(photo).not.toHaveProperty('alt')
   })
 })

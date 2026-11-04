@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Section from "@/components/marketing/sobre/Section";
 import Quote from "@/components/marketing/sobre/Quote";
 import MediaText from "@/components/marketing/sobre/MediaText";
@@ -6,15 +7,19 @@ import IndicatorCard from "@/components/marketing/IndicatorCard";
 import Paragrafos from "@/components/marketing/Paragrafos";
 import { CAATINGA, CAATINGA_PESSOAS_IMAGEM } from "@/lib/content/sobre/caatinga";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
+import { getSiteLocale } from "@/i18n/siteLocale";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = { title: "Conheça a Caatinga" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Sobre"))("pages.caatinga") };
+}
 
 // "Conheça a Caatinga", Figma frame 18988:8667 (content 18988:8696), under the
 // shared intro band and sub-navigation of sobre/layout.tsx. Copy lives in
 // Contentful, shipped with lib/content/sobre/caatinga.ts.
 export default async function SobreCaatingaPage() {
-  const { c } = await loadSiteCopy({ c: CAATINGA });
+  const t = await getTranslations("Sobre");
+  const { c } = await loadSiteCopy({ c: CAATINGA }, undefined, await getSiteLocale());
 
   return (
     <div className={styles.page}>
@@ -79,7 +84,7 @@ export default async function SobreCaatingaPage() {
 
         <MediaText
           image={CAATINGA_PESSOAS_IMAGEM.src}
-          imageAlt={CAATINGA_PESSOAS_IMAGEM.alt}
+          imageAlt={t("imageAlt.caatinga")}
           imageSide="left"
           imageSize="small"
         >

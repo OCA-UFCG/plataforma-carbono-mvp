@@ -10,6 +10,7 @@ export const SOBRE_PLATAFORMA = defineCopy({
   name: 'Sobre · Conheça a plataforma',
   description:
     'Textos da página /sobre, abaixo da introdução comum às páginas de Sobre. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // 18988:8641: the text beside the photo, three blocks with a blank line
     // between them.
@@ -43,10 +44,10 @@ export const SOBRE_PLATAFORMA = defineCopy({
   },
 })
 
-// The same photo as "Entenda essa relação" (IMAGENS.md).
+// The same photo as "Entenda essa relação" (IMAGENS.md). Its alt text is in
+// messages/<locale>.json, under "Sobre.imageAlt".
 export const SOBRE_PLATAFORMA_IMAGEM = {
   src: '/images/sobre/lago-serra.webp',
-  alt: 'Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul',
 }
 
 export const SOBRE_PLATAFORMA_ICONES = {

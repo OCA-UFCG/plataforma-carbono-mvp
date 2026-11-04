@@ -114,11 +114,20 @@ describe('marketing nav registry', () => {
       'Glossário',
       'Comunicação',
     ])
-    expect(SOBRE_PAGES.map((p) => p.label)).toEqual([
+    expect(SOBRE_PAGES.map((p) => MESSAGES.pt.Sobre.pages[p.slug])).toEqual([
       'Conheça a plataforma',
       'Conheça a Caatinga',
       'Entenda essa relação',
       'Como funciona',
+    ])
+  })
+
+  it('names every Sobre page in English too', () => {
+    expect(SOBRE_PAGES.map((p) => MESSAGES.en.Sobre.pages[p.slug])).toEqual([
+      'Get to know the platform',
+      'Get to know the Caatinga',
+      'Understand the connection',
+      'How it works',
     ])
   })
 })

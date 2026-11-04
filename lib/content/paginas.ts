@@ -26,6 +26,7 @@ export const SOBRE_INTRO = defineCopy({
   name: 'Sobre · Introdução',
   description:
     'Faixa cinza do topo das quatro páginas de Sobre, a mesma em todas. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     chamada: optionalLine('Chamada acima do título'),
     titulo: line('Título', 'Sobre a Caativar'),

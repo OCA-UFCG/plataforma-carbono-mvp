@@ -5,13 +5,15 @@ import { defineCopy, line, list, paragraph, text } from '../site/model'
 // prévia e informada" carries an "ⓘ" in the design for a glossary it does not
 // define (issue #44, question 3); the marker is left out until that content
 // exists, rather than rendering an icon that does nothing. Image alt text is
-// not in the design and is written here.
+// not in the design; it is written in messages/<locale>.json, under
+// "Sobre.imageAlt", so it follows the visitor's language.
 
 export const CARBONO_E_COMUNIDADES = defineCopy({
   id: 'sobreCarbonoComunidades',
   name: 'Sobre · Entenda essa relação',
   description:
     'Textos da página /sobre/carbono-e-comunidades, abaixo da introdução comum às páginas de Sobre. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // 18988:8799
     antesTitulo: line('Antes de participar · Título', 'Antes de participar de um projeto'),
@@ -72,5 +74,4 @@ export const CARBONO_E_COMUNIDADES = defineCopy({
 
 export const CARBONO_E_COMUNIDADES_IMAGEM = {
   src: '/images/sobre/lago-serra.webp',
-  alt: 'Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul',
 }

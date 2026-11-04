@@ -93,5 +93,19 @@
     "loading": "Loading document…",
     "error": "Could not display the PDF.",
     "openInNewTab": "Open the file in a new tab"
+  },
+  "Sobre": {
+    "subnav": "About pages",
+    "pages": {
+      "plataforma": "Get to know the platform",
+      "caatinga": "Get to know the Caatinga",
+      "carbono-e-comunidades": "Understand the connection",
+      "como-funciona": "How it works"
+    },
+    "imageAlt": {
+      "plataforma": "A calm lake at the foot of a rocky hill covered in Caatinga vegetation, under a blue sky",
+      "caatinga": "A house in a rural Caatinga community, with a bare-earth yard and vegetation around it",
+      "carbono-e-comunidades": "A calm lake at the foot of a rocky hill covered in Caatinga vegetation, under a blue sky"
+    }
   }
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { getLocale } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import ConteudoHeader from "@/components/marketing/conteudo/ConteudoHeader";
@@ -10,7 +9,8 @@ import PdfViewerLoader from "@/components/marketing/conteudo/PdfViewerLoader";
 import RelatedContent from "@/components/marketing/conteudo/RelatedContent";
 import { findPublicacao, getComunicacaoContent, relatedPublicacoes } from "@/lib/content/comunicacao";
 import { getContentfulClient } from "@/lib/contentful";
-import { HTML_LANG, readSiteLocale, type SiteLocale } from "@/lib/locale";
+import { getSiteLocale } from "@/i18n/siteLocale";
+import { HTML_LANG, type SiteLocale } from "@/lib/locale";
 import styles from "./page.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -21,12 +21,8 @@ type Props = { params: Promise<{ slug: string }> };
 // visitor's (the PDF itself is Portuguese only).
 const loadConteudo = cache((locale: SiteLocale) => getComunicacaoContent(getContentfulClient(), locale));
 
-async function siteLocale(): Promise<SiteLocale> {
-  return readSiteLocale(await getLocale());
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const publicacao = findPublicacao(await loadConteudo(await siteLocale()), (await params).slug);
+  const publicacao = findPublicacao(await loadConteudo(await getSiteLocale()), (await params).slug);
 
   return publicacao ? { title: publicacao.title } : {};
 }
@@ -36,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // Comunicação page, with the same fallback to the shipped content.
 export default async function ConteudoPage({ params }: Props) {
   const { slug } = await params;
-  const locale = await siteLocale();
+  const locale = await getSiteLocale();
   const conteudo = await loadConteudo(locale);
   const publicacao = findPublicacao(conteudo, slug);
 

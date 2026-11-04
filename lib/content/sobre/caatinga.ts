@@ -3,13 +3,15 @@ import { defineCopy, line, optionalLine, paragraph, text } from '../site/model'
 // Content of "Conheça a Caatinga" (/sobre/caatinga), Figma frame 18988:8667,
 // content node 18988:8696, copied verbatim; the opening and the vegetation
 // section carry the content doc's 2026-10-05 meeting revision. Image alt text
-// is not in the design and is written here.
+// is not in the design; it is written in messages/<locale>.json, under
+// "Sobre.imageAlt", so it follows the visitor's language.
 
 export const CAATINGA = defineCopy({
   id: 'sobreCaatinga',
   name: 'Sobre · Conheça a Caatinga',
   description:
     'Textos da página /sobre/caatinga, abaixo da introdução comum às páginas de Sobre. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // 18988:8697: the opening text, with no heading of its own.
     abertura: text('Abertura', [
@@ -99,5 +101,4 @@ export const CAATINGA = defineCopy({
 // the design's fill shows here (18988:8735; IMAGENS.md).
 export const CAATINGA_PESSOAS_IMAGEM = {
   src: '/images/sobre/natureza-pessoas.webp',
-  alt: 'Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor',
 }

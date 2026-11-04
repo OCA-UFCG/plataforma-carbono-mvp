@@ -1,4 +1,3 @@
-import { getLocale } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import Hero from "@/components/marketing/Hero";
 import Destaques from "@/components/marketing/Destaques";
@@ -13,12 +12,13 @@ import { INICIO_DESTAQUES } from "@/lib/content/destaques";
 import { INICIO_PLATAFORMA, abasPlataforma } from "@/lib/content/plataforma";
 import { INICIO_CAMINHOS, caminhosCards } from "@/lib/content/caminhos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
-import { HTML_LANG, readSiteLocale } from "@/lib/locale";
+import { getSiteLocale } from "@/i18n/siteLocale";
+import { HTML_LANG } from "@/lib/locale";
 
 export default async function LandingPage() {
   // The visitor's language, as i18n/request.ts read it from the cookie: the
   // interface labels and the Contentful copy follow the same one.
-  const locale = readSiteLocale(await getLocale());
+  const locale = await getSiteLocale();
   const [conteudo, copy] = await Promise.all([
     getComunicacaoContent(getContentfulClient(), locale),
     loadSiteCopy(

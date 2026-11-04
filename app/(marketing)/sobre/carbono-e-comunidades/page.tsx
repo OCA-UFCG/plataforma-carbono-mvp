@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Section from "@/components/marketing/sobre/Section";
 import Quote from "@/components/marketing/sobre/Quote";
 import MediaText from "@/components/marketing/sobre/MediaText";
@@ -6,15 +7,19 @@ import CautionCard from "@/components/marketing/sobre/CautionCard";
 import Paragrafos from "@/components/marketing/Paragrafos";
 import { CARBONO_E_COMUNIDADES, CARBONO_E_COMUNIDADES_IMAGEM } from "@/lib/content/sobre/carbono-e-comunidades";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
+import { getSiteLocale } from "@/i18n/siteLocale";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = { title: "Entenda essa relação" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Sobre"))("pages.carbono-e-comunidades") };
+}
 
 // "Entenda essa relação", Figma frame 18988:8769 (content 18988:8798), under
 // the shared intro band and sub-navigation of sobre/layout.tsx. Copy lives in
 // Contentful, shipped with lib/content/sobre/carbono-e-comunidades.ts.
 export default async function SobreCarbonoComunidadesPage() {
-  const { c } = await loadSiteCopy({ c: CARBONO_E_COMUNIDADES });
+  const t = await getTranslations("Sobre");
+  const { c } = await loadSiteCopy({ c: CARBONO_E_COMUNIDADES }, undefined, await getSiteLocale());
 
   return (
     <div className={styles.page}>
@@ -30,7 +35,7 @@ export default async function SobreCarbonoComunidadesPage() {
 
         <MediaText
           image={CARBONO_E_COMUNIDADES_IMAGEM.src}
-          imageAlt={CARBONO_E_COMUNIDADES_IMAGEM.alt}
+          imageAlt={t("imageAlt.carbono-e-comunidades")}
           imageSide="right"
         >
           <Section title={c.terraTitulo}>
