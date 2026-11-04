@@ -2,70 +2,98 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { area } from '@turf/area'
-import { simplifyForScale, toleranceDegrees } from '@/lib/mapa/simplifyGeometry'
+import { simplifyForAnalysis } from '@/lib/mapa/simplifyGeometry'
 
-type Ring = number[][]
+type Geometry = GeoJSON.Polygon | GeoJSON.MultiPolygon
 
 const countVertices = (c: unknown): number =>
   Array.isArray(c) && c.length && typeof c[0] === 'number'
     ? 1
     : Array.isArray(c) ? c.reduce((n: number, x) => n + countVertices(x), 0) : 0
 
-/** Distance from p to segment ab, in the same units as the coordinates. */
-function segmentDistance(p: number[], a: number[], b: number[]): number {
-  const dx = b[0] - a[0]
-  const dy = b[1] - a[1]
-  const len2 = dx * dx + dy * dy
-  const t = len2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2)) : 0
-  return Math.hypot(a[0] + t * dx - p[0], a[1] + t * dy - p[1])
+/** The geometry of the feature of a recorte file that carries `name` as a property. */
+function recorte(file: string, name: string): Geometry {
+  const collection = JSON.parse(
+    readFileSync(path.join(process.cwd(), 'public/data/vector', file), 'utf-8'),
+  ) as GeoJSON.FeatureCollection
+  const feature = collection.features.find((f) => Object.values(f.properties ?? {}).includes(name))
+  if (!feature) throw new Error(`${name} not found in ${file}`)
+  return feature.geometry as Geometry
 }
 
-const biome = JSON.parse(
-  readFileSync(path.join(process.cwd(), 'public/data/vector/limite_caatinga.geojson'), 'utf-8'),
-).features[0].geometry as GeoJSON.MultiPolygon
+const biome = recorte('limite_caatinga.geojson', 'Caatinga')
 
-describe('simplifyForScale', () => {
+const square = (x = 0, y = 0, side = 1): number[][] =>
+  [[x, y], [x + side, y], [x + side, y + side], [x, y + side], [x, y]]
+
+describe('simplifyForAnalysis', () => {
+  // A new object means every guard passed: the area moved by under the bound
+  // and no two edges cross.
   it('cuts the biome boundary down and keeps its area', () => {
-    const out = simplifyForScale(biome, 120)
-    expect(countVertices(out.coordinates)).toBeLessThan(countVertices(biome.coordinates) / 4)
-    expect(Math.abs(area(out) - area(biome)) / area(biome)).toBeLessThan(0.001)
+    const out = simplifyForAnalysis(biome)
+    expect(out).not.toBe(biome)
+    expect(countVertices(out.coordinates)).toBeLessThan(25_000)
+    expect(Math.abs(area(out) - area(biome)) / area(biome)).toBeLessThan(1e-5)
   })
 
-  it('never strays from a dropped vertex by more than the tolerance', () => {
-    const square: GeoJSON.Polygon = {
-      type: 'Polygon',
-      coordinates: [[[0, 0], [0.5, 0.00001], [1, 0], [1, 1], [0, 1], [0, 0]]],
-    }
-    const out = simplifyForScale(square, 10) as GeoJSON.Polygon
-    const ring = out.coordinates[0]
-    expect(ring).toHaveLength(5)
-    const tol = toleranceDegrees(10)
-    for (const p of square.coordinates[0]) {
-      const d = Math.min(...ring.slice(1).map((b, i) => segmentDistance(p, ring[i], b)))
-      expect(d).toBeLessThanOrEqual(tol)
+  it('leaves a geometry below the vertex floor untouched', () => {
+    const poly: GeoJSON.Polygon = { type: 'Polygon', coordinates: [[[0, 0], [0.5, 0.00001], [1, 0], [1, 1], [0, 1], [0, 0]]] }
+    expect(simplifyForAnalysis(poly)).toBe(poly)
+  })
+
+  it('never simplifies a thin settlement, however far it is pushed', () => {
+    const thin = recorte('assentamentos.geojson', 'PA CANDIDO GREGÓRIO')
+    expect(simplifyForAnalysis(thin)).toBe(thin)
+    // Forced past the floor, it would lose about 98% of its area.
+    expect(simplifyForAnalysis(thin, { minVertices: 0, toleranceM: 250 })).toBe(thin)
+  })
+
+  it('refuses a result with edges that cross, even when the area holds', () => {
+    // Its area moves by only 0.0044% at 60 m, but two edges end up crossing.
+    const apa = recorte('uc_uso_sustentavel.geojson', 'Área de Proteção Ambiental Serra da Ibiapaba')
+    expect(simplifyForAnalysis(apa, { minVertices: 0, toleranceM: 60 })).toBe(apa)
+  })
+
+  it('does not throw on a malformed geometry, and returns it as it came', () => {
+    const emptyPolygon = { type: 'MultiPolygon', coordinates: [[], [square()]] } as GeoJSON.MultiPolygon
+    expect(simplifyForAnalysis(emptyPolygon, { minVertices: 0 })).toBe(emptyPolygon)
+
+    const malformed = [
+      { type: 'Polygon', coordinates: [] },
+      { type: 'Polygon', coordinates: [[]] },
+      { type: 'Polygon', coordinates: [[[0, 0], [1, 0]]] },
+      { type: 'Polygon', coordinates: [[0, 0]] },
+      { type: 'Polygon', coordinates: [[['a', 0], [1, 0], [1, 1], [0, 0]]] },
+      { type: 'MultiPolygon', coordinates: [] },
+      { type: 'MultiPolygon', coordinates: 'x' },
+      { type: 'Point', coordinates: [0, 0] },
+      { type: 'Polygon' },
+    ] as unknown as GeoJSON.Polygon[]
+    for (const g of malformed) {
+      expect(() => simplifyForAnalysis(g, { minVertices: 0 })).not.toThrow()
+      expect(simplifyForAnalysis(g, { minVertices: 0 })).toBe(g)
     }
   })
 
-  it('drops a hole that collapses and keeps the shell', () => {
-    const tiny: Ring = [[0.5, 0.5], [0.5000001, 0.5], [0.5000001, 0.5000001], [0.5, 0.5]]
-    const poly: GeoJSON.Polygon = {
-      type: 'Polygon',
-      coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]], tiny],
+  it('gives up on work past its budget instead of blocking', () => {
+    // 100k vertices on a spiral send Douglas-Peucker quadratic: measured at
+    // 52 s without a bound.
+    const ring: number[][] = []
+    for (let i = 0; i < 100_000; i++) {
+      const angle = i * 0.05
+      const radius = 0.01 + i * 1e-5
+      ring.push([-40 + radius * Math.cos(angle), -8 + radius * Math.sin(angle)])
     }
-    const out = simplifyForScale(poly, 500) as GeoJSON.Polygon
-    expect(out.coordinates).toHaveLength(1)
+    ring.push(ring[0])
+    const spiral: GeoJSON.Polygon = { type: 'Polygon', coordinates: [ring] }
+
+    const started = performance.now()
+    expect(simplifyForAnalysis(spiral)).toBe(spiral)
+    expect(performance.now() - started).toBeLessThan(3000)
   })
 
-  it('drops a polygon whose shell collapses, keeping the others', () => {
-    const multi: GeoJSON.MultiPolygon = {
-      type: 'MultiPolygon',
-      coordinates: [
-        [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-        [[[5, 5], [5.0000001, 5], [5.0000001, 5.0000001], [5, 5]]],
-      ],
-    }
-    const out = simplifyForScale(multi, 500) as GeoJSON.MultiPolygon
-    expect(out.coordinates).toHaveLength(1)
+  it('honours a smaller evaluation budget', () => {
+    expect(simplifyForAnalysis(biome, { maxEvaluations: 1000 })).toBe(biome)
   })
 
   it('returns the original when every polygon would collapse', () => {
@@ -73,6 +101,19 @@ describe('simplifyForScale', () => {
       type: 'Polygon',
       coordinates: [[[5, 5], [5.0000001, 5], [5.0000001, 5.0000001], [5, 5]]],
     }
-    expect(simplifyForScale(speck, 500)).toBe(speck)
+    expect(simplifyForAnalysis(speck, { minVertices: 0 })).toBe(speck)
+  })
+
+  it('drops a polygon whose shell collapses and a hole that collapses, keeping the rest', () => {
+    const speck = [[5, 5], [5.0000001, 5], [5.0000001, 5.0000001], [5, 5]]
+    const holed: GeoJSON.Polygon = { type: 'Polygon', coordinates: [square(0, 0, 1), speck] }
+    const out = simplifyForAnalysis(holed, { minVertices: 0 }) as GeoJSON.Polygon
+    expect(out).not.toBe(holed)
+    expect(out.coordinates).toHaveLength(1)
+
+    const multi: GeoJSON.MultiPolygon = { type: 'MultiPolygon', coordinates: [[square(0, 0, 1)], [speck]] }
+    const kept = simplifyForAnalysis(multi, { minVertices: 0 }) as GeoJSON.MultiPolygon
+    expect(kept).not.toBe(multi)
+    expect(kept.coordinates).toHaveLength(1)
   })
 })

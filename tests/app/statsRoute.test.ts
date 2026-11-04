@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
+  computeZonalStats: vi.fn<(ee: unknown, input: { geometry: unknown }) => Promise<unknown>>(async () => ({
+    ok: true, result: { kind: 'continuous', stats: { mean: 1 } },
+  })),
   buildEeImage: vi.fn(() => ({})),
   buildStockReport: vi.fn(async () => ({ totalTc: 12, areaHa: 1, unit: 't C', pools: [], classes: [] })),
   getAuthenticatedRequest: vi.fn<() => Promise<{ uid: string } | null>>(async () => ({ uid: 'test-user' })),
@@ -14,6 +19,8 @@ vi.mock('@/lib/mapa/geeImage', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/mapa/geeImage')>(), buildEeImage: mocks.buildEeImage,
 }))
 vi.mock('@/lib/mapa/stockReport', () => ({ buildStockReport: mocks.buildStockReport }))
+// Only the branch without a result profile reaches it.
+vi.mock('@/lib/mapa/zonalStats', () => ({ computeZonalStats: mocks.computeZonalStats }))
 vi.mock('@/lib/auth', () => ({
   getAuthenticatedRequest: mocks.getAuthenticatedRequest,
   unauthorizedResponse: () => new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }),
@@ -102,5 +109,38 @@ describe('POST /api/gee/stats stock branch', () => {
     const response = await POST(request({ geometry, layerId: 'lulc_mapbiomas', temporalDate: '2024_x' }))
 
     expect(response.status).toBe(400)
+  })
+})
+
+describe('POST /api/gee/stats without a result profile', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  // The one GEE raster without a result profile (config/mapa/resultProfiles.ts).
+  const hillshade = {
+    type: 'image' as const,
+    id: 'projects/obscaatinga/assets/caativar/hillshade_fabdem', band: 'hillshade', scale: 30,
+  }
+  const countVertices = (c: unknown): number =>
+    Array.isArray(c) && c.length && typeof c[0] === 'number'
+      ? 1
+      : Array.isArray(c) ? c.reduce((n: number, x) => n + countVertices(x), 0) : 0
+
+  it('thins the biome before computeZonalStats, which the territorial report also calls', async () => {
+    const biome = JSON.parse(
+      readFileSync(path.join(process.cwd(), 'public/data/vector/limite_caatinga.geojson'), 'utf-8'),
+    ).features[0].geometry
+
+    const response = await POST(request({ asset: hillshade, geometry: biome }))
+
+    expect(response.status).toBe(200)
+    expect(mocks.computeZonalStats).toHaveBeenCalledOnce()
+    expect(countVertices(mocks.computeZonalStats.mock.calls[0][1].geometry)).toBeLessThan(25_000)
+  })
+
+  it('sends a small recorte as drawn', async () => {
+    const response = await POST(request({ asset: hillshade, geometry }))
+
+    expect(response.status).toBe(200)
+    expect(mocks.computeZonalStats.mock.calls[0][1].geometry).toEqual(geometry)
   })
 })

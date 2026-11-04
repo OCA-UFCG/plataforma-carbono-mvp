@@ -12,7 +12,6 @@ import { bandaDoAno, buildEeImage, type GeeAssetConfig } from '@/lib/mapa/geeIma
 import { evaluate } from '@/lib/mapa/geeEvaluate'
 import { jenksBreaks } from '@/lib/mapa/jenks'
 import { getStocks } from '@/lib/mapa/stocksRegistry'
-import { simplifyForScale } from '@/lib/mapa/simplifyGeometry'
 import { buildStockReport } from '@/lib/mapa/stockReport'
 import type { RasterStatsResult } from '@/types/mapa'
 
@@ -56,10 +55,8 @@ export async function computeZonalStats(ee: any, input: ZonalStatsInput): Promis
   const providedBreaks = sanitizeBreaks(input.breaks)
 
   const image  = buildEeImage(ee, asset, temporalDate)
+  const region = ee.Geometry(geometry)
   const scale  = asset.scale ?? 500
-  // The boundary moved by under half a pixel: the biome's full 108k vertices
-  // alone pushed a reduction past the deadline (lib/mapa/simplifyGeometry.ts).
-  const region = ee.Geometry(simplifyForScale(geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon, scale))
 
   // Stock report: the layer declares which bands are pools and which asset
   // brings the phytophysiognomy, and the result is the total broken down along

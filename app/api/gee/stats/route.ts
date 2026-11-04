@@ -14,6 +14,7 @@ import { computeZonalStats } from '@/lib/mapa/zonalStats'
 import { getResultLayer, resolveTemporalDate } from '@/lib/mapa/resultsRegistry'
 import { computeLayerResult } from '@/lib/mapa/layerResult'
 import { resultCacheKey, withResultCache } from '@/lib/mapa/resultCache'
+import { simplifyForAnalysis } from '@/lib/mapa/simplifyGeometry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -121,7 +122,9 @@ export async function POST(req: Request) {
   try {
     const outcome = await computeZonalStats(ee, {
       asset:        body.asset,
-      geometry:     body.geometry,
+      // Thinned here rather than inside computeZonalStats, so the territorial
+      // report, which calls it too, keeps the region its series reduces over.
+      geometry:     simplifyForAnalysis(body.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon),
       temporalDate: body.temporalDate,
       classify:     body.classify,
       breaks:       body.breaks,
