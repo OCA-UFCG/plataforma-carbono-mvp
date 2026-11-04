@@ -166,8 +166,16 @@ describe('copyQuery', () => {
   it('selects every field of every type, the oldest entry of each', () => {
     const query = copyQuery({ a: TIPO })
 
-    expect(query).toContain('a: testeCollection(limit: 1, order: sys_firstPublishedAt_ASC, preview: $preview)')
+    expect(query).toContain(
+      'a: testeCollection(limit: 1, order: sys_firstPublishedAt_ASC, preview: $preview, locale: $locale)',
+    )
     for (const id of Object.keys(TIPO.fields)) expect(query).toMatch(new RegExp(`^\\s+${id}$`, 'm'))
+  })
+
+  // Left unset, the variable leaves the argument out, and Contentful answers in
+  // the space's default locale.
+  it('declares the locale as an optional variable', () => {
+    expect(copyQuery({ a: TIPO })).toContain('query($preview: Boolean, $locale: String)')
   })
 })
 
@@ -202,6 +210,26 @@ describe('loadSiteCopy', () => {
 
     expect(await loadSiteCopy({ a: TIPO }, getContent)).toEqual({ a: copyDefaults(TIPO) })
     expect(error).toHaveBeenCalledOnce()
+  })
+
+  it('asks Contentful for the English locale when the page is in English', async () => {
+    const getContent = vi.fn().mockResolvedValue({ a: { items: [{ titulo: 'From Contentful' }] } })
+
+    const copy = await loadSiteCopy({ a: TIPO }, getContent, 'en')
+
+    expect(getContent).toHaveBeenCalledWith(copyQuery({ a: TIPO }), { locale: 'en-US' })
+    expect(copy.a.titulo).toBe('From Contentful')
+  })
+
+  // Portuguese is the space's default locale, so it is asked for by naming no
+  // locale at all.
+  it('names no locale when the page is in Portuguese', async () => {
+    const getContent = vi.fn().mockResolvedValue({ a: { items: [] } })
+
+    await loadSiteCopy({ a: TIPO }, getContent, 'pt')
+    await loadSiteCopy({ a: TIPO }, getContent)
+
+    for (const [, variables] of getContent.mock.calls) expect(variables?.locale).toBeUndefined()
   })
 })
 

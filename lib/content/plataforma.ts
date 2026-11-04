@@ -6,7 +6,8 @@ import { defineCopy, line, text, type Copy } from './site/model'
 // ("A Caatinga"), 18916:9585 ("Carbono e comunidades") and 18916:9650
 // ("Como funciona"). The copy of the first, second and fourth tabs is the
 // content doc's 2026-10-05 meeting revision. Image alt text is not in the
-// design and is written here.
+// design; it is written in messages/<locale>.json, under
+// "Plataforma.imageAlt", keyed by the tab's id.
 //
 // Editors change the words in Contentful. The tabs themselves — how many,
 // their anchors and their photos — stay here. A tab's label is also its
@@ -14,7 +15,6 @@ import { defineCopy, line, text, type Copy } from './site/model'
 
 export type ConteudoAba = {
   imagem: string
-  imagemAlt: string
   titulo: string
   paragrafos: string[]
   destaque: string
@@ -31,22 +31,18 @@ export const ABAS_IMAGENS = [
   {
     id: 'o-que-e',
     imagem: '/images/plataforma/o-que-e.webp',
-    imagemAlt: 'Vista de um vale da Caatinga com vegetação e cidade ao fundo',
   },
   {
     id: 'a-caatinga',
     imagem: '/images/plataforma/a-caatinga.webp',
-    imagemAlt: 'Vista do alto de uma serra da Caatinga, com vegetação seca em primeiro plano sob céu azul',
   },
   {
     id: 'carbono-e-comunidades',
     imagem: '/images/plataforma/carbono-e-comunidades.webp',
-    imagemAlt: 'Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor',
   },
   {
     id: 'como-funciona',
     imagem: '/images/plataforma/como-funciona.webp',
-    imagemAlt: 'Plantação de milho diante de um morro coberto pela vegetação da Caatinga',
   },
 ]
 
@@ -55,6 +51,7 @@ export const INICIO_PLATAFORMA = defineCopy({
   name: 'Início · Conheça a iniciativa',
   description:
     'As quatro abas da seção "Conheça a iniciativa" da página inicial, na ordem em que aparecem. O título de cada aba é também o título do seu conteúdo. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     titulo: line('Título da seção', 'Conheça a iniciativa'),
     aba1Titulo: line('Aba 1 · Título', 'O que é a Caativar?'),
@@ -99,8 +96,8 @@ export function abasPlataforma(copy: Copy<typeof INICIO_PLATAFORMA>): AbaPlatafo
   ]
 
   return abas.map((aba, i) => {
-    const { id, imagem, imagemAlt } = ABAS_IMAGENS[i]
+    const { id, imagem } = ABAS_IMAGENS[i]
 
-    return { id, label: aba.titulo, conteudo: { imagem, imagemAlt, ...aba } }
+    return { id, label: aba.titulo, conteudo: { imagem, ...aba } }
   })
 }

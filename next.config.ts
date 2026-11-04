@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Points next-intl at i18n/request.ts, which reads the language cookie.
+const withNextIntl = createNextIntlPlugin();
 
 // Single application: marketing pages (static) and the maps module at /mapa,
 // which depends on the /api/gee/* routes running on the server. Because of them
@@ -36,4 +40,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

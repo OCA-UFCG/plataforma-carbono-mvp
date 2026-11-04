@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { useTranslations } from "next-intl";
 import type { AbaPlataforma, ConteudoAba } from "@/lib/content/plataforma";
 import Linhas from "./Linhas";
 import MoreLink from "./MoreLink";
@@ -26,6 +27,7 @@ function panelId(id: string) {
 // version of this section, the /sobre pages. The words come from Contentful
 // through the landing page (lib/content/plataforma.ts).
 export default function Plataforma({ titulo, abas }: { titulo: string; abas: AbaPlataforma[] }) {
+  const t = useTranslations("Plataforma");
   const [activeId, setActiveId] = useState(abas[0].id);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -65,13 +67,13 @@ export default function Plataforma({ titulo, abas }: { titulo: string; abas: Aba
   }
 
   return (
-    <section id="plataforma" className={styles.plataforma} aria-label="Plataforma">
+    <section id="plataforma" className={styles.plataforma} aria-label={t("region")}>
       <div className={`container ${styles.inner}`}>
         {/* Label left, "Ver mais" right — the 40px header row of Figma node
             18862:8546. */}
         <div className={styles.headerRow}>
           <p className={`${styles.label} text-subtle-medium`}>{titulo}</p>
-          <MoreLink href="/sobre" contexto="sobre a plataforma" />
+          <MoreLink href="/sobre" contexto={t("moreContext")} />
         </div>
 
         <div className={styles.tablist} role="tablist" aria-label={titulo}>
@@ -115,7 +117,7 @@ export default function Plataforma({ titulo, abas }: { titulo: string; abas: Aba
             tabIndex={0}
             hidden={aba.id !== activeId}
           >
-            <PanelConteudo conteudo={aba.conteudo} />
+            <PanelConteudo id={aba.id} conteudo={aba.conteudo} />
           </div>
         ))}
       </div>
@@ -126,13 +128,15 @@ export default function Plataforma({ titulo, abas }: { titulo: string; abas: Aba
 // Kept below the default export, and rooted in a <div>, so the
 // SECTION_IDS extractor (tests/lib/marketingNav.test.ts) sees exactly one
 // wrapper tag — <section id="plataforma"> — per this file.
-function PanelConteudo({ conteudo }: { conteudo: ConteudoAba }) {
+function PanelConteudo({ id, conteudo }: { id: string; conteudo: ConteudoAba }) {
+  const t = useTranslations("Plataforma");
+
   return (
     <div className={styles.conteudo}>
       {/* eslint-disable-next-line @next/next/no-img-element -- static asset, matches Hero.tsx/Destaques.tsx */}
       <img
         src={conteudo.imagem}
-        alt={conteudo.imagemAlt}
+        alt={t(`imageAlt.${id}`)}
         width={680}
         height={500}
         className={styles.imagem}

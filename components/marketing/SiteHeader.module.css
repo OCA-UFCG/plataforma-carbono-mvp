@@ -195,23 +195,23 @@
   overflow: hidden;
 }
 
+/* A <button>: its border and fill come off, and text-ui-tab sets its type. */
 .languageOption {
   display: flex;
   align-items: center;
   height: 100%;
   padding: 0 12px;
+  border: 0;
+  background: transparent;
   color: var(--bg-texto-primario);
+  cursor: pointer;
 }
 
 .languageOptionActive {
   border-radius: 4px;
   background: var(--role-categorica1-padrao);
   color: var(--role-primario-texto-sobre);
-}
-
-.language [aria-disabled="true"] {
-  color: var(--role-neutro-texto-desabilitado);
-  cursor: not-allowed;
+  cursor: default;
 }
 
 /* Figma's "Entrar" button (I18862:8515;2810:3921, 97x40 around its label and

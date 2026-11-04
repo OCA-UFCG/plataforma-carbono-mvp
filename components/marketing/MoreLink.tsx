@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MdKeyboardArrowRight } from "react-icons/md";
+import { useTranslations } from "next-intl";
 import styles from "./MoreLink.module.css";
 
 type MoreLinkProps = {
@@ -21,9 +22,11 @@ type MoreLinkProps = {
 // binds to --role-marca-ancora-hover. The chevron is Material's
 // keyboard_arrow_right, the glyph the design uses (I18862:8579;13:2244).
 export default function MoreLink({ href, contexto }: MoreLinkProps) {
+  const t = useTranslations("MoreLink");
+
   return (
     <Link href={href} className={`${styles.moreLink} text-ui-medium`}>
-      Ver mais
+      {t("label")}
       <span className="sr-only"> {contexto}</span>
       <MdKeyboardArrowRight aria-hidden className={styles.icon} />
     </Link>

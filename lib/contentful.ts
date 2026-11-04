@@ -1,5 +1,7 @@
 import 'server-only'
 
+import type { SiteLocale } from '@/lib/locale'
+
 // Read client for the Contentful GraphQL Content Delivery API, used by the
 // landing page content repositories in lib/content/. The credentials are
 // server-only, as the Firebase ones are: a NEXT_PUBLIC_ prefix would embed the
@@ -50,6 +52,20 @@ export function isContentfulConfigured(env: ContentfulEnv): boolean {
 type ContentfulVariable = string | number | boolean | null | ContentfulVariable[]
 
 export type ContentfulVariables = Record<string, ContentfulVariable>
+
+// The Contentful locale of each language of the site. Portuguese, "pt-BR", is
+// the space's default: a Portuguese page names no locale and gets it. The space
+// sets "en-US" to fall back to it field by field, so an English page shows the
+// Portuguese of a field nobody has translated yet, as it does every field of a
+// type that is not localized.
+const CONTENTFUL_LOCALES: Record<SiteLocale, string | undefined> = { pt: undefined, en: 'en-US' }
+
+// The variables that ask a query for the page's language.
+export function localeVariables(locale: SiteLocale): ContentfulVariables | undefined {
+  const contentfulLocale = CONTENTFUL_LOCALES[locale]
+
+  return contentfulLocale ? { locale: contentfulLocale } : undefined
+}
 
 type ContentfulError = {
   message: string

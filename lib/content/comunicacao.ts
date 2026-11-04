@@ -1,5 +1,9 @@
 import 'server-only'
 
+import { localeVariables, type ContentfulVariables } from '@/lib/contentful'
+import type { SiteLocale } from '@/lib/locale'
+import pt from '@/messages/pt.json'
+
 // Content of the "Comunicação" and "Formação cidadã" sections of the landing
 // page. Editors publish it in Contentful; the values below are what the page
 // shipped with and stay the fallback, so the page renders complete without any
@@ -62,9 +66,9 @@ export const DEFAULT_CADERNO: Caderno = {
 
 // The cartilha series' own copy, from the landing card's hover state (Figma
 // 18916:9437). A cartilha whose entry has no description of its own shows
-// this; it describes the series rather than any one volume.
-export const DESCRICAO_CARTILHA =
-  'Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema.'
+// this; it describes the series rather than any one volume. Written in
+// messages/<locale>.json, which the landing's card reads in either language.
+export const DESCRICAO_CARTILHA = pt.Comunicacao.cartilhaDescription
 
 // The captions describe what is visible in each photo. IMAGENS.md records that
 // they are provisional, to be replaced once the events are identified.
@@ -107,7 +111,7 @@ const DEFAULT_CONTENT: ComunicacaoContent = {
   fotosFormacao: DEFAULT_FOTOS_FORMACAO,
 }
 
-type GetContent = <T>(query: string) => Promise<T>
+type GetContent = <T>(query: string, variables?: ContentfulVariables) => Promise<T>
 
 type ContentfulAsset = { url?: string | null; fileName?: string | null } | null
 
@@ -145,8 +149,8 @@ type ContentfulEntries = {
 // The `order` field exists so the editorial sequence is a decision of whoever
 // publishes, not of the entry creation date.
 export const COMUNICACAO_QUERY = `
-  query($preview: Boolean) {
-    cartilhaCollection(order: order_ASC, preview: $preview) {
+  query($preview: Boolean, $locale: String) {
+    cartilhaCollection(order: order_ASC, preview: $preview, locale: $locale) {
       items {
         slug
         volume
@@ -157,7 +161,7 @@ export const COMUNICACAO_QUERY = `
         pdf { url fileName }
       }
     }
-    cadernoCollection(limit: 1, preview: $preview) {
+    cadernoCollection(limit: 1, preview: $preview, locale: $locale) {
       items {
         slug
         title
@@ -167,7 +171,7 @@ export const COMUNICACAO_QUERY = `
         pdf { url fileName }
       }
     }
-    fotoFormacaoCollection(order: order_ASC, preview: $preview) {
+    fotoFormacaoCollection(order: order_ASC, preview: $preview, locale: $locale) {
       items {
         caption
         alt
@@ -248,13 +252,17 @@ function withDefaults(entries: ContentfulEntries): ComunicacaoContent {
   }
 }
 
+// In English, a cartilha and the caderno read their own title and description
+// in English where Contentful has them (the space falls back to Portuguese
+// field by field); the photos' captions are not translated yet.
 export async function getComunicacaoContent(
   getContent: GetContent | null,
+  locale: SiteLocale = 'pt',
 ): Promise<ComunicacaoContent> {
   if (!getContent) return DEFAULT_CONTENT
 
   try {
-    return withDefaults(await getContent<ContentfulEntries>(COMUNICACAO_QUERY))
+    return withDefaults(await getContent<ContentfulEntries>(COMUNICACAO_QUERY, localeVariables(locale)))
   } catch (error) {
     // A CMS outage cannot take the landing page down: log it and render what the
     // page ships with.

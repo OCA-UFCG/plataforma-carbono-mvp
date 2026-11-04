@@ -1,6 +1,7 @@
 import 'server-only'
 
-import { getContentfulClient } from '@/lib/contentful'
+import { getContentfulClient, localeVariables, type ContentfulVariables } from '@/lib/contentful'
+import type { SiteLocale } from '@/lib/locale'
 import { copyDefaults, copyFromEntry, type CopyType, type CopyValues } from './model'
 
 // Reads the copy of the institutional pages from Contentful, one query per page
@@ -8,7 +9,7 @@ import { copyDefaults, copyFromEntry, type CopyType, type CopyValues } from './m
 // no credentials, a failed request or a missing entry all render the shipped
 // copy, so the page never comes out blank.
 
-type GetContent = <T>(query: string) => Promise<T>
+type GetContent = <T>(query: string, variables?: ContentfulVariables) => Promise<T>
 
 type CopyTypes = Record<string, CopyType>
 
@@ -21,7 +22,7 @@ type CopyResponse = Record<string, { items: Array<Record<string, unknown> | null
 export function copyQuery(types: CopyTypes): string {
   const selections = Object.entries(types).map(
     ([alias, type]) => `
-    ${alias}: ${type.id}Collection(limit: 1, order: sys_firstPublishedAt_ASC, preview: $preview) {
+    ${alias}: ${type.id}Collection(limit: 1, order: sys_firstPublishedAt_ASC, preview: $preview, locale: $locale) {
       items {
         ${Object.keys(type.fields).join('\n        ')}
       }
@@ -29,7 +30,7 @@ export function copyQuery(types: CopyTypes): string {
   )
 
   return `
-  query($preview: Boolean) {${selections.join('')}
+  query($preview: Boolean, $locale: String) {${selections.join('')}
   }
 `
 }
@@ -49,11 +50,12 @@ function withDefaults<T extends CopyTypes>(types: T, response: CopyResponse | nu
 export async function loadSiteCopy<T extends CopyTypes>(
   types: T,
   getContent: GetContent | null = getContentfulClient(),
+  locale: SiteLocale = 'pt',
 ): Promise<SiteCopy<T>> {
   if (!getContent) return withDefaults(types, null)
 
   try {
-    return withDefaults(types, await getContent<CopyResponse>(copyQuery(types)))
+    return withDefaults(types, await getContent<CopyResponse>(copyQuery(types), localeVariables(locale)))
   } catch (error) {
     // A CMS outage cannot take the page down: log it and render what the page
     // ships with.
