@@ -61,12 +61,17 @@ export const GLOSSARIO_PAGINA = defineCopy({
   id: 'glossarioPagina',
   name: 'Glossário · Página',
   description:
-    'Faixa cinza do topo da página Glossário. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
+    'Título da página Glossário, no topo da barra lateral. O campo "Introdução · Texto" não aparece mais na página. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
   fields: {
-    // Figma node 19400:12094. The design repeats the Comunicação page's
-    // paragraph word for word, the same placeholder (issue #44, question 4);
-    // this page's own text is an open question too (issue #147, question 2).
+    // The title over the sidebar, Figma node 19507:16727.
     introTitulo: line('Introdução · Título', 'Glossário'),
+    // LEGACY: the paragraph of the intro band the redesign dropped
+    // (19507:12478), unread since. It stays declared because
+    // `npm run contentful:provision -- --apply` puts the whole content type,
+    // and Contentful refuses to drop a field that was not omitted first.
+    // Removing it takes omitting it in the space, then deleting it there and
+    // here. The old frame (19400:12094) repeated the Comunicação page's
+    // paragraph word for word (issue #44, question 4; issue #147, question 2).
     introTexto: paragraph(
       'Introdução · Texto',
       'A Caativar reúne, em um só lugar e de forma aberta, dados, mapas e conteúdos sobre o carbono da Caatinga. Foi feita para que quem vive no bioma e quem decide sobre ele conheça o que cada território guarda, avalie propostas de projetos de carbono e negocie com mais segurança.',

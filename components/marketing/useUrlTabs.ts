@@ -10,7 +10,15 @@ import type { KeyboardEvent } from "react";
 // tab back from useSearchParams, and `select` only writes it with
 // replaceState, so switching adds no history entry and a link back to the
 // bare page (the header's) opens the first tab again.
-export function useUrlTabs<T extends string>(ids: readonly T[], href: (current: URL, id: T) => string) {
+// A horizontal strip leaves the up and down arrows to the page, which they
+// scroll. A vertical list (the Glossário's sidebar) takes them, and keeps the
+// side arrows too: it lies sideways on narrow screens, and aria-orientation
+// cannot follow a media query.
+export function useUrlTabs<T extends string>(
+  ids: readonly T[],
+  href: (current: URL, id: T) => string,
+  { orientation = "horizontal" }: { orientation?: "horizontal" | "vertical" } = {},
+) {
   const tabRefs = useRef<Partial<Record<T, HTMLButtonElement | null>>>({});
 
   // `null`, not window.history.state: Next.js copies its own entry state over,
@@ -32,12 +40,19 @@ export function useUrlTabs<T extends string>(ids: readonly T[], href: (current: 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     const count = ids.length;
     const current = ids.findIndex((id) => tabRefs.current[id] === event.currentTarget);
+    const vertical = orientation === "vertical";
 
     switch (event.key) {
+      case "ArrowDown":
+        if (!vertical) break;
+      // falls through
       case "ArrowRight":
         event.preventDefault();
         selectAndFocus((current + 1) % count);
         break;
+      case "ArrowUp":
+        if (!vertical) break;
+      // falls through
       case "ArrowLeft":
         event.preventDefault();
         selectAndFocus((current - 1 + count) % count);

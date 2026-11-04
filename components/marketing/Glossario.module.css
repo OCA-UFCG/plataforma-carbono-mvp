@@ -1,83 +1,178 @@
-/* The open term, Figma 19400:12120: 40px of block padding, 24px between the
- * text, the animation and its controls, which span the full 1276px. */
+/* The Glossário, Figma frame 19507:12478: a 275px sidebar and the open term's
+ * column, spanning the design's 1436px frame (the container plus its gutters)
+ * and centred past it. Beyond that width the sidebar's grey carries on to the
+ * left edge of the window and the column's background to the right one, so
+ * the sidebar still reads as one: the outer box paints each half, and the row
+ * covers the middle with the sidebar and the column themselves. */
 .glossario {
-  background: var(--bg-fundo);
+  background: linear-gradient(to right, var(--am-050) 50%, var(--bg-fundo) 50%);
 }
 
-.inner {
-  padding-block: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.linha {
+  display: grid;
+  grid-template-columns: 275px minmax(0, 1fr);
+  max-width: calc(var(--container-max) + 2 * var(--gutter));
+  margin-inline: auto;
 }
 
-/* The title and the paragraphs below it, 8px apart (19401:13571). Paragraph
- * metrics come from .text-body in Glossario.tsx. */
-.texto {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Rubik SemiBold 24/32 (19401:13574); the style tracks at -0.6%, -0.144px at
- * 24px, like the Sobre section titles (sobre/Section.module.css). */
-.titulo {
-  font-family: var(--font-sans, var(--font-fallback));
-  font-weight: 600;
-  font-size: 24px;
-  line-height: 32px;
-  letter-spacing: -0.144px;
-  color: var(--role-marca-ancora-padrao);
-  margin: 0;
-}
-
-.paragrafo {
-  margin: 0;
-  color: var(--bg-texto-primario);
-}
-
-/* The way into the platform and the sources are not in the design yet (issue
- * #147, question 3); they keep the look they had in the Comunicação tab. */
-.acesso {
-  align-self: flex-start;
-  padding: 12px 20px;
-  border-radius: 8px;
-  background: var(--role-marca-ancora-padrao);
-  color: var(--role-marca-ancora-texto-sobre);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 24px;
-  text-decoration: none;
-}
-
-.acesso:hover,
-.acesso:focus-visible {
-  background: var(--role-marca-ancora-hover);
-}
-
-.fontesBloco {
+/* 19507:16676: 40px above, 24px each side of its 226px column, 16px between
+ * the title, the search box and the list, over --am-050 with a 1px rule in the
+ * disabled-text grey (#94a6ac, the design's BG-TextoDesabilitado). 275px is
+ * those 226 + 2 × 24 and the rule. */
+.lateral {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 40px 24px;
+  background: var(--am-050);
+  border-right: 1px solid var(--role-neutro-texto-desabilitado);
 }
 
-.fontesTitulo {
+/* The page's title (19507:16727), in the global .text-h3 and the brand green;
+ * the term's, beside it, is in the first categorical green
+ * (components/glossario/TermoAberto.module.css). */
+.titulo {
   margin: 0;
-  font-size: 14px;
+  color: var(--role-marca-ancora-padrao);
+}
+
+/* The search box (19507:16677): 40px tall, 12px inside, a 1px --bg-borda
+ * border with 8px corners on white, the placeholder in --bg-texto-secundario
+ * (Inter 400 14/24, the global .text-ui-regular) and a 16px magnifier 12px
+ * from the right edge, where the text stops short of it. The focus ring is
+ * the site's brand green, which the design does not draw. */
+.busca {
+  position: relative;
+}
+
+.buscaCampo {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 36px 0 12px;
+  border: 1px solid var(--bg-borda);
+  border-radius: var(--radius);
+  margin: 0;
+  background: var(--role-primario-texto-sobre);
+  color: var(--bg-texto-primario);
+}
+
+.buscaCampo::placeholder {
+  color: var(--bg-texto-secundario);
+  opacity: 1;
+}
+
+.buscaCampo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+.buscaIcone {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  pointer-events: none;
+}
+
+/* The terms, 4px apart (19507:16678). */
+.termos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* A "tab item" of the sidebar (19507:16680): 16px inside, 8px corners, the
+ * label in Inter 500 14/20 (the global .text-ui-tab, applied in Glossario.tsx)
+ * in #001d27, on one line as the design sets it: "Eficiência de uso do
+ * carbono" is 194.3px wide in the 194px the padding leaves, and would
+ * otherwise wrap. The design draws no hover; this one borrows the light grey the
+ * step buttons wear when selected (--role-categorica2-container, the
+ * "Estados" frame 19403:26571), which stands out from the sidebar's --am-050. */
+.termo {
+  padding: 16px;
+  border: 0;
+  border-radius: var(--radius);
+  margin: 0;
+  background: none;
+  color: var(--ctx-positivo-texto-sobre-container);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.termo:not(.termoAtual):hover {
+  background: var(--role-categorica2-container);
+}
+
+/* The open term (19507:16679): white Inter Bold on the brand green. */
+.termoAtual {
+  background: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+}
+
+.termo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: 2px;
+}
+
+/* In place of the list when the search finds nothing; the design draws no
+ * such state. */
+.semResultado {
+  margin: 0;
+  padding-inline: 16px;
   color: var(--bg-texto-secundario);
 }
 
-.fontes {
-  margin: 0;
-  padding-left: 20px;
+/* The open term's column (19507:16686): 40px of block padding, 24px from the
+ * sidebar and the gutter (80px on a desktop) on the right, 24px between the
+ * text, the animation with its controls and what follows (TermoAberto.tsx). */
+.conteudo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--am-400);
-  overflow-wrap: anywhere;
+  gap: 24px;
+  min-width: 0;
+  padding: 40px var(--gutter) 40px 24px;
+  background: var(--bg-fundo);
+}
+
+/* The tab panel takes focus (tabIndex 0, as the WAI-ARIA tabs pattern asks);
+ * it fills the column, so its ring is drawn inside it. */
+.conteudo:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-padrao);
+  outline-offset: -2px;
+}
+
+/* No frame draws the Glossário narrow. Below 900px the sidebar would leave
+ * the term too little room, so it goes on top: the title and the search box
+ * across the gutters, over a rule instead of beside one, and the terms in a
+ * strip that scrolls sideways from edge to edge, as the Comunicação tabs do
+ * (TabStrip.module.css). Glossario.tsx scrolls the open term into the strip,
+ * and useUrlTabs keeps the side arrows for it. The strip's 4px of block
+ * padding leaves room for the focus ring, which its scrolling would clip. */
+@media (max-width: 900px) {
+  .linha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lateral {
+    padding: 24px var(--gutter) 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--role-neutro-texto-desabilitado);
+  }
+
+  .termos {
+    flex-direction: row;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 4px var(--gutter);
+  }
+
+  .termo {
+    flex: none;
+  }
+
+  .conteudo {
+    padding: 24px var(--gutter) 40px;
+  }
 }

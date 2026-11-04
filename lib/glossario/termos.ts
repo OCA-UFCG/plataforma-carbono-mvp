@@ -1,10 +1,11 @@
 // Terms of the Glossário page (/glossario), one tab each, in the order of
-// the design's tab strip (Figma 19400:12117), followed by the terms the
+// the design's sidebar (Figma 19507:16678), followed by the terms the
 // design does not draw yet: "Sequestro de carbono", then "Inventário de
 // carbono". `animacao` names a scene assembled in lib/cenas/gerado/
 // (scripts/montar-cenas.mjs).
 
 import { ABA_PARAM } from '@/lib/marketing/comunicacaoAbas'
+import { normalizeSearch } from '@/lib/mapa/normalizeSearch'
 
 export type AnimacaoId = 'cicloAnual' | 'torreFluxo' | 'estoques' | 'cisterna' | 'fluxos' | 'cue' | 'degradacao' | 'agroecologia' | 'medirCarbono'
 
@@ -18,6 +19,12 @@ export interface Termo {
     /** Read by screen readers in place of the canvas. */
     descricao: string
   }
+  /**
+   * Text under the animation's control panel, which the redesign (Figma
+   * 19507:16694) adds below the scene; `paragrafos` stay above it. No term
+   * has it yet: the frame repeats the Fotossíntese paragraph as a placeholder.
+   */
+  paragrafosAposCena?: string[]
   /** References in APA, in the order they are cited. */
   fontes?: string[]
   /** A way into the platform from the term, under the animation. */
@@ -133,6 +140,29 @@ export const TERMO_PARAM = 'termo'
 /** The term the address names; anything else opens the first one. */
 export function parseTermo(value: string | null): Termo {
   return TERMOS.find((t) => t.slug === value) ?? TERMOS[0]
+}
+
+/**
+ * The terms whose title holds what the reader typed in the sidebar's "Buscar
+ * termo" box, in their order; every term while the box is blank. Case and
+ * accents fold away on both sides, as in the platform's territory search, so
+ * "fotossintese" finds "Fotossíntese".
+ */
+export function filtrarTermos(termos: readonly Termo[], busca: string): Termo[] {
+  const alvo = normalizeSearch(busca.trim())
+  if (!alvo) return [...termos]
+
+  return termos.filter((t) => normalizeSearch(t.titulo).includes(alvo))
+}
+
+/**
+ * The one tab of the sidebar that Tab reaches (the roving tabindex of the
+ * WAI-ARIA tabs pattern): the open term while the search shows it, otherwise
+ * the first term shown, so a search that hides the open term does not leave
+ * the list with no way in. undefined when the search shows none.
+ */
+export function abaFocavel(visiveis: readonly string[], aberto: string): string | undefined {
+  return visiveis.includes(aberto) ? aberto : visiveis[0]
 }
 
 // The Glossário was a third tab of the Comunicação page while it was tested,

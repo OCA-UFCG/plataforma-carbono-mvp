@@ -12,7 +12,7 @@ import { TERMOS, parseTermo } from '@/lib/glossario/termos'
 
 const html = (busca: string) => {
   endereco.busca = busca
-  return renderToStaticMarkup(createElement(Glossario))
+  return renderToStaticMarkup(createElement(Glossario, { titulo: 'Glossário' }))
 }
 
 describe('Glossario', () => {
@@ -34,6 +34,27 @@ describe('Glossario', () => {
     for (const tab of tabs) expect(tab).toMatch(/class="[^"]*\btext-ui-tab\b/)
   })
 
+  it('heads the sidebar with the page title, the page\'s only h1', () => {
+    const markup = html('')
+
+    expect(markup.match(/<h1[^>]*>[^<]*<\/h1>/g)).toEqual([expect.stringMatching(/>Glossário<\/h1>$/)])
+  })
+
+  it('puts a "Buscar termo" box over the list, which starts with every term showing', () => {
+    const markup = html('')
+
+    expect(markup).toMatch(/<input [^>]*type="search"[^>]*aria-label="Buscar termo"[^>]*aria-controls="glossario-termos"/)
+    expect(markup).toMatch(/<input [^>]*placeholder="Buscar termo"/)
+    expect(markup).toMatch(/<img [^>]*src="\/icons\/mapa\/search.svg"[^>]*alt=""/)
+    expect(markup).toMatch(/id="glossario-termos"[^>]*role="tablist"/)
+    expect(markup).not.toMatch(/role="tab"[^>]*hidden/)
+    expect(markup).not.toContain('Nenhum termo encontrado')
+  })
+
+  it('lays the terms out as a vertical tab list', () => {
+    expect(html('')).toMatch(/role="tablist"[^>]*aria-orientation="vertical"|aria-orientation="vertical"[^>]*role="tablist"/)
+  })
+
   it('opens the term the address names, and only that one', () => {
     const markup = html('?termo=torre-de-fluxo')
 
@@ -52,7 +73,8 @@ describe('Glossario', () => {
 
   it('points only the open tab at the panel, which it labels', () => {
     const markup = html('?termo=degradacao')
-    const controls = [...markup.matchAll(/aria-controls="([^"]+)"/g)].map(([, id]) => id)
+    const tabs = markup.match(/<button [^>]*role="tab"[^>]*>/g) ?? []
+    const controls = tabs.flatMap((tab) => tab.match(/aria-controls="([^"]+)"/)?.[1] ?? [])
 
     expect(controls).toEqual(['glossario-painel'])
     expect(markup).toMatch(/id="glossario-painel"[^>]*aria-labelledby="glossario-tab-degradacao"|aria-labelledby="glossario-tab-degradacao"[^>]*id="glossario-painel"/)

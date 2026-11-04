@@ -37,6 +37,15 @@ const LINHAS: Record<AnimacaoId, number> = {
   medirCarbono: 2,
 };
 
+// Extra lines the step buttons wrap to in the Glossário's 1057px column
+// (Figma 19507:12478), on top of their row in LINHAS: seven buttons need two
+// lines there, six still fit on one (CenaAnimada.module.css, .etapas).
+const QUEBRAS: Partial<Record<AnimacaoId, number>> = {
+  estoques: 1,
+  cisterna: 1,
+  medirCarbono: 1,
+};
+
 // One glossary animation with its control panel, which lives outside the
 // canvas (Figma "Painel de controle glossário", 19401:22996): a row of step
 // buttons for a scene told in steps, a row with presets and a slider for a
@@ -142,7 +151,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       <canvas ref={tela} className={styles.tela} width={960} height={540} role="img" aria-label={descricao} />
       {/* The design shows no caption under the animation. */}
       <figcaption className="sr-only">{titulo}</figcaption>
-      <div className={styles.caixa} style={{ "--linhas": LINHAS[id] } as CSSProperties}>
+      <div className={styles.caixa} style={{ "--linhas": LINHAS[id], "--quebras": QUEBRAS[id] ?? 0 } as CSSProperties}>
         {estado && etapas && (
           <div className={`${styles.linha} ${styles.etapas}`} role="group" aria-label={`Etapas de ${titulo}`}>
             {etapas.map((etapa, i) => (
