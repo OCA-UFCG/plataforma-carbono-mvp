@@ -121,4 +121,46 @@ describe('withResultCache', () => {
     await withResultCache('k', compute)
     expect(compute).toHaveBeenCalledTimes(2)
   })
+
+  describe('a request that joined a computation that fails', () => {
+    /** An originator whose computation the test rejects, with `joiners` joined to it. */
+    async function joined(retry: () => Promise<number>, joiners = 1) {
+      let fail!: (e: Error) => void
+      const first = vi.fn(() => new Promise<number>((_, rej) => { fail = rej }))
+      const originator = withResultCache('k', first)
+      const waiting = Array.from({ length: joiners }, () => withResultCache('k', retry))
+      const settled = Promise.allSettled([originator, ...waiting])
+      fail(new Error('timed out'))
+      return { first, results: await settled }
+    }
+
+    it('computes for itself instead of inheriting the failure, and the originator still fails', async () => {
+      const retry = vi.fn(async () => 5)
+      const { first, results } = await joined(retry)
+
+      expect(results[0]).toMatchObject({ status: 'rejected' })
+      expect(results[1]).toEqual({ status: 'fulfilled', value: 5 })
+      expect(first).toHaveBeenCalledOnce()
+      expect(retry).toHaveBeenCalledOnce()
+      // The retry's answer is kept like any other.
+      expect(await withResultCache('k', retry)).toBe(5)
+      expect(retry).toHaveBeenCalledOnce()
+    })
+
+    it('shares one retry between several joiners', async () => {
+      const retry = vi.fn(async () => 9)
+      const { results } = await joined(retry, 3)
+
+      expect(results.slice(1)).toEqual(Array(3).fill({ status: 'fulfilled', value: 9 }))
+      expect(retry).toHaveBeenCalledOnce()
+    })
+
+    it('fails when its retry fails too, without trying a third time', async () => {
+      const retry = vi.fn(async () => { throw new Error('still down') })
+      const { results } = await joined(retry)
+
+      expect(results[1]).toMatchObject({ status: 'rejected', reason: new Error('still down') })
+      expect(retry).toHaveBeenCalledOnce()
+    })
+  })
 })

@@ -71,10 +71,18 @@ export function resultCacheKey(layerKey: string, temporalDate: string | undefine
 
 /**
  * The cached answer under `key`, or `compute()`'s, kept for the next request.
- * A failure is not kept: it reaches every request waiting on it and the next
- * one computes again.
+ * A failure is not kept, and the next request computes again.
+ *
+ * A request that joined a computation and sees it fail does not inherit the
+ * deadline the first one spent: it tries once more itself, and the joiners of
+ * that retry share it. The first request still gets its own failure, and a
+ * retry that fails fails for good.
  */
-export async function withResultCache<T>(key: string, compute: () => Promise<T>): Promise<T> {
+export async function withResultCache<T>(
+  key: string,
+  compute: () => Promise<T>,
+  joinRetry = true,
+): Promise<T> {
   const hit = cache.get(key)
   if (hit) {
     if (Date.now() <= hit.expires) {
@@ -88,7 +96,17 @@ export async function withResultCache<T>(key: string, compute: () => Promise<T>)
   }
 
   const pending = inFlight.get(key)
-  if (pending) return pending as Promise<T>
+  if (pending) {
+    try {
+      return await pending as T
+    } catch (err) {
+      if (!joinRetry) throw err
+      // The failed entry left `inFlight` before this ran (its `finally` is in
+      // the chain awaited above), so the retry starts a computation, or joins
+      // the one a faster joiner started.
+      return withResultCache(key, compute, false)
+    }
+  }
 
   const request = compute()
     .then((value) => {
