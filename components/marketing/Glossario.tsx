@@ -2,21 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import TermoAberto from "@/components/glossario/TermoAberto";
 import { TERMOS, TERMO_PARAM, abaFocavel, filtrarTermos, parseTermo } from "@/lib/glossario/termos";
+import { readSiteLocale } from "@/lib/locale";
 import { useUrlTabs } from "./useUrlTabs";
 import styles from "./Glossario.module.css";
 
 const PANEL_ID = "glossario-painel";
 
 const LISTA_ID = "glossario-termos";
-
-// What the live region reads once the reader has typed in the search box.
-function contagem(n: number) {
-  if (n === 0) return "Nenhum termo encontrado";
-
-  return n === 1 ? "1 termo encontrado" : `${n} termos encontrados`;
-}
 
 // The address of a term, keeping whatever else the current one carries.
 function termoHref(current: URL, slug: string) {
@@ -66,10 +61,15 @@ function mostrarAba(tab: HTMLButtonElement | null | undefined) {
 // leaves out is hidden rather than unmounted, so the panel keeps the label its
 // tab gives it (aria-labelledby reads hidden elements), and the arrow keys
 // move among the terms shown.
+// Each term's words come in the reader's language (lib/glossario/termos.ts),
+// and the search looks in the titles the reader sees; the address of a term
+// does not change with the language.
 export default function Glossario({ titulo }: { titulo: string }) {
+  const t = useTranslations("Glossario");
+  const locale = readSiteLocale(useLocale());
   const termo = parseTermo(useSearchParams()?.get(TERMO_PARAM) ?? null);
   const [busca, setBusca] = useState("");
-  const visiveis = filtrarTermos(TERMOS, busca).map((t) => t.slug);
+  const visiveis = filtrarTermos(TERMOS, busca, locale).map((outro) => outro.slug);
   const focavel = abaFocavel(visiveis, termo.slug);
   const { select, handleKeyDown, tabRef, tab } = useUrlTabs(visiveis, termoHref, { orientation: "vertical" });
 
@@ -87,8 +87,8 @@ export default function Glossario({ titulo }: { titulo: string }) {
             <input
               type="search"
               className={`${styles.buscaCampo} text-ui-regular`}
-              placeholder="Buscar termo"
-              aria-label="Buscar termo"
+              placeholder={t("busca")}
+              aria-label={t("busca")}
               aria-controls={LISTA_ID}
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
@@ -96,35 +96,35 @@ export default function Glossario({ titulo }: { titulo: string }) {
             {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}
             <img className={styles.buscaIcone} src="/icons/mapa/search.svg" alt="" width={16} height={16} />
           </div>
-          <div id={LISTA_ID} className={styles.termos} role="tablist" aria-orientation="vertical" aria-label="Termos do glossário">
-            {TERMOS.map((t) => {
-              const selected = t.slug === termo.slug;
+          <div id={LISTA_ID} className={styles.termos} role="tablist" aria-orientation="vertical" aria-label={t("tablist")}>
+            {TERMOS.map((outro) => {
+              const selected = outro.slug === termo.slug;
               return (
                 <button
-                  key={t.slug}
-                  ref={tabRef(t.slug)}
+                  key={outro.slug}
+                  ref={tabRef(outro.slug)}
                   type="button"
                   role="tab"
-                  id={tabId(t.slug)}
+                  id={tabId(outro.slug)}
                   aria-selected={selected}
                   aria-controls={selected ? PANEL_ID : undefined}
-                  tabIndex={t.slug === focavel ? 0 : -1}
-                  hidden={!visiveis.includes(t.slug)}
+                  tabIndex={outro.slug === focavel ? 0 : -1}
+                  hidden={!visiveis.includes(outro.slug)}
                   className={`${styles.termo} text-ui-tab${selected ? ` ${styles.termoAtual}` : ""}`}
-                  onClick={() => select(t.slug)}
+                  onClick={() => select(outro.slug)}
                   onKeyDown={handleKeyDown}
                 >
-                  {t.titulo}
+                  {outro.titulo[locale]}
                 </button>
               );
             })}
           </div>
-          {visiveis.length === 0 && <p className={`${styles.semResultado} text-body`}>Nenhum termo encontrado</p>}
+          {visiveis.length === 0 && <p className={`${styles.semResultado} text-body`}>{t("nenhum")}</p>}
           {/* Live from the start and empty until the reader types: a region
               that turns live in the same render as its first text is often
               not read. */}
           <p className="sr-only" aria-live="polite">
-            {busca.trim() ? contagem(visiveis.length) : ""}
+            {busca.trim() ? t("contagem", { n: visiveis.length }) : ""}
           </p>
         </div>
 

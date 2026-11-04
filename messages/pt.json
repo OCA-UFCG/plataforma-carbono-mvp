@@ -107,5 +107,20 @@
       "caatinga": "Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor",
       "carbono-e-comunidades": "Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul"
     }
+  },
+  "Glossario": {
+    "tablist": "Termos do glossário",
+    "fontes": "Fontes",
+    "busca": "Buscar termo",
+    "nenhum": "Nenhum termo encontrado",
+    "contagem": "{n, plural, =0 {Nenhum termo encontrado} one {# termo encontrado} other {# termos encontrados}}"
+  },
+  "CenaAnimada": {
+    "etapas": "Etapas de {titulo}",
+    "valores": "Valores medidos de {titulo}",
+    "velocidade": "Velocidade",
+    "epoca": "Época do ano",
+    "reproduzir": "Reproduzir",
+    "pausar": "Pausar"
   }
 }

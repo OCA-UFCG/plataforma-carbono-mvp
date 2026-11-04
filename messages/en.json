@@ -107,5 +107,20 @@
       "caatinga": "A house in a rural Caatinga community, with a bare-earth yard and vegetation around it",
       "carbono-e-comunidades": "A calm lake at the foot of a rocky hill covered in Caatinga vegetation, under a blue sky"
     }
+  },
+  "Glossario": {
+    "tablist": "Glossary terms",
+    "fontes": "Sources",
+    "busca": "Search terms",
+    "nenhum": "No terms found",
+    "contagem": "{n, plural, =0 {No terms found} one {# term found} other {# terms found}}"
+  },
+  "CenaAnimada": {
+    "etapas": "Steps of {titulo}",
+    "valores": "Measured values of {titulo}",
+    "velocidade": "Speed",
+    "epoca": "Time of year",
+    "reproduzir": "Play",
+    "pausar": "Pause"
   }
 }
