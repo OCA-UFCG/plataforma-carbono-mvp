@@ -19,6 +19,33 @@ describe('resultCacheKey', () => {
     const moved = { ...square, coordinates: [[[0, 0], [2, 0], [1, 1], [0, 0]]] }
     expect(resultCacheKey('ndvi_modis', '2024-01-01', moved)).not.toBe(k)
   })
+
+  it('reads the same geometry as the same key, whichever object holds it', () => {
+    expect(resultCacheKey('l', undefined, structuredClone(square))).toBe(resultCacheKey('l', undefined, square))
+  })
+
+  it('tells the type and the nesting of the coordinates apart', () => {
+    const polygon = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }
+    const multi = { type: 'MultiPolygon', coordinates: [[[[0, 0], [1, 0], [1, 1], [0, 0]]]] }
+    const flat = { type: 'Polygon', coordinates: [[0, 0], [1, 0], [1, 1], [0, 0]] }
+    const split = { type: 'Polygon', coordinates: [[[0, 0], [1, 0]], [[1, 1], [0, 0]]] }
+    const keys = [polygon, multi, flat, split].map((g) => resultCacheKey('l', undefined, g))
+    expect(new Set(keys).size).toBe(4)
+  })
+
+  it('tells an array length from a number in the same place', () => {
+    const a = { type: 'Polygon', coordinates: [[2, 5], 7] }
+    const b = { type: 'Polygon', coordinates: [2, [5, 7]] }
+    expect(resultCacheKey('l', undefined, a)).not.toBe(resultCacheKey('l', undefined, b))
+  })
+
+  it('digests a geometry larger than its buffer', () => {
+    const ring = Array.from({ length: 5000 }, (_, i) => [i * 1e-3, -i * 1e-3])
+    const big = { type: 'Polygon', coordinates: [ring] }
+    const last = { type: 'Polygon', coordinates: [[...ring.slice(0, -1), [ring.at(-1)![0], 1]]] }
+    expect(resultCacheKey('l', undefined, big)).toBe(resultCacheKey('l', undefined, structuredClone(big)))
+    expect(resultCacheKey('l', undefined, last)).not.toBe(resultCacheKey('l', undefined, big))
+  })
 })
 
 describe('withResultCache', () => {
