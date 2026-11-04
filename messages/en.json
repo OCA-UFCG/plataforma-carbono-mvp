@@ -55,5 +55,43 @@
     "caderno": "THEMATIC REPORT",
     "cta": "View material",
     "cartilhaDescription": "An introductory booklet, in plain language, for communities and anyone interested in learning about the topic."
+  },
+  "ComunicacaoAbas": {
+    "label": "Communication",
+    "conteudo": "Content",
+    "eventos": "Events and partnerships"
+  },
+  "Publicacoes": {
+    "heading": "Content",
+    "soon": "Coming soon",
+    "tipo": {
+      "caderno": "Thematic report",
+      "cartilha": "Booklet"
+    }
+  },
+  "Eventos": {
+    "heading": "Events and partnerships",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "Publicacao": {
+    "back": "Back",
+    "publishedOn": "Published:",
+    "download": "Download PDF",
+    "related": "Related content"
+  },
+  "PdfViewer": {
+    "page": "Page",
+    "of": "of",
+    "zoomIn": "Zoom in",
+    "zoom": "Zoom",
+    "zoomOut": "Zoom out",
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "download": "Download PDF",
+    "document": "PDF document",
+    "loading": "Loading document…",
+    "error": "Could not display the PDF.",
+    "openInNewTab": "Open the file in a new tab"
   }
 }

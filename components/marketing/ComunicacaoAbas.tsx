@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ABAS_COMUNICACAO,
   ABA_PARAM,
@@ -34,13 +35,14 @@ function panelId(id: AbaComunicacao) {
 // history entry, and the header's "Comunicação" link opens "Conteúdo" again
 // even though the page stays mounted.
 export default function ComunicacaoAbas({ paineis }: { paineis: Record<AbaComunicacao, ReactNode> }) {
+  const t = useTranslations("ComunicacaoAbas");
   const activeId = parseAba(useSearchParams()?.get(ABA_PARAM) ?? null);
   const { select, handleKeyDown, tabRef } = useUrlTabs(IDS, abaHref);
 
   return (
     <>
       <div className={styles.subnav}>
-        <div className={`container ${styles.list}`} role="tablist" aria-label="Comunicação">
+        <div className={`container ${styles.list}`} role="tablist" aria-label={t("label")}>
           {ABAS_COMUNICACAO.map((aba) => {
             const selected = aba.id === activeId;
             return (
@@ -57,7 +59,7 @@ export default function ComunicacaoAbas({ paineis }: { paineis: Record<AbaComuni
                 onClick={() => select(aba.id)}
                 onKeyDown={handleKeyDown}
               >
-                {aba.label}
+                {t(aba.id)}
               </button>
             );
           })}

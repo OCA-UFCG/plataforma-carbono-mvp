@@ -79,6 +79,20 @@ describe('getEventos', () => {
     expect(await getEventos(clientReturning({}))).toBe(DEFAULT_EVENTOS)
   })
 
+  // Portuguese is the space's default locale, so only English names one.
+  it('asks Contentful for the events in the visitor’s language', async () => {
+    const getContent = vi.fn(async () => PUBLISHED)
+    const client = getContent as unknown as <T>(query: string, variables?: { locale?: string }) => Promise<T>
+
+    await getEventos(client, 'en')
+    await getEventos(client, 'pt')
+    await getEventos(client)
+
+    expect(getContent.mock.calls.map((call) => (call as unknown[])[1])).toEqual([{ locale: 'en-US' }, undefined, undefined])
+    expect(EVENTOS_QUERY).toContain('query($preview: Boolean, $locale: String)')
+    expect(EVENTOS_QUERY).toContain('eventoCollection(order: date_DESC, preview: $preview, locale: $locale)')
+  })
+
   // A space not yet provisioned with `evento` answers this query with an
   // error; only this tab falls back.
   it('falls back to the design events when the request fails', async () => {
@@ -101,6 +115,12 @@ describe('formatEventoDate', () => {
 
   it('keeps the calendar day of a UTC midnight', () => {
     expect(formatEventoDate('2026-01-01T00:00:00.000Z')).toBe('1 jan 2026')
+  })
+
+  it('abbreviates the month in English for an English visitor', () => {
+    expect(formatEventoDate('2026-09-17', 'en')).toBe('17 Sep 2026')
+    expect(formatEventoDate('2026-05-01T00:00:00.000Z', 'en')).toBe('1 May 2026')
+    expect(formatEventoDate('2026-13-01', 'en')).toBeNull()
   })
 
   it('answers null for a missing or malformed date', () => {

@@ -55,5 +55,43 @@
     "caderno": "CADERNO TEMÁTICO",
     "cta": "Ver material",
     "cartilhaDescription": "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema."
+  },
+  "ComunicacaoAbas": {
+    "label": "Comunicação",
+    "conteudo": "Conteúdo",
+    "eventos": "Eventos e articulações"
+  },
+  "Publicacoes": {
+    "heading": "Conteúdo",
+    "soon": "Em breve",
+    "tipo": {
+      "caderno": "Caderno temático",
+      "cartilha": "Cartilha"
+    }
+  },
+  "Eventos": {
+    "heading": "Eventos e articulações",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
+  },
+  "Publicacao": {
+    "back": "Voltar",
+    "publishedOn": "Publicado em:",
+    "download": "Baixar PDF",
+    "related": "Conteúdos Relacionados"
+  },
+  "PdfViewer": {
+    "page": "Página",
+    "of": "de",
+    "zoomIn": "Aumentar zoom",
+    "zoom": "Zoom",
+    "zoomOut": "Diminuir zoom",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "download": "Baixar PDF",
+    "document": "Documento PDF",
+    "loading": "Carregando documento…",
+    "error": "Não foi possível exibir o PDF.",
+    "openInNewTab": "Abrir o arquivo em outra aba"
   }
 }

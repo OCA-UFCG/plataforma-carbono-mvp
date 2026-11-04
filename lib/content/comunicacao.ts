@@ -2,7 +2,7 @@ import 'server-only'
 
 import { localeVariables, type ContentfulVariables } from '@/lib/contentful'
 import type { SiteLocale } from '@/lib/locale'
-import pt from '@/messages/pt.json'
+import { calendarDate, dayMonthYear } from './dates'
 
 // Content of the "Comunicação" and "Formação cidadã" sections of the landing
 // page. Editors publish it in Contentful; the values below are what the page
@@ -63,12 +63,6 @@ export const DEFAULT_CADERNO: Caderno = {
     'Reúne o que a ciência revela, o que a legislação estabelece e o que está em jogo para a Caatinga, em cinco seções que norteiam cidadãos, gestores públicos, organizações e investidores antes de se posicionarem no debate.',
   cover: '/images/cartilhas/caderno.jpg',
 }
-
-// The cartilha series' own copy, from the landing card's hover state (Figma
-// 18916:9437). A cartilha whose entry has no description of its own shows
-// this; it describes the series rather than any one volume. Written in
-// messages/<locale>.json, which the landing's card reads in either language.
-export const DESCRICAO_CARTILHA = pt.Comunicacao.cartilhaDescription
 
 // The captions describe what is visible in each photo. IMAGENS.md records that
 // they are provisional, to be replaced once the events are identified.
@@ -273,13 +267,17 @@ export async function getComunicacaoContent(
 }
 
 // One publication, for the Comunicação page's grid (Figma 18978:2074), the
-// landing's cards and the publication page (19015:13056).
+// landing's cards and the publication page (19015:13056). `tipo` names the
+// series; the card writes it in the reader's language. A cartilha whose entry
+// has no description of its own has none here: the page shows the series'
+// copy instead (Figma 18916:9437, the landing card's hover state), written in
+// messages/<locale>.json as "Comunicacao.cartilhaDescription".
 export type Publicacao = {
   key: string
   slug?: string
-  tipo: 'Caderno temático' | 'Cartilha'
+  tipo: 'caderno' | 'cartilha'
   title: string
-  description: string
+  description?: string
   publicationDate?: string
   cover: string
   pdf?: string
@@ -298,7 +296,7 @@ export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
     {
       key: 'caderno',
       slug: caderno.slug,
-      tipo: 'Caderno temático',
+      tipo: 'caderno',
       title: caderno.title,
       description: caderno.description,
       publicationDate: caderno.publicationDate,
@@ -310,9 +308,9 @@ export function listPublicacoes(conteudo: ComunicacaoContent): Publicacao[] {
       (c, i): Publicacao => ({
         key: `cartilha-${i}`,
         slug: c.slug,
-        tipo: 'Cartilha',
+        tipo: 'cartilha',
         title: c.title,
-        description: c.description ?? DESCRICAO_CARTILHA,
+        description: c.description,
         publicationDate: c.publicationDate,
         cover: c.cover,
         pdf: c.pdf,
@@ -349,18 +347,12 @@ export function relatedPublicacoes(conteudo: ComunicacaoContent, slug: string): 
   return lista.filter((p) => p !== atual).slice(0, MAX_RELACIONADOS)
 }
 
-// "Publicado em: 14/05/25" (Figma 19015:13064). Contentful answers a Date field
-// as an ISO string, "2025-05-14T00:00:00.000Z" for a date with no time. The
-// calendar date is read off the string rather than through Date: formatted in
-// the Northeast's UTC-3, midnight UTC would print the day before (the spec's
-// "formatted in UTC" guards the same thing), and a value written with its own
-// offset keeps the day the editor chose.
-export function formatPublicationDate(value?: string | null): string | null {
-  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (!match) return null
+// "Publicado em: 14/05/25" (Figma 19015:13064). In English the month is
+// named, "14 May 2025": 05/14/25 and 14/05/25 read as different days on
+// either side of the Atlantic.
+export function formatPublicationDate(value?: string | null, locale: SiteLocale = 'pt'): string | null {
+  const date = calendarDate(value)
+  if (!date) return null
 
-  const [, year, month, day] = match
-  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return null
-
-  return `${day}/${month}/${year.slice(2)}`
+  return locale === 'en' ? dayMonthYear(date, locale) : `${date.day}/${date.month}/${date.year.slice(2)}`
 }
