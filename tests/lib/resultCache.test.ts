@@ -96,4 +96,29 @@ describe('withResultCache', () => {
     await withResultCache('k0', compute)
     expect(compute).toHaveBeenCalledOnce()
   })
+
+  it('drops the least recently used entry, not the oldest inserted', async () => {
+    const compute = vi.fn(async () => 1)
+    for (let i = 0; i < RESULT_CACHE_MAX_ENTRIES; i++) await withResultCache(`k${i}`, compute)
+    // Reading the oldest makes it the newest; the next oldest is k1.
+    await withResultCache('k0', compute)
+    await withResultCache('extra', compute)
+    compute.mockClear()
+
+    await withResultCache('k0', compute)
+    expect(compute).not.toHaveBeenCalled()
+    await withResultCache('k1', compute)
+    expect(compute).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the expiry of the computation when a hit refreshes the entry', async () => {
+    vi.useFakeTimers()
+    const compute = vi.fn(async () => 1)
+    await withResultCache('k', compute)
+    vi.advanceTimersByTime(RESULT_CACHE_TTL_MS - 1000)
+    await withResultCache('k', compute)
+    vi.advanceTimersByTime(2000)
+    await withResultCache('k', compute)
+    expect(compute).toHaveBeenCalledTimes(2)
+  })
 })

@@ -77,7 +77,13 @@ export function resultCacheKey(layerKey: string, temporalDate: string | undefine
 export async function withResultCache<T>(key: string, compute: () => Promise<T>): Promise<T> {
   const hit = cache.get(key)
   if (hit) {
-    if (Date.now() <= hit.expires) return hit.value as T
+    if (Date.now() <= hit.expires) {
+      // Re-inserted as the newest entry, so eviction drops the one used least
+      // recently; the expiry stays the one of the computation.
+      cache.delete(key)
+      cache.set(key, hit)
+      return hit.value as T
+    }
     cache.delete(key)
   }
 
@@ -87,7 +93,7 @@ export async function withResultCache<T>(key: string, compute: () => Promise<T>)
   const request = compute()
     .then((value) => {
       cache.set(key, { value, expires: Date.now() + RESULT_CACHE_TTL_MS })
-      // Bound memory: drop the oldest inserted entry when over capacity.
+      // Bound memory: drop the least recently used entry when over capacity.
       if (cache.size > RESULT_CACHE_MAX_ENTRIES) {
         const oldest = cache.keys().next().value
         if (oldest !== undefined) cache.delete(oldest)
