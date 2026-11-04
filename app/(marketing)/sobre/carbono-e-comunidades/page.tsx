@@ -4,6 +4,7 @@ import Section from "@/components/marketing/sobre/Section";
 import Quote from "@/components/marketing/sobre/Quote";
 import MediaText from "@/components/marketing/sobre/MediaText";
 import CautionCard from "@/components/marketing/sobre/CautionCard";
+import FigureCard, { FigureList } from "@/components/marketing/sobre/FigureCard";
 import Paragrafos from "@/components/marketing/Paragrafos";
 import { CARBONO_E_COMUNIDADES, CARBONO_E_COMUNIDADES_IMAGEM } from "@/lib/content/sobre/carbono-e-comunidades";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
@@ -45,7 +46,20 @@ export default async function SobreCarbonoComunidadesPage() {
 
         <Section title={c.leiTitulo}>
           <Paragrafos textos={c.leiTexto} />
+          {/* 19408:47967: the law's two figures, a label and a number each. */}
+          <FigureList className={styles.garantias}>
+            <FigureCard label={c.garantia1Rotulo} value={c.garantia1Valor} />
+            <FigureCard label={c.garantia2Rotulo} value={c.garantia2Valor} />
+          </FigureList>
           <Paragrafos textos={[c.leiFechamento]} />
+        </Section>
+
+        <Section title={c.decisoesTitulo}>
+          <Paragrafos textos={c.decisoesTexto} />
+        </Section>
+
+        <Section title={c.beneficiosTitulo}>
+          <Paragrafos textos={c.beneficiosTexto} />
         </Section>
 
         <CautionCard
@@ -54,6 +68,8 @@ export default async function SobreCarbonoComunidadesPage() {
           itens={c.cuidadosItens}
           fechamento={c.cuidadosFechamento}
         />
+
+        <Paragrafos textos={[c.fechamento]} />
       </div>
     </div>
   );
