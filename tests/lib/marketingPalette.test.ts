@@ -55,6 +55,10 @@ const PAIRS: [string, string][] = [
   ['--bg-texto-secundario', '--bg-superficie-variante'],
   ['--am-400', '--bg-superficie-variante'],
   ['--bg-texto-primario', '--bg-superficie-variante'],
+  // The Sobre FigureCard (Figma "Cards sobre", 19406:47719): its number and
+  // its unit on the cream fill; the label and description are the pair above.
+  ['--role-categorica1-padrao', '--bg-superficie-variante'],
+  ['--role-marca-ancora-pressionado', '--bg-superficie-variante'],
   // Comunicação page (issue #49): the PDF badge and the type chip.
   ['--role-categorica2-texto-sobre', '--role-categorica2-padrao'],
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
