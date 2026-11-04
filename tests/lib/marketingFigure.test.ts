@@ -20,6 +20,13 @@ describe('splitFigure', () => {
     // letter, so it does not start a number.
     ['410 Mt CO2eq', { value: '410', unit: 'Mt CO2eq' }],
     ['100 km²', { value: '100', unit: 'km²' }],
+    // A range may be typed with any dash or the minus sign (Google Docs turns
+    // "--" into an em dash); the second number belongs to the figure.
+    ['1,5—5tCO₂/ha/ano', { value: '1,5—5', unit: 'tCO₂/ha/ano' }],
+    ['1,5−5 tCO₂', { value: '1,5−5', unit: 'tCO₂' }],
+    ['1,5‒5 t', { value: '1,5‒5', unit: 't' }],
+    // Never a digit in the unit: a figure the rule cannot split stays whole.
+    ['1/3', { value: '1/3' }],
     ['—', { value: '—' }],
   ])('splits %j', (input, expected) => expect(splitFigure(input)).toEqual(expected))
 })

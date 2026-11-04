@@ -4,22 +4,29 @@
 export type Figure = { value: string; unit?: string }
 
 // The figure runs to the end of its last number that starts a word (at the
-// start, after whitespace or after a dash); what follows is the unit. A
+// start, after whitespace, or after a dash or minus sign, so a range typed
+// "1,5–5", "1,5—5" or "1,5−5" stays whole); what follows is the unit. A
 // subscript typed as a Unicode character ("CO₂", "km²") is not a digit, and a
 // digit glued to a letter ("CO2") does not start a number, so either stays in
 // the unit. Greedy `.*` backtracks to that last number. Figures come from
 // single-line fields, so `.` never has a line break to cross.
-const FIGURE = /^(.*(?:^|[\s–-])\d[\d.,]*%?)\s*(.*)$/
+const FIGURE = /^(.*(?:^|[\s‐-―−-])\d[\d.,]*%?)\s*(.*)$/
+
+// A unit that would open on a digit, or on one sign and a digit ("/3"), means
+// the rule split a figure it does not know ("1/3"): it then stays whole.
+const STRANDED_DIGIT = /^\W?\d/
 
 // Splits "410 Mt CO₂eq" into "410" and "Mt CO₂eq", for the number at display
 // size and the unit beside it. A figure with nothing after its number ("Até
-// 58%", "mín. 50%") or no number at all comes back whole, with no unit.
+// 58%", "mín. 50%"), no number at all, or a split that would leave a digit in
+// the unit comes back whole, with no unit.
 export function splitFigure(valor: string): Figure {
   const trimmed = valor.trim()
   const match = trimmed.match(FIGURE)
   if (!match) return { value: trimmed }
   const [, value, unit] = match
-  return unit ? { value, unit } : { value }
+  if (!unit) return { value }
+  return STRANDED_DIGIT.test(unit) ? { value: trimmed } : { value, unit }
 }
 
 const SHARE = /^\s*(\d{1,3}(?:[.,]\d+)?)\s*%?\s*$/
