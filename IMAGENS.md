@@ -136,24 +136,11 @@ qualidade 85). Os PNGs vieram do `get_design_context` do MCP do Figma e não tra
   (`ferramenta/mapa-caatinga.webp`, removido), agora sem o degradê escuro que aquela exportação
   trazia embutido.
 
-## Faixas das páginas internas (public/images/faixas/)
-
-Foto de fundo da faixa acima do rodapé da página Sobre (componente `PhotoBand`): `sobre.webp`
-(2000×605, 60 KB), da faixa "O que a plataforma não faz" (nó 18988:8651). O original no Figma é
-uma foto de celular em 4000×3000 (Samsung SM-S901E, com EXIF mas sem GPS). A foto da faixa "Esse
-espaço está crescendo", da página Comunicação, foi removida do projeto junto com a faixa, em
-06/10/2026.
-
-O design mostra só uma tira da foto (1436×219). O recorte guarda uma tira mais alta, centrada no
-mesmo ponto que o design centraliza, para que `object-fit: cover` ainda tenha imagem quando a
-faixa cresce em telas estreitas. A conversão (Pillow, WebP) descarta todos os metadados. Autoria
-não registrada.
-
 ## Páginas Sobre (public/images/sobre/)
 
 `lago-serra.webp` (928×682, 115 KB): a mesma foto, com o mesmo enquadramento, aparece em duas
 páginas: ao lado de "Por que criar uma plataforma para a Caatinga?" em "Conheça a plataforma" (nó
-18988:8647) e ao lado de "Por que o direito sobre a terra importa?" em "Entenda essa relação" (nó
+18988:8647, hoje 19538:11076, com cantos de 8 px) e ao lado de "Por que o direito sobre a terra importa?" em "Entenda essa relação" (nó
 18988:8817). É o mesmo preenchimento no Figma (asset 4cf5c) nos dois nós, então o arquivo é um só. O original no Figma é uma foto de celular 3000×4000
 (retrato, sem EXIF), de um lago ao pé de um morro rochoso. O recorte é a largura inteira na
 proporção 464/341 do quadro, a partir da linha 900, enquadrando céu, morro e água como a tela do
@@ -167,6 +154,16 @@ registrada.
 preenchimento mostra, colunas 794 a 3575 e linhas 675 a 2719 (proporção 1,36, sem distorção), e
 reduzida para 596×438. A conversão (Pillow, WebP qualidade 80, `exif=b''`) descarta todos os
 metadados, inclusive o GPS; não publicar o original.
+
+`casa-flamboyants.webp` (928×400, 114 KB), ao lado de "O que a plataforma não faz" em "Conheça a
+plataforma" (nó 19551:11428, quadro 464×200): a mesma foto de `comunicacao/caderno.webp` (casa
+entre árvores floridas), num recorte mais baixo. O original no Figma é um JPEG 960×1280 (retrato);
+o recorte é a largura inteira, linhas 433 a 847, a janela central que o `object-cover` do design
+mostra, reduzida a 2× do quadro. A conversão (Pillow, WebP qualidade 80, `exif=b''`) descarta
+todos os metadados. Tem arquivo próprio porque `caderno.webp` deve sair quando o modelo de
+conteúdo ganhar um campo de foto do card (ver "Comunicação"). Autoria não registrada. Ela entrou
+na reconstrução da página em 05/11/2026, que tirou a faixa vermelha do pé da página e, com ela, a
+foto `faixas/sobre.webp` e a pasta `public/images/faixas/`.
 
 Os ícones das perguntas numeradas de "Entenda essa relação" foram removidos do projeto junto com a
 seção, em 06/10/2026; nenhum deles existe mais em `public/icons/sobre/`.

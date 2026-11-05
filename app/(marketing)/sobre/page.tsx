@@ -37,7 +37,7 @@ export default async function SobrePlataformaPage() {
         </MediaText>
 
         <div className={styles.cards}>
-          <IconCard titulo={p.missaoTitulo} icone={SOBRE_PLATAFORMA_ICONES.missao} paragrafos={p.missaoTexto} />
+          <IconCard titulo={p.missaoTitulo} icone={SOBRE_PLATAFORMA_ICONES.missao} paragrafos={[p.missaoTexto]} />
           <IconCard titulo={p.publicoTitulo} icone={SOBRE_PLATAFORMA_ICONES.publico} paragrafos={p.publicoTexto} />
         </div>
       </div>
