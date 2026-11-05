@@ -8,7 +8,10 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     // The plugin's recommended set as errors; eslint-config-next turns on only
-    // six of its rules, as warnings.
+    // six of its rules, as warnings. These rules lean on eslint-config-next
+    // registering the plugin (it depends on it): registering it again here
+    // fails with "Cannot redefine plugin", because the config hands ESLint its
+    // own wrapper of the module, not the object imported above.
     rules: {
       ...jsxA11y.flatConfigs.recommended.rules,
       // Safari drops list semantics under `list-style: none`, so the site
