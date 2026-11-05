@@ -1,5 +1,5 @@
 import puppeteer, { type Browser, type Page } from 'puppeteer-core'
-import type { A11yRoute } from './routes'
+import { sessionFor, type A11yRoute } from './routes'
 
 /**
  * Headless Chrome for the accessibility checks. puppeteer-core downloads no
@@ -51,8 +51,14 @@ export async function openRoute(
 ): Promise<Page> {
   const page = await browser.newPage()
   await page.setViewport(VIEWPORT)
-  if (opts.session) {
-    await browser.setCookie({ name: 'session', value: opts.session, domain: new URL(baseUrl).hostname, path: '/' })
+  // The cookie belongs to the whole browser, not to the page: a session route
+  // sets it, and any other route clears what an earlier one left.
+  const session = sessionFor(route, opts.session)
+  if (session) {
+    await browser.setCookie({ name: 'session', value: session, domain: new URL(baseUrl).hostname, path: '/' })
+  } else {
+    const left = (await browser.cookies()).filter((cookie) => cookie.name === 'session')
+    if (left.length > 0) await browser.deleteCookie(...left)
   }
   if (opts.reducedMotion) {
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])

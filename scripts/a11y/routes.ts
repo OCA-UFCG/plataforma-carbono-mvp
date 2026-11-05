@@ -39,6 +39,15 @@ export function routesToRun(paths: readonly string[], hasSession: boolean): A11y
   return A11Y_ROUTES.filter((route) => (paths.length === 0 || paths.includes(route.path)) && (hasSession || !route.session))
 }
 
+/**
+ * The session cookie a route is opened with: only the routes marked `session`
+ * get one. /login and /cadastro send a signed-in visitor on to /mapa, so with
+ * the cookie they would be checked as the platform under their own path.
+ */
+export function sessionFor(route: A11yRoute, session: string | undefined): string | undefined {
+  return route.session ? session : undefined
+}
+
 /** The screenshot file of a route: "/" is home.png, "/sobre/caatinga" is sobre-caatinga.png. */
 export function screenshotName(path: string): string {
   const slug = path.split('/').filter(Boolean).join('-')

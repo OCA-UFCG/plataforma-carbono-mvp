@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { routesToRun, screenshotName } from '@/scripts/a11y/routes'
+import { A11Y_ROUTES, routesToRun, screenshotName, sessionFor } from '@/scripts/a11y/routes'
 
 describe('routesToRun', () => {
   it('drops session routes without a session', () => {
@@ -25,6 +25,19 @@ describe('routesToRun', () => {
 
   it('runs a session route named with a session', () => {
     expect(routesToRun(['/mapa'], true).map((r) => r.path)).toEqual(['/mapa'])
+  })
+})
+
+describe('sessionFor', () => {
+  const route = (path: string) => A11Y_ROUTES.find((r) => r.path === path)!
+
+  it('hands the session only to the routes that need it', () => {
+    expect(sessionFor(route('/mapa'), 'cookie')).toBe('cookie')
+    expect(sessionFor(route('/login'), 'cookie')).toBeUndefined()
+  })
+
+  it('has none to hand without one', () => {
+    expect(sessionFor(route('/mapa'), undefined)).toBeUndefined()
   })
 })
 
