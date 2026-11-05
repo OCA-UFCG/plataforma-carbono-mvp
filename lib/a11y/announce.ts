@@ -16,7 +16,17 @@ export const ANNOUNCER_IDS = { polite: 'announcer-polite', assertive: 'announcer
 // text placed back in it is spoken again.
 export const ANNOUNCE_DELAY_MS = 100
 
+// How long the text stays in its region. A screen reader takes the text when
+// it is set, so emptying the region afterwards cuts nothing off; what it stops
+// is a line like "Camada carregada" waiting at the end of <body> for a reader
+// in browse mode, long after it stopped being true.
+export const ANNOUNCE_CLEAR_MS = 7000
+
 const pending: Record<Politeness, ReturnType<typeof setTimeout> | undefined> = {
+  polite: undefined,
+  assertive: undefined,
+}
+const clearing: Record<Politeness, ReturnType<typeof setTimeout> | undefined> = {
   polite: undefined,
   assertive: undefined,
 }
@@ -34,12 +44,21 @@ export function announce(text: string, politeness: Politeness = 'polite'): void 
 
   // Clear, then set after a beat: a region whose text does not change is not
   // spoken again. A newer call within the beat replaces the older one, so a
-  // burst of updates reaches the reader as its last outcome only.
+  // burst of updates reaches the reader as its last outcome only. It also
+  // takes over the region from the earlier text's clearing.
   target.textContent = ''
   clearTimeout(pending[politeness])
+  clearTimeout(clearing[politeness])
+  clearing[politeness] = undefined
   pending[politeness] = setTimeout(() => {
     pending[politeness] = undefined
     const current = region(politeness)
-    if (current) current.textContent = message
+    if (!current) return
+    current.textContent = message
+    clearing[politeness] = setTimeout(() => {
+      clearing[politeness] = undefined
+      const spoken = region(politeness)
+      if (spoken) spoken.textContent = ''
+    }, ANNOUNCE_CLEAR_MS)
   }, ANNOUNCE_DELAY_MS)
 }

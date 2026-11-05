@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ANNOUNCER_IDS, ANNOUNCE_DELAY_MS, announce } from '@/lib/a11y/announce'
+import { ANNOUNCER_IDS, ANNOUNCE_CLEAR_MS, ANNOUNCE_DELAY_MS, announce } from '@/lib/a11y/announce'
 
 // Two fake regions stand in for the ones <Announcer /> mounts in every root
 // layout; the tests read what a screen reader would be handed.
@@ -46,6 +46,36 @@ describe('announce', () => {
     expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('')
     vi.advanceTimersByTime(ANNOUNCE_DELAY_MS)
     expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('Camada carregada')
+  })
+
+  it('empties the region once the text has had time to be spoken', () => {
+    announce('Camada carregada')
+    vi.advanceTimersByTime(ANNOUNCE_DELAY_MS)
+    vi.advanceTimersByTime(ANNOUNCE_CLEAR_MS - 1)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('Camada carregada')
+    vi.advanceTimersByTime(1)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('')
+  })
+
+  it('does not let an earlier text\'s clearing cut a later one short', () => {
+    announce('Carregando')
+    vi.advanceTimersByTime(ANNOUNCE_DELAY_MS + ANNOUNCE_CLEAR_MS - 10)
+    announce('Camada carregada')
+    vi.advanceTimersByTime(ANNOUNCE_DELAY_MS)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('Camada carregada')
+    vi.advanceTimersByTime(ANNOUNCE_CLEAR_MS - 1)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('Camada carregada')
+    vi.advanceTimersByTime(1)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('')
+  })
+
+  it('clears each region on its own', () => {
+    announce('Camada carregada')
+    vi.advanceTimersByTime(ANNOUNCE_DELAY_MS)
+    announce('Não foi possível carregar a camada.', 'assertive')
+    vi.advanceTimersByTime(ANNOUNCE_DELAY_MS + ANNOUNCE_CLEAR_MS)
+    expect(regions[ANNOUNCER_IDS.polite].textContent).toBe('')
+    expect(regions[ANNOUNCER_IDS.assertive].textContent).toBe('')
   })
 
   it('ignores blank text', () => {
