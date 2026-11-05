@@ -13,6 +13,7 @@ import { sessionFor, type A11yRoute } from './routes'
 export const VIEWPORT = { width: 1440, height: 900, deviceScaleFactor: 1 }
 
 const READY_TIMEOUT_MS = 15_000
+const ATTEMPT_TIMEOUT_MS = 5_000
 
 export function launchBrowser(): Promise<Browser> {
   return puppeteer.launch({
@@ -23,12 +24,17 @@ export function launchBrowser(): Promise<Browser> {
   })
 }
 
-/** Resolves once the server answers below 500; the CI step starts it in the background. */
+/**
+ * Resolves once the server answers below 500; the CI step starts it in the
+ * background. Each attempt gives up after ATTEMPT_TIMEOUT_MS: a server that
+ * takes the connection and never answers would otherwise hold fetch for
+ * minutes, and the deadline is only read between attempts.
+ */
 export async function waitForServer(baseUrl: string, timeoutMs = 120_000): Promise<void> {
   const deadline = Date.now() + timeoutMs
   for (;;) {
     try {
-      const response = await fetch(baseUrl, { redirect: 'manual' })
+      const response = await fetch(baseUrl, { redirect: 'manual', signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS) })
       if (response.status < 500) return
     } catch {
       // Not listening yet.
