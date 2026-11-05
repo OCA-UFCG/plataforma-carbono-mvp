@@ -1,0 +1,42 @@
+/* AudienceBand, Figma 19538:11415: an --am-050 band across the page, 40px of
+ * block padding, and 16px between the heading, the chips and the text. */
+.band {
+  background: var(--am-050);
+  padding-block: 40px;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* The h3 step (.text-h3) in the brand green, as the Sobre section titles. On
+ * --am-050 it is AA only as large text, which 24px semibold is
+ * (tests/lib/marketingPalette.test.ts, LARGE_TEXT_PAIRS). */
+.titulo {
+  color: var(--role-marca-ancora-padrao);
+  margin: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The "Chip" component (19537:14774): Rubik Medium 14/24 on the page fill,
+ * a 1px --am-200 outline, fully rounded. .text-body sets the size and line
+ * height; the weight is overridden. */
+.chip {
+  font-weight: 500;
+  color: var(--role-categorica1-hover);
+  background: var(--bg-fundo);
+  border: 1px solid var(--am-200);
+  border-radius: 9999px;
+  padding: 4px 16px;
+  white-space: nowrap;
+}

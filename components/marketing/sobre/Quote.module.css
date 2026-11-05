@@ -1,8 +1,10 @@
 /* Quote, Figma 18988:8705; moved here unchanged from Plataforma.module.css
- * (`.destaque`). Font size and line height come from .text-body.
+ * (`.destaque`). At the body size, font size and line height come from
+ * .text-body.
  *
- * No max-width: the design sets the landing's quote on ONE line (its text
- * node measures 605x24 in Figma node 18862:8546), and a cap would wrap it. */
+ * No max-width at the body size: the design sets the landing's quote on ONE
+ * line (its text node measures 605x24 in Figma node 18862:8546), and a cap
+ * would wrap it. */
 .quote {
   /* Rubik Bold in every instance of the design (e.g. I18916:9520;18846:7666);
    * .text-body sets the size and line height, the weight is overridden. */
@@ -11,4 +13,15 @@
   border-left: 3px solid var(--role-neutro-borda);
   padding: 10px 0 10px 20px;
   margin: 0;
+}
+
+/* The mission of "Conheça a plataforma" (19538:11413): the design's "large"
+ * style, Rubik SemiBold 18/28, in a 940px column. Its rule is bound to
+ * --bg-borda, the same #526f78 as --role-neutro-borda above. */
+.large {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 28px;
+  max-width: 940px;
 }

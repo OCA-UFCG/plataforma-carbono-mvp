@@ -143,6 +143,12 @@ const PAIRS: [string, string][] = [
   // white and "Nenhum termo encontrado" on --am-050.
   ['--ctx-positivo-texto-sobre-container', '--am-050'],
   ['--ctx-positivo-texto-sobre-container', '--role-categorica2-container'],
+  // "Conheça a plataforma", rebuilt (Figma 19538:11069): an audience chip's
+  // label on its page-coloured fill, and the limits' red heading on the white
+  // band. The band's and the limits' text, and the mission quote, are pairs
+  // above; the band's heading is a large-text pair, below.
+  ['--role-categorica1-hover', '--bg-fundo'],
+  ['--ctx-negativo-padrao', '--role-primario-texto-sobre'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
@@ -160,7 +166,8 @@ const LARGE_TEXT_PAIRS: [string, string][] = [
   ['--ar-800', '--bg-fundo'],
   ['--ar-800', '--bg-superficie'],
   // The Glossário's h1, 24px semibold, at the top of its sidebar's --am-050
-  // (Figma 19507:16727): 4.40:1.
+  // (Figma 19507:16727), and the same h3 heading "Para quem é a
+  // plataforma?" on the Sobre audience band (19538:11416): 4.40:1.
   ['--role-marca-ancora-padrao', '--am-050'],
 ]
 
