@@ -38,7 +38,9 @@ function loadAsTheScript(dir: string) {
   try {
     loadLocalEnv(dir)
   } finally {
-    Object.assign(process.env, { NODE_ENV: nodeEnv })
+    // process.env stores strings: assigning undefined would leave "undefined".
+    if (nodeEnv === undefined) delete (process.env as Record<string, string | undefined>).NODE_ENV
+    else Object.assign(process.env, { NODE_ENV: nodeEnv })
   }
 }
 
