@@ -44,12 +44,10 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-hover', '--am-100'],
   ['--role-categorica1-padrao', '--am-100'],
   // Internal pages' frame (issue #45): the intro band's eyebrow and paragraph
-  // on --am-100, the sub-navigation at rest, active and hovered, and the Sobre
-  // photo band's text over the solid stop of its gradient.
+  // on --am-100, and the sub-navigation at rest, active and hovered.
   ['--bg-texto-secundario', '--am-100'],
   ['--bg-texto-primario', '--am-100'],
   ['--bg-texto-secundario', '--am-050'],
-  ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
   // The Sobre FigureCard (Figma "Cards sobre", 19406:47719): its label and
   // description, its number and its unit on the cream fill.
   ['--bg-texto-primario', '--bg-superficie-variante'],
@@ -60,9 +58,6 @@ const PAIRS: [string, string][] = [
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
   // "Entenda essa relação" (issue #51): the red card's text.
   ['--bg-texto-primario', '--ctx-negativo-container'],
-  // "Conheça a plataforma" (issue #47): the icon cards' heading and text.
-  ['--role-categorica1-hover', '--role-categorica1-container'],
-  ['--bg-texto-primario', '--role-categorica1-container'],
   // "Como funciona" (issue #50): the step disc, title and text, and the four
   // label colours of step 2 on the step panel. The Carbono label departs from
   // the design's -marca-ancora-padrao (4.40:1) to -hover (StepCard.module.css).

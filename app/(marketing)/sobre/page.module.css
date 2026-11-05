@@ -1,21 +1,34 @@
-/* Content of "Conheça a plataforma", Figma 18988:8640: 40px of block padding
- * and 24px between blocks. The photo band closes the page, so the same 40px
- * sits under it, keeping it off the footer. */
+/* Content of "Conheça a plataforma", Figma 19538:11069: three bands stacked
+ * with no gap between them, the last one meeting the footer. */
 .page {
   background: var(--bg-fundo);
-  padding-bottom: 40px;
 }
 
-.inner {
-  padding-block: 40px;
+/* "Por que e missão" (19538:11410): 40px above, 48px below, and 48px between
+ * the photo row and the mission. */
+.porQue {
+  padding-block: 40px 48px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 48px;
 }
 
-/* The two icon cards, stacked 24px apart (18988:8648). */
-.cards {
+/* The mission (19538:11411): its heading 16px above the quote. */
+.missao {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+}
+
+/* The h3 step (.text-h3) in the brand green, as the Sobre section titles. */
+.titulo {
+  color: var(--role-marca-ancora-padrao);
+}
+
+/* "O que a plataforma não faz" (19538:11427): a white band, 48px of block
+ * padding. The design fills it with plain white, which the palette carries
+ * as --role-primario-texto-sobre (also the landing indicator cards' fill). */
+.limites {
+  background: var(--role-primario-texto-sobre);
+  padding-block: 48px;
 }

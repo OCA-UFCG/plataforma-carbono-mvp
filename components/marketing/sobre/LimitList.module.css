@@ -19,8 +19,9 @@
 
 /* "Item de limite" (19537:14776): 50px tall, 12px of block padding, the 24px
  * ✕ 4px from the text. The design draws the rules as 1px frames between the
- * items (19551:11437, 19551:11443); a border on every item after the first
- * gives the same 50 + 1 + 50 + 1 + 50. */
+ * items (19551:11437, 19551:11443); a border on every item after the first,
+ * one pixel taller to hold it (box-sizing is border-box), gives the same
+ * 50 + 1 + 50 + 1 + 50. */
 .item {
   display: flex;
   align-items: center;
@@ -31,6 +32,7 @@
 }
 
 .item + .item {
+  min-height: 51px;
   border-top: 1px solid var(--am-200);
 }
 

@@ -13,12 +13,6 @@ export type PageIntroContent = {
   intro: string
 }
 
-export type PhotoBandContent = {
-  image: string
-  title: string
-  items?: string[]
-}
-
 // Figma node 18988:8613, with the copy of the content doc's 2026-10-05
 // meeting, which dropped the design's "Institucional" eyebrow.
 export const SOBRE_INTRO = defineCopy({
@@ -36,9 +30,6 @@ export const SOBRE_INTRO = defineCopy({
     ),
   },
 })
-
-// The band's photo stays in the code, with the rest of the images.
-export const SOBRE_FAIXA_IMAGEM = '/images/faixas/sobre.webp'
 
 export const COMUNICACAO_PAGINA = defineCopy({
   id: 'comunicacaoPagina',

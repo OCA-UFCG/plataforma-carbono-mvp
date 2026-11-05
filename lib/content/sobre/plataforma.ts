@@ -59,9 +59,3 @@ export const SOBRE_PLATAFORMA_IMAGEM = {
 export const SOBRE_LIMITES_IMAGEM = {
   src: '/images/sobre/casa-flamboyants.webp',
 }
-
-// The icons of the old icon cards, until the page stops drawing them.
-export const SOBRE_PLATAFORMA_ICONES = {
-  missao: '/icons/sobre/target.svg',
-  publico: '/icons/sobre/groups.svg',
-}
