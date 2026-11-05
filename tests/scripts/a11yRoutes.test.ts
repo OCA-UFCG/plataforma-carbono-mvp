@@ -17,6 +17,15 @@ describe('routesToRun', () => {
   it('rejects an unknown path', () => {
     expect(() => routesToRun(['/nada'], false)).toThrow(/\/nada/)
   })
+
+  it('rejects a session route named without a session instead of dropping it', () => {
+    expect(() => routesToRun(['/mapa'], false)).toThrow(/\/mapa.*A11Y_SESSION/)
+    expect(() => routesToRun(['/login', '/mapa'], false)).toThrow(/\/mapa/)
+  })
+
+  it('runs a session route named with a session', () => {
+    expect(routesToRun(['/mapa'], true).map((r) => r.path)).toEqual(['/mapa'])
+  })
 })
 
 describe('screenshotName', () => {

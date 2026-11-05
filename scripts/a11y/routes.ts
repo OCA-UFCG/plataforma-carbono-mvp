@@ -23,10 +23,19 @@ export const A11Y_ROUTES: readonly A11yRoute[] = [
   { path: '/mapa', ready: '.maplibregl-canvas', session: true },
 ]
 
-/** The routes of this run: the given paths (all when none), minus session routes without a session. */
+/**
+ * The routes of this run: the given paths (all when none). With no paths, the
+ * session routes are left out without a session, as in CI. A session route
+ * named on purpose without one throws: dropping it would leave a run that
+ * checked nothing and still passed.
+ */
 export function routesToRun(paths: readonly string[], hasSession: boolean): A11yRoute[] {
   const unknown = paths.filter((path) => !A11Y_ROUTES.some((route) => route.path === path))
   if (unknown.length) throw new Error(`Unknown route(s): ${unknown.join(', ')}. Add them to scripts/a11y/routes.ts.`)
+  const needSession = A11Y_ROUTES.filter((route) => route.session && paths.includes(route.path))
+  if (needSession.length > 0 && !hasSession) {
+    throw new Error(`${needSession.map((route) => route.path).join(', ')} need(s) a session: set A11Y_SESSION (see scripts/a11y/session.mts).`)
+  }
   return A11Y_ROUTES.filter((route) => (paths.length === 0 || paths.includes(route.path)) && (hasSession || !route.session))
 }
 
