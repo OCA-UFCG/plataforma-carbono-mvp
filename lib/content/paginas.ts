@@ -1,22 +1,14 @@
 import { defineCopy, line, optionalLine, paragraph } from './site/model'
 
-// Copy for the internal pages' shared frame: the grey intro band at the top
-// and the photo band above the footer. Taken verbatim from the Figma frames
-// "Sobre" (18988:8611, the same intro on all four Sobre pages),
-// "Comunicação" (18978:2048) and "Glossário" (19400:12092). Each page's own
-// content lives in its own module; the band at the foot of "Conheça a
-// plataforma" is part of that page's copy (lib/content/sobre/plataforma.ts).
+// Copy for the internal pages' shared frame: the grey intro band at the top.
+// Taken verbatim from the Figma frames "Sobre" (19538:11039, the same intro
+// on all four Sobre pages), "Comunicação" (18978:2048) and "Glossário"
+// (19400:12092). Each page's own content lives in its own module.
 
 export type PageIntroContent = {
   eyebrow?: string
   title: string
   intro: string
-}
-
-export type PhotoBandContent = {
-  image: string
-  title: string
-  items?: string[]
 }
 
 // Figma node 18988:8613, with the copy of the content doc's 2026-10-05
@@ -36,9 +28,6 @@ export const SOBRE_INTRO = defineCopy({
     ),
   },
 })
-
-// The band's photo stays in the code, with the rest of the images.
-export const SOBRE_FAIXA_IMAGEM = '/images/faixas/sobre.webp'
 
 export const COMUNICACAO_PAGINA = defineCopy({
   id: 'comunicacaoPagina',

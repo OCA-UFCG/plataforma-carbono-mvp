@@ -7,7 +7,7 @@ import { HTML_LANG } from "@/lib/locale";
 import { SOBRE_INTRO } from "@/lib/content/paginas";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 
-// Shared frame of the four Sobre pages (Figma 18988:8611, 8667, 8769, 8943):
+// Shared frame of the four Sobre pages (Figma 19538:11039, 18988:8667, 8769, 8943):
 // the same intro band and sub-navigation on every one, then the page's own
 // content. A nested layout, not a root one: the session check, the fonts and
 // globals.css all still come from app/(marketing)/layout.tsx. Every Sobre

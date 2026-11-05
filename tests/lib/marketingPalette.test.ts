@@ -44,12 +44,10 @@ const PAIRS: [string, string][] = [
   ['--role-marca-ancora-hover', '--am-100'],
   ['--role-categorica1-padrao', '--am-100'],
   // Internal pages' frame (issue #45): the intro band's eyebrow and paragraph
-  // on --am-100, the sub-navigation at rest, active and hovered, and the Sobre
-  // photo band's text over the solid stop of its gradient.
+  // on --am-100, and the sub-navigation at rest, active and hovered.
   ['--bg-texto-secundario', '--am-100'],
   ['--bg-texto-primario', '--am-100'],
   ['--bg-texto-secundario', '--am-050'],
-  ['--bg-texto-sobre-inverso', '--role-alerta-risco-hover'],
   // The Sobre FigureCard (Figma "Cards sobre", 19406:47719): its label and
   // description, its number and its unit on the cream fill.
   ['--bg-texto-primario', '--bg-superficie-variante'],
@@ -60,9 +58,6 @@ const PAIRS: [string, string][] = [
   ['--ctx-positivo-texto-sobre-container', '--bg-fundo'],
   // "Entenda essa relação" (issue #51): the red card's text.
   ['--bg-texto-primario', '--ctx-negativo-container'],
-  // "Conheça a plataforma" (issue #47): the icon cards' heading and text.
-  ['--role-categorica1-hover', '--role-categorica1-container'],
-  ['--bg-texto-primario', '--role-categorica1-container'],
   // "Como funciona" (issue #50): the step disc, title and text, and the four
   // label colours of step 2 on the step panel. The Carbono label departs from
   // the design's -marca-ancora-padrao (4.40:1) to -hover (StepCard.module.css).
@@ -143,6 +138,12 @@ const PAIRS: [string, string][] = [
   // white and "Nenhum termo encontrado" on --am-050.
   ['--ctx-positivo-texto-sobre-container', '--am-050'],
   ['--ctx-positivo-texto-sobre-container', '--role-categorica2-container'],
+  // "Conheça a plataforma", rebuilt (Figma 19538:11069): an audience chip's
+  // label on its page-coloured fill, and the limits' red heading on the white
+  // band. The band's and the limits' text, and the mission quote, are pairs
+  // above; the band's heading is a large-text pair, below.
+  ['--role-categorica1-hover', '--bg-fundo'],
+  ['--ctx-negativo-padrao', '--role-primario-texto-sobre'],
 ]
 
 // Pairs only ever set as large text (WCAG: 24px, or 18.66px bold, and up),
@@ -160,7 +161,8 @@ const LARGE_TEXT_PAIRS: [string, string][] = [
   ['--ar-800', '--bg-fundo'],
   ['--ar-800', '--bg-superficie'],
   // The Glossário's h1, 24px semibold, at the top of its sidebar's --am-050
-  // (Figma 19507:16727): 4.40:1.
+  // (Figma 19507:16727), and the same h3 heading "Para quem é a
+  // plataforma?" on the Sobre audience band (19538:11416): 4.40:1.
   ['--role-marca-ancora-padrao', '--am-050'],
 ]
 

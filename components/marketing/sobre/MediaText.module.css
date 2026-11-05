@@ -1,6 +1,7 @@
-/* MediaText, Figma 18988:8641, 18988:8734 and 18988:8811: the photo and the
- * text column 24px apart. Both photo sizes share the 1.36 ratio of the
- * landing's tab images (Plataforma.module.css). */
+/* MediaText, Figma 18988:8734, 18988:8811, 19538:11070 and 19551:11427: the
+ * photo and the text column 24px apart. The large and small photos share the
+ * 1.36 ratio of the landing's tab images (Plataforma.module.css); the wide one
+ * is the 464x200 strip of "O que a plataforma não faz". */
 .mediaText {
   display: flex;
   gap: 24px;
@@ -14,21 +15,29 @@
   align-items: flex-start;
 }
 
-.small {
+.small,
+.wide {
   align-items: center;
 }
 
 /* The frame's border is the same untokenized warm gray (#d1cec8) Plataforma's
- * image frame has, substituted with --am-200 the same way. The 12px radius has
- * no token either (--radius is 8px); it is the design's own value. The width
- * gives way to the text on narrow desktops, where the fixed photo would
- * otherwise squeeze the text column to a sliver. */
+ * image frame has, substituted with --am-200 the same way (the wide photo's
+ * border is bound to --am-200 itself). The 12px radius has no token (--radius
+ * is 8px); it is the design's own value on most frames. The width gives way to
+ * the text on narrow desktops, where the fixed photo would otherwise squeeze
+ * the text column to a sliver. */
 .image {
   flex: none;
   height: auto;
   border: 1px solid var(--am-200);
   border-radius: 12px;
   object-fit: cover;
+}
+
+/* The rebuilt "Conheça a plataforma" (19538:11076, 19551:11428) rounds its
+ * photos at 8px, the --radius token. */
+.radius8 .image {
+  border-radius: var(--radius);
 }
 
 .large .image {
@@ -39,6 +48,11 @@
 .small .image {
   width: min(298px, 30%);
   aspect-ratio: 298 / 219;
+}
+
+.wide .image {
+  width: min(464px, 40%);
+  aspect-ratio: 464 / 200;
 }
 
 .text {
@@ -54,7 +68,8 @@
   }
 
   .large .image,
-  .small .image {
+  .small .image,
+  .wide .image {
     width: 100%;
   }
 }
