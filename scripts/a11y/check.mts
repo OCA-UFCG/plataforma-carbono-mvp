@@ -22,10 +22,14 @@ declare global {
   }
 }
 
+// 'incomplete' is where axe puts what it could not decide, text over a photo
+// among it (the hero). It does not fail the run, but it is printed.
 const AXE_OPTIONS: RunOptions = {
   runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] },
-  resultTypes: ['violations'],
+  resultTypes: ['violations', 'incomplete'],
 }
+
+type Undecided = { path: string; rule: string; help: string; nodes: number }
 
 /** The first few selectors of a violation, one per line, and how many more there are. */
 function listTargets(targets: readonly string[], shown = 3): string {
@@ -41,14 +45,20 @@ const routes = routesToRun(process.argv.slice(2), Boolean(session))
 await waitForServer(baseUrl)
 const browser = await launchBrowser()
 const outcomes: RouteOutcome[] = []
+const undecided: Undecided[] = []
 
 try {
   for (const route of routes) {
     try {
-      const page = await openRoute(browser, baseUrl, route, { session })
+      // Reduced motion, as in screens.mts: the hero advances and the scenes
+      // fade on their own, so axe would otherwise sample a moving page.
+      const page = await openRoute(browser, baseUrl, route, { session, reducedMotion: true })
       try {
         await page.evaluate(axe.source)
         const results = await page.evaluate((options) => window.axe.run(document, options), AXE_OPTIONS)
+        for (const item of results.incomplete) {
+          undecided.push({ path: route.path, rule: item.id, help: item.help, nodes: item.nodes.length })
+        }
         outcomes.push({
           path: route.path,
           violations: results.violations.map((v) => ({
@@ -78,6 +88,11 @@ for (const outcome of outcomes) {
     console.log(`• ${outcome.path}`)
     for (const v of outcome.violations) console.log(`    ${v.impact ?? 'n/a'}  ${v.rule}: ${v.help}\n      ${listTargets(v.targets)}`)
   }
+}
+
+if (undecided.length > 0) {
+  console.log('\nAxe could not decide these; look at them by hand (they do not fail the run):')
+  for (const item of undecided) console.log(`  ${item.path}  ${item.rule}: ${item.help} (${item.nodes} node(s))`)
 }
 
 const verdict = judge(outcomes, KNOWN_VIOLATIONS)
