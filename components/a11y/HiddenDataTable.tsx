@@ -3,6 +3,11 @@ import { VISUALLY_HIDDEN } from '@/lib/a11y/visuallyHidden'
 /** What a cell reads when its row has no value for that column. */
 export const MISSING_VALUE = 'sem dado'
 
+/** A value that is absent or blank reads as missing: a blank cell is read as nothing at all. */
+function cellText(value: string | null | undefined): string {
+  return value === null || value === undefined || value.trim() === '' ? MISSING_VALUE : value
+}
+
 export type HiddenDataRow = { label: string; values: ReadonlyArray<string | null | undefined> }
 
 export type HiddenDataTableProps = {
@@ -27,7 +32,9 @@ export type HiddenDataTableProps = {
  *
  * The clip sits on a wrapper, not on the table: some screen readers lose table
  * navigation when the table itself is clipped. No hooks, so server and client
- * components can both render it.
+ * components can both render it. Rows and columns are keyed by position: the
+ * table is rebuilt whole and never reordered, and labels and headers may repeat
+ * (a month across years, two series both named "mm").
  */
 export function HiddenDataTable({ caption, rowHeader, columns, rows }: HiddenDataTableProps) {
   if (rows.length === 0) return null
@@ -38,19 +45,19 @@ export function HiddenDataTable({ caption, rowHeader, columns, rows }: HiddenDat
         <thead>
           <tr>
             <th scope="col">{rowHeader}</th>
-            {columns.map((column) => (
-              <th key={column} scope="col">
+            {columns.map((column, i) => (
+              <th key={i} scope="col">
                 {column}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.label}>
+          {rows.map((row, r) => (
+            <tr key={r}>
               <th scope="row">{row.label}</th>
-              {columns.map((column, i) => (
-                <td key={column}>{row.values[i] ?? MISSING_VALUE}</td>
+              {columns.map((_, i) => (
+                <td key={i}>{cellText(row.values[i])}</td>
               ))}
             </tr>
           ))}
