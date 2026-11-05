@@ -27,6 +27,13 @@ const AXE_OPTIONS: RunOptions = {
   resultTypes: ['violations'],
 }
 
+/** The first few selectors of a violation, one per line, and how many more there are. */
+function listTargets(targets: readonly string[], shown = 3): string {
+  const lines = targets.slice(0, shown)
+  if (targets.length > shown) lines.push(`… and ${targets.length - shown} more`)
+  return lines.join('\n      ')
+}
+
 const baseUrl = process.env.A11Y_BASE_URL ?? 'http://localhost:3000'
 const session = process.env.A11Y_SESSION || undefined
 const routes = routesToRun(process.argv.slice(2), Boolean(session))
@@ -48,7 +55,7 @@ try {
           rule: v.id,
           impact: (v.impact ?? null) as Impact | null,
           help: v.help,
-          targets: v.nodes.slice(0, 3).map((node) => node.target.join(' ')),
+          targets: v.nodes.map((node) => node.target.join(' ')),
         })),
       })
     } catch (error) {
@@ -66,7 +73,7 @@ for (const outcome of outcomes) {
     console.log(`✓ ${outcome.path}`)
   } else {
     console.log(`• ${outcome.path}`)
-    for (const v of outcome.violations) console.log(`    ${v.impact ?? 'n/a'}  ${v.rule}: ${v.help}\n      ${v.targets.join('\n      ')}`)
+    for (const v of outcome.violations) console.log(`    ${v.impact ?? 'n/a'}  ${v.rule}: ${v.help}\n      ${listTargets(v.targets)}`)
   }
 }
 

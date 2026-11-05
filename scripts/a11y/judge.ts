@@ -2,6 +2,7 @@ import type { KnownViolation } from './known'
 
 export type Impact = 'minor' | 'moderate' | 'serious' | 'critical'
 
+/** `targets` holds the selector of every node axe flagged, not only the first few. */
 export type RouteViolation = { rule: string; impact: Impact | null; help: string; targets: string[] }
 
 /** One visited route: its violations, or the error that kept axe from running on it. */
@@ -16,11 +17,14 @@ export type Verdict = {
 const FAILING: ReadonlySet<Impact | null> = new Set(['serious', 'critical'])
 
 /**
- * Decides a run. Serious and critical violations fail it unless a known entry
- * names that rule on that path; a route that did not load fails it; a known
- * entry fails it as stale when its path was checked and the rule no longer
- * occurs there at any impact. Known entries of routes outside the run are
- * left alone, so a run narrowed to some paths, or without a session, can pass.
+ * Decides a run. Serious and critical violations fail it, node by node, unless
+ * a known entry names that rule on that path and its `target` matches the node;
+ * a node no entry names fails the run even when the same rule is forgiven for
+ * other nodes of the page. A route that did not load fails it. A known entry
+ * fails it as stale when its path was checked and no node of its rule, at any
+ * impact, matches its `target` there any more. Known entries of routes outside
+ * the run are left alone, so a run narrowed to some paths, or without a
+ * session, can pass.
  */
 export function judge(outcomes: readonly RouteOutcome[], known: readonly KnownViolation[]): Verdict {
   const verdict: Verdict = { errors: [], unexpected: [], stale: [] }
@@ -34,14 +38,18 @@ export function judge(outcomes: readonly RouteOutcome[], known: readonly KnownVi
     checked.set(outcome.path, outcome.violations)
     for (const violation of outcome.violations) {
       if (!FAILING.has(violation.impact)) continue
-      const forgiven = known.some((entry) => entry.path === outcome.path && entry.rule === violation.rule)
-      if (!forgiven) verdict.unexpected.push({ path: outcome.path, ...violation })
+      const entries = known.filter((entry) => entry.path === outcome.path && entry.rule === violation.rule)
+      const targets = violation.targets.filter((target) => !entries.some((entry) => entry.target.test(target)))
+      if (targets.length > 0) verdict.unexpected.push({ path: outcome.path, ...violation, targets })
     }
   }
 
   for (const entry of known) {
     const violations = checked.get(entry.path)
-    if (violations && !violations.some((violation) => violation.rule === entry.rule)) verdict.stale.push(entry)
+    const occurs = violations?.some(
+      (violation) => violation.rule === entry.rule && violation.targets.some((target) => entry.target.test(target)),
+    )
+    if (violations && !occurs) verdict.stale.push(entry)
   }
 
   return verdict
