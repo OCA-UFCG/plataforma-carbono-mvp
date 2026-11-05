@@ -31,7 +31,10 @@ describe('Conheça a plataforma (/sobre)', () => {
   // The mission is a single quote (Figma 19538:11413), so one paragraph.
   it('states the mission as one paragraph', () => {
     expect(p.missaoTitulo).toBe('Qual é a missão da Caativar?')
-    expect(typeof p.missaoTexto).toBe('string')
+    // The `paragraph` kind turns a blank line an editor types into a line
+    // break, so the quote never splits into two paragraphs.
+    expect(SOBRE_PLATAFORMA.fields.missaoTexto.kind).toBe('paragraph')
+    expect(p.missaoTexto).not.toContain('\n')
   })
 
   // The chips name the audiences, and the text after them only adds who

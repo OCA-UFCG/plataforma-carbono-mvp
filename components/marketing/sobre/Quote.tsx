@@ -7,11 +7,12 @@ export type QuoteProps = {
   children: React.ReactNode;
 };
 
-// The bold line with a rule on its left that closes a block of text: Figma
-// 18988:8705 on the Sobre pages, and the `destaque` of every tab of the
-// landing's "Conheça a plataforma" (18862:8546), where it came from. A <p>
-// rather than a <blockquote>: it is the page's own takeaway, not a quotation
-// of anyone.
+// A line of text with a rule on its left. At the body size it is the bold
+// line that closes a block of text: Figma 18988:8705 on the Sobre pages, and
+// the `destaque` of every tab of the landing's "Conheça a plataforma"
+// (18862:8546), where it came from. At the large size it stands on its own
+// under a heading: the mission of /sobre (19538:11413). A <p> rather than a
+// <blockquote>: it is the page's own statement, not a quotation of anyone.
 export default function Quote({ size = "body", children }: QuoteProps) {
   const sizeClass = size === "large" ? styles.large : "text-body";
   return <p className={`${styles.quote} ${sizeClass}`}>{children}</p>;

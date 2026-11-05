@@ -25,8 +25,10 @@ export default function AudienceBand({ titulo, perfis, textos }: AudienceBandPro
           // role="list" restores the semantics `list-style: none` strips in
           // Safari/VoiceOver, as in CautionCard.tsx.
           <ul className={styles.chips} role="list">
-            {perfis.map((perfil) => (
-              <li key={perfil} className={`${styles.chip} text-body`} role="listitem">
+            {/* Keyed by position, as in CautionCard: an editor may type the
+                same audience twice. */}
+            {perfis.map((perfil, i) => (
+              <li key={i} className={`${styles.chip} text-body`} role="listitem">
                 {perfil}
               </li>
             ))}
