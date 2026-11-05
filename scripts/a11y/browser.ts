@@ -41,7 +41,8 @@ export async function waitForServer(baseUrl: string, timeoutMs = 120_000): Promi
 /**
  * Opens a route at 1440×900 and returns the page once it really rendered: the
  * response must be 200 and `route.ready` must appear. Anything else throws, so
- * an error page or a 404 never gets checked in the page's place.
+ * an error page or a 404 never gets checked in the page's place. A page that
+ * fails to open is closed here; the caller closes the one it gets.
  */
 export async function openRoute(
   browser: Browser,
@@ -50,26 +51,32 @@ export async function openRoute(
   opts: { session?: string; reducedMotion?: boolean } = {},
 ): Promise<Page> {
   const page = await browser.newPage()
-  await page.setViewport(VIEWPORT)
-  // The cookie belongs to the whole browser, not to the page: a session route
-  // sets it, and any other route clears what an earlier one left.
-  const session = sessionFor(route, opts.session)
-  if (session) {
-    await browser.setCookie({ name: 'session', value: session, domain: new URL(baseUrl).hostname, path: '/' })
-  } else {
-    const left = (await browser.cookies()).filter((cookie) => cookie.name === 'session')
-    if (left.length > 0) await browser.deleteCookie(...left)
+  try {
+    await page.setViewport(VIEWPORT)
+    // The cookie belongs to the whole browser, not to the page: a session route
+    // sets it, and any other route clears what an earlier one left.
+    const session = sessionFor(route, opts.session)
+    if (session) {
+      await browser.setCookie({ name: 'session', value: session, domain: new URL(baseUrl).hostname, path: '/' })
+    } else {
+      const left = (await browser.cookies()).filter((cookie) => cookie.name === 'session')
+      if (left.length > 0) await browser.deleteCookie(...left)
+    }
+    if (opts.reducedMotion) {
+      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
+    }
+    // 'load', then puppeteer's own count of requests in flight. Chrome's
+    // networkidle2 lifecycle event never fired for /glossario at 1440 px under
+    // reduced motion, with nothing in flight, so goto is not left waiting on it.
+    const response = await page.goto(new URL(route.path, baseUrl).href, { waitUntil: 'load' })
+    const status = response?.status()
+    if (status !== 200) throw new Error(`status ${status ?? 'none'}`)
+    await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 30_000 })
+    await page.waitForSelector(route.ready, { timeout: READY_TIMEOUT_MS })
+    return page
+  } catch (error) {
+    // A page left open keeps its timers and requests running beside the routes after it.
+    await page.close().catch(() => undefined)
+    throw error
   }
-  if (opts.reducedMotion) {
-    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
-  }
-  // 'load', then puppeteer's own count of requests in flight. Chrome's
-  // networkidle2 lifecycle event never fired for /glossario at 1440 px under
-  // reduced motion, with nothing in flight, so goto is not left waiting on it.
-  const response = await page.goto(new URL(route.path, baseUrl).href, { waitUntil: 'load' })
-  const status = response?.status()
-  if (status !== 200) throw new Error(`status ${status ?? 'none'}`)
-  await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 30_000 })
-  await page.waitForSelector(route.ready, { timeout: READY_TIMEOUT_MS })
-  return page
 }

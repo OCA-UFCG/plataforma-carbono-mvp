@@ -39,29 +39,32 @@ async function capture(dir: string, paths: string[]) {
         // Reduced motion holds the hero on its first photo (Hero.tsx) and the
         // scenes still; both sides of a comparison are captured the same way.
         const page = await openRoute(browser, baseUrl, route, { session, reducedMotion: true })
-        await page.addStyleTag({ content: FREEZE_CSS })
-        // Walk down one viewport at a time so lazy images load, then back up.
-        // 'instant' overrides globals.css's `scroll-behavior: smooth`, which
-        // would still be gliding to the top when the screenshot is taken.
-        await page.evaluate(async () => {
-          for (let y = 0; y < document.documentElement.scrollHeight; y += window.innerHeight) {
-            window.scrollTo({ top: y, behavior: 'instant' })
-            await new Promise((resolve) => setTimeout(resolve, 100))
-          }
-          window.scrollTo({ top: 0, behavior: 'instant' })
-        })
-        // Only rendered images: a lazy image in a hidden tab panel never loads,
-        // and it does not show in the screenshot either.
-        await page.waitForFunction(
-          () => Array.from(document.images).every((image) => image.complete || image.getClientRects().length === 0),
-          { timeout: 15_000 },
-        )
-        await page.evaluate(() => document.fonts.ready.then(() => undefined))
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const file = join(dir, screenshotName(route.path)) as `${string}.png`
-        await page.screenshot({ path: file, fullPage: true })
-        await page.close()
-        console.log(`✓ ${route.path} → ${file}`)
+        try {
+          await page.addStyleTag({ content: FREEZE_CSS })
+          // Walk down one viewport at a time so lazy images load, then back up.
+          // 'instant' overrides globals.css's `scroll-behavior: smooth`, which
+          // would still be gliding to the top when the screenshot is taken.
+          await page.evaluate(async () => {
+            for (let y = 0; y < document.documentElement.scrollHeight; y += window.innerHeight) {
+              window.scrollTo({ top: y, behavior: 'instant' })
+              await new Promise((resolve) => setTimeout(resolve, 100))
+            }
+            window.scrollTo({ top: 0, behavior: 'instant' })
+          })
+          // Only rendered images: a lazy image in a hidden tab panel never loads,
+          // and it does not show in the screenshot either.
+          await page.waitForFunction(
+            () => Array.from(document.images).every((image) => image.complete || image.getClientRects().length === 0),
+            { timeout: 15_000 },
+          )
+          await page.evaluate(() => document.fonts.ready.then(() => undefined))
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          const file = join(dir, screenshotName(route.path)) as `${string}.png`
+          await page.screenshot({ path: file, fullPage: true })
+          console.log(`✓ ${route.path} → ${file}`)
+        } finally {
+          await page.close()
+        }
       } catch (error) {
         failed = true
         console.log(`✗ ${route.path}: ${error instanceof Error ? error.message : String(error)}`)

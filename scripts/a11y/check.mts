@@ -46,18 +46,21 @@ try {
   for (const route of routes) {
     try {
       const page = await openRoute(browser, baseUrl, route, { session })
-      await page.evaluate(axe.source)
-      const results = await page.evaluate((options) => window.axe.run(document, options), AXE_OPTIONS)
-      await page.close()
-      outcomes.push({
-        path: route.path,
-        violations: results.violations.map((v) => ({
-          rule: v.id,
-          impact: (v.impact ?? null) as Impact | null,
-          help: v.help,
-          targets: v.nodes.map((node) => node.target.join(' ')),
-        })),
-      })
+      try {
+        await page.evaluate(axe.source)
+        const results = await page.evaluate((options) => window.axe.run(document, options), AXE_OPTIONS)
+        outcomes.push({
+          path: route.path,
+          violations: results.violations.map((v) => ({
+            rule: v.id,
+            impact: (v.impact ?? null) as Impact | null,
+            help: v.help,
+            targets: v.nodes.map((node) => node.target.join(' ')),
+          })),
+        })
+      } finally {
+        await page.close()
+      }
     } catch (error) {
       outcomes.push({ path: route.path, error: error instanceof Error ? error.message : String(error), violations: [] })
     }
