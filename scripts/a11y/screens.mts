@@ -6,14 +6,14 @@
  *   A11Y_BASE_URL=http://localhost:3100 npm run a11y:screens -- capture <dir> [path …]
  *   npm run a11y:screens -- compare <beforeDir> <afterDir> <diffDir>
  *
- * Capture takes the same env as check.mts (A11Y_SESSION adds /mapa). Nothing
+ * Capture empties <dir> of .png files first, so it holds only this run. It takes
+ * the same env as check.mts (A11Y_SESSION adds /mapa). Nothing
  * presses a key, so UI that only the keyboard brings up (decision 2b) never
  * shows in either capture.
  */
-import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { launchBrowser, openRoute, waitForServer } from './browser'
-import { compareScreens } from './compare'
+import { compareScreens, prepareCaptureDir } from './compare'
 import { routesToRun, screenshotName } from './routes'
 
 // What varies between two captures of the same code, hidden from both:
@@ -29,7 +29,7 @@ async function capture(dir: string, paths: string[]) {
   const baseUrl = process.env.A11Y_BASE_URL ?? 'http://localhost:3000'
   const session = process.env.A11Y_SESSION || undefined
   const routes = routesToRun(paths, Boolean(session))
-  mkdirSync(dir, { recursive: true })
+  prepareCaptureDir(dir)
   await waitForServer(baseUrl)
   const browser = await launchBrowser()
   let failed = false

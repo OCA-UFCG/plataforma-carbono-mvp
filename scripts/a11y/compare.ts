@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { PNG } from 'pngjs'
 import { diffImages } from './imageDiff'
@@ -56,4 +56,18 @@ export function compareScreens(
   }
   log(failed ? '\nscreens: differences found.' : `\nscreens: ${before.length} route(s) identical.`)
   return failed ? 1 : 0
+}
+
+/**
+ * Prepares the directory a capture writes to: created if missing, and emptied of
+ * the screenshots an earlier capture left. Without that, a route since removed
+ * from the list would keep its old PNG, and a later `compare` would pit it
+ * against a capture that never took it. Only `.png` files go (not folders): the path is typed
+ * by hand, and anything else in it is not ours to delete.
+ */
+export function prepareCaptureDir(dir: string): void {
+  mkdirSync(dir, { recursive: true })
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.png')) rmSync(join(dir, entry.name))
+  }
 }

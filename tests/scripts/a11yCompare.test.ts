@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { PNG } from 'pngjs'
-import { compareScreens } from '@/scripts/a11y/compare'
+import { compareScreens, prepareCaptureDir } from '@/scripts/a11y/compare'
 
 let root: string | undefined
 
@@ -76,5 +76,24 @@ describe('compareScreens', () => {
     const { code, out } = run(d)
     expect(code).toBe(1)
     expect(out).toContain(`${d.after} does not exist`)
+  })
+})
+
+describe('prepareCaptureDir', () => {
+  it('creates a missing directory', () => {
+    root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
+    const dir = path.join(root, 'nested', 'before')
+    prepareCaptureDir(dir)
+    expect(readdirSync(dir)).toEqual([])
+  })
+
+  it('removes the screenshots of an earlier capture and nothing else', () => {
+    root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
+    writePng(root, 'home.png', [0, 0, 0, 255])
+    writePng(root, 'removed-route.png', [0, 0, 0, 255])
+    writeFileSync(path.join(root, 'notes.txt'), 'keep')
+    mkdirSync(path.join(root, 'sub.png'))
+    prepareCaptureDir(root)
+    expect(readdirSync(root).sort()).toEqual(['notes.txt', 'sub.png'])
   })
 })
