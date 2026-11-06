@@ -18,7 +18,7 @@ npx vitest run -t "case name"                    # a single case by name
 python tests/scripts/test_build_sif.py           # unit tests of scripts/build-sif.py (stdlib unittest)
 npm run contrast         # WCAG contrast check of the 12 monthly accents; runs in CI
 npm run a11y             # axe on scripts/a11y/routes.ts (A11Y_BASE_URL, A11Y_SESSION); runs in CI
-npm run a11y:screens -- capture <dir> | compare <before> <after> <diff>   # the no-visual-change guard
+npm run a11y:screens -- capture <dir> [--print] | compare <before> <after> <diff>   # the no-visual-change guard (--print: print media)
 ```
 
 CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm run build`, `npm run contrast` and the axe check (`npm run a11y`) — it does **not** run `npm test`, so run that locally.

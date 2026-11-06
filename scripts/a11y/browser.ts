@@ -79,6 +79,15 @@ export async function openRoute(
     if (status !== 200) throw new Error(`status ${status ?? 'none'}`)
     await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 30_000 })
     await page.waitForSelector(route.ready, { timeout: READY_TIMEOUT_MS })
+    if (route.settled) {
+      // The text goes in as an argument: the callback runs in the page and sees no closure.
+      await page.waitForFunction(
+        (selector, text) => document.querySelector(selector)?.textContent?.includes(text) === true,
+        { timeout: READY_TIMEOUT_MS },
+        route.ready,
+        route.settled,
+      )
+    }
     return page
   } catch (error) {
     // A page left open keeps its timers and requests running beside the routes after it.
