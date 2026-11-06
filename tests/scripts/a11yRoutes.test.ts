@@ -47,3 +47,28 @@ describe('screenshotName', () => {
     expect(screenshotName('/sobre/carbono-e-comunidades')).toBe('sobre-carbono-e-comunidades.png')
   })
 })
+
+describe('A11Y_ROUTES', () => {
+  const route = (path: string) => A11Y_ROUTES.find((r) => r.path === path)!
+
+  it('has no repeated path', () => {
+    const paths = A11Y_ROUTES.map((r) => r.path)
+    expect(new Set(paths).size).toBe(paths.length)
+  })
+
+  it('waits on the auth card, not on a bare h1 that the 404 page also has', () => {
+    const auth = ['/login', '/cadastro', '/cadastro/confirmacao', '/esqueci-senha', '/redefinir-senha', '/aguardando-liberacao']
+    for (const path of auth) expect(route(path).ready, path).toBe('main > section > h1')
+    expect(A11Y_ROUTES.filter((r) => r.ready === 'h1')).toEqual([])
+  })
+
+  it('waits for the settled state of the pages that check an emailed code', () => {
+    expect(route('/cadastro/confirmacao').settled).toBeTruthy()
+    expect(route('/redefinir-senha').settled).toBeTruthy()
+  })
+
+  it('gives every screenshot its own file', () => {
+    const names = A11Y_ROUTES.map((r) => screenshotName(r.path))
+    expect(new Set(names).size).toBe(names.length)
+  })
+})

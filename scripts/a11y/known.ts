@@ -36,4 +36,13 @@ export const KNOWN_VIOLATIONS: readonly KnownViolation[] = [
     target: /^a\[aria-labelledby="(caminhos|comunicacao|publicacao)-[a-z0-9-]+-title"\]$/,
     reason: 'Card links named by their visible title; accepted by spec decision 14.',
   },
+  // The related-publications band under a publication draws the same
+  // PublicationCard link. axe has no id or attribute to name it by there, so
+  // it falls back to the CSS-module class (the hash changes with the build).
+  {
+    path: '/comunicacao/cartilha-1-o-que-e-credito-de-carbono',
+    rule: 'label-content-name-mismatch',
+    target: /^(a\[aria-labelledby="publicacao-[a-z0-9-]+-title"\]|\.PublicationCard-module__[\w-]+__surface)$/,
+    reason: 'Card links named by their visible title; accepted by spec decision 14.',
+  },
 ]
