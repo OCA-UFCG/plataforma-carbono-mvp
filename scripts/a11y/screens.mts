@@ -63,6 +63,16 @@ async function capture(dir: string, paths: string[], print: boolean) {
             () => Array.from(document.images).every((image) => image.complete || image.getClientRects().length === 0),
             { timeout: 15_000 },
           )
+          // `complete` turns true before an image with decoding="async" is painted:
+          // wait for the decode of every rendered one, or a photo can be missing
+          // from one capture and present in the next.
+          await page.evaluate(() =>
+            Promise.all(
+              Array.from(document.images)
+                .filter((image) => image.getClientRects().length > 0)
+                .map((image) => image.decode().catch(() => undefined)),
+            ).then(() => undefined),
+          )
           await page.evaluate(() => document.fonts.ready.then(() => undefined))
           await new Promise((resolve) => setTimeout(resolve, 500))
           const file = join(dir, screenshotName(route.path)) as `${string}.png`
