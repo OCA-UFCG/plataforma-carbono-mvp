@@ -1,6 +1,24 @@
-import { describe, expect, it } from 'vitest'
-import { geomHash, pendingAnalyses, statsCacheKey, timeSeriesCacheKey } from '@/lib/mapa/analysisRunner'
-import type { LayerResult, RasterLayerConfig } from '@/types/mapa'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { LayerResult, RasterLayerConfig, SelectedGeometry } from '@/types/mapa'
+
+const mocks = vi.hoisted(() => ({
+  getRasterStats: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+}))
+
+vi.mock('@/lib/mapa/getRasterStats', () => ({
+  getRasterStats: mocks.getRasterStats,
+  getTemporalTimeSeries: vi.fn(),
+}))
+
+import {
+  bumpAnalysisSeq,
+  geomHash,
+  pendingAnalyses,
+  runLayerAnalysis,
+  statsCacheKey,
+  timeSeriesCacheKey,
+} from '@/lib/mapa/analysisRunner'
+import { useStore } from '@/lib/mapa/store'
 
 const gee = (id: string, temporal = false): RasterLayerConfig => ({
   id, name: id, type: 'raster', visible: true, opacity: 80,
@@ -148,5 +166,69 @@ describe('cache keys', () => {
   it('keys a point time series by layer and position, with no date', () => {
     expect(timeSeriesCacheKey('ndvi_modis', -40.5, -7.25))
       .toBe('timeseries:ndvi_modis:-40.5:-7.25')
+  })
+})
+
+describe('runLayerAnalysis and a superseded selection', () => {
+  const polygon: SelectedGeometry = {
+    geometryType: 'polygon',
+    geometry: { type: 'Polygon', coordinates: [[[-40, -8], [-39, -8], [-39, -7], [-40, -7], [-40, -8]]] },
+  }
+  /** A request that stays open until its signal aborts, like the fetch it stands for. */
+  const hangUntilAborted = (...args: unknown[]) => new Promise((_, reject) => {
+    const signal = args[3] as AbortSignal
+    if (signal.aborted) reject(signal.reason)
+    signal.addEventListener('abort', () => reject(signal.reason))
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useStore.setState({ results: {}, statsCache: {} })
+  })
+
+  it('aborts the request of the previous selection when a new one starts', async () => {
+    mocks.getRasterStats.mockImplementation(hangUntilAborted)
+    const first = bumpAnalysisSeq()
+    const running = runLayerAnalysis(gee('estoque_carbono'), polygon, undefined, first)
+    const signal = mocks.getRasterStats.mock.calls[0][3] as AbortSignal
+    expect(signal.aborted).toBe(false)
+
+    bumpAnalysisSeq()
+
+    expect(signal.aborted).toBe(true)
+    await running
+  })
+
+  it('drops an abandoned request quietly, with no error card', async () => {
+    mocks.getRasterStats.mockImplementation(hangUntilAborted)
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const running = runLayerAnalysis(gee('estoque_carbono'), polygon, undefined, bumpAnalysisSeq())
+
+    bumpAnalysisSeq()
+    await running
+
+    expect(log).not.toHaveBeenCalled()
+    expect(useStore.getState().results.estoque_carbono?.status).not.toBe('error')
+    log.mockRestore()
+  })
+
+  it('still reports a failure of the current selection', async () => {
+    mocks.getRasterStats.mockRejectedValue(new Error('boom'))
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await runLayerAnalysis(gee('estoque_carbono'), polygon, undefined, bumpAnalysisSeq())
+
+    expect(useStore.getState().results.estoque_carbono?.status).toBe('error')
+    log.mockRestore()
+  })
+
+  it('hands a stale sequence an already aborted signal', async () => {
+    mocks.getRasterStats.mockImplementation(hangUntilAborted)
+    const stale = bumpAnalysisSeq()
+    bumpAnalysisSeq()
+
+    await runLayerAnalysis(gee('estoque_carbono'), polygon, undefined, stale)
+
+    expect((mocks.getRasterStats.mock.calls[0][3] as AbortSignal).aborted).toBe(true)
   })
 })

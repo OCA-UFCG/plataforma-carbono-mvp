@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { Publicacao } from "@/lib/content/comunicacao";
 import PublicationCard from "../PublicationCard";
 import grid from "../Publicacoes.module.css";
@@ -11,13 +12,15 @@ import styles from "./RelatedContent.module.css";
 // one column.
 // The id sits on the heading, not the wrapper (tests/lib/marketingNav.test.ts).
 export default function RelatedContent({ publicacoes }: { publicacoes: Publicacao[] }) {
+  const t = useTranslations("Publicacao");
+
   if (publicacoes.length === 0) return null;
 
   return (
     <section className={styles.related} aria-labelledby="relacionados-heading">
       <div className={`container ${styles.inner}`}>
         <h2 id="relacionados-heading" className={styles.heading}>
-          Conteúdos Relacionados
+          {t("related")}
         </h2>
         <ul className={grid.grid} role="list">
           {publicacoes.map((publicacao) => (

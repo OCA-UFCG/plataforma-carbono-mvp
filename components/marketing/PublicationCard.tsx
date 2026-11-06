@@ -1,16 +1,20 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { Publicacao } from "@/lib/content/comunicacao";
 import styles from "./PublicationCard.module.css";
 
 // One publication of the Comunicação page, Figma component instances
 // 18978:2075–2079 (hover 18988:10598): the cover art in a bordered frame, a
-// "PDF" badge on it, the publication type and its title.
+// "PDF" badge on it, the publication's series and its title. The title comes
+// from Contentful in the reader's language; the series' name is a label
+// (messages/<locale>.json, "Publicacoes.tipo").
 //
 // The cover shows the publication's cover ART (`cover`), unlike the landing's
 // Comunicação cards, which use photographs (see FOTOS in Comunicacao.tsx):
 // here the design frames the covers themselves, portrait. Its alt is empty
 // because the art restates the title, which is right below it in text.
 export default function PublicationCard({ publicacao }: { publicacao: Publicacao }) {
+  const t = useTranslations("Publicacoes");
   const { key, slug, tipo, title, cover, pdf } = publicacao;
   const titleId = `publicacao-${key}-title`;
   const tipoId = `publicacao-${key}-tipo`;
@@ -29,7 +33,7 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
         )}
       </div>
       <span id={tipoId} className={`${styles.tipo} text-ui-badge`}>
-        {tipo}
+        {t(`tipo.${tipo}`)}
       </span>
       <h3 id={titleId} className={styles.title}>
         {title}
@@ -69,12 +73,14 @@ export default function PublicationCard({ publicacao }: { publicacao: Publicacao
 // "Esse espaço está crescendo" band: an empty cover frame, dashed, holding
 // "Em breve". Not in the design; asked for on 2026-10-06. Not a control.
 export function PublicationSoon() {
+  const t = useTranslations("Publicacoes");
+
   return (
     <li className={styles.card} role="listitem">
       <div className={`${styles.cover} ${styles.soon}`}>
         <p className={styles.soonLabel}>
           <span className={styles.soonDot} aria-hidden="true" />
-          Em breve
+          {t("soon")}
         </p>
       </div>
     </li>

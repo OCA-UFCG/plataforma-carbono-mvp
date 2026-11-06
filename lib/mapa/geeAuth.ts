@@ -1,6 +1,7 @@
 // Server-only helper, do not import from client components.
 
 import { readFileSync } from 'node:fs'
+import { GEE_DEADLINE_MS } from '@/lib/mapa/geeEvaluate'
 
 // @google/earthengine ships without TypeScript types, so we treat it as `any`
 // at the boundary and narrow where it matters.
@@ -48,8 +49,12 @@ export function initGee(): Promise<void> {
           null,
           () => {
             // Cap how long any single GEE RPC may block before erroring, so a
-            // stuck computation can't hang the request forever.
-            try { ee.data.setDeadline(60_000) } catch { /* older SDKs: no-op */ }
+            // stuck computation can't hang the request forever. The client reads
+            // the deadline when its throttle dispatches each queued request, so
+            // it is process-wide and cannot be swapped around one call without
+            // leaking into concurrent ones. Every handler waits GEE_TIMEOUT_MS,
+            // a few seconds past it.
+            try { ee.data.setDeadline(GEE_DEADLINE_MS) } catch { /* older SDKs: no-op */ }
             resolve()
           },
           (err: unknown) => {

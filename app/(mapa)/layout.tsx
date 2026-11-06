@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { NextIntlClientProvider } from 'next-intl'
 import '../globals.css'
 import '../mapa.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { Analytics } from '@/components/Analytics'
 import { FAVICON } from '@/lib/favicon'
+import { HEADER_NAMESPACES, clientMessages } from '@/i18n/clientMessages'
 import { Announcer } from '@/components/a11y/Announcer'
 import { inter, rubik } from '../fonts/marketing'
 
@@ -36,7 +38,10 @@ export default async function MapaLayout({
   return (
     <html lang="pt-BR" className={`${rubik.variable} ${inter.variable}`}>
       <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100dvh' }}>
-        <AuthProvider>{children}</AuthProvider>
+        {/* For the site header, the only part of the platform in English so far. */}
+        <NextIntlClientProvider messages={await clientMessages(HEADER_NAMESPACES)}>
+          <AuthProvider>{children}</AuthProvider>
+        </NextIntlClientProvider>
         <Analytics />
         <Announcer />
       </body>

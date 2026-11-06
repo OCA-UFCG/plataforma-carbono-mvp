@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { DESCRICAO_CARTILHA, type ComunicacaoContent } from "@/lib/content/comunicacao";
+import { useTranslations } from "next-intl";
+import type { ComunicacaoContent } from "@/lib/content/comunicacao";
 import MoreLink from "./MoreLink";
 import styles from "./Comunicacao.module.css";
 
@@ -44,6 +45,7 @@ const FOTOS: Record<string, string> = {
 // 18862:8582). The header row's "Ver mais" opens the Comunicação page, which
 // lists every publication.
 export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent }) {
+  const t = useTranslations("Comunicacao");
   const [primeiraCartilha] = conteudo.cartilhas;
 
   const cards: CardData[] = [
@@ -51,9 +53,9 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       ? [
           {
             key: "cartilha",
-            label: "CARTILHA",
+            label: t("cartilha"),
             title: primeiraCartilha.title,
-            description: primeiraCartilha.description ?? DESCRICAO_CARTILHA,
+            description: primeiraCartilha.description ?? t("cartilhaDescription"),
             cover: FOTOS.cartilha ?? primeiraCartilha.cover,
             slug: primeiraCartilha.slug,
           },
@@ -61,7 +63,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
       : []),
     {
       key: "caderno",
-      label: "CADERNO TEMÁTICO",
+      label: t("caderno"),
       title: conteudo.caderno.title,
       description: conteudo.caderno.description,
       // Falls back to the publication's cover art if the photograph is ever removed.
@@ -71,13 +73,13 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
   ];
 
   return (
-    <section id="comunicacao" className={styles.comunicacao} aria-label="Comunicação">
+    <section id="comunicacao" className={styles.comunicacao} aria-label={t("heading")}>
       <div className={`container ${styles.inner}`}>
         {/* Heading left, "Ver mais" right — the 40px header row of Figma node
             18862:8576. */}
         <div className={styles.headerRow}>
-          <h2 className={`${styles.heading} text-h2`}>Comunicação</h2>
-          <MoreLink href="/comunicacao" contexto="materiais de comunicação" />
+          <h2 className={`${styles.heading} text-h2`}>{t("heading")}</h2>
+          <MoreLink href="/comunicacao" contexto={t("moreContext")} />
         </div>
 
         {/* `role="list"`/`role="listitem"` restore the implicit list semantics
@@ -97,6 +99,7 @@ export default function Comunicacao({ conteudo }: { conteudo: ComunicacaoContent
 // extractor (tests/lib/marketingNav.test.ts) sees exactly one wrapper tag —
 // <section id="comunicacao"> — per this file.
 function ComunicacaoCard({ card }: { card: CardData }) {
+  const t = useTranslations("Comunicacao");
   const titleId = `comunicacao-${card.key}-title`;
   const descriptionId = `comunicacao-${card.key}-description`;
   const linked = Boolean(card.slug);
@@ -135,7 +138,7 @@ function ComunicacaoCard({ card }: { card: CardData }) {
                 The card without a page is not a control, so it gets none. */}
             {linked && (
               <span className={`${styles.cta} text-ui-medium`} aria-hidden="true">
-                Ver material
+                {t("cta")}
               </span>
             )}
           </div>

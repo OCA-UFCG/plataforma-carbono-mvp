@@ -1,22 +1,14 @@
 import { defineCopy, line, optionalLine, paragraph } from './site/model'
 
-// Copy for the internal pages' shared frame: the grey intro band at the top
-// and the photo band above the footer. Taken verbatim from the Figma frames
-// "Sobre" (18988:8611, the same intro on all four Sobre pages),
-// "Comunicação" (18978:2048) and "Glossário" (19400:12092). Each page's own
-// content lives in its own module; the band at the foot of "Conheça a
-// plataforma" is part of that page's copy (lib/content/sobre/plataforma.ts).
+// Copy for the internal pages' shared frame: the grey intro band at the top.
+// Taken verbatim from the Figma frames "Sobre" (19538:11039, the same intro
+// on all four Sobre pages), "Comunicação" (18978:2048) and "Glossário"
+// (19400:12092). Each page's own content lives in its own module.
 
 export type PageIntroContent = {
   eyebrow?: string
   title: string
   intro: string
-}
-
-export type PhotoBandContent = {
-  image: string
-  title: string
-  items?: string[]
 }
 
 // Figma node 18988:8613, with the copy of the content doc's 2026-10-05
@@ -26,6 +18,7 @@ export const SOBRE_INTRO = defineCopy({
   name: 'Sobre · Introdução',
   description:
     'Faixa cinza do topo das quatro páginas de Sobre, a mesma em todas. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     chamada: optionalLine('Chamada acima do título'),
     titulo: line('Título', 'Sobre a Caativar'),
@@ -36,14 +29,12 @@ export const SOBRE_INTRO = defineCopy({
   },
 })
 
-// The band's photo stays in the code, with the rest of the images.
-export const SOBRE_FAIXA_IMAGEM = '/images/faixas/sobre.webp'
-
 export const COMUNICACAO_PAGINA = defineCopy({
   id: 'comunicacaoPagina',
   name: 'Comunicação · Página',
   description:
     'Textos da página Comunicação ao redor da lista de publicações. As publicações em si são as entradas de Cartilha e Caderno Temático. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // Figma node 18978:2050, without its "Materiais" eyebrow, taken out on
     // 2026-10-06. The paragraph is the landing's former description of the
@@ -62,6 +53,7 @@ export const GLOSSARIO_PAGINA = defineCopy({
   name: 'Glossário · Página',
   description:
     'Título da página Glossário, no topo da barra lateral. O campo "Introdução · Texto" não aparece mais na página. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     // The title over the sidebar, Figma node 19507:16727.
     introTitulo: line('Introdução · Título', 'Glossário'),

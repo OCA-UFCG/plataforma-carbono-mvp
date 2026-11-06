@@ -9,7 +9,7 @@ export type SectionProps = {
 
 // A titled block of text on the Sobre pages, e.g. Figma 18988:8642 ("Por que
 // criar uma plataforma para a Caatinga?"): an h2 over its body, which takes
-// paragraphs, a Quote or IndicatorCards as children. Plain <p> children need
+// paragraphs, a Quote or FigureCards as children. Plain <p> children need
 // no class; the body text style is the page default (app/globals.css).
 // A Quote given last is not one of the body's blocks: the design sets it in
 // the heading's 8px column, 8px under the text (18988:8700, 18988:8799), so

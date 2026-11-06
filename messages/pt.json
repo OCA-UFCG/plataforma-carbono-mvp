@@ -1,0 +1,127 @@
+{
+  "Metadata": {
+    "description": "Sistema integrado de monitoramento do carbono florestal do bioma Caatinga: dados espaciais, metodologia adaptada ao semiárido, governança e integridade dos mercados de carbono."
+  },
+  "Nav": {
+    "inicio": "Início",
+    "sobre": "Sobre",
+    "glossario": "Glossário",
+    "comunicacao": "Comunicação",
+    "territorios": "Resumo territorial",
+    "plataforma": "Plataforma"
+  },
+  "SiteHeader": {
+    "region": "Cabeçalho",
+    "home": "Página inicial da Caativar",
+    "mainNav": "Navegação principal",
+    "mobileNav": "Navegação móvel",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "language": "Idioma",
+    "signOut": "Sair"
+  },
+  "SiteFooter": {
+    "region": "Rodapé",
+    "nav": "Navegação do rodapé",
+    "contact": "CONTATO"
+  },
+  "MoreLink": {
+    "label": "Ver mais"
+  },
+  "Hero": {
+    "region": "Apresentação",
+    "photoAlt": "Foto {number} da Caatinga",
+    "photoPicker": "Selecionar foto de fundo",
+    "showPhoto": "Mostrar {alt}",
+    "previous": "Foto anterior",
+    "next": "Próxima foto",
+    "announcement": "Foto {number} de {total}: {title}",
+    "credit": "Foto: {name}"
+  },
+  "Plataforma": {
+    "region": "Plataforma",
+    "moreContext": "sobre a plataforma",
+    "imageAlt": {
+      "o-que-e": "Vista de um vale da Caatinga com vegetação e cidade ao fundo",
+      "a-caatinga": "Vista do alto de uma serra da Caatinga, com vegetação seca em primeiro plano sob céu azul",
+      "carbono-e-comunidades": "Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor",
+      "como-funciona": "Plantação de milho diante de um morro coberto pela vegetação da Caatinga"
+    }
+  },
+  "Comunicacao": {
+    "heading": "Comunicação",
+    "moreContext": "materiais de comunicação",
+    "cartilha": "CARTILHA",
+    "caderno": "CADERNO TEMÁTICO",
+    "cta": "Ver material",
+    "cartilhaDescription": "Uma cartilha introdutória, em linguagem simples, para comunidades e demais interessados em conhecer o tema."
+  },
+  "ComunicacaoAbas": {
+    "label": "Comunicação",
+    "conteudo": "Conteúdo",
+    "eventos": "Eventos e articulações"
+  },
+  "Publicacoes": {
+    "heading": "Conteúdo",
+    "soon": "Em breve",
+    "tipo": {
+      "caderno": "Caderno temático",
+      "cartilha": "Cartilha"
+    }
+  },
+  "Eventos": {
+    "heading": "Eventos e articulações",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
+  },
+  "Publicacao": {
+    "back": "Voltar",
+    "publishedOn": "Publicado em:",
+    "download": "Baixar PDF",
+    "related": "Conteúdos Relacionados"
+  },
+  "PdfViewer": {
+    "page": "Página",
+    "of": "de",
+    "zoomIn": "Aumentar zoom",
+    "zoom": "Zoom",
+    "zoomOut": "Diminuir zoom",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "download": "Baixar PDF",
+    "document": "Documento PDF",
+    "loading": "Carregando documento…",
+    "error": "Não foi possível exibir o PDF.",
+    "openInNewTab": "Abrir o arquivo em outra aba"
+  },
+  "Sobre": {
+    "subnav": "Páginas de Sobre",
+    "pages": {
+      "plataforma": "Conheça a plataforma",
+      "caatinga": "Conheça a Caatinga",
+      "carbono-e-comunidades": "Entenda essa relação",
+      "como-funciona": "Como funciona"
+    },
+    "imageAlt": {
+      "plataforma": "Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul",
+      "caatinga": "Casa de uma comunidade rural da Caatinga, com terreiro de chão batido e vegetação ao redor",
+      "carbono-e-comunidades": "Lago de águas calmas ao pé de um morro rochoso coberto de vegetação da Caatinga, sob céu azul",
+      "limites": "Casa de uma comunidade rural da Caatinga entre árvores de flores vermelhas, com terreiro de chão batido"
+    }
+  },
+  "Glossario": {
+    "tablist": "Termos do glossário",
+    "fontes": "Fontes",
+    "busca": "Buscar termo",
+    "nenhum": "Nenhum termo encontrado",
+    "contagem": "{n, plural, =0 {Nenhum termo encontrado} one {# termo encontrado} other {# termos encontrados}}"
+  },
+  "CenaAnimada": {
+    "etapas": "Etapas de {titulo}",
+    "valores": "Valores medidos de {titulo}",
+    "velocidade": "Velocidade",
+    "epoca": "Época do ano",
+    "reproduzir": "Reproduzir",
+    "pausar": "Pausar"
+  }
+}

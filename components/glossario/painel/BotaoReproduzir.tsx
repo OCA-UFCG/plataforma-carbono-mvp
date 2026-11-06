@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import styles from "./BotaoReproduzir.module.css";
 
 // Figma "button" (1:85), type "primary with icon": "Reproduzir" with the
@@ -10,14 +11,16 @@ export type BotaoReproduzirProps = {
 };
 
 export default function BotaoReproduzir({ tocando, onClick, desativado }: BotaoReproduzirProps) {
+  const t = useTranslations("CenaAnimada");
+
   return (
     <button type="button" className={`${styles.botao} text-ui-medium`} disabled={desativado} onClick={onClick}>
       {/* Both labels share one grid cell, so the button keeps the width of the
           longer one and the sliders beside it do not shift on each press.
           The hidden one is left out of the accessible name. */}
       <span className={styles.rotulos}>
-        <span className={tocando ? styles.oculto : undefined}>Reproduzir</span>
-        <span className={tocando ? undefined : styles.oculto}>Pausar</span>
+        <span className={tocando ? styles.oculto : undefined}>{t("reproduzir")}</span>
+        <span className={tocando ? undefined : styles.oculto}>{t("pausar")}</span>
       </span>
       {/* Both icons stay in the page the same way, so the pause icon is
           already loaded at the first press. */}

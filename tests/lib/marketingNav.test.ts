@@ -11,6 +11,7 @@ import {
   TERRITORIOS_LINK,
   activeNavHref,
 } from '@/lib/marketing/nav'
+import { MESSAGES } from '@/tests/helpers/intl'
 
 // Reads the id of the outermost <section>/<header>/<footer> a marketing
 // component actually renders, the same way tests/lib/marketingPalette.test.ts
@@ -91,7 +92,7 @@ describe('marketing nav registry', () => {
   })
 
   it('lists "Resumo territorial" in the footer, before the platform', () => {
-    expect(FOOTER_LINKS.map((l) => l.label)).toEqual([
+    expect(FOOTER_LINKS.map((l) => MESSAGES.pt.Nav[l.key])).toEqual([
       'Início',
       'Sobre',
       'Glossário',
@@ -107,17 +108,26 @@ describe('marketing nav registry', () => {
   })
 
   it('labels the navigation in Portuguese', () => {
-    expect(HEADER_LINKS.map((l) => l.label)).toEqual([
+    expect(HEADER_LINKS.map((l) => MESSAGES.pt.Nav[l.key])).toEqual([
       'Início',
       'Sobre',
       'Glossário',
       'Comunicação',
     ])
-    expect(SOBRE_PAGES.map((p) => p.label)).toEqual([
+    expect(SOBRE_PAGES.map((p) => MESSAGES.pt.Sobre.pages[p.slug])).toEqual([
       'Conheça a plataforma',
       'Conheça a Caatinga',
       'Entenda essa relação',
       'Como funciona',
+    ])
+  })
+
+  it('names every Sobre page in English too', () => {
+    expect(SOBRE_PAGES.map((p) => MESSAGES.en.Sobre.pages[p.slug])).toEqual([
+      'Get to know the platform',
+      'Get to know the Caatinga',
+      'Understand the connection',
+      'How it works',
     ])
   })
 })

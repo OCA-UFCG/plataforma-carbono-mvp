@@ -1,0 +1,121 @@
+/* FigureCard, Figma "Cards sobre" (19406:47719, 19407:47762, 19408:47968).
+ * Font metrics of the label, unit and description come from the .text-*
+ * utilities applied in FigureCard.tsx; the number's 64px step has no utility,
+ * so it is set here. The instance's drop shadow sits on an inner frame the
+ * card clips at the same size, so it never shows; it is left out. */
+
+/* `height: 100%` lets a card fill its stretched list item, so a pair with
+ * descriptions of different lengths still lines up at the bottom. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--bg-superficie-variante);
+}
+
+/* Rubik Medium 16/24, uppercase (I19406:47719;19406:46350). */
+.label {
+  margin: 0;
+  text-transform: uppercase;
+  color: var(--bg-texto-primario);
+}
+
+/* The figure line 8px above its description (I19406:47719;19406:47736). */
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Number and unit share their bottom edge, 8px apart
+ * (I19406:47719;19406:26647). The line may wrap, and so may the number, so a
+ * long figure stays inside the card on a narrow screen. */
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Rubik Bold 64/64, tracked at -1.2% (I19406:47719;19406:26648). */
+.value {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 64px;
+  letter-spacing: -0.768px;
+  color: var(--role-categorica1-padrao);
+}
+
+/* Rubik SemiBold 20/28, the h4 step (I19406:47719;19406:26649). */
+.unit {
+  color: var(--role-marca-ancora-pressionado);
+}
+
+.description {
+  margin: 0;
+  color: var(--bg-texto-primario);
+}
+
+/* The 11px track and its fill, both 4px round (I19406:47719;19254:17350).
+ * The track's #d9d9d9 is a raw Figma fill with no token behind it. */
+.bar {
+  display: flex;
+  align-items: center;
+  height: 11px;
+  border-radius: 4px;
+  background: #d9d9d9;
+}
+
+/* The arrowhead overlaps the fill's end by 9px and so runs 14px past it; the
+ * fill is measured on the track less those 14px, which keeps the tip inside
+ * the track at 100%. */
+.fill {
+  flex: none;
+  width: calc((100% - 14px) * var(--fill));
+  height: 11px;
+  border-radius: 4px;
+  background: var(--role-marca-ancora-padrao);
+}
+
+/* The 23px box the design rotates by 90deg, turning the upward triangle to
+ * point along the bar (I19406:47719;19406:46396). The SVG keeps its own size,
+ * 2px from the box top and centred across (insets 8.7% / 13.05%). */
+.arrow {
+  position: relative;
+  flex: none;
+  width: 23px;
+  height: 23px;
+  margin-left: -9px;
+  rotate: 90deg;
+}
+
+.arrow img {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  display: block;
+}
+
+.list {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .list {
+    flex-direction: column;
+  }
+}

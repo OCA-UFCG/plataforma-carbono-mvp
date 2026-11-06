@@ -1,0 +1,166 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  RESULT_CACHE_MAX_ENTRIES,
+  RESULT_CACHE_TTL_MS,
+  clearResultCache,
+  resultCacheKey,
+  withResultCache,
+} from '@/lib/mapa/resultCache'
+
+const square = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }
+
+describe('resultCacheKey', () => {
+  it('tells layers, years and geometries apart', () => {
+    const k = resultCacheKey('ndvi_modis', '2024-01-01', square)
+    expect(resultCacheKey('ndvi_modis', '2024-01-01', square)).toBe(k)
+    expect(resultCacheKey('evi_modis', '2024-01-01', square)).not.toBe(k)
+    expect(resultCacheKey('ndvi_modis', '2023-01-01', square)).not.toBe(k)
+    expect(resultCacheKey('ndvi_modis', undefined, square)).not.toBe(k)
+    const moved = { ...square, coordinates: [[[0, 0], [2, 0], [1, 1], [0, 0]]] }
+    expect(resultCacheKey('ndvi_modis', '2024-01-01', moved)).not.toBe(k)
+  })
+
+  it('reads the same geometry as the same key, whichever object holds it', () => {
+    expect(resultCacheKey('l', undefined, structuredClone(square))).toBe(resultCacheKey('l', undefined, square))
+  })
+
+  it('tells the type and the nesting of the coordinates apart', () => {
+    const polygon = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }
+    const multi = { type: 'MultiPolygon', coordinates: [[[[0, 0], [1, 0], [1, 1], [0, 0]]]] }
+    const flat = { type: 'Polygon', coordinates: [[0, 0], [1, 0], [1, 1], [0, 0]] }
+    const split = { type: 'Polygon', coordinates: [[[0, 0], [1, 0]], [[1, 1], [0, 0]]] }
+    const keys = [polygon, multi, flat, split].map((g) => resultCacheKey('l', undefined, g))
+    expect(new Set(keys).size).toBe(4)
+  })
+
+  it('tells an array length from a number in the same place', () => {
+    const a = { type: 'Polygon', coordinates: [[2, 5], 7] }
+    const b = { type: 'Polygon', coordinates: [2, [5, 7]] }
+    expect(resultCacheKey('l', undefined, a)).not.toBe(resultCacheKey('l', undefined, b))
+  })
+
+  it('digests a geometry larger than its buffer', () => {
+    const ring = Array.from({ length: 5000 }, (_, i) => [i * 1e-3, -i * 1e-3])
+    const big = { type: 'Polygon', coordinates: [ring] }
+    const last = { type: 'Polygon', coordinates: [[...ring.slice(0, -1), [ring.at(-1)![0], 1]]] }
+    expect(resultCacheKey('l', undefined, big)).toBe(resultCacheKey('l', undefined, structuredClone(big)))
+    expect(resultCacheKey('l', undefined, last)).not.toBe(resultCacheKey('l', undefined, big))
+  })
+})
+
+describe('withResultCache', () => {
+  beforeEach(() => clearResultCache())
+  afterEach(() => vi.useRealTimers())
+
+  it('computes once and answers the next request from memory', async () => {
+    const compute = vi.fn(async () => ({ kind: 'annual', mean: 1 }))
+    await withResultCache('k', compute)
+    expect(await withResultCache('k', compute)).toEqual({ kind: 'annual', mean: 1 })
+    expect(compute).toHaveBeenCalledOnce()
+  })
+
+  it('shares one computation between requests that arrive together', async () => {
+    let release!: (v: number) => void
+    const compute = vi.fn(() => new Promise<number>((r) => { release = r }))
+    const a = withResultCache('k', compute)
+    const b = withResultCache('k', compute)
+    release(7)
+    expect(await Promise.all([a, b])).toEqual([7, 7])
+    expect(compute).toHaveBeenCalledOnce()
+  })
+
+  it('keeps no failure, so the next request tries again', async () => {
+    const compute = vi.fn()
+      .mockRejectedValueOnce(new Error('timed out'))
+      .mockResolvedValueOnce(3)
+    await expect(withResultCache('k', compute)).rejects.toThrow('timed out')
+    expect(await withResultCache('k', compute)).toBe(3)
+    expect(compute).toHaveBeenCalledTimes(2)
+  })
+
+  it('computes again once an entry expires', async () => {
+    vi.useFakeTimers()
+    const compute = vi.fn(async () => 1)
+    await withResultCache('k', compute)
+    vi.advanceTimersByTime(RESULT_CACHE_TTL_MS + 1)
+    await withResultCache('k', compute)
+    expect(compute).toHaveBeenCalledTimes(2)
+  })
+
+  it('drops the oldest entry past capacity', async () => {
+    const compute = vi.fn(async () => 1)
+    for (let i = 0; i <= RESULT_CACHE_MAX_ENTRIES; i++) await withResultCache(`k${i}`, compute)
+    compute.mockClear()
+    await withResultCache(`k${RESULT_CACHE_MAX_ENTRIES}`, compute)
+    expect(compute).not.toHaveBeenCalled()
+    await withResultCache('k0', compute)
+    expect(compute).toHaveBeenCalledOnce()
+  })
+
+  it('drops the least recently used entry, not the oldest inserted', async () => {
+    const compute = vi.fn(async () => 1)
+    for (let i = 0; i < RESULT_CACHE_MAX_ENTRIES; i++) await withResultCache(`k${i}`, compute)
+    // Reading the oldest makes it the newest; the next oldest is k1.
+    await withResultCache('k0', compute)
+    await withResultCache('extra', compute)
+    compute.mockClear()
+
+    await withResultCache('k0', compute)
+    expect(compute).not.toHaveBeenCalled()
+    await withResultCache('k1', compute)
+    expect(compute).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the expiry of the computation when a hit refreshes the entry', async () => {
+    vi.useFakeTimers()
+    const compute = vi.fn(async () => 1)
+    await withResultCache('k', compute)
+    vi.advanceTimersByTime(RESULT_CACHE_TTL_MS - 1000)
+    await withResultCache('k', compute)
+    vi.advanceTimersByTime(2000)
+    await withResultCache('k', compute)
+    expect(compute).toHaveBeenCalledTimes(2)
+  })
+
+  describe('a request that joined a computation that fails', () => {
+    /** An originator whose computation the test rejects, with `joiners` joined to it. */
+    async function joined(retry: () => Promise<number>, joiners = 1) {
+      let fail!: (e: Error) => void
+      const first = vi.fn(() => new Promise<number>((_, rej) => { fail = rej }))
+      const originator = withResultCache('k', first)
+      const waiting = Array.from({ length: joiners }, () => withResultCache('k', retry))
+      const settled = Promise.allSettled([originator, ...waiting])
+      fail(new Error('timed out'))
+      return { first, results: await settled }
+    }
+
+    it('computes for itself instead of inheriting the failure, and the originator still fails', async () => {
+      const retry = vi.fn(async () => 5)
+      const { first, results } = await joined(retry)
+
+      expect(results[0]).toMatchObject({ status: 'rejected' })
+      expect(results[1]).toEqual({ status: 'fulfilled', value: 5 })
+      expect(first).toHaveBeenCalledOnce()
+      expect(retry).toHaveBeenCalledOnce()
+      // The retry's answer is kept like any other.
+      expect(await withResultCache('k', retry)).toBe(5)
+      expect(retry).toHaveBeenCalledOnce()
+    })
+
+    it('shares one retry between several joiners', async () => {
+      const retry = vi.fn(async () => 9)
+      const { results } = await joined(retry, 3)
+
+      expect(results.slice(1)).toEqual(Array(3).fill({ status: 'fulfilled', value: 9 }))
+      expect(retry).toHaveBeenCalledOnce()
+    })
+
+    it('fails when its retry fails too, without trying a third time', async () => {
+      const retry = vi.fn(async () => { throw new Error('still down') })
+      const { results } = await joined(retry)
+
+      expect(results[1]).toMatchObject({ status: 'rejected', reason: new Error('still down') })
+      expect(retry).toHaveBeenCalledOnce()
+    })
+  })
+})

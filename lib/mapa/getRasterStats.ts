@@ -1,6 +1,7 @@
 import type { PanelResult, RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
 import { useStore } from '@/lib/mapa/store'
 import { getResultProfile } from '@/config/mapa/resultProfiles'
+import { createLimiter } from '@/lib/mapa/concurrency'
 
 /** Response kinds of the results panel's own computation (lib/mapa/layerResult.ts). */
 const LAYER_RESULT_KINDS = new Set(['amount', 'distribution', 'flux', 'annual', 'recurrence'])
@@ -17,26 +18,39 @@ type StatsFeature = {
 /**
  * Compute raster stats over a (multi)polygon via /api/gee/stats, either
  * continuous stats or Jenks-categorical counts, per the layer config.
+ *
+ * `signal` abandons the request: while queued it is never sent, and once sent
+ * it frees its slot at once. The server keeps computing and caches the answer,
+ * so coming back to the same recorte is still fast.
  */
 export async function getRasterStats(
   layer: RasterLayerConfig,
   feature: StatsFeature,
   temporalDate?: string,
+  signal?: AbortSignal,
 ): Promise<PanelResult> {
-  return getGeeStats(layer, feature, temporalDate)
+  return getGeeStats(layer, feature, temporalDate, signal)
 }
 
 // GEE path
 
 // Dedupe concurrent identical stats requests (e.g. a double-click fires two
 // clicks before the first response fills the store cache). Keyed by the exact
-// request body; the entry is cleared when the request settles.
-const inFlightStats = new Map<string, Promise<PanelResult>>()
+// request body; the entry is cleared when the request settles. It keeps the
+// signal so an abandoned request is never handed to a new one.
+const inFlightStats = new Map<string, { request: Promise<PanelResult>; signal?: AbortSignal }>()
+
+// A click fans out one request per visible raster. All at once, ten reductions
+// over the biome competed in Earth Engine and nine ran past the deadline; three
+// at a time, each finishes and the cards still land one by one.
+const MAX_CONCURRENT_STATS = 3
+const statsSlots = createLimiter(MAX_CONCURRENT_STATS)
 
 async function getGeeStats(
   layer: RasterLayerConfig,
   feature: StatsFeature,
   temporalDate?: string,
+  signal?: AbortSignal,
 ): Promise<PanelResult> {
   if (!layer.gee?.asset) {
     throw new Error(`GEE layer "${layer.id}" is missing gee.asset`)
@@ -65,14 +79,15 @@ async function getGeeStats(
       })
 
   const existing = inFlightStats.get(body)
-  if (existing) return existing
+  if (existing && !existing.signal?.aborted) return existing.request
 
   const request = (async (): Promise<PanelResult> => {
-    const res = await fetch('/api/gee/stats', {
+    const res = await statsSlots(() => fetch('/api/gee/stats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
-    })
+      signal,
+    }), signal)
 
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}))
@@ -92,11 +107,13 @@ async function getGeeStats(
     return { kind: 'continuous', stats: payload.stats, unit: layer.unit }
   })()
 
-  inFlightStats.set(body, request)
+  const entry = { request, signal }
+  inFlightStats.set(body, entry)
   try {
     return await request
   } finally {
-    inFlightStats.delete(body)
+    // An abandoned request may already have been replaced by a newer one.
+    if (inFlightStats.get(body) === entry) inFlightStats.delete(body)
   }
 }
 

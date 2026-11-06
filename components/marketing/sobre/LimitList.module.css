@@ -1,0 +1,41 @@
+/* LimitList, Figma 19551:11429: the heading 8px above the list. */
+.limites {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The h3 step (.text-h3) in --ctx-negativo-padrao, on the band's white. */
+.titulo {
+  color: var(--ctx-negativo-padrao);
+  margin: 0;
+}
+
+.itens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* "Item de limite" (19537:14776): 50px tall, 12px of block padding, the 24px
+ * ✕ 4px from the text. The design draws the rules as 1px frames between the
+ * items (19551:11437, 19551:11443); a border on every item after the first,
+ * one pixel taller to hold it (box-sizing is border-box), gives the same
+ * 50 + 1 + 50 + 1 + 50. */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 50px;
+  padding-block: 12px;
+  color: var(--bg-texto-primario);
+}
+
+.item + .item {
+  min-height: 51px;
+  border-top: 1px solid var(--am-200);
+}
+
+.icone {
+  flex: none;
+}

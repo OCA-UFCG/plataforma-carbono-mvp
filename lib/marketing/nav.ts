@@ -5,9 +5,12 @@ import { MAPA_URL } from '@/lib/config'
 // "#id" anchors (those only work on the landing). tests/lib/marketingNav.test.ts
 // checks that every route has a page file and that SECTION_IDS matches the ids
 // the landing's section components actually render.
+// The label of each link, in messages/<locale>.json under "Nav".
+export type NavKey = 'inicio' | 'sobre' | 'glossario' | 'comunicacao' | 'territorios' | 'plataforma'
+
 export type NavLink = {
   href: string
-  label: string
+  key: NavKey
   external: boolean
 }
 
@@ -23,7 +26,7 @@ export const SECTION_IDS: readonly string[] = [
 ]
 
 // The map lives in another route group, so it is a full page load, not a <Link>.
-export const MAPA_LINK: NavLink = { href: MAPA_URL, label: 'Plataforma', external: true }
+export const MAPA_LINK: NavLink = { href: MAPA_URL, key: 'plataforma', external: true }
 
 // The platform's own route. MAPA_LINK points at MAPA_URL, which a deployment
 // may set to the login page, so the active entry is decided by this path.
@@ -35,7 +38,7 @@ const MAPA_PATH = '/mapa'
 // renders the site header, which marks this entry there (Figma 19254:37327).
 export const TERRITORIOS_LINK: NavLink = {
   href: '/territorios',
-  label: 'Resumo territorial',
+  key: 'territorios',
   external: true,
 }
 
@@ -44,10 +47,10 @@ export const TERRITORIOS_LINK: NavLink = {
 // to "Sobre", the footer's label for the same page. "Glossário" sits between
 // "Sobre" and "Comunicação", as in the Glossário frames (19400:12116).
 export const HEADER_LINKS: NavLink[] = [
-  { href: '/', label: 'Início', external: false },
-  { href: '/sobre', label: 'Sobre', external: false },
-  { href: '/glossario', label: 'Glossário', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { href: '/', key: 'inicio', external: false },
+  { href: '/sobre', key: 'sobre', external: false },
+  { href: '/glossario', key: 'glossario', external: false },
+  { href: '/comunicacao', key: 'comunicacao', external: false },
 ]
 
 // The header's order, with "Resumo territorial" before the platform; Figma's
@@ -55,23 +58,27 @@ export const HEADER_LINKS: NavLink[] = [
 // and lists no entry for either.
 // The first link reads "Início" as in the header, not the design's "Home".
 export const FOOTER_LINKS: NavLink[] = [
-  { href: '/', label: 'Início', external: false },
-  { href: '/sobre', label: 'Sobre', external: false },
-  { href: '/glossario', label: 'Glossário', external: false },
-  { href: '/comunicacao', label: 'Comunicação', external: false },
+  { href: '/', key: 'inicio', external: false },
+  { href: '/sobre', key: 'sobre', external: false },
+  { href: '/glossario', key: 'glossario', external: false },
+  { href: '/comunicacao', key: 'comunicacao', external: false },
   TERRITORIOS_LINK,
   MAPA_LINK,
 ]
 
 // The four "Sobre" pages, in the order of their sub-navigation (Figma node
 // 18988:8635). Each href must have a page under app/(marketing)/.
-export type SobrePage = { slug: string; href: string; label: string }
+// Each page's name, in the sub-navigation and its browser tab, is in
+// messages/<locale>.json, under "Sobre.pages.<slug>".
+export type SobreSlug = 'plataforma' | 'caatinga' | 'carbono-e-comunidades' | 'como-funciona'
+
+export type SobrePage = { slug: SobreSlug; href: string }
 
 export const SOBRE_PAGES: SobrePage[] = [
-  { slug: 'plataforma', href: '/sobre', label: 'Conheça a plataforma' },
-  { slug: 'caatinga', href: '/sobre/caatinga', label: 'Conheça a Caatinga' },
-  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades', label: 'Entenda essa relação' },
-  { slug: 'como-funciona', href: '/sobre/como-funciona', label: 'Como funciona' },
+  { slug: 'plataforma', href: '/sobre' },
+  { slug: 'caatinga', href: '/sobre/caatinga' },
+  { slug: 'carbono-e-comunidades', href: '/sobre/carbono-e-comunidades' },
+  { slug: 'como-funciona', href: '/sobre/como-funciona' },
 ]
 
 // The header entry to mark active on `pathname`: the one whose route is the

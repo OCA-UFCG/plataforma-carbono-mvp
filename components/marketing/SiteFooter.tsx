@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { HTML_LANG, readSiteLocale } from "@/lib/locale";
 import { FOOTER_LINKS } from "@/lib/marketing/nav";
 import styles from "./SiteFooter.module.css";
 
@@ -32,8 +34,12 @@ const PARTNERS = [
 // what tests/lib/marketingNav.test.ts inspects, the same contract SiteHeader
 // follows for <header>.
 export default function SiteFooter() {
+  const t = useTranslations("SiteFooter");
+  const nav = useTranslations("Nav");
+  const locale = readSiteLocale(useLocale());
+
   return (
-    <footer className={styles.siteFooter} aria-label="Rodapé">
+    <footer className={styles.siteFooter} aria-label={t("region")} lang={HTML_LANG[locale]}>
       <div className={`container ${styles.inner}`}>
         <div className={`${styles.column} ${styles.columnBrand}`}>
           <div className={styles.brand}>
@@ -56,7 +62,7 @@ export default function SiteFooter() {
               `role="listitem"` restore the implicit list semantics that
               `list-style: none` on `.navList` (SiteFooter.module.css) strips
               from <ul>/<li> in most browsers. */}
-          <nav aria-label="Navegação do rodapé">
+          <nav aria-label={t("nav")}>
             <ul className={styles.navList} role="list">
               {FOOTER_LINKS.map((link) =>
                 link.external ? (
@@ -64,13 +70,13 @@ export default function SiteFooter() {
                   // page load, not next/link.
                   <li key={link.href} role="listitem">
                     <a href={link.href} className={styles.navLink}>
-                      {link.label}
+                      {nav(link.key)}
                     </a>
                   </li>
                 ) : (
                   <li key={link.href} role="listitem">
                     <Link href={link.href} className={styles.navLink}>
-                      {link.label}
+                      {nav(link.key)}
                     </Link>
                   </li>
                 ),
@@ -103,7 +109,7 @@ export default function SiteFooter() {
         </div>
 
         <div className={`${styles.column} ${styles.columnContact}`}>
-          <h2 className={`${styles.heading} text-p-ui`}>CONTATO</h2>
+          <h2 className={`${styles.heading} text-p-ui`}>{t("contact")}</h2>
           {/* The Figma copy ("E-mail (ex.: contato@Caativar.gov.br)") is
               placeholder text on a domain this project does not own, and no
               real contact address turned up in README.md, DOCUMENTACAO.md or

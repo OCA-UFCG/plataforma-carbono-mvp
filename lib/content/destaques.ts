@@ -32,6 +32,7 @@ export const INICIO_DESTAQUES = defineCopy({
   name: 'Início · Destaques',
   description:
     'Os quatro cartões de números da página inicial, na ordem em que aparecem. Há uma única entrada deste tipo: edite-a, não crie outra.',
+  localized: true,
   fields: {
     titulo: line('Título da seção', 'Destaques'),
     card1Rotulo: line('Cartão 1 · Rótulo', 'Área'),

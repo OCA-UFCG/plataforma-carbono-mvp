@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { AnimacaoId } from "@/lib/glossario/termos";
 import type { ControleCena, CriarCena, EstadoCena, EtapaCena, FaseAno, ValorCena } from "@/lib/cenas/tipos";
+import { HTML_LANG, readSiteLocale } from "@/lib/locale";
 import BotaoEtapa from "./painel/BotaoEtapa";
 import BotaoReproduzir from "./painel/BotaoReproduzir";
 import Regua from "./painel/Regua";
@@ -51,8 +53,12 @@ const QUEBRAS: Partial<Record<AnimacaoId, number>> = {
 // buttons for a scene told in steps, a row with presets and a slider for a
 // scene with a value the reader sets (the CUE), a row of time controls for a
 // scene that plays a year. The scene pauses drawing while off screen or in a
-// hidden tab.
+// hidden tab. It speaks the reader's language (opcoes.idioma), and a change of
+// language starts it again, since a scene draws its texts as it is built.
 export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId; titulo: string; descricao: string }) {
+  const t = useTranslations("CenaAnimada");
+  const idioma = readSiteLocale(useLocale());
+  const formatar = (n: number) => n.toLocaleString(HTML_LANG[idioma]);
   const caixa = useRef<HTMLElement>(null);
   const tela = useRef<HTMLCanvasElement>(null);
   const painel = useRef<HTMLDivElement>(null);
@@ -98,6 +104,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               if (cancelado) return;
               controle.current = criarCena(canvas, {
                 fonte: getComputedStyle(canvas).fontFamily,
+                idioma,
                 aoMudar: setEstado,
                 painel: cenaPainel ?? undefined,
               });
@@ -138,7 +145,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       setFases([]);
       setInteragiu(false);
     };
-  }, [id]);
+  }, [id, idioma]);
 
   const valorAtual = estado?.valor ?? null;
   const agir = (comando: (cena: ControleCena) => void) => {
@@ -153,7 +160,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
       <figcaption className="sr-only">{titulo}</figcaption>
       <div className={styles.caixa} style={{ "--linhas": LINHAS[id], "--quebras": QUEBRAS[id] ?? 0 } as CSSProperties}>
         {estado && etapas && (
-          <div className={`${styles.linha} ${styles.etapas}`} role="group" aria-label={`Etapas de ${titulo}`}>
+          <div className={`${styles.linha} ${styles.etapas}`} role="group" aria-label={t("etapas", { titulo })}>
             {etapas.map((etapa, i) => (
               <BotaoEtapa
                 key={etapa.nome}
@@ -167,7 +174,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
         )}
         {estado && valor && valorAtual !== null && (
           <div className={styles.linha}>
-            <div className={`${styles.linha} ${styles.predefinidos}`} role="group" aria-label={`Valores medidos de ${titulo}`}>
+            <div className={`${styles.linha} ${styles.predefinidos}`} role="group" aria-label={t("valores", { titulo })}>
               {valor.predefinidos.map((p) => (
                 <BotaoEtapa
                   key={p.rotulo}
@@ -184,7 +191,7 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
               passo={valor.passo}
               valor={valorAtual}
               onChange={(v) => agir((cena) => cena.definirValor(v))}
-              textoValor={estado.textoValor ?? valorAtual.toLocaleString("pt-BR")}
+              textoValor={estado.textoValor ?? formatar(valorAtual)}
               descricaoValor={estado.descricaoValor ?? undefined}
             />
           </div>
@@ -193,20 +200,20 @@ export default function CenaAnimada({ id, titulo, descricao }: { id: AnimacaoId;
           <div className={styles.linha}>
             <BotaoReproduzir tocando={estado.tocando} onClick={() => controle.current?.tocar(!estado.tocando)} />
             <Regua
-              rotulo="Velocidade"
+              rotulo={t("velocidade")}
               min={0.25}
               max={3}
               passo={0.25}
               valor={estado.velocidade}
               onChange={(v) => controle.current?.velocidade(v)}
-              textoValor={`${estado.velocidade.toLocaleString("pt-BR")}×`}
+              textoValor={`${formatar(estado.velocidade)}×`}
             />
             {/* One step per day, the unit of the date the scene reports (day d
                 is floor(posicao × 365)): a finer step could land on the same
                 day, which the scene does not report, and the slider would snap
                 back. Mid-day keeps the position clear of the day's edges. */}
             <Regua
-              rotulo="Época do ano"
+              rotulo={t("epoca")}
               min={0}
               max={364}
               passo={1}

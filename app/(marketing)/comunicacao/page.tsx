@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import PageIntro from "@/components/marketing/PageIntro";
 import ComunicacaoAbas from "@/components/marketing/ComunicacaoAbas";
@@ -12,8 +13,12 @@ import { getEventos } from "@/lib/content/eventos";
 import { loadSiteCopy } from "@/lib/content/site/fetch";
 import { getContentfulClient } from "@/lib/contentful";
 import { glossarioAntigoHref } from "@/lib/glossario/termos";
+import { getSiteLocale } from "@/i18n/siteLocale";
+import { HTML_LANG } from "@/lib/locale";
 
-export const metadata: Metadata = { title: "Comunicação" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Nav"))("comunicacao") };
+}
 
 // Comunicação, Figma frames 19254:15623 (the "Conteúdo" tab) and 19254:16041
 // ("Eventos e articulações"). The publications come from the same Contentful
@@ -24,7 +29,9 @@ export const metadata: Metadata = { title: "Comunicação" };
 // footer, "Esse espaço está crescendo", was taken out on 2026-10-06; an "Em
 // breve" slot closes the grid instead (Publicacoes.tsx). ?aba=eventos opens
 // the second tab (lib/marketing/comunicacaoAbas.ts); ?aba=glossario, the
-// Glossário's address while it was a tab here, goes to its own page.
+// Glossário's address while it was a tab here, goes to its own page. In
+// English, every read asks Contentful for its English fields, each falling
+// back to Portuguese where it has none.
 export default async function ComunicacaoPage({
   searchParams,
 }: {
@@ -34,17 +41,18 @@ export default async function ComunicacaoPage({
   const glossario = glossarioAntigoHref(busca);
   if (glossario) redirect(glossario);
 
+  const locale = await getSiteLocale();
   const getContent = getContentfulClient();
   const [conteudo, eventos, { pagina }] = await Promise.all([
-    getComunicacaoContent(getContent),
-    getEventos(getContent),
-    loadSiteCopy({ pagina: COMUNICACAO_PAGINA }),
+    getComunicacaoContent(getContent, locale),
+    getEventos(getContent, locale),
+    loadSiteCopy({ pagina: COMUNICACAO_PAGINA }, getContent, locale),
   ]);
 
   return (
     <>
       <SiteHeader />
-      <main>
+      <main lang={HTML_LANG[locale]}>
         <PageIntro title={pagina.introTitulo} intro={pagina.introTexto} />
         <ComunicacaoAbas
           paineis={{

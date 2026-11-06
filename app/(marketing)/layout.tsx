@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import "../globals.css";
 import { Analytics } from "@/components/Analytics";
 import { FAVICON } from "@/lib/favicon";
+import { MARKETING_NAMESPACES, clientMessages } from "@/i18n/clientMessages";
 import { Announcer } from "@/components/a11y/Announcer";
 import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 
@@ -17,17 +20,23 @@ import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 // credentials in the build and would keep the fallback copy without them.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Caativar",
-    template: "%s | Caativar",
-  },
-  description:
-    "Sistema integrado de monitoramento do carbono florestal do bioma Caatinga: dados espaciais, metodologia adaptada ao semiárido, governança e integridade dos mercados de carbono.",
-  icons: FAVICON,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Metadata");
 
-export default function MarketingLayout({
+  return {
+    title: {
+      default: "Caativar",
+      template: "%s | Caativar",
+    },
+    description: t("description"),
+    icons: FAVICON,
+  };
+}
+
+// <html> stays "pt-BR" in either language: not every page is translated yet,
+// so the header, the footer and a translated page's <main> each declare the
+// language they render in.
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -35,7 +44,7 @@ export default function MarketingLayout({
   return (
     <html lang="pt-BR">
       <body className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${archivo.variable}`}>
-        {children}
+        <NextIntlClientProvider messages={await clientMessages(MARKETING_NAMESPACES)}>{children}</NextIntlClientProvider>
         <Analytics />
         <Announcer />
       </body>

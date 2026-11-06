@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { stepPhotoIndex } from "@/lib/marketing/heroRotation";
-import { MAPA_LINK, TERRITORIOS_LINK, type NavLink } from "@/lib/marketing/nav";
+import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
 import type { INICIO_HERO } from "@/lib/content/inicio";
 import type { Copy } from "@/lib/content/site/model";
 import Linhas from "./Linhas";
@@ -12,10 +13,17 @@ import styles from "./Hero.module.css";
 // What a photo shows over it: the text, set like Figma nodes 18862:8525 (h1)
 // and 18862:8526 (lead), and its own buttons, the first filled and the second
 // outlined like Figma's 18862:8529 and 18862:8530.
+// A card's button: its words come from Contentful, its target from here.
+type HeroAction = {
+  href: string;
+  label: string;
+  external: boolean;
+};
+
 type HeroCard = {
   title: string;
   lead: string;
-  actions: NavLink[];
+  actions: HeroAction[];
 };
 
 // The words come from Contentful (lib/content/inicio.ts); where each button
@@ -36,12 +44,12 @@ function heroCards(copy: Copy<typeof INICIO_HERO>): HeroCard[] {
     {
       title: copy.foto3Titulo,
       lead: copy.foto3Texto,
-      actions: [{ ...TERRITORIOS_LINK, label: copy.foto3Botao }],
+      actions: [{ href: TERRITORIOS_LINK.href, label: copy.foto3Botao, external: TERRITORIOS_LINK.external }],
     },
     {
       title: copy.foto4Titulo,
       lead: copy.foto4Texto,
-      actions: [{ ...MAPA_LINK, label: copy.foto4Botao }],
+      actions: [{ href: MAPA_LINK.href, label: copy.foto4Botao, external: MAPA_LINK.external }],
     },
   ];
 }
@@ -58,17 +66,16 @@ function heroCards(copy: Copy<typeof INICIO_HERO>): HeroCard[] {
 // — see the `activePhoto.credit` check.
 type HeroPhoto = {
   src: string;
-  alt: string;
   credit?: string;
 };
 
-// `alt` numbers the photos in the order they show, which the dots announce;
-// the file names keep their original numbering.
+// The dots name the photos by their position in this list ("Hero.photoAlt" in
+// messages/); the file names keep their original numbering.
 const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero2.jpg", alt: "Foto 1 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero3.jpg", alt: "Foto 2 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero1.jpg", alt: "Foto 3 da Caatinga", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero4.jpg", alt: "Foto 4 da Caatinga", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero2.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero3.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero1.jpg", credit: "Artur Lourenço" },
+  { src: "/images/hero/hero4.jpg", credit: "Artur Lourenço" },
 ];
 
 // The arrow of data-nordeste-frontend's banner carousel, the sprite symbol
@@ -104,6 +111,7 @@ const ROTATION_INTERVAL_MS = 10000;
 // auto-advance every 10s unless the user prefers reduced motion, cross-fading
 // between photos rather than swapping them abruptly.
 export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
+  const t = useTranslations("Hero");
   const cards = heroCards(copy);
   const [index, setIndex] = useState(0);
   // Bumped by every dot or arrow click, so a click restarts the wait in full
@@ -137,7 +145,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   const goTo = (next: number) => {
     setIndex(next);
     setClicks((c) => c + 1);
-    setAnnouncement(`Foto ${next + 1} de ${PHOTOS.length}: ${cards[next].title}`);
+    setAnnouncement(t("announcement", { number: next + 1, total: PHOTOS.length, title: cards[next].title }));
   };
   const step = (delta: number) => goTo(stepPhotoIndex(index, delta, PHOTOS.length));
 
@@ -147,7 +155,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
     <section
       id="inicio"
       className={styles.hero}
-      aria-label="Apresentação"
+      aria-label={t("region")}
       onFocus={(event) => setFocusHeld((event.target as Element).matches(":focus-visible"))}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusHeld(false);
@@ -212,13 +220,13 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
         </div>
       </div>
 
-      <div className={`container ${styles.dots}`} role="group" aria-label="Selecionar foto de fundo">
+      <div className={`container ${styles.dots}`} role="group" aria-label={t("photoPicker")}>
         {PHOTOS.map((photo, i) => (
           <button
             key={photo.src}
             type="button"
             className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
-            aria-label={`Mostrar ${photo.alt}`}
+            aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
             aria-pressed={i === index}
             onClick={() => goTo(i)}
           />
@@ -228,7 +236,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
       <button
         type="button"
         className={`${styles.arrow} ${styles.arrowPrevious}`}
-        aria-label="Foto anterior"
+        aria-label={t("previous")}
         onClick={() => step(-1)}
       >
         <ArrowIcon className={styles.arrowIconPrevious} />
@@ -236,7 +244,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
       <button
         type="button"
         className={`${styles.arrow} ${styles.arrowNext}`}
-        aria-label="Próxima foto"
+        aria-label={t("next")}
         onClick={() => step(1)}
       >
         <ArrowIcon className={styles.arrowIconNext} />
@@ -246,7 +254,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
         {announcement}
       </p>
 
-      {activePhoto.credit && <p className={styles.credit}>Foto: {activePhoto.credit}</p>}
+      {activePhoto.credit && <p className={styles.credit}>{t("credit", { name: activePhoto.credit })}</p>}
     </section>
   );
 }

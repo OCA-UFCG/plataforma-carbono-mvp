@@ -3,7 +3,7 @@ import {
   DEFAULT_CADERNO,
   DEFAULT_CARTILHAS,
   DEFAULT_FOTOS_FORMACAO,
-  DESCRICAO_CARTILHA,
+  COMUNICACAO_QUERY,
   findPublicacao,
   formatPublicationDate,
   getComunicacaoContent,
@@ -176,9 +176,9 @@ describe('listPublicacoes', () => {
   it('lists the caderno first, then every cartilha in the order the editor set', () => {
     const lista = listPublicacoes({ caderno, cartilhas, fotosFormacao: [] })
     expect(lista.map((p) => [p.tipo, p.title])).toEqual([
-      ['Caderno temático', 'Caderno'],
-      ['Cartilha', 'Um'],
-      ['Cartilha', 'Dois'],
+      ['caderno', 'Caderno'],
+      ['cartilha', 'Um'],
+      ['cartilha', 'Dois'],
     ])
   })
 
@@ -272,15 +272,36 @@ describe('publication fields', () => {
   })
 })
 
+describe('getComunicacaoContent in a language', () => {
+  it('asks every collection in the locale the page passes', () => {
+    expect(COMUNICACAO_QUERY).toContain('query($preview: Boolean, $locale: String)')
+    for (const collection of ['cartilhaCollection', 'cadernoCollection', 'fotoFormacaoCollection']) {
+      expect(COMUNICACAO_QUERY).toMatch(new RegExp(`${collection}\\([^)]*locale: \\$locale\\)`))
+    }
+  })
+
+  it('asks Contentful for English when the page is in English, and names no locale in Portuguese', async () => {
+    const getContent = vi.fn().mockResolvedValue(PUBLISHED)
+
+    await getComunicacaoContent(getContent, 'en')
+    await getComunicacaoContent(getContent, 'pt')
+    await getComunicacaoContent(getContent)
+
+    expect(getContent.mock.calls.map(([, variables]) => variables?.locale)).toEqual(['en-US', undefined, undefined])
+  })
+})
+
 describe('listPublicacoes publication fields', () => {
-  it('gives a cartilha without a description the series copy', () => {
+  // The series copy stands in at render, in the reader's language
+  // (messages/<locale>.json, "Comunicacao.cartilhaDescription").
+  it('leaves a cartilha without a description of its own without one', () => {
     const lista = listPublicacoes({
       caderno: { title: 'Caderno', description: 'Resumo', cover: '/c.jpg' },
       cartilhas: [{ volume: 'Volume 1', title: 'Um', cover: '/1.jpg' }],
       fotosFormacao: [],
     })
 
-    expect(lista.map((p) => p.description)).toEqual(['Resumo', DESCRICAO_CARTILHA])
+    expect(lista.map((p) => p.description)).toEqual(['Resumo', undefined])
   })
 
   it('ships a unique address for every default publication', async () => {
@@ -324,7 +345,7 @@ describe('findPublicacao', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const clash = { ...conteudo, cartilhas: [{ ...conteudo.cartilhas[0], slug: 'caderno' }] }
 
-    expect(findPublicacao(clash, 'caderno')?.tipo).toBe('Caderno temático')
+    expect(findPublicacao(clash, 'caderno')?.tipo).toBe('caderno')
     expect(warn).toHaveBeenCalledOnce()
   })
 })
@@ -363,6 +384,14 @@ describe('formatPublicationDate', () => {
 
   it('keeps the day an editor wrote with an offset', () => {
     expect(formatPublicationDate('2025-05-14T23:00:00-03:00')).toBe('14/05/25')
+  })
+
+  // dd/mm/yy reads as a different day to an American; the month's name
+  // reads the same everywhere.
+  it('names the month in English for an English visitor', () => {
+    expect(formatPublicationDate('2025-05-14', 'en')).toBe('14 May 2025')
+    expect(formatPublicationDate('2025-09-03T00:00:00.000Z', 'en')).toBe('3 Sep 2025')
+    expect(formatPublicationDate('2025-13-40', 'en')).toBeNull()
   })
 
   it('omits a missing or malformed value', () => {

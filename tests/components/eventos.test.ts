@@ -4,9 +4,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import EventoCard from '@/components/marketing/EventoCard'
 import Eventos from '@/components/marketing/Eventos'
 import { DEFAULT_EVENTOS, type Evento } from '@/lib/content/eventos'
+import type { SiteLocale } from '@/lib/locale'
+import { withIntl } from '@/tests/helpers/intl'
 
-const html = <P extends object>(component: ComponentType<P>, props: P) =>
-  renderToStaticMarkup(createElement(component, props))
+const html = <P extends object>(component: ComponentType<P>, props: P, locale: SiteLocale = 'pt') =>
+  renderToStaticMarkup(withIntl(createElement(component, props), locale))
 
 describe('EventoCard', () => {
   const [evento] = DEFAULT_EVENTOS
@@ -31,6 +33,10 @@ describe('EventoCard', () => {
     expect(markup).toContain(`<p id="${controls}"`)
   })
 
+  it('offers to open the text in English for an English reader', () => {
+    expect(html(EventoCard, { evento, data: '17 Sep 2026' }, 'en')).toMatch(/<button [^>]*>Show more<\/button>/)
+  })
+
   it('leaves out the place and the caption an entry does not have', () => {
     const semLocal: Evento = { ...evento, local: undefined, caption: undefined }
     const markup = html(EventoCard, { evento: semLocal, data: '17 set 2026' })
@@ -48,5 +54,12 @@ describe('Eventos', () => {
     expect(markup).toMatch(/<h2 id="eventos-heading"[^>]*>Eventos e articulações<\/h2>/)
     expect(markup.match(/<article/g)).toHaveLength(DEFAULT_EVENTOS.length)
     expect(markup).toContain('15 set 2026</time> · Online')
+  })
+
+  it('heads the panel and dates the events in English for an English reader', () => {
+    const markup = html(Eventos, { eventos: DEFAULT_EVENTOS }, 'en')
+
+    expect(markup).toMatch(/<h2 id="eventos-heading"[^>]*>Events and partnerships<\/h2>/)
+    expect(markup).toContain('15 Sep 2026</time> · Online')
   })
 })

@@ -2,11 +2,9 @@
 // the address as ?aba=eventos, so a link can open the events tab and the
 // server renders it already selected; the first tab is the bare /comunicacao.
 // Not /comunicacao/eventos: that path belongs to the publication pages,
-// /comunicacao/<slug>.
-export const ABAS_COMUNICACAO = [
-  { id: 'conteudo', label: 'Conteúdo' },
-  { id: 'eventos', label: 'Eventos e articulações' },
-] as const
+// /comunicacao/<slug>. Each tab's label is in messages/<locale>.json, under
+// "ComunicacaoAbas.<id>".
+export const ABAS_COMUNICACAO = [{ id: 'conteudo' }, { id: 'eventos' }] as const
 
 export type AbaComunicacao = (typeof ABAS_COMUNICACAO)[number]['id']
 

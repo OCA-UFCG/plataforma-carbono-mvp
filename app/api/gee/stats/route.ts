@@ -13,6 +13,8 @@ import { getAuthenticatedRequest, unauthorizedResponse } from '@/lib/auth'
 import { computeZonalStats } from '@/lib/mapa/zonalStats'
 import { getResultLayer, resolveTemporalDate } from '@/lib/mapa/resultsRegistry'
 import { computeLayerResult } from '@/lib/mapa/layerResult'
+import { resultCacheKey, withResultCache } from '@/lib/mapa/resultCache'
+import { simplifyForAnalysis } from '@/lib/mapa/simplifyGeometry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -80,8 +82,16 @@ export async function POST(req: Request) {
       console.error('[/api/gee/stats] auth error:', err)
       return NextResponse.json({ error: 'Earth Engine unavailable' }, { status: 503 })
     }
+    // A cold reduction over the biome takes up to a minute; the answer is kept
+    // so only the first person to ask for it waits (lib/mapa/resultCache.ts).
+    // The stock layers (total and pools) share one profile and one report, so
+    // they share one entry too.
+    const layerKey = entry.profile.archetype === 'stocks' ? `stocks:${entry.profile.source}` : entry.layer.id
+    const key = resultCacheKey(layerKey, temporalDate, body.geometry)
     try {
-      const result = await computeLayerResult(getEe(), { entry, geometry: body.geometry, temporalDate })
+      const result = await withResultCache(key, () =>
+        computeLayerResult(getEe(), { entry, geometry: body.geometry, temporalDate }),
+      )
       return NextResponse.json(result)
     } catch (err) {
       console.error('[/api/gee/stats] error:', err)
@@ -115,7 +125,9 @@ export async function POST(req: Request) {
   try {
     const outcome = await computeZonalStats(ee, {
       asset:        body.asset,
-      geometry:     body.geometry,
+      // Thinned here rather than inside computeZonalStats, so the territorial
+      // report, which calls it too, keeps the region its series reduces over.
+      geometry:     simplifyForAnalysis(body.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon),
       temporalDate: body.temporalDate,
       classify:     body.classify,
       breaks:       body.breaks,

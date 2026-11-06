@@ -114,6 +114,63 @@ describe('the provisioned content model', () => {
 })
 
 describe('the provisioned institutional copy', () => {
+  // Provisioning puts the whole content type, so a localized type left
+  // unmarked here would lose its translations at the next --apply.
+  it('localizes the fields of a type the site translates, and no other', () => {
+    const TRADUZIDO = defineCopy({
+      id: 'traduzido',
+      name: 'Traduzido',
+      description: 'Tipo de teste traduzido.',
+      localized: true,
+      fields: { titulo: line('Título', 'Olá') },
+    })
+    const { localized, ...naoTraduzido } = TRADUZIDO
+
+    expect(localized).toBe(true)
+    expect(toProvisionedType(TRADUZIDO).fields.map((f) => toCmaField(f).localized)).toEqual([true])
+    expect(toProvisionedType(naoTraduzido).fields.map((f) => toCmaField(f).localized)).toEqual([false])
+  })
+
+  it('translates every copy type of the translated pages', () => {
+    const translated = [
+      ...['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos'],
+      'comunicacaoPagina',
+      'glossarioPagina',
+      ...['sobreIntro', 'sobrePlataforma', 'sobreCaatinga', 'sobreCarbonoComunidades', 'sobreComoFunciona'],
+    ]
+
+    for (const id of translated) {
+      const type = CONTENT_TYPES.find((c) => c.id === id)
+
+      expect(type?.fields.map((f) => toCmaField(f).localized), id).toEqual(type?.fields.map(() => true))
+    }
+  })
+
+  // The landing shows each publication's title and description; the address,
+  // the files and the order are the same in every language.
+  it('translates the title and the description of the publications, and nothing else of them', () => {
+    for (const id of ['cartilha', 'caderno']) {
+      const localized = CONTENT_TYPES.find((c) => c.id === id)!.fields.filter((f) => toCmaField(f).localized)
+
+      expect(localized.map((f) => f.id), id).toEqual(['title', 'description'])
+    }
+  })
+
+  // The Comunicação page's events tab reads every word of an event in the
+  // visitor's language; the date and the photo are the same in both.
+  it('translates the words of an event, and not its date or its photo', () => {
+    const localized = CONTENT_TYPES.find((c) => c.id === 'evento')!.fields.filter((f) => toCmaField(f).localized)
+
+    expect(localized.map((f) => f.id)).toEqual(['categoria', 'title', 'local', 'description', 'photoAlt', 'caption'])
+  })
+
+  // No page shows the training photos any more.
+  it('leaves the training photos untranslated', () => {
+    const fields = CONTENT_TYPES.find((c) => c.id === 'fotoFormacao')!.fields
+
+    expect(fields.filter((f) => toCmaField(f).localized).map((f) => f.id)).toEqual([])
+  })
+
   it('carries every field the copy queries select', () => {
     for (const type of SITE_COPY_TYPES) {
       const query = copyQuery({ [type.id]: type })
