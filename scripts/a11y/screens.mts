@@ -3,13 +3,18 @@
  * captures the routes of scripts/a11y/routes.ts before and after, at 1440 px,
  * and the comparison must find 0 differing pixels.
  *
- *   A11Y_BASE_URL=http://localhost:3100 npm run a11y:screens -- capture <dir> [path …]
+ *   A11Y_BASE_URL=http://localhost:3100 npm run a11y:screens -- capture <dir> [--print] [path …]
  *   npm run a11y:screens -- compare <beforeDir> <afterDir> <diffDir>
  *
  * Capture empties <dir> of .png files first, so it holds only this run. It takes
- * the same env as check.mts (A11Y_SESSION adds /mapa). Nothing
- * presses a key, so UI that only the keyboard brings up (decision 2b) never
- * shows in either capture.
+ * the same env as check.mts (A11Y_SESSION adds /mapa). Nothing presses a key, so
+ * UI that only the keyboard brings up (decision 2b) never shows in either capture.
+ *
+ * --print captures under the print media type instead of the screen one, for the
+ * PRs that touch what prints (workstreams D and E). Give it a directory of its
+ * own: `compare` pairs files by name, so a print capture against a screen one
+ * would differ on every route. It still takes the page at 1440 px, so it guards
+ * the @media print rules, not the paper's page breaks.
  */
 import { join } from 'node:path'
 import { launchBrowser, openRoute, waitForServer } from './browser'
@@ -25,7 +30,7 @@ const FREEZE_CSS = `
   * { caret-color: transparent !important; }
 `
 
-async function capture(dir: string, paths: string[]) {
+async function capture(dir: string, paths: string[], print: boolean) {
   const baseUrl = process.env.A11Y_BASE_URL ?? 'http://localhost:3000'
   const session = process.env.A11Y_SESSION || undefined
   const routes = routesToRun(paths, Boolean(session))
@@ -40,6 +45,7 @@ async function capture(dir: string, paths: string[]) {
         // scenes still; both sides of a comparison are captured the same way.
         const page = await openRoute(browser, baseUrl, route, { session, reducedMotion: true })
         try {
+          if (print) await page.emulateMediaType('print')
           await page.addStyleTag({ content: FREEZE_CSS })
           // Walk down one viewport at a time so lazy images load, then back up.
           // 'instant' overrides globals.css's `scroll-behavior: smooth`, which
@@ -77,11 +83,12 @@ async function capture(dir: string, paths: string[]) {
 }
 
 const [command, ...args] = process.argv.slice(2)
-if (command === 'capture' && args[0]) {
-  process.exit(await capture(args[0], args.slice(1)))
+if (command === 'capture' && args[0] && !args[0].startsWith('--')) {
+  const rest = args.slice(1)
+  process.exit(await capture(args[0], rest.filter((arg) => arg !== '--print'), rest.includes('--print')))
 } else if (command === 'compare' && args.length === 3) {
   process.exit(compareScreens(args[0], args[1], args[2]))
 } else {
-  console.error('usage: a11y:screens capture <dir> [path …] | compare <beforeDir> <afterDir> <diffDir>')
+  console.error('usage: a11y:screens capture <dir> [--print] [path …] | compare <beforeDir> <afterDir> <diffDir>')
   process.exit(2)
 }
