@@ -6,6 +6,7 @@ import { archivoNarrow, dDin, inter, rubik } from '../fonts/marketing'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { FAVICON } from '@/lib/favicon'
 import { HEADER_NAMESPACES, clientMessages } from '@/i18n/clientMessages'
+import { Announcer } from '@/components/a11y/Announcer'
 
 // Fifth sibling root layout. The story scrolls like the landing page and prints
 // its summary, so it cannot share (mapa)'s locked viewport; being a sibling
@@ -40,6 +41,7 @@ export default async function TerritoriosLayout({
         <NextIntlClientProvider messages={await clientMessages(HEADER_NAMESPACES)}>
           <AuthProvider>{children}</AuthProvider>
         </NextIntlClientProvider>
+        <Announcer />
       </body>
     </html>
   )

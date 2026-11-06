@@ -3,6 +3,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { AuthAnalytics } from '@/components/auth/AuthAnalytics'
 import { libreFranklin } from '../fonts/app'
 import { FAVICON } from '@/lib/favicon'
+import { Announcer } from '@/components/a11y/Announcer'
 
 export const metadata: Metadata = {
   title: 'Entrar | Caativar',
@@ -16,6 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <body style={{ margin: 0, minHeight: '100dvh', fontFamily: 'var(--font-app), sans-serif' }}>
         <AuthProvider>{children}</AuthProvider>
         <AuthAnalytics />
+        <Announcer />
       </body>
     </html>
   )

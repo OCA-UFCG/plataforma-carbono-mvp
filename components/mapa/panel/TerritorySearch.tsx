@@ -163,6 +163,7 @@ export default function TerritorySearch({ onSelect }: {
       {showList && (
         <ul id={`${id}-results`} role="listbox" aria-label="Recortes encontrados" className={`${styles.popup} ${styles.results}`}>
           {results.map((r, i) => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- keyboard selection lives on the combobox input (aria-activedescendant)
             <li
               key={`${r.layerId}-${r.featureIndex}-${r.fieldName}`}
               id={optionId(i)}

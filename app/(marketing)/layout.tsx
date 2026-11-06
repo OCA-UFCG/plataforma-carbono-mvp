@@ -5,6 +5,7 @@ import "../globals.css";
 import { Analytics } from "@/components/Analytics";
 import { FAVICON } from "@/lib/favicon";
 import { MARKETING_NAMESPACES, clientMessages } from "@/i18n/clientMessages";
+import { Announcer } from "@/components/a11y/Announcer";
 import { archivo, archivoNarrow, inter, rubik } from "../fonts/marketing";
 
 // Root layout of the marketing pages. The maps module has its own root layout
@@ -45,6 +46,7 @@ export default async function MarketingLayout({
       <body className={`${rubik.variable} ${archivoNarrow.variable} ${inter.variable} ${archivo.variable}`}>
         <NextIntlClientProvider messages={await clientMessages(MARKETING_NAMESPACES)}>{children}</NextIntlClientProvider>
         <Analytics />
+        <Announcer />
       </body>
     </html>
   );
