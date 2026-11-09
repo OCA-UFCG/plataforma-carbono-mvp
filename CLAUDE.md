@@ -17,9 +17,11 @@ npx vitest run tests/lib/stockReport.test.ts     # a single test file
 npx vitest run -t "case name"                    # a single case by name
 python tests/scripts/test_build_sif.py           # unit tests of scripts/build-sif.py (stdlib unittest)
 npm run contrast         # WCAG contrast check of the 12 monthly accents; runs in CI
+npm run a11y             # axe on scripts/a11y/routes.ts (A11Y_BASE_URL, A11Y_SESSION); runs in CI
+npm run a11y:screens -- capture <dir> | compare <before> <after> <diff>   # the no-visual-change guard
 ```
 
-CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run build` and `npm run contrast` — it does **not** run `npm test` or `npm run lint`, so run those locally.
+CI (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm run build`, `npm run contrast` and the axe check (`npm run a11y`) — it does **not** run `npm test`, so run that locally.
 
 Data/GEE scripts (require the service account credential): `npm run breaks` (Jenks, writes into `config/mapa/layers.json`), `npm run clip`, `npm run trim`, `npm run prewarm`, `node scripts/verify-assets.mjs`, `node scripts/list-assets.mjs`, `python scripts/build-recortes.py`.
 
@@ -89,4 +91,5 @@ The platform wears the site's fixed palette, light only: `config/mapa/platforms.
 - `lib/cenas/REGRAS_CENAS.md` — rules for the Glossário animations (engine, scenes, visual conventions, sources). Read it before touching `lib/cenas/` or `components/glossario/`.
 - `DOCUMENTACAO.md` — full technical inventory: layer table with asset/band/unit, GEE pipeline, data decisions and TODOs. Read it before touching layers.
 - `README.md` — Firebase setup, Docker, CI/CD and the required GitHub Actions secrets.
+- `docs/superpowers/specs/2026-11-03-accessibility-design.md` — the accessibility rules. Nothing a mouse user sees may change (decision 2); UI only the keyboard brings up may (2b); the rest is a known limitation (§8). The shared pieces are `announce()` (`lib/a11y/announce.ts`), `focusFirst()` (`lib/a11y/focus.ts`) and `HiddenDataTable` (`components/a11y/`); every PR runs `npm run a11y` and the `npm run a11y:screens` comparison.
 - `REVISAO_TECNICA.md` — the security/bug/performance review already implemented. Paths quoted there predate the merge: read `lib/` as `lib/mapa/`, `config/` as `config/mapa/`, `components/` as `components/mapa/`.

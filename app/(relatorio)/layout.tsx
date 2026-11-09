@@ -4,6 +4,7 @@ import '../relatorio.css'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { getAuthenticatedSession } from '@/lib/auth'
 import { FAVICON } from '@/lib/favicon'
+import { Announcer } from '@/components/a11y/Announcer'
 import { libreFranklin } from '../fonts/app'
 
 // Fourth sibling root layout. The report is a document that scrolls and prints,
@@ -31,6 +32,7 @@ export default async function RelatorioLayout({
     <html lang="pt-BR" className={libreFranklin.variable}>
       <body>
         <AuthProvider>{children}</AuthProvider>
+        <Announcer />
       </body>
     </html>
   )
