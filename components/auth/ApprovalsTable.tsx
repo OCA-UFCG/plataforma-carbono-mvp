@@ -9,6 +9,12 @@ export interface ApprovalRow {
   uid: string
   email: string
   intention: string
+  /**
+   * The inviting admin, for a request an invite opened or took over. Such a request lands here only
+   * when its confirmation failed midway; the note says why it has no intention, or whose invite
+   * took over the signup whose intention it shows.
+   */
+  invitedBy?: string | null
   /** Formatted on the server, so the client never re-formats it in another time zone. */
   requestedAt: string
 }
@@ -88,7 +94,10 @@ export default function ApprovalsTable({ rows }: { rows: ApprovalRow[] }) {
               <tr key={row.uid} style={{ borderBottom: `1px solid ${authColors.border}` }}>
                 <td style={cell}>{row.email}</td>
                 {/* A stranger's text: React escapes it, and pre-wrap keeps its line breaks without interpreting anything. */}
-                <td style={{ ...cell, color: authColors.muted, whiteSpace: 'pre-wrap' }}>{row.intention}</td>
+                <td style={{ ...cell, color: authColors.muted, whiteSpace: 'pre-wrap' }}>
+                  {row.intention}
+                  {row.invitedBy ? <span style={{ display: 'block', marginTop: row.intention ? 6 : 0, fontStyle: 'italic' }}>Convite de {row.invitedBy}</span> : null}
+                </td>
                 <td style={{ ...cell, whiteSpace: 'nowrap', color: authColors.muted }}>{row.requestedAt}</td>
                 <td style={{ ...cell, whiteSpace: 'nowrap' }}>
                   {state === 'approved' || state === 'rejected' ? (

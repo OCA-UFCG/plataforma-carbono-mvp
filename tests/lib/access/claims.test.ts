@@ -34,6 +34,12 @@ describe('readAccessClaim', () => {
       .toEqual({ access: 'approved', tier: 'allowed', at: 1700000000 })
   })
 
+  it('reads every tier the app grants, the invite included', () => {
+    for (const tier of ['allowed', 'common', 'invited', 'legacy']) {
+      expect(readAccessClaim({ caativar: { access: 'approved', tier, at: 1 } })?.tier).toBe(tier)
+    }
+  })
+
   it('denies anything else the same way', () => {
     const denied: unknown[] = [
       undefined, null, 'caativar', {}, { caativar: null }, { caativar: 'approved' },

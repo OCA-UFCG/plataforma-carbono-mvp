@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buildDecisionEmail, buildNewRequestEmail, buildPasswordResetEmail, buildVerificationEmail } from '@/lib/access/emails'
+import { buildDecisionEmail, buildInviteEmail, buildNewRequestEmail, buildPasswordResetEmail, buildVerificationEmail } from '@/lib/access/emails'
 import { approvalsUrl, loginUrl, passwordResetUrl, signupConfirmationUrl } from '@/lib/access/urls'
 
 afterEach(() => {
@@ -40,6 +40,20 @@ describe('confirmation email', () => {
     expect(email.text).toContain(LINK)
     expect(email.text).toContain('Se você não fez este cadastro, ignore este e-mail.')
     expect(email.text).toContain(FOOTER)
+  })
+})
+
+describe('invite email', () => {
+  it('carries the link under the button and in the text part, with the fixed text', () => {
+    const link = 'https://caativar.example.org/cadastro/confirmacao?code=C0DE&email=parceira%40gmail.com'
+    const message = buildInviteEmail({ link })
+
+    expect(message.subject).toBe('Convite para a Caativar')
+    expect(message.html).toContain('Aceitar convite e escolher senha')
+    expect(message.html).toContain('code=C0DE&amp;email=parceira%40gmail.com')
+    expect(message.text).toContain(link)
+    expect(message.text).toContain('convidou você')
+    expect(message.text).toContain('Se você não esperava este convite, ignore este e-mail.')
   })
 })
 

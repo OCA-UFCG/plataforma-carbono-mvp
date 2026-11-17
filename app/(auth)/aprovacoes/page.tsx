@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import AuthCard, { authStyles } from '@/components/auth/AuthCard'
 import ApprovalsTable, { type ApprovalRow } from '@/components/auth/ApprovalsTable'
+import InviteForm from '@/components/auth/InviteForm'
 import { getAuthenticatedSession, loginRedirect } from '@/lib/auth'
 import { isAccessAdmin } from '@/lib/access/admins'
+import { isSignupOpen } from '@/lib/access/flag'
 import { APPROVALS_PATH } from '@/lib/access/paths'
 import { listPendingAccessRequests } from '@/lib/access/requests'
 
@@ -31,6 +33,7 @@ export default async function ApprovalsPage() {
       uid: request.uid,
       email: request.email,
       intention: request.intention,
+      invitedBy: request.tier === 'invited' ? (request.invitedBy ?? null) : null,
       requestedAt: requestedAtFormat.format(new Date(request.createdAt)),
     }))
   } catch (error) {
@@ -39,6 +42,8 @@ export default async function ApprovalsPage() {
 
   return (
     <AuthCard title="Pedidos de acesso" description="Cadastros que confirmaram o e-mail e aguardam liberação." width={960}>
+      {/* The invite route answers 404 while signup is closed, and so would the link it sends. */}
+      {isSignupOpen() ? <InviteForm /> : null}
       {rows ? (
         <ApprovalsTable rows={rows} />
       ) : (

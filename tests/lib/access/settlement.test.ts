@@ -76,6 +76,15 @@ describe('settleSignup', () => {
     expect(mocks.sendMail).not.toHaveBeenCalled()
   })
 
+  it("grants an invite on confirmation, recorded as the inviting admin's decision, without emailing the team", async () => {
+    seed('u1', { tier: 'invited', intention: '', invitedBy: 'admin@ufcg.edu.br' })
+
+    expect(await settle('u1')).toBe('approved')
+    expect(mocks.approveAccess).toHaveBeenCalledWith('u1', 'invited')
+    expect(fake.store(COLLECTION).get('u1')).toMatchObject({ status: 'approved', decidedBy: 'admin@ufcg.edu.br' })
+    expect(mocks.sendMail).not.toHaveBeenCalled()
+  })
+
   it('leaves a common request pending and emails the team once, with the approvals link', async () => {
     seed('u1')
 
