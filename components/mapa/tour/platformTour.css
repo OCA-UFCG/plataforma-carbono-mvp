@@ -1,0 +1,300 @@
+/* The platform tour's balloon in Caativar's tokens: SEDES's balloon
+   (SAP-frontend/src/components/PlatformTour/platformTour.css) re-skinned.
+   Every selector starts with `.driver-popover.caativar-tour` to beat
+   driver.js's own sheet by specificity, not by load order. */
+
+.driver-popover.caativar-tour {
+  --caativar-tour-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  font-family: var(--font-sans, var(--font-fallback));
+  color: var(--bg-texto-primario);
+  min-width: 300px;
+  max-width: 340px;
+  padding: 22px 22px 18px;
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(55, 77, 21, 0.08),
+    0 24px 48px -16px rgba(55, 77, 21, 0.45);
+}
+
+/* The balloon is rebuilt on every step, so its entrance is the transition
+   between steps: it slides out of the highlight, on the side it landed. */
+.driver-fade .driver-popover.caativar-tour {
+  animation: caativar-tour-enter 360ms var(--caativar-tour-ease) both;
+}
+
+.driver-fade .driver-popover.caativar-tour.driver-popover-side-right {
+  --caativar-tour-from: translateX(-8px);
+}
+
+.driver-fade .driver-popover.caativar-tour.driver-popover-side-left {
+  --caativar-tour-from: translateX(8px);
+}
+
+.driver-fade .driver-popover.caativar-tour.driver-popover-side-top {
+  --caativar-tour-from: translateY(8px);
+}
+
+.driver-fade .driver-popover.caativar-tour.driver-popover-side-bottom {
+  --caativar-tour-from: translateY(-8px);
+}
+
+.driver-fade .driver-popover.caativar-tour.driver-popover-side-over {
+  --caativar-tour-from: scale(0.96);
+}
+
+@keyframes caativar-tour-enter {
+  from {
+    opacity: 0;
+    transform: var(--caativar-tour-from, none);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* driver.js's arrow is a 5px border triangle; it grows to reach the
+   highlight across the 16px gap. */
+.driver-popover.caativar-tour .driver-popover-arrow {
+  border-width: 8px;
+}
+
+.driver-popover.caativar-tour .caativar-tour-logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  margin-bottom: 16px;
+}
+
+.driver-popover.caativar-tour .driver-popover-title {
+  font-family: var(--font-sans, var(--font-fallback));
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.015em;
+  color: var(--bg-texto-primario);
+  padding-right: 28px;
+}
+
+.driver-popover.caativar-tour .driver-popover-description {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  line-height: 21px;
+  color: var(--bg-texto-secundario);
+}
+
+/* Steps 5 and 6: a preview that unfolds top-down just after the balloon
+   enters. Its space is already reserved; only the clip animates, so the
+   balloon keeps the height driver.js placed it with. */
+.driver-popover.caativar-tour .caativar-tour-preview {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--am-200);
+  border-left: 3px solid var(--role-marca-ancora-padrao);
+  border-radius: 10px;
+  background-color: var(--role-marca-ancora-container);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  color: var(--bg-texto-secundario);
+  animation: caativar-tour-unfold 420ms var(--caativar-tour-ease) 280ms both;
+}
+
+@keyframes caativar-tour-unfold {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0 round 10px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0 round 10px);
+  }
+}
+
+.driver-popover.caativar-tour .caativar-tour-preview strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+.driver-popover.caativar-tour .caativar-tour-preview-label {
+  display: block;
+  font-family: var(--font-ui, var(--font-fallback));
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--role-marca-ancora-hover);
+}
+
+.driver-popover.caativar-tour .caativar-tour-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.driver-popover.caativar-tour .caativar-tour-chip {
+  padding: 0 8px;
+  border: 1px solid var(--role-marca-ancora-borda);
+  border-radius: 999px;
+  background-color: var(--card);
+  font-family: var(--font-ui, var(--font-fallback));
+  font-size: 0.75rem;
+  line-height: 20px;
+  color: var(--role-marca-ancora-hover);
+}
+
+/* Some summaries run past ten lines: the preview shows the start, and the
+   real "i" shows the rest. */
+.driver-popover.caativar-tour .caativar-tour-preview p {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.driver-popover.caativar-tour .caativar-tour-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+/* Without a measured layer to name, the list opens the preview. */
+.driver-popover.caativar-tour .caativar-tour-preview > .caativar-tour-preview-list:first-child {
+  margin-top: 0;
+}
+
+.driver-popover.caativar-tour .driver-popover-close-btn {
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  line-height: 28px;
+  color: var(--bg-borda);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.driver-popover.caativar-tour .driver-popover-close-btn:hover,
+.driver-popover.caativar-tour .driver-popover-close-btn:focus-visible {
+  color: var(--bg-texto-primario);
+  background-color: var(--role-marca-ancora-container);
+}
+
+/* driver.js focuses the "×" when each balloon opens. The pale green fill
+   alone barely shows on white, and a keyboard user could not see where
+   they were. */
+.driver-popover.caativar-tour .driver-popover-close-btn:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+.driver-popover.caativar-tour .driver-popover-footer {
+  margin-top: 20px;
+  gap: 12px;
+}
+
+.driver-popover.caativar-tour .driver-popover-progress-text {
+  display: flex;
+  align-items: center;
+}
+
+.driver-popover.caativar-tour .caativar-tour-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.driver-popover.caativar-tour .caativar-tour-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--am-200);
+}
+
+.driver-popover.caativar-tour .caativar-tour-dot-done {
+  background-color: var(--cb-400);
+}
+
+.driver-popover.caativar-tour .caativar-tour-dot-current {
+  width: 18px;
+  background-color: var(--role-marca-ancora-padrao);
+  animation: caativar-tour-dot-grow 360ms var(--caativar-tour-ease) both;
+}
+
+@keyframes caativar-tour-dot-grow {
+  from {
+    width: 6px;
+  }
+}
+
+.driver-popover.caativar-tour .caativar-tour-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.driver-popover.caativar-tour .driver-popover-navigation-btns {
+  gap: 8px;
+}
+
+.driver-popover.caativar-tour .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+
+.driver-popover.caativar-tour .driver-popover-footer-btn {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--am-200);
+  border-radius: var(--radius);
+  background-color: var(--card);
+  color: var(--bg-texto-primario);
+  font-family: var(--font-ui, var(--font-fallback));
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 34px;
+  text-shadow: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.driver-popover.caativar-tour .driver-popover-footer-btn:hover {
+  background-color: var(--role-marca-ancora-container);
+}
+
+.driver-popover.caativar-tour .driver-popover-footer-btn:focus-visible {
+  outline: 2px solid var(--role-marca-ancora-foco);
+  outline-offset: 2px;
+}
+
+.driver-popover.caativar-tour .driver-popover-next-btn {
+  border-color: var(--role-marca-ancora-padrao);
+  background-color: var(--role-marca-ancora-padrao);
+  color: var(--role-marca-ancora-texto-sobre);
+}
+
+.driver-popover.caativar-tour .driver-popover-next-btn:hover {
+  border-color: var(--role-marca-ancora-hover);
+  background-color: var(--role-marca-ancora-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .driver-fade .driver-popover.caativar-tour,
+  .driver-popover.caativar-tour .caativar-tour-dot-current,
+  .driver-popover.caativar-tour .caativar-tour-preview {
+    animation: none;
+  }
+}

@@ -14,6 +14,8 @@ import {
   markPlatformTourSeen,
   shouldAutoStartTour,
 } from '@/components/mapa/tour/tourSteps'
+import { measurableLayerName } from '@/components/mapa/tour/tourDom'
+import type { LayerConfig } from '@/types/mapa'
 
 /** A window of the given width whose localStorage reads and writes `storage`, or throws. */
 function stubWindow({ innerWidth, storage }: { innerWidth: number; storage: Record<string, string> | 'throws' }) {
@@ -72,6 +74,25 @@ describe('platform tour steps', () => {
     stubWindow({ innerWidth: 1280, storage: 'throws' })
     expect(hasSeenPlatformTour()).toBe(true)
     expect(() => markPlatformTourSeen()).not.toThrow()
+  })
+
+  it('names an off raster in the result preview, since the tour never turns one on', () => {
+    const raster = { id: 'estoque_carbono', name: 'Estoque Total', type: 'raster', visible: false } as LayerConfig
+    expect(measurableLayerName(raster)).toBe('Estoque Total')
+  })
+
+  it('names no layer the Resultado panel would not measure', () => {
+    const vector = { id: 'bioma', name: 'Bioma Caatinga', type: 'vector', visible: true } as LayerConfig
+    const unmeasured = { id: 'relevo', name: 'Relevo', type: 'raster', visible: false, analysis: false } as LayerConfig
+    expect(measurableLayerName(vector)).toBeNull()
+    expect(measurableLayerName(unmeasured)).toBeNull()
+    expect(measurableLayerName(undefined)).toBeNull()
+  })
+
+  it("sets step 6's balloon beside the middle of the map, clear of the header", () => {
+    const result = buildTourSteps()[5]
+    expect(result.popover?.side).toBe('left')
+    expect(result.popover?.align).toBe('center')
   })
 
   it('keeps every preview free of numbers', () => {

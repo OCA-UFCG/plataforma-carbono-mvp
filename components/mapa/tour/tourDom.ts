@@ -2,7 +2,6 @@ import { flushSync } from 'react-dom'
 import type { Config, PopoverDOM } from 'driver.js'
 import { useStore } from '@/lib/mapa/store'
 import { fichaHeadline } from '@/lib/mapa/ficha'
-import { isMeasuredRaster } from '@/lib/mapa/analysisTargets'
 import type { LayerConfig } from '@/types/mapa'
 import { TOUR_COPY } from './tourCopy'
 
@@ -88,17 +87,26 @@ export function renderLayerPreview(dom: PopoverDOM): void {
 }
 
 /**
+ * The name step 6's preview goes under: a raster Resultado would measure once
+ * it is on. Not `isMeasuredRaster`, which also asks for the layer to be on,
+ * and the tour never turns one on.
+ */
+export function measurableLayerName(layer: LayerConfig | undefined): string | null {
+  return layer?.type === 'raster' && layer.analysis !== false ? layer.name : null
+}
+
+/**
  * Below step 6's text, what the Resultado panel brings, with no numbers: the
  * tour never measures anything, so nothing here may read as a real value.
- * Named after the first card's layer when that layer is one Resultado
- * measures; otherwise the list stands alone.
+ * Named after the first card's layer when Resultado measures that layer;
+ * otherwise the list stands alone.
  */
 export function renderResultPreview(dom: PopoverDOM): void {
   const preview = el('div', 'caativar-tour-preview')
-  const layer = firstCardLayer()
-  if (layer && isMeasuredRaster(layer)) {
+  const name = measurableLayerName(firstCardLayer())
+  if (name) {
     preview.append(el('span', 'caativar-tour-preview-label', 'Resultado'))
-    preview.append(el('strong', undefined, layer.name))
+    preview.append(el('strong', undefined, name))
   }
   const list = el('ul', 'caativar-tour-preview-list')
   for (const item of TOUR_COPY.result.items) list.append(el('li', undefined, item))

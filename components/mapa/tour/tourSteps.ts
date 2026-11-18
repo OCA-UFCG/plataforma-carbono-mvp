@@ -94,6 +94,10 @@ export function buildTourSteps(): DriveStep[] {
       popover: {
         title: TOUR_COPY.result.title,
         description: TOUR_COPY.result.description,
+        // Left of the map's middle, over the panel, which this step does not
+        // need: left alone, driver.js put it at the top, across the header.
+        side: 'left',
+        align: 'center',
         onPopoverRender: (dom, opts) => {
           renderPopover(dom, opts)
           renderResultPreview(dom)
