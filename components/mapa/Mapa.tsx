@@ -5,6 +5,7 @@ import MapView from './MapView'
 import Sidebar from './Sidebar'
 import ResultsSidebar from './ResultsSidebar'
 import LayerInfoCard from './LayerInfoCard'
+import { usePlatformTour } from './tour/usePlatformTour'
 import SiteHeader from '@/components/marketing/SiteHeader'
 import { useStore, camadasARestaurar, hasAnalysisContent } from '@/lib/mapa/store'
 import { buildSiteTheme } from '@/config/mapa/platforms'
@@ -102,6 +103,11 @@ export default function Mapa() {
 
   const collapsePanel = () => { setPanelOpen(false); setInfoId(null) }
 
+  // The first-visit tour, and its replay for the "?" in the map controls. It
+  // opens the panel itself: below 1180px the panel starts collapsed, and four
+  // of its steps point inside it.
+  const replayTour = usePlatformTour({ showPanel: () => setPanelOpen(true) })
+
   // Below 768px the side columns turn into drawers over the map (Sidebar,
   // ResultsSidebar and LayerInfoCard each switch on their own).
   const [narrow, setNarrow] = useState(
@@ -162,7 +168,7 @@ export default function Mapa() {
 
         {/* Clips its overlays at the column's edge: with the ficha open the
             map is 290px wide, and the legend would spill over the ficha. */}
-        <div style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
+        <div data-tour="map" style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
           {/* The panels no longer cover the map, so the insets only keep the
               overlays clear of the map's own buttons below. */}
           <MapView
@@ -172,6 +178,7 @@ export default function Mapa() {
             dismissSelectionRef={dismissSelectionRef}
             selectFeatureRef={selectFeatureRef}
             captureMapRef={captureMapRef}
+            onReplayTour={replayTour}
           />
 
           {/* "‹" on the panel's edge (Figma 19442:60752), 14px under the

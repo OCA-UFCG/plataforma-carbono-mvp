@@ -10,6 +10,8 @@ interface Props {
   mapRef: RefObject<maplibregl.Map | null>
   /** Distance from the map's right edge (lib/mapa/layout.ts, MAP_INSET). */
   rightOffset: number
+  /** Replays the platform tour; the "?" shows only when it is given. */
+  onReplayTour?: () => void
 }
 
 /** One of Figma's 16px control icons, exported to public/icons/mapa/. */
@@ -22,9 +24,11 @@ function Icon({ name }: { name: string }) {
  * Map control stack (Figma 19428:58457), under the "Resultado" button: zoom
  * in and out in one box, then locate, fullscreen and north, then the basemap
  * selector, each a 40px outlined button. Drawing starts from the panel's
- * Território section.
+ * Território section. Last, apart, the "?" that replays the platform tour,
+ * which the design does not draw: SEDES keeps its "Tutorial" in a side rail
+ * the platform lacks, and here it stays on screen whatever the panels do.
  */
-export default function MapControls({ mapRef, rightOffset }: Props) {
+export default function MapControls({ mapRef, rightOffset, onReplayTour }: Props) {
   const basemapId  = useStore((s) => s.basemapId)
   const setBasemap = useStore((s) => s.setBasemap)
 
@@ -108,7 +112,7 @@ export default function MapControls({ mapRef, rightOffset }: Props) {
         </button>
       </div>
 
-      <div ref={bmRef} className={styles.basemap}>
+      <div ref={bmRef} className={styles.basemap} data-tour="basemap">
         <button
           type="button"
           className={styles.control}
@@ -137,6 +141,19 @@ export default function MapControls({ mapRef, rightOffset }: Props) {
           </div>
         )}
       </div>
+
+      {onReplayTour && (
+        <button
+          type="button"
+          className={styles.control}
+          onClick={onReplayTour}
+          aria-label="Tutorial"
+          title="Tutorial"
+          data-tour="tour-replay"
+        >
+          <Icon name="help" />
+        </button>
+      )}
     </div>
   )
 }

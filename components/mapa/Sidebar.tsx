@@ -188,6 +188,7 @@ function ThemeSection({
         className={styles.themeHeader}
         onClick={onToggle}
         aria-expanded={open}
+        data-tour-reveal="theme"
         style={{ background: tema.tint }}
       >
         {tema.icon
@@ -237,7 +238,7 @@ function LayerRow({
   const errorHere = errorMsg && (!layer.visible || layer.type === 'vector')
 
   return (
-    <div className={styles.layer}>
+    <div className={styles.layer} data-tour="layer-card">
       <div className={styles.layerMain}>
         {isLoading ? (
           <span className={`${styles.loading} text-ui-badge`} aria-label={`Carregando ${layer.name}`}>…</span>
@@ -265,6 +266,8 @@ function LayerRow({
           onClick={() => onInfo(layer.id)}
           aria-label={`Ficha da camada ${layer.name}`}
           aria-expanded={infoOpen}
+          data-tour="layer-info"
+          data-layer-id={layer.id}
           title="Ficha da camada"
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- static SVG icon */}

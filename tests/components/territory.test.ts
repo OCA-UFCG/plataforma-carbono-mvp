@@ -71,6 +71,14 @@ describe('Territory (Figma 19423:56814)', () => {
     expect(markup).toContain('/icons/mapa/edit.svg')
   })
 
+  it('marks Território, its fold and its draw buttons for the tour', () => {
+    state.layers = [bioma]
+    const markup = render()
+    expect(markup).toMatch(/<section [^>]*data-tour="territory"/)
+    expect(markup).toMatch(/<button (?=[^>]*data-tour-reveal="territory")(?=[^>]*aria-expanded="true")[^>]*>/)
+    expect(markup).toMatch(/data-tour="draw"[\s\S]*Delimitar recorte[\s\S]*Marcar ponto/)
+  })
+
   it('arms the drawing button in use', () => {
     state.drawMode = 'polygon'
     const markup = render()
