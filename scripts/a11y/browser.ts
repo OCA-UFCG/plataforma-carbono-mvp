@@ -14,6 +14,9 @@ export const VIEWPORT = { width: 1440, height: 900, deviceScaleFactor: 1 }
 
 const READY_TIMEOUT_MS = 15_000
 const ATTEMPT_TIMEOUT_MS = 5_000
+// Longer than READY_TIMEOUT_MS: the publication reader stays busy while it
+// downloads a PDF of several megabytes and draws its first page.
+const BUSY_TIMEOUT_MS = 30_000
 
 export function launchBrowser(): Promise<Browser> {
   return puppeteer.launch({
@@ -46,7 +49,8 @@ export async function waitForServer(baseUrl: string, timeoutMs = 120_000): Promi
 
 /**
  * Opens a route at 1440×900 and returns the page once it really rendered: the
- * response must be 200 and `route.ready` must appear. Anything else throws, so
+ * response must be 200, `route.ready` must appear and no element may be left
+ * `aria-busy="true"`. Anything else throws, so
  * an error page or a 404 never gets checked in the page's place. A page that
  * fails to open is closed here; the caller closes the one it gets.
  */
@@ -79,6 +83,15 @@ export async function openRoute(
     if (status !== 200) throw new Error(`status ${status ?? 'none'}`)
     await page.waitForNetworkIdle({ idleTime: 500, concurrency: 2, timeout: 30_000 })
     await page.waitForSelector(route.ready, { timeout: READY_TIMEOUT_MS })
+    // A part that keeps loading after the page is ready marks itself
+    // aria-busy (AuthCard while it checks an emailed code, the PDF reader until
+    // its first page is drawn). Checked or captured mid-way, it would show a
+    // different state on every run, so wait until nothing is busy.
+    try {
+      await page.waitForFunction(() => document.querySelector('[aria-busy="true"]') === null, { timeout: BUSY_TIMEOUT_MS })
+    } catch {
+      throw new Error(`still aria-busy after ${BUSY_TIMEOUT_MS / 1000}s`)
+    }
     return page
   } catch (error) {
     // A page left open keeps its timers and requests running beside the routes after it.

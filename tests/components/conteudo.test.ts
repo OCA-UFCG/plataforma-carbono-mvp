@@ -243,3 +243,22 @@ describe('the PDF reader in English', () => {
     expect(html(LeitorCarregando, {}, 'en')).toContain('Loading document…')
   })
 })
+
+// The accessibility checks wait until nothing is aria-busy (scripts/a11y/browser.ts),
+// so a reader still downloading or drawing is never checked or captured mid-way.
+describe('the PDF reader while it loads', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('marks the skeleton busy', () => {
+    expect(html(LeitorCarregando, {})).toMatch(/^<div[^>]*aria-busy="true"/)
+  })
+
+  it('marks the reader busy until its first page is drawn', () => {
+    vi.stubGlobal('document', { fullscreenEnabled: true })
+    const markup = html(PdfViewer, { url: 'https://x/v1.pdf', title: 'T', fileName: 'v1.pdf', cover: '/c.jpg' })
+    // React hoists a preload link per toolbar icon ahead of the markup; the frame comes after.
+    expect(markup.replace(/^(<link[^>]*>)+/, '')).toMatch(/^<div[^>]*aria-busy="true"/)
+  })
+})

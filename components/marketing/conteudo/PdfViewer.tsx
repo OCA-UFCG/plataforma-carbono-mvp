@@ -49,6 +49,9 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
   // the field does not overwrite it.
   const editingPageRef = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
+  // Set once pdf.js has drawn a page: "ready" only means the document is parsed,
+  // and the page stays a blank sheet with a spinner until its first render.
+  const [rendered, setRendered] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -114,6 +117,9 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
         if (!editingPageRef.current) setPageField(String(pageNumber));
       });
       eventBus.on("scalechanging", ({ scale: next }: { scale: number }) => setScale(next));
+      // Fires for a failed render too (its `error` is set): either way the page
+      // has settled, and the reader stops being busy.
+      eventBus.on("pagerendered", () => setRendered(true));
 
       // PDFViewer only tracks its container's size; refitting is left to the
       // app, as pdf.js's own viewer does on resize. The preset fit survives a
@@ -244,11 +250,15 @@ export default function PdfViewer({ url, title, fileName, cover }: PdfViewerProp
   }
 
   const ready = status === "ready";
+  // Busy from the download until the first page is drawn, or until it failed:
+  // assistive tech holds off on a reader still changing under it, and the
+  // accessibility checks (scripts/a11y/browser.ts) wait for it to settle.
+  const busy = status === "loading" || (ready && !rendered);
   const zoomInStep = scale === null ? null : nextZoomStep(scale, 1);
   const zoomOutStep = scale === null ? null : nextZoomStep(scale, -1);
 
   return (
-    <div ref={frameRef} className={leitor.frame}>
+    <div ref={frameRef} className={leitor.frame} aria-busy={busy || undefined}>
       <div className={leitor.toolbar}>
         <p className={`${leitor.title} text-p-ui`} title={title}>
           {title}
