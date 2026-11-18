@@ -24,6 +24,7 @@ import { join } from 'node:path'
 import { launchBrowser, openRoute, waitForServer } from './browser'
 import { compareScreens, prepareCaptureDir } from './compare'
 import { routesToRun, screenshotName } from './routes'
+import { parseScreensArgs, SCREENS_USAGE } from './screensArgs'
 
 // What varies between two captures of the same code, hidden from both:
 // canvases hold map tiles and animation frames; nextjs-portal is the dev
@@ -103,13 +104,13 @@ async function capture(dir: string, paths: string[], print: boolean) {
   return failed ? 1 : 0
 }
 
-const [command, ...args] = process.argv.slice(2)
-if (command === 'capture' && args[0] && !args[0].startsWith('--')) {
-  const rest = args.slice(1)
-  process.exit(await capture(args[0], rest.filter((arg) => arg !== '--print'), rest.includes('--print')))
-} else if (command === 'compare' && args.length === 3) {
-  process.exit(compareScreens(args[0], args[1], args[2]))
-} else {
-  console.error('usage: a11y:screens capture <dir> [--print] [path …] | compare <beforeDir> <afterDir> <diffDir>')
+const parsed = parseScreensArgs(process.argv.slice(2))
+if ('error' in parsed) {
+  console.error(parsed.error)
+  console.error(SCREENS_USAGE)
   process.exit(2)
 }
+if (parsed.command === 'capture') {
+  process.exit(await capture(parsed.dir, parsed.paths, parsed.print))
+}
+process.exit(compareScreens(parsed.beforeDir, parsed.afterDir, parsed.diffDir))
