@@ -2,16 +2,17 @@
  * The pages the accessibility checks visit: the axe check (check.mts) and the
  * screenshot guard (screens.mts). `ready` is a selector the page shows only
  * once it rendered for real, so an error page never passes for the page.
- * `settled` is for a page that draws its heading first and its real state after
- * a request (the email-link pages): the check waits until the `h1` says it.
  * `session` routes need a `session` cookie (A11Y_SESSION; see session.mts) and
  * are skipped without one, as in CI.
  */
-export type A11yRoute = { path: string; ready: string; settled?: string; session?: true }
+export type A11yRoute = { path: string; ready: string; session?: true }
 
 // The auth pages sit on AuthCard (`main > section > h1`). Next's own 404 also
 // has an `h1`, but no `main`, so a bare `h1` could pass for a page that is not there.
-const AUTH_READY = 'main > section > h1'
+// A page that checks an emailed code marks `main` busy (aria-busy) while it waits
+// on the request, so the card it settles on is the one that gets checked and
+// captured, whatever its copy. The selector excludes the busy `main` until then.
+const AUTH_READY = 'main:not([aria-busy]) > section > h1'
 
 // The first publication of the shipped content (DEFAULT_CARTILHAS in
 // lib/content/comunicacao.ts, which this script cannot import: it is server-only).
@@ -32,10 +33,10 @@ export const A11Y_ROUTES: readonly A11yRoute[] = [
   // Renders only with PLATFORM_ACCESS_GUARD_ENABLED=true on the server.
   { path: '/cadastro', ready: AUTH_READY },
   // The confirmation page 404s without the switch, like /cadastro. Opened with
-  // no code, it settles on the invalid-link card: the page a stale link shows.
-  { path: '/cadastro/confirmacao', ready: AUTH_READY, settled: 'Link inválido' },
+  // no code, it ends on the invalid-link card: the page a stale link shows.
+  { path: '/cadastro/confirmacao', ready: AUTH_READY },
   { path: '/esqueci-senha', ready: AUTH_READY },
-  { path: '/redefinir-senha', ready: AUTH_READY, settled: 'Link inválido' },
+  { path: '/redefinir-senha', ready: AUTH_READY },
   { path: '/aguardando-liberacao', ready: AUTH_READY },
   { path: '/mapa', ready: '.maplibregl-canvas', session: true },
 ]

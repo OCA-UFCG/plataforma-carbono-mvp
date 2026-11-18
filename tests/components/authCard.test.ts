@@ -16,6 +16,15 @@ describe('AuthCard', () => {
     expect(markup).toContain('min(100%, 420px)')
   })
 
+  it('marks the card busy with aria-busy while it waits on a request', () => {
+    const markup = renderToStaticMarkup(createElement(AuthCard, { title: 'Verificando o link...', busy: true }))
+    expect(markup).toMatch(/<main[^>]*aria-busy="true"/)
+  })
+
+  it('has no aria-busy when the card is not busy', () => {
+    expect(renderToStaticMarkup(createElement(AuthCard, { title: 'Criar conta' }))).not.toContain('aria-busy')
+  })
+
   it('widens for the approvals panel', () => {
     expect(renderToStaticMarkup(createElement(AuthCard, { title: 'Pedidos de acesso', width: 960 }))).toContain('min(100%, 960px)')
   })

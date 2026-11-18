@@ -43,6 +43,7 @@ describe('SignupConfirmation', () => {
   it('starts by checking the link', () => {
     const markup = renderToStaticMarkup(createElement(SignupConfirmation, { code: 'C0DE', email: 'fulana@ufcg.edu.br' }))
     expect(markup).toContain('Verificando o link...')
+    expect(markup).toMatch(/<main[^>]*aria-busy="true"/)
     expect(markup).not.toContain('type="password"')
   })
 })

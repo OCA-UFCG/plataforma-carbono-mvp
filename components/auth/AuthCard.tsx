@@ -43,12 +43,18 @@ interface AuthCardProps {
   description?: ReactNode
   /** 420 for every card; the approvals panel passes 960 for its table. */
   width?: number
+  /**
+   * The card is waiting on a request, such as checking an emailed link. Marks `main` with
+   * `aria-busy` so assistive tech knows the content is about to change, and the accessibility
+   * checks (scripts/a11y/routes.ts) wait for the mark to clear before they check the card.
+   */
+  busy?: boolean
   children?: ReactNode
 }
 
-export default function AuthCard({ title, description, width = 420, children }: AuthCardProps) {
+export default function AuthCard({ title, description, width = 420, busy, children }: AuthCardProps) {
   return (
-    <main style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: 'linear-gradient(140deg, #20281d 0%, #3d482c 48%, #c5813e 160%)' }}>
+    <main aria-busy={busy || undefined} style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: 'linear-gradient(140deg, #20281d 0%, #3d482c 48%, #c5813e 160%)' }}>
       <section style={{ width: `min(100%, ${width}px)`, padding: '40px', borderRadius: 20, background: authColors.card, boxShadow: '0 24px 60px rgba(0,0,0,.28)' }}>
         <div aria-label="Caativar" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: authColors.ink, fontWeight: 800 }}>
           <span style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: 9, background: authColors.accent, color: '#fff' }}>O</span>

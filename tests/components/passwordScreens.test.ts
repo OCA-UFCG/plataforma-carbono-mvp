@@ -25,6 +25,8 @@ describe('ForgotPasswordForm', () => {
 
 describe('ResetPasswordForm', () => {
   it('starts by checking the link', () => {
-    expect(renderToStaticMarkup(createElement(ResetPasswordForm, { code: 'R3SET' }))).toContain('Verificando o link...')
+    const markup = renderToStaticMarkup(createElement(ResetPasswordForm, { code: 'R3SET' }))
+    expect(markup).toContain('Verificando o link...')
+    expect(markup).toMatch(/<main[^>]*aria-busy="true"/)
   })
 })
