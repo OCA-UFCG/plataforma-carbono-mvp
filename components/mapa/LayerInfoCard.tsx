@@ -5,6 +5,7 @@ import { useStore } from '@/lib/mapa/store'
 import { LAYER_META } from '@/config/mapa/layerMeta'
 import { LAYER_INFO } from '@/config/mapa/layerInfo'
 import { THEMES } from '@/config/mapa/groups'
+import { fichaHeadline } from '@/lib/mapa/ficha'
 import { COLUMN_WIDTH } from '@/lib/mapa/layout'
 import type { LayerConfig } from '@/types/mapa'
 import styles from './LayerInfoCard.module.css'
@@ -46,9 +47,8 @@ export default function LayerInfoCard({
   const meta = LAYER_META[layerId]
   const info = LAYER_INFO[layerId]
   const group = THEMES.find((t) => t.id === layer.theme)
-  const summary = info?.summary ?? (meta ? meta.description[0].toUpperCase() + meta.description.slice(1) + '.' : '')
+  const { summary, chips } = fichaHeadline(layerId)
   const citation = info?.citation?.replace('{acesso}', new Date().toLocaleDateString('pt-BR'))
-  const chips = [info?.period, info?.resolution].filter(Boolean) as string[]
   // The design's order (19451:60915); an entry the layer lacks is left out,
   // label and all.
   const sheet: [string, ReactNode][] = []
