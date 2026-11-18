@@ -13,6 +13,11 @@ export type A11yRoute = { path: string; ready: string; settled?: string; session
 // has an `h1`, but no `main`, so a bare `h1` could pass for a page that is not there.
 const AUTH_READY = 'main > section > h1'
 
+// The first publication of the shipped content (DEFAULT_CARTILHAS in
+// lib/content/comunicacao.ts, which this script cannot import: it is server-only).
+// known.ts names the same path, so a renamed slug changes here once.
+export const PUBLICATION_PATH = '/comunicacao/cartilha-1-o-que-e-credito-de-carbono'
+
 export const A11Y_ROUTES: readonly A11yRoute[] = [
   { path: '/', ready: 'main' },
   { path: '/sobre', ready: 'main' },
@@ -22,7 +27,7 @@ export const A11Y_ROUTES: readonly A11yRoute[] = [
   { path: '/comunicacao', ready: 'main' },
   { path: '/glossario', ready: 'main' },
   { path: '/territorios', ready: 'main h1' },
-  { path: '/comunicacao/cartilha-1-o-que-e-credito-de-carbono', ready: 'main h1' },
+  { path: PUBLICATION_PATH, ready: 'main h1' },
   { path: '/login', ready: AUTH_READY },
   // Renders only with PLATFORM_ACCESS_GUARD_ENABLED=true on the server.
   { path: '/cadastro', ready: AUTH_READY },
