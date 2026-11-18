@@ -65,13 +65,14 @@ export default function Territory({ onSelectFeature, onDismissSelection }: {
   const toggleDraw = (mode: 'polygon' | 'point') => setDrawMode(drawMode === mode ? null : mode)
 
   return (
-    <section className={styles.section} data-open={open} aria-labelledby="territorio">
+    <section className={styles.section} data-open={open} aria-labelledby="territorio" data-tour="territory">
       <div className={styles.head}>
         <h2 id="territorio" className={`${styles.title} text-h4`}>Território</h2>
         <button
           type="button"
           className={styles.fold}
           aria-expanded={open}
+          data-tour-reveal="territory"
           aria-label={open ? 'Recolher Território' : 'Abrir Território'}
           title={open ? 'Recolher' : 'Abrir'}
           onClick={() => setOpen((value) => !value)}
@@ -98,7 +99,7 @@ export default function Territory({ onSelectFeature, onDismissSelection }: {
           {/* "Delimitar recorte" as the design draws it, and "Marcar ponto",
               which it does not: the way to a point's value and series. Each
               stays armed until pressed again or Esc (DrawHint). */}
-          <div className={styles.drawButtons}>
+          <div className={styles.drawButtons} data-tour="draw">
             <button
               type="button"
               className={`${styles.draw} text-ui-medium`}

@@ -162,7 +162,7 @@ export default function Mapa() {
 
         {/* Clips its overlays at the column's edge: with the ficha open the
             map is 290px wide, and the legend would spill over the ficha. */}
-        <div style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
+        <div data-tour="map" style={{ flex: 1, minWidth: 0, position: 'relative', overflow: 'hidden' }}>
           {/* The panels no longer cover the map, so the insets only keep the
               overlays clear of the map's own buttons below. */}
           <MapView

@@ -27,4 +27,15 @@ describe('MapControls', () => {
       '/icons/mapa/fullscreen.svg', '/icons/mapa/navigation.svg', '/icons/mapa/map.svg',
     ])
   })
+
+  it('adds "Tutorial" last when the platform passes the replay', () => {
+    const html = renderToStaticMarkup(createElement(MapControls, {
+      mapRef: { current: null }, rightOffset: 40, onReplayTour: () => {},
+    }))
+    const labels = [...html.matchAll(/<button [^>]*aria-label="([^"]+)"/g)].map((m) => m[1])
+    expect(labels.at(-1)).toBe('Tutorial')
+    expect(html).toMatch(/<button [^>]*data-tour="tour-replay"/)
+    expect(html).toContain('/icons/mapa/help.svg')
+    expect(html).toMatch(/<div [^>]*data-tour="basemap"/)
+  })
 })

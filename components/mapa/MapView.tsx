@@ -506,9 +506,11 @@ interface MapViewProps {
    * Resolves once the tiles in view have loaded.
    */
   captureMapRef: RefObject<(() => Promise<string | null>) | null>
+  /** Replays the platform tour, from the "?" in the map controls. */
+  onReplayTour?: () => void
 }
 
-export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, selectFeatureRef, captureMapRef }: MapViewProps) {
+export default function MapView({ theme, leftEdge, rightOffset, dismissSelectionRef, selectFeatureRef, captureMapRef, onReplayTour }: MapViewProps) {
   const containerRef  = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<maplibregl.Map | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1746,7 +1748,7 @@ useEffect(() => {
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {mapReady && (
         <>
-          <MapControls mapRef={mapRef} rightOffset={rightOffset} />
+          <MapControls mapRef={mapRef} rightOffset={rightOffset} onReplayTour={onReplayTour} />
           <DrawHint leftEdge={leftEdge} rightOffset={rightOffset} />
           <FloatingLegend ref={legendRef} theme={theme} rightOffset={rightOffset} />
         </>

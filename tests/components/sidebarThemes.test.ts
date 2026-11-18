@@ -52,6 +52,13 @@ describe('Sidebar themes (Figma 19430:58769)', () => {
     expect(markup).toMatch(/aria-label="Ficha da camada Estoque Total"/)
   })
 
+  it('marks the theme headers, the layer cards and their "i" for the tour', () => {
+    // The fixture has layers in three themes: Vegetação, Uso do solo and Ambiente.
+    expect(markup.match(/<button [^>]*data-tour-reveal="theme"/g)?.length).toBe(3)
+    expect(markup).toMatch(/<div [^>]*data-tour="layer-card"/)
+    expect(markup).toMatch(/<button (?=[^>]*data-tour="layer-info")(?=[^>]*data-layer-id="estoque")[^>]*>/)
+  })
+
   it('opens with the Território section, and lists no Territórios theme below (#140)', () => {
     expect(markup.indexOf('>Território</h2>')).toBeGreaterThan(-1)
     expect(markup.indexOf('>Território</h2>')).toBeLessThan(markup.indexOf('Camadas ativas'))
