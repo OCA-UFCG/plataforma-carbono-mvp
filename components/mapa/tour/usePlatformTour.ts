@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { driver, type Driver } from 'driver.js'
 import { TOUR_COPY, buildTourSteps, markPlatformTourSeen, shouldAutoStartTour } from './tourSteps'
-import { clearDummyElementAria, renderPopover, revealTourTargets } from './tourDom'
+import { clearDummyElementAria, focusReplayButton, renderPopover, revealTourTargets } from './tourDom'
 import 'driver.js/dist/driver.css'
 import './platformTour.css'
 
@@ -65,6 +65,7 @@ export function usePlatformTour({ showPanel }: { showPanel: () => void }): () =>
         popoverClass: 'caativar-tour',
         onPopoverRender: renderPopover,
         onHighlighted: clearDummyElementAria,
+        onDestroyed: focusReplayButton,
         // A stray click outside the balloon must not end the tour; "×" and
         // Esc do.
         overlayClickBehavior: 'none',

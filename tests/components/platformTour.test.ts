@@ -14,7 +14,7 @@ import {
   markPlatformTourSeen,
   shouldAutoStartTour,
 } from '@/components/mapa/tour/tourSteps'
-import { measurableLayerName } from '@/components/mapa/tour/tourDom'
+import { focusReplayButton, measurableLayerName } from '@/components/mapa/tour/tourDom'
 import type { LayerConfig } from '@/types/mapa'
 
 /** A window of the given width whose localStorage reads and writes `storage`, or throws. */
@@ -93,6 +93,20 @@ describe('platform tour steps', () => {
     const result = buildTourSteps()[5]
     expect(result.popover?.side).toBe('left')
     expect(result.popover?.align).toBe('center')
+  })
+
+  it('sends a first visitor to a recorte on the map, not to municipalities, which start off', () => {
+    const last = buildTourSteps()[7]
+    expect(last.popover?.description).not.toMatch(/munic[ií]pio/i)
+    expect(last.popover?.description).toContain('clique num recorte no mapa')
+  })
+
+  it('gives the focus back to the "?" when the tour closes', () => {
+    const focus = vi.fn()
+    const querySelector = vi.fn((selector: string) => (selector === '[data-tour="tour-replay"]' ? { focus } : null))
+    vi.stubGlobal('document', { querySelector })
+    focusReplayButton()
+    expect(focus).toHaveBeenCalledOnce()
   })
 
   it('keeps every preview free of numbers', () => {

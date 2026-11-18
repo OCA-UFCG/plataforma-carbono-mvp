@@ -54,7 +54,7 @@ For the Resultado step, two options were weighed:
 
 - **(a) A preview in the balloon** (picked). The tour points at the map and the
   balloon shows what the Resultado panel brings, the way SEDES's "i" step
-  previews the ficha. It ends with "ligue uma camada e clique num município".
+  previews the ficha. It ends with "ligue uma camada e clique num recorte no mapa" (a municipality would be wrong: only the biome is on at a first visit).
 - (b) The tour turns a carbon stock layer on, selects the Caatinga and points
   at the real panel. Concrete, but the tour waits seconds on a cold GEE cache,
   can fail mid-tour, and changes the visitor's map. Rejected.

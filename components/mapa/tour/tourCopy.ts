@@ -18,5 +18,5 @@ export const TOUR_COPY = {
     items: ['Os números da camada no recorte', 'Gráficos, conforme a camada', 'Download em CSV e JPEG'],
   },
   basemap:   { title: 'Mapa base', description: 'Troque o fundo do mapa: ruas, relevo ou imagem de satélite.' },
-  replay:    { title: 'Tudo pronto', description: 'Agora é com você: ligue uma camada e clique num município. Para rever este passo a passo, use o botão “?” ao lado do mapa.' },
+  replay:    { title: 'Tudo pronto', description: 'Agora é com você: ligue uma camada e clique num recorte no mapa. Para rever este passo a passo, use o botão “?” ao lado do mapa.' },
 } as const

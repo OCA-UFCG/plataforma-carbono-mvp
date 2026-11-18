@@ -59,6 +59,15 @@ export function clearDummyElementAria(element?: Element): void {
   dummy?.removeAttribute('aria-controls')
 }
 
+/**
+ * Puts the focus back on the "?" when the tour closes. driver.js would return
+ * it to the element focused before the last step, by then the previous
+ * balloon's "Próximo", already gone: the focus fell to the page's start.
+ */
+export function focusReplayButton(): void {
+  document.querySelector<HTMLElement>('[data-tour="tour-replay"]')?.focus()
+}
+
 /** The layer of the first card in the panel, the one steps 4 and 5 point at. */
 function firstCardLayer(): LayerConfig | undefined {
   const id = document.querySelector('[data-tour="layer-info"]')?.getAttribute('data-layer-id')

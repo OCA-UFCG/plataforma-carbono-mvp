@@ -65,7 +65,7 @@ Sensitive configuration never travels from the client: the server resolves `clip
 
 The platform renders the site header (`SiteHeader` with `account`) and, under it, a row of columns (`Mapa.tsx`, widths in `lib/mapa/layout.ts`): the layer panel, the ficha when open, the map and the results. A column that closes leaves the row, and the map takes its width. `app/(mapa)/layout.tsx` loads `globals.css` before `mapa.css`, so the site's tokens and type classes apply there too.
 
-The first-visit tour (`components/mapa/tour/`, `driver.js`, ported from SEDES's) opens by itself once per browser at desktop width and replays from the "?" in the map controls. Its steps point at `data-tour="…"` attributes, so renaming or removing one leaves a step without a target, which no test catches; before the first step it opens the panel and the folds marked `data-tour-reveal`. It never touches the map: no layer on, no recorte chosen. To show a changed tour to everyone again, bump the `v1` in `caativar.platformTour.v1.seen` (`tourSteps.ts`).
+The first-visit tour (`components/mapa/tour/`, `driver.js`, ported from SEDES's) opens by itself once per browser at desktop width and replays from the "?" in the map controls. Its steps point at `data-tour="…"` attributes, which the panel and control tests pin, all but the map column's `data-tour="map"` (`Mapa.tsx`): renaming that one leaves step 6 without a target unnoticed. Before the first step it opens the panel and the folds marked `data-tour-reveal`. It never touches the map: no layer on, no recorte chosen. To show a changed tour to everyone again, bump the `v1` in `caativar.platformTour.v1.seen` (`tourSteps.ts`).
 
 ### Institutional copy in Contentful
 
