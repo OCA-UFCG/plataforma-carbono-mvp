@@ -72,12 +72,16 @@ async function capture(dir: string, paths: string[], print: boolean) {
           )
           // `complete` turns true before an image with decoding="async" is painted:
           // wait for the decode of every rendered one, or a photo can be missing
-          // from one capture and present in the next.
+          // from one capture and present in the next. Each decode is raced against
+          // a 5 s timer: an image that changed src below the fold may never load,
+          // and the wait must then end here, not at puppeteer's protocol timeout.
           await page.evaluate(() =>
             Promise.all(
               Array.from(document.images)
                 .filter((image) => image.getClientRects().length > 0)
-                .map((image) => image.decode().catch(() => undefined)),
+                .map((image) =>
+                  Promise.race([image.decode().catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 5_000))]),
+                ),
             ).then(() => undefined),
           )
           await page.evaluate(() => document.fonts.ready.then(() => undefined))
