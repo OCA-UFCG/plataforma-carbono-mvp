@@ -6,7 +6,11 @@
  *   A11Y_BASE_URL=http://localhost:3100 npm run a11y:screens -- capture <dir> [--print] [path …]
  *   npm run a11y:screens -- compare <beforeDir> <afterDir> <diffDir>
  *
- * Capture empties <dir> of .png files first, so it holds only this run. It takes
+ * A full capture (no path arguments) empties <dir> of .png files first, so it holds
+ * only this run; a capture of named paths keeps the other screenshots. It empties
+ * only a directory an earlier capture marked (.a11y-capture) or a new, empty one,
+ * and only after the server answered and the browser launched, so a run that fails
+ * early leaves the previous capture in place. It takes
  * the same env as check.mts (A11Y_SESSION adds /mapa). Nothing presses a key, so
  * UI that only the keyboard brings up (decision 2b) never shows in either capture.
  *
@@ -34,11 +38,14 @@ async function capture(dir: string, paths: string[], print: boolean) {
   const baseUrl = process.env.A11Y_BASE_URL ?? 'http://localhost:3000'
   const session = process.env.A11Y_SESSION || undefined
   const routes = routesToRun(paths, Boolean(session))
-  prepareCaptureDir(dir)
   await waitForServer(baseUrl)
   const browser = await launchBrowser()
   let failed = false
   try {
+    // After the browser is up, not before: a run that failed to start (server
+    // still booting, wrong port, bad CHROME_PATH) must not have emptied the
+    // previous capture. The finally below still closes the browser if this throws.
+    prepareCaptureDir(dir, { empty: paths.length === 0 })
     for (const route of routes) {
       try {
         // Reduced motion holds the hero on its first photo (Hero.tsx) and the

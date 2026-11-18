@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { PNG } from 'pngjs'
-import { compareScreens, prepareCaptureDir } from '@/scripts/a11y/compare'
+import { CAPTURE_MARKER, compareScreens, prepareCaptureDir } from '@/scripts/a11y/compare'
 
 let root: string | undefined
 
@@ -60,6 +60,17 @@ describe('compareScreens', () => {
     expect(out).toContain('home.png: missing from')
   })
 
+  it('fails when the after directory holds a screenshot the before directory lacks', () => {
+    const d = dirs()
+    writePng(d.before, 'home.png', [1, 2, 3, 255])
+    writePng(d.after, 'home.png', [1, 2, 3, 255])
+    writePng(d.after, 'extra.png', [1, 2, 3, 255])
+    const { code, out } = run(d)
+    expect(code).toBe(1)
+    expect(out).toContain('extra.png: only in')
+    expect(out).toContain('screens: differences found.')
+  })
+
   it('fails when the before directory holds no screenshots, rather than comparing nothing', () => {
     const d = dirs()
     writePng(d.after, 'home.png', [1, 2, 3, 255])
@@ -80,20 +91,38 @@ describe('compareScreens', () => {
 })
 
 describe('prepareCaptureDir', () => {
-  it('creates a missing directory', () => {
+  it('creates a missing directory and writes the marker into it', () => {
     root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
     const dir = path.join(root, 'nested', 'before')
-    prepareCaptureDir(dir)
-    expect(readdirSync(dir)).toEqual([])
+    prepareCaptureDir(dir, { empty: true })
+    expect(readdirSync(dir)).toEqual([CAPTURE_MARKER])
   })
 
   it('removes the screenshots of an earlier capture and nothing else', () => {
     root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
+    writeFileSync(path.join(root, CAPTURE_MARKER), 'marker')
     writePng(root, 'home.png', [0, 0, 0, 255])
     writePng(root, 'removed-route.png', [0, 0, 0, 255])
     writeFileSync(path.join(root, 'notes.txt'), 'keep')
     mkdirSync(path.join(root, 'sub.png'))
-    prepareCaptureDir(root)
-    expect(readdirSync(root).sort()).toEqual(['notes.txt', 'sub.png'])
+    prepareCaptureDir(root, { empty: true })
+    expect(readdirSync(root).sort()).toEqual([CAPTURE_MARKER, 'notes.txt', 'sub.png'].sort())
+  })
+
+  it('keeps the screenshots of a marked directory when not asked to empty it', () => {
+    root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
+    prepareCaptureDir(root, { empty: true })
+    writePng(root, 'home.png', [0, 0, 0, 255])
+    prepareCaptureDir(root, { empty: false })
+    expect(existsSync(path.join(root, 'home.png'))).toBe(true)
+    expect(existsSync(path.join(root, CAPTURE_MARKER))).toBe(true)
+  })
+
+  it('refuses a non-empty directory without the marker and deletes nothing in it', () => {
+    root = mkdtempSync(path.join(tmpdir(), 'a11y-capture-'))
+    writePng(root, 'logo.png', [0, 0, 0, 255])
+    writePng(root, 'home.png', [0, 0, 0, 255])
+    expect(() => prepareCaptureDir(root!, { empty: true })).toThrow(/was not made by a capture/)
+    expect(readdirSync(root).sort()).toEqual(['home.png', 'logo.png'])
   })
 })
