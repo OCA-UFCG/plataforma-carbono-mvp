@@ -47,3 +47,32 @@ describe('screenshotName', () => {
     expect(screenshotName('/sobre/carbono-e-comunidades')).toBe('sobre-carbono-e-comunidades.png')
   })
 })
+
+describe('A11Y_ROUTES', () => {
+  const route = (path: string) => A11Y_ROUTES.find((r) => r.path === path)!
+
+  it('has no repeated path', () => {
+    const paths = A11Y_ROUTES.map((r) => r.path)
+    expect(new Set(paths).size).toBe(paths.length)
+  })
+
+  it('waits on the auth card, not on a bare h1 that the 404 page also has', () => {
+    const auth = ['/login', '/cadastro', '/cadastro/confirmacao', '/esqueci-senha', '/redefinir-senha', '/aguardando-liberacao']
+    for (const path of auth) expect(route(path).ready, path).toBe('main:not([aria-busy]) > section > h1')
+    expect(A11Y_ROUTES.filter((r) => r.ready === 'h1')).toEqual([])
+  })
+
+  it('excludes a busy card, so a page still checking an emailed code is not checked early', () => {
+    expect(route('/redefinir-senha').ready).toContain(':not([aria-busy])')
+    expect(route('/cadastro/confirmacao').ready).toContain(':not([aria-busy])')
+  })
+
+  it('has no settled key: the busy mark replaces the copy wait', () => {
+    for (const r of A11Y_ROUTES) expect(r, r.path).not.toHaveProperty('settled')
+  })
+
+  it('gives every screenshot its own file', () => {
+    const names = A11Y_ROUTES.map((r) => screenshotName(r.path))
+    expect(new Set(names).size).toBe(names.length)
+  })
+})

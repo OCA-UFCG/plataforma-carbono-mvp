@@ -64,7 +64,7 @@ export default function ResetPasswordForm({ code }: { code: string }) {
     }
   }
 
-  if (state.step === 'checking') return <AuthCard title="Verificando o link..." />
+  if (state.step === 'checking') return <AuthCard title="Verificando o link..." busy />
 
   if (state.step === 'invalid') {
     return (

@@ -7,6 +7,18 @@
  */
 export type A11yRoute = { path: string; ready: string; session?: true }
 
+// The auth pages sit on AuthCard (`main > section > h1`). Next's own 404 also
+// has an `h1`, but no `main`, so a bare `h1` could pass for a page that is not there.
+// A page that checks an emailed code marks `main` busy (aria-busy) while it waits
+// on the request, so the card it settles on is the one that gets checked and
+// captured, whatever its copy. The selector excludes the busy `main` until then.
+const AUTH_READY = 'main:not([aria-busy]) > section > h1'
+
+// The first publication of the shipped content (DEFAULT_CARTILHAS in
+// lib/content/comunicacao.ts, which this script cannot import: it is server-only).
+// known.ts names the same path, so a renamed slug changes here once.
+export const PUBLICATION_PATH = '/comunicacao/cartilha-1-o-que-e-credito-de-carbono'
+
 export const A11Y_ROUTES: readonly A11yRoute[] = [
   { path: '/', ready: 'main' },
   { path: '/sobre', ready: 'main' },
@@ -16,10 +28,16 @@ export const A11Y_ROUTES: readonly A11yRoute[] = [
   { path: '/comunicacao', ready: 'main' },
   { path: '/glossario', ready: 'main' },
   { path: '/territorios', ready: 'main h1' },
-  { path: '/login', ready: 'h1' },
+  { path: PUBLICATION_PATH, ready: 'main h1' },
+  { path: '/login', ready: AUTH_READY },
   // Renders only with PLATFORM_ACCESS_GUARD_ENABLED=true on the server.
-  { path: '/cadastro', ready: 'h1' },
-  { path: '/esqueci-senha', ready: 'h1' },
+  { path: '/cadastro', ready: AUTH_READY },
+  // The confirmation page 404s without the switch, like /cadastro. Opened with
+  // no code, it ends on the invalid-link card: the page a stale link shows.
+  { path: '/cadastro/confirmacao', ready: AUTH_READY },
+  { path: '/esqueci-senha', ready: AUTH_READY },
+  { path: '/redefinir-senha', ready: AUTH_READY },
+  { path: '/aguardando-liberacao', ready: AUTH_READY },
   { path: '/mapa', ready: '.maplibregl-canvas', session: true },
 ]
 
