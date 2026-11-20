@@ -69,6 +69,23 @@ export function buildVerificationEmail({ link }: { link: string }): EmailDraft {
   }
 }
 
+/**
+ * An admin's invite (lib/access/invites.ts). Fixed text: the admin types addresses only, so the
+ * platform never mails words someone else chose. "convidou você", not "você foi convidado": the
+ * invitee's gender is unknown.
+ */
+export function buildInviteEmail({ link }: { link: string }): EmailDraft {
+  const title = 'Convite para a Caativar'
+  const body = 'A equipe da Caativar, a plataforma de monitoramento do carbono florestal da Caatinga, convidou você para acessá-la. Seu acesso já está liberado: confirme este endereço e escolha sua senha.'
+  const ignore = 'Se você não esperava este convite, ignore este e-mail.'
+
+  return {
+    subject: 'Convite para a Caativar',
+    html: layout(title, paragraph(escapeHtml(body)) + callToAction('Aceitar convite e escolher senha', link) + note(ignore)),
+    text: plainText(title, body, link, ignore),
+  }
+}
+
 /** Goes to the team's mailbox. The address and the intention were typed by a stranger. */
 export function buildNewRequestEmail({ email, intention, approvalUrl }: {
   email: string

@@ -28,7 +28,8 @@ export const APPROVED_ACCESS = 'approved'
 // The marker signup puts on the accounts it creates. Granting `legacy` over it would approve them.
 export const REQUESTED_ACCESS = 'requested'
 const LEGACY_TIER = 'legacy'
-const VALID_TIERS = new Set(['allowed', 'common', LEGACY_TIER])
+// Mirrors ACCESS_TIERS in lib/access/claims.ts.
+const VALID_TIERS = new Set(['allowed', 'common', 'invited', LEGACY_TIER])
 
 // Beta, prod and local development share the same Firebase accounts, so a request in any of these
 // collections counts. A request's id is the account's uid (lib/access/requests.ts).

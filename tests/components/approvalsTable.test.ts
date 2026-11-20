@@ -20,6 +20,18 @@ describe('ApprovalsTable', () => {
     expect(markup).toContain('Recusar')
   })
 
+  it("names the inviting admin on an invited request, under the intention when there is one", () => {
+    const markup = renderToStaticMarkup(createElement(ApprovalsTable, {
+      rows: [
+        { uid: 'u1', email: 'parceira@gmail.com', intention: '', invitedBy: 'admin@ufcg.edu.br', requestedAt: '15/11/2026' },
+        { uid: 'u2', email: 'outra@gmail.com', intention: 'Pesquisa', invitedBy: 'admin@ufcg.edu.br', requestedAt: '15/11/2026' },
+        { uid: 'u3', email: 'fulana@gmail.com', intention: 'Pesquisa', invitedBy: null, requestedAt: '15/11/2026' },
+      ],
+    }))
+
+    expect(markup.match(/Convite de admin@ufcg.edu.br/g)).toHaveLength(2)
+  })
+
   it('says when nothing is waiting', () => {
     expect(renderToStaticMarkup(createElement(ApprovalsTable, { rows: [] }))).toContain('Nenhum pedido aguardando decisão.')
   })

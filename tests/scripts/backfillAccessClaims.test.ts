@@ -31,6 +31,7 @@ describe('the backfill script', () => {
     expect(shouldBackfillUser({ uid: 'b', customClaims: { caativar: { access: 'pending' } } })).toBe(true)
     expect(shouldBackfillUser({ uid: 'c', customClaims: { caativar: { access: 'approved', tier: 'admin' } } })).toBe(true)
     expect(shouldBackfillUser({ uid: 'd', customClaims: { caativar: { access: 'approved', tier: 'common', at: 1 } } })).toBe(false)
+    expect(shouldBackfillUser({ uid: 'f', customClaims: { caativar: { access: 'approved', tier: 'invited', at: 1 } } })).toBe(false)
     expect(shouldBackfillUser({ uid: 'e' }, new Set(['e']))).toBe(false)
   })
 

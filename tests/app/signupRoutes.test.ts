@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => ({
   deleteUser: vi.fn(),
   getUserByEmail: vi.fn(),
   createAccessRequest: vi.fn(),
+  readAccessRequest: vi.fn(),
   sendVerificationEmail: vi.fn(),
+  sendInviteEmail: vi.fn(),
   afterTasks: [] as Array<() => unknown>,
 }))
 
@@ -25,8 +27,8 @@ vi.mock('@/lib/firebase-admin', () => ({
     getUserByEmail: mocks.getUserByEmail,
   }),
 }))
-vi.mock('@/lib/access/requests', () => ({ createAccessRequest: mocks.createAccessRequest }))
-vi.mock('@/lib/access/verification', () => ({ sendVerificationEmail: mocks.sendVerificationEmail }))
+vi.mock('@/lib/access/requests', () => ({ createAccessRequest: mocks.createAccessRequest, readAccessRequest: mocks.readAccessRequest }))
+vi.mock('@/lib/access/verification', () => ({ sendVerificationEmail: mocks.sendVerificationEmail, sendInviteEmail: mocks.sendInviteEmail }))
 
 import { POST as signup } from '@/app/api/signup/route'
 import { POST as resend } from '@/app/api/signup/resend/route'
@@ -47,7 +49,9 @@ beforeEach(() => {
   mocks.setCustomUserClaims.mockResolvedValue(undefined)
   mocks.deleteUser.mockResolvedValue(undefined)
   mocks.createAccessRequest.mockResolvedValue(undefined)
+  mocks.readAccessRequest.mockResolvedValue(null)
   mocks.sendVerificationEmail.mockResolvedValue(true)
+  mocks.sendInviteEmail.mockResolvedValue(true)
 })
 
 describe('POST /api/signup', () => {
@@ -176,6 +180,27 @@ describe('POST /api/signup/resend', () => {
 
     await flushAfter()
     expect(mocks.getUserByEmail).toHaveBeenCalledWith('fulana@gmail.com')
+    expect(mocks.sendVerificationEmail).toHaveBeenCalledWith('fulana@gmail.com')
+    expect(mocks.sendInviteEmail).not.toHaveBeenCalled()
+  })
+
+  it("sends an invitee the invite again, not the signup's confirmation", async () => {
+    mocks.getUserByEmail.mockResolvedValueOnce(account())
+    mocks.readAccessRequest.mockResolvedValueOnce({ tier: 'invited' })
+
+    expect((await resend(jsonPost('/api/signup/resend', { email: 'fulana@gmail.com' }))).status).toBe(202)
+    await flushAfter()
+    expect(mocks.readAccessRequest).toHaveBeenCalledWith('u1')
+    expect(mocks.sendInviteEmail).toHaveBeenCalledWith('fulana@gmail.com')
+    expect(mocks.sendVerificationEmail).not.toHaveBeenCalled()
+  })
+
+  it("falls back to the signup's confirmation when the request cannot be read", async () => {
+    mocks.getUserByEmail.mockResolvedValueOnce(account())
+    mocks.readAccessRequest.mockRejectedValueOnce(new Error('firestore down'))
+
+    await resend(jsonPost('/api/signup/resend', { email: 'fulana@gmail.com' }))
+    await flushAfter()
     expect(mocks.sendVerificationEmail).toHaveBeenCalledWith('fulana@gmail.com')
   })
 

@@ -48,10 +48,13 @@ export async function settleSignup({ uid, email, emailVerified }: {
   }
   if (request.status === 'rejected') return 'rejected'
 
-  if (request.tier === 'allowed') {
-    await approveAccess(uid, 'allowed')
-    // The domain rule decided, not an admin, and the record says so.
-    await recordAccessDecision(uid, { status: 'approved', decidedBy: null })
+  // A listed domain, or an admin's invite: in on confirmation, without the queue and without
+  // emailing the team, which either set the rule or sent the invite.
+  if (request.tier === 'allowed' || request.tier === 'invited') {
+    await approveAccess(uid, request.tier)
+    // Who decided: nobody for the domain rule, the inviting admin for an invite.
+    const decidedBy = request.tier === 'invited' ? (request.invitedBy ?? null) : null
+    await recordAccessDecision(uid, { status: 'approved', decidedBy })
     return 'approved'
   }
 
