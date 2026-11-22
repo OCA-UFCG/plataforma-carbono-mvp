@@ -4,6 +4,9 @@
 // for the rest); fogo.svg and baixar.svg are
 // Material Symbols "local_fire_department" and "download" (Apache 2.0),
 // filled with the color they sit on: the fire tab's, and white on "Baixar".
+// area.svg and link-externo.svg are Material Symbols "crop_free" and
+// "open_in_new"; arvore.svg and mapa.svg are the platform's "Nature" and
+// "Map" (public/icons/mapa).
 
 import type { StepId } from '@/types/territorios'
 
@@ -48,4 +51,8 @@ export const UI_ICONS = {
   forward:       `${DIR}/avancar.svg`,
   open:          `${DIR}/abrir.svg`,
   close:         `${DIR}/fechar.svg`,
+  area:          `${DIR}/area.svg`,
+  tree:          `${DIR}/arvore.svg`,
+  externalLink:  `${DIR}/link-externo.svg`,
+  map:           `${DIR}/mapa.svg`,
 } as const

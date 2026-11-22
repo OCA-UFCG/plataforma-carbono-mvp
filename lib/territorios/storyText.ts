@@ -8,21 +8,17 @@
 // variants drop the comparisons with the biome, which would compare the
 // Caatinga with itself.
 
-import { clippedToBiome, STORY_THEMES, type TerritoryType } from '@/config/territorios/story'
+import { clippedToBiome, type TerritoryType } from '@/config/territorios/story'
 import { FEMININE_TYPES, STATE_LOCATIVE, TERRITORY_SCRIPT, type StoryScript } from '@/config/territorios/storyScript'
 import {
   areaParts,
   biomeAreaSharePct,
-  biomeFluxDirection,
   fireBurnedSharePct,
   firePeakYear,
-  fluxChart,
   fluxMetrics,
   forestSharePct,
   formatNumber,
   formatPercent,
-  formatTonnes,
-  formatTonnesInWords,
   landUseChart,
   rainChart,
   rainComparison,
@@ -35,15 +31,14 @@ import {
 import type {
   AboutItem,
   Indicator,
+  RainChartData,
   Reading,
   StepAnswer,
   StepId,
-  SummaryRow,
   TerritoryPayload,
   ThemeData,
   ThemeId,
   ThemeResponse,
-  Tone,
 } from '@/types/territorios'
 
 export interface SummaryInput {
@@ -76,7 +71,6 @@ export interface StepInput {
 }
 
 type Answer = Omit<StepAnswer, 'question'>
-type Row = Omit<SummaryRow, 'theme' | 'title'>
 
 /**
  * Below this share of the territory with inventory pixels, "Sobre os dados"
@@ -155,12 +149,24 @@ function stockAnswer({ response, territory, type, script }: StepInput): Answer {
   const { here, reference } = chart.density
   const cmp = against(here, reference, type)
   return {
-    headline: { value: formatNumber(here), unit: s.unit },
-    sentence: joinSentences(
-      cmp && s.compare(cmp.reading, formatNumber(cmp.reference)),
-      s.total(formatTonnesInWords(data.report.totalTc)),
-    ),
+    headline: stockTotalParts(data.report.totalTc, s),
+    sentence: cmp ? s.perHa(formatNumber(here), cmp.reading, formatNumber(cmp.reference)) : s.perHaOnly(formatNumber(here)),
   }
+}
+
+/**
+ * The total as the stock step's big figure: the scale word joins the number
+ * ("1,8 milhão") and the unit reads in words beside it ("de toneladas de
+ * carbono").
+ */
+function stockTotalParts(totalTc: number, s: StoryScript['answers']['estoque']): { value: string; unit: string } {
+  const { value, unit } = tonnesParts(totalTc)
+  const scaled = /^(mil|milhão|milhões|bilhão|bilhões)( de)? t$/.exec(unit)
+  const singular = !scaled && (value === '1' || value === 'menos de 1')
+  const tonnes = singular ? 'tonelada' : 'toneladas'
+  return scaled
+    ? { value: `${value} ${scaled[1]}`, unit: s.unit(`${scaled[2] ? 'de ' : ''}${tonnes}`) }
+    : { value, unit: s.unit(tonnes) }
 }
 
 function fluxAnswer({ response, territory, type, script }: StepInput): Answer {
@@ -216,12 +222,14 @@ function fireAnswer({ response, territory, type, script }: StepInput): Answer {
   }
 }
 
-function rainYearSentence(s: StoryScript['answers']['chuva'], lastMm: number, meanMm: number): string {
-  const mean = formatNumber(meanMm)
-  const { pct } = rainComparison(lastMm, meanMm)
-  switch (rainKind(lastMm, meanMm)) {
-    case 'chuvoso': return s.chuvoso(formatPercent(pct), mean)
-    case 'seco':    return s.seco(formatPercent(pct), mean)
+function rainYearSentence(s: StoryScript['answers']['chuva'], lastMm: number, chart: RainChartData): string {
+  const mean = formatNumber(chart.meanMm)
+  const { direction, pct } = rainComparison(lastMm, chart.meanMm)
+  switch (rainKind(lastMm, chart.terciles)) {
+    // A rainy year below the mean, or a dry one above it, would take a very
+    // skewed series; the sentence then names the class without the distance.
+    case 'chuvoso': return direction === 'above' ? s.chuvoso(formatPercent(pct), mean) : s.kindOnly('Chuvoso', mean)
+    case 'seco':    return direction === 'below' ? s.seco(formatPercent(pct), mean) : s.kindOnly('Seco', mean)
     case 'normal':  return s.normal(mean)
   }
 }
@@ -239,7 +247,7 @@ function rainAnswer({ response, territory, type, script }: StepInput): Answer {
       ? { value: formatNumber(chart.meanMm), unit: s.meanUnit }
       : { value: formatNumber(lastMm), unit: s.unit },
     sentence: joinSentences(
-      lastMm === null ? s.missing : rainYearSentence(s, lastMm, chart.meanMm),
+      lastMm === null ? s.missing : rainYearSentence(s, lastMm, chart),
       cmp && s.compare(formatNumber(cmp.reference), cmp.reading),
     ),
   }
@@ -266,143 +274,6 @@ export function stepAnswer(step: Exclude<StepId, 'resumo'>, input: StepInput): S
     case 'fogo':       return { question, ...fireAnswer(input) }
     case 'chuva':      return { question, ...rainAnswer(input) }
   }
-}
-
-/**
- * Whether more than the Caatinga is good news, per theme; null where it is
- * neither, as with rain. Flux is left out: more per hectare is good news for a
- * removal and bad news for an emission, so its row passes its own direction.
- */
-const MORE_IS_BETTER: Record<Exclude<ThemeId, 'fluxo'>, boolean | null> = {
-  estoque: true,
-  uso:     true,
-  fogo:    false,
-  chuva:   null,
-}
-
-/** The color of a reading's badge on the summary (Figma 19254:37508). */
-export function readingTone(reading: Reading | null, moreIsBetter: boolean | null): Tone | null {
-  if (reading === null) return null
-  if (reading === 'perto' || moreIsBetter === null) return 'neutral'
-  return (reading === 'acima') === moreIsBetter ? 'good' : 'bad'
-}
-
-function stockRow({ response, territory, type, script }: StepInput): Row {
-  const s = script.summary.estoque
-  const data = availableData(response, 'estoque')
-  const chart = data && stockChart(data.report, territory)
-  if (!data || !chart) return { headline: null, sentence: script.answers.estoque.noData, reading: null, tone: null }
-
-  const { here, reference } = chart.density
-  const cmp = against(here, reference, type)
-  const reading = cmp?.reading ?? null
-  return {
-    headline: { value: formatNumber(here), unit: s.unit },
-    sentence: joinSentences(s.total(formatTonnes(data.report.totalTc)), cmp && s.biome(formatNumber(cmp.reference))),
-    reading,
-    tone:     readingTone(reading, MORE_IS_BETTER.estoque),
-  }
-}
-
-function fluxRow({ response, territory, type, script }: StepInput): Row {
-  const s = script.summary.fluxo
-  const data = availableData(response, 'fluxo')
-  const m = data && fluxMetrics(data)
-  if (!data || !m) return { headline: null, sentence: script.answers.fluxo.noForest, reading: null, tone: null }
-  if (m.direction === 'neutral') return { headline: null, sentence: s.balance, reading: null, tone: null }
-
-  // Per hectare of forest is the one flux figure a territory and the biome
-  // share a base for; the total goes in the sentence.
-  const perHa = fluxChart(data, territory)?.perForestHa ?? null
-  const cmp = perHa ? against(perHa.here, perHa.reference, type) : null
-  const biomePerHa = territory.biome.fluxPerForestHaMg
-  const tonnes = formatTonnes(m.magnitudeMg)
-  return {
-    headline: { value: formatNumber(m.perForestHaMg), unit: s.unit },
-    sentence: joinSentences(
-      m.direction === 'removal' ? s.removal(tonnes) : s.emission(tonnes),
-      cmp
-        ? s.biome(formatNumber(cmp.reference))
-        : !isBioma(type) && biomePerHa !== null && s.biomeDirection[biomeFluxDirection(biomePerHa)],
-    ),
-    reading: cmp?.reading ?? null,
-    tone:    readingTone(cmp?.reading ?? null, m.direction === 'removal'),
-  }
-}
-
-function landUseRow({ response, territory, type, script }: StepInput): Row {
-  const s = script.summary.uso
-  const data = availableData(response, 'uso')
-  const chart = data && landUseChart(data, territory)
-  if (!chart) return { headline: null, sentence: script.answers.uso.noData, reading: null, tone: null }
-
-  const ref = isBioma(type) ? null : chart.reference
-  return {
-    headline: { value: formatPercent(chart.here.to), unit: s.unit },
-    sentence: joinSentences(
-      s.before(formatPercent(chart.here.from)),
-      ref && s.biome(formatPercent(ref.from), formatPercent(ref.to)),
-    ),
-    reading: ref ? readingOf(chart.here.to, ref.to) : null,
-    tone:    readingTone(ref ? readingOf(chart.here.to, ref.to) : null, MORE_IS_BETTER.uso),
-  }
-}
-
-function fireRow({ response, territory, type, script }: StepInput): Row {
-  const s = script.summary.fogo
-  const data = availableData(response, 'fogo')
-  const share = data && fireBurnedSharePct(data)
-  if (!data || share === null) return { headline: null, sentence: script.answers.fogo.noData, reading: null, tone: null }
-
-  const peak = firePeakYear(data)
-  const cmp = against(share, territory.biome.fireBurnedSharePct, type)
-  return {
-    headline: { value: formatPercent(share), unit: s.unit },
-    sentence: joinSentences(cmp && s.biome(formatPercent(cmp.reference)), peak === null ? s.none : s.peak(peak)),
-    reading:  cmp?.reading ?? null,
-    tone:     readingTone(cmp?.reading ?? null, MORE_IS_BETTER.fogo),
-  }
-}
-
-function rainRow({ response, territory, type, script }: StepInput): Row {
-  const s = script.summary.chuva
-  const data = availableData(response, 'chuva')
-  const chart = data && rainChart(data.series, territory)
-  if (!data || !chart) return { headline: null, sentence: script.answers.chuva.noData, reading: null, tone: null }
-
-  // The mean is what the reading compares, so it is the row's figure.
-  const lastMm = rainLastYearMm(data.series)
-  const cmp = against(chart.meanMm, chart.mean.reference, type)
-  return {
-    headline: { value: formatNumber(chart.meanMm), unit: s.unit },
-    sentence: joinSentences(
-      cmp && s.biome(formatNumber(cmp.reference)),
-      lastMm === null ? s.missing : s.year[rainKind(lastMm, chart.meanMm)](formatNumber(lastMm)),
-    ),
-    reading: cmp?.reading ?? null,
-    tone:    readingTone(cmp?.reading ?? null, MORE_IS_BETTER.chuva),
-  }
-}
-
-/**
- * One line per theme of the final sheet, in STORY_THEMES order. A theme still
- * loading or failed gets an empty line; the sheet shows its own state.
- */
-export function summaryRows(input: SummaryInput): SummaryRow[] {
-  return STORY_THEMES.map(({ id }): SummaryRow => {
-    const head = { theme: id, title: input.script.summary.titles[id] }
-    const response = input.responses[id]
-    if (!settled(id, response)) return { ...head, headline: null, sentence: '', reading: null, tone: null }
-
-    const row = { response, territory: input.territory, type: input.type, script: input.script }
-    switch (id) {
-      case 'estoque':    return { ...head, ...stockRow(row) }
-      case 'fluxo':      return { ...head, ...fluxRow(row) }
-      case 'uso':        return { ...head, ...landUseRow(row) }
-      case 'fogo':       return { ...head, ...fireRow(row) }
-      case 'chuva':      return { ...head, ...rainRow(row) }
-    }
-  })
 }
 
 /**

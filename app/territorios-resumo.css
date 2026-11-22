@@ -39,20 +39,18 @@
 }
 
 /* Three cards to a row (19254:37507); a row's bars line up at its foot. */
-.territorios-fichas {
+/* The steps again, two to a row, each framed as the tab shows it. */
+.territorios-resumo-etapas {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
   gap: 24px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  align-items: start;
 }
 
-/* 19254:37508. */
-.territorios-ficha {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.territorios-resumo-etapa {
+  display: grid;
+  align-content: start;
+  gap: 24px;
   min-width: 0;
   padding: 24px;
   background: var(--bg-superficie);
@@ -61,67 +59,15 @@
   break-inside: avoid;
 }
 
-.territorios-ficha-topo {
+/* Bold at 20 px is large text, whose 3:1 the earthy tones of Uso da terra and
+   Fogo reach; at 600 it would need 4.5:1. */
+.territorios-resumo-etapa-titulo {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-/* The reading (19254:17370), colored by whether it is good news for the
-   territory (readingTone in storyText.ts); grey when close, and for rain.
-   Drawn above the title it follows in the markup. */
-.territorios-ficha-leitura {
-  order: -1;
-  padding: 1px 9px;
-  border: 1px solid var(--am-200);
-  border-radius: 9999px;
-  font-family: var(--font-ui), sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-ficha-leitura[data-tom='good'] {
-  border-color: var(--ctx-positivo-padrao);
-  color: var(--ctx-positivo-padrao);
-}
-
-.territorios-ficha-leitura[data-tom='bad'] {
-  border-color: var(--ctx-negativo-padrao);
-  color: var(--ctx-negativo-padrao);
-}
-
-.territorios-ficha-titulo {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  color: var(--bg-texto-primario);
-}
-
-.territorios-ficha-valor {
-  display: grid;
+  align-items: center;
   gap: 8px;
-}
-
-.territorios-ficha-frase {
-  font-size: 14px;
-  line-height: 24px;
-  color: var(--foreground);
-}
-
-.territorios-ficha-grafico {
-  margin-top: auto;
-}
-
-.territorios-ficha-estado {
-  display: grid;
-  gap: 12px;
-  justify-items: start;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--am-400);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
 }
 
 /* "Sobre os dados" (19254:39200): a grey bar that opens onto the sources. */
@@ -201,18 +147,6 @@
   color: var(--bg-texto-secundario);
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  .territorios-fichas {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 767px) {
-  .territorios-fichas {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 @media print {
   .territorios-resumo,
   .territorios-resumo[hidden] {
@@ -224,17 +158,17 @@
     display: grid;
   }
 
-  .territorios-fichas {
+  .territorios-resumo-etapas {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4mm;
   }
 
-  .territorios-ficha {
+  .territorios-resumo-etapa {
     gap: 3mm;
     padding: 4mm;
   }
 
-  .territorios-ficha .tg-step-figure-value {
+  .territorios-resumo-etapa .tg-step-figure-value {
     font-size: 30px;
     line-height: 30px;
   }
@@ -244,8 +178,8 @@
   }
 
   /* Browsers drop background colors and some borders by default when printing. */
-  .territorios-ficha,
-  .territorios-ficha-leitura,
+  .territorios-resumo-etapa,
+  .territorios-porque,
   .territorios-sobre summary,
   .tg-chart {
     -webkit-print-color-adjust: exact;

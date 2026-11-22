@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import PanelNav from './PanelNav'
 import ReportActions, { type LocationBadge } from './ReportActions'
 import ReportBand from './ReportBand'
 import ReportTabs from './ReportTabs'
@@ -15,6 +16,7 @@ import {
   BIOMA_FEATURE_ID,
   BIOMA_RECORTE_ID,
   LAND_USE_YEARS,
+  STEP_LABELS,
   STORY_THEMES,
   territoryTypeByRecorte,
   type TerritoryType,
@@ -22,7 +24,16 @@ import {
 import { CHOOSER, REPORT } from '@/config/territorios/chooserScript'
 import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { RECORTE_DATA_VERSION } from '@/lib/mapa/recorteDataVersion'
-import { readyToPrint, sectionId, stalePrintRequest, stepFromQuery, storyPath, wantedThemes } from '@/lib/territorios/storyTabs'
+import {
+  nextStep,
+  previousStep,
+  readyToPrint,
+  sectionId,
+  stalePrintRequest,
+  stepFromQuery,
+  storyPath,
+  wantedThemes,
+} from '@/lib/territorios/storyTabs'
 import type { StepId, TerritoryPayload, ThemeId, ThemeResponse } from '@/types/territorios'
 
 // MapLibre needs WebGL and window.
@@ -384,6 +395,22 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
   ) as Record<ThemeId, ThemeLoad>
 
   const isBioma = type?.recorteId === BIOMA_RECORTE_ID
+
+  // Under the panel and the map: back to the previous tab, or out of the report
+  // from the first; on to the next, by its name and the question it opens on.
+  const previous = previousStep(tab)
+  const next = nextStep(tab)
+  const stepNav = (
+    <PanelNav
+      wide
+      back={previous
+        ? { label: STEP_LABELS[previous], onClick: () => openTab(previous) }
+        : isBioma ? { label: REPORT.cut, onClick: changeType } : { label: REPORT.location, onClick: changeTerritory }}
+      next={next
+        ? { label: STEP_LABELS[next], detail: next === 'resumo' ? undefined : script.questions[next], onClick: () => openTab(next) }
+        : undefined}
+    />
+  )
   const territoryTitle = payload && type
     ? TERRITORY_SCRIPT.title(payload.featureName, type.id === 'estado' ? undefined : payload.context)
     : null
@@ -474,8 +501,6 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                       load={isTheme(tab) ? loads[tab] : LOADING}
                       expired={expired}
                       onRetry={() => { if (isTheme(tab)) retryTheme(tab) }}
-                      leave={isBioma ? { label: REPORT.cut, onClick: changeType } : { label: REPORT.location, onClick: changeTerritory }}
-                      onOpen={openTab}
                       landUseYear={tab === 'uso' ? { year: landUseYear, onChange: setLandUseYear } : undefined}
                     />
                   )}
@@ -492,6 +517,7 @@ export default function TerritoriosApp({ initialRecorte, initialFeicao, initialE
                       />
                     )}
                   </div>
+                  {tab !== 'resumo' && stepNav}
                 </div>
 
                 <StorySummary

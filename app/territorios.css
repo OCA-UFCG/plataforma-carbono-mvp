@@ -267,23 +267,17 @@ input:focus-visible,
   border-radius: 12px;
 }
 
-/* One tab (19254:37447): the answer at the top, the buttons at the foot. */
+/* One tab: the question as its title, the answer and its charts, then the
+   boxes. The buttons to the other tabs run under the panel and the map, across
+   both columns (territorios-relatorio.css). */
 .territorios-etapa-painel {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
-  min-width: 0;
-}
-
-.territorios-etapa-corpo {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 24px;
   min-width: 0;
 }
 
-/* The tab's title: its icon, and its color inline from STEP_COLORS (19257:5752). */
+/* The tab's question: its icon, and its color inline from STEP_COLORS (19257:5752). */
 .territorios-etapa-titulo {
   display: flex;
   align-items: center;
@@ -297,14 +291,6 @@ input:focus-visible,
 /* Focused by a change of tab or of screen, not by the visitor. */
 .territorios-etapa-titulo:focus {
   outline: none;
-}
-
-/* 19254:37454. */
-.territorios-etapa-pergunta {
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  color: var(--bg-texto-primario);
 }
 
 .territorios-passo-texto {
@@ -328,6 +314,111 @@ input:focus-visible,
 .territorios-graficos {
   display: grid;
   gap: 24px;
+}
+
+/* A chart under the question it answers. */
+.territorios-grafico {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.territorios-grafico-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--bg-texto-primario);
+}
+
+/* The territory's area: its icon on a tinted square, the label over the figure. */
+.territorios-cartao {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.territorios-cartao-icone {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-interno);
+  background: var(--am-050);
+}
+
+.territorios-cartao-conteudo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.territorios-cartao-rotulo {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+/* "Explore no mapa" and "Por que importa?": an icon beside a short block. */
+.territorios-explorar,
+.territorios-porque {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+}
+
+.territorios-explorar {
+  background: var(--am-050);
+}
+
+.territorios-porque {
+  background: var(--role-categorica1-container);
+}
+
+.territorios-explorar-titulo,
+.territorios-porque-titulo {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--bg-texto-primario);
+}
+
+.territorios-explorar-texto,
+.territorios-porque-texto {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--am-400);
+}
+
+.territorios-explorar .territorios-passo-anos {
+  margin-top: 12px;
+}
+
+.territorios-porque-texto a {
+  color: var(--role-categorica1-padrao);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.territorios-porque-texto a img {
+  display: inline;
+  margin-left: 2px;
+  vertical-align: -1px;
+}
+
+.territorios-porque-fonte {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--am-400);
+}
+
+.territorios-porque-fonte b {
+  font-weight: 600;
 }
 
 .territorios-estado {

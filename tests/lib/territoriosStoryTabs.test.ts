@@ -3,34 +3,34 @@ import { nextStep, previousStep, readyToPrint, stalePrintRequest, stepFromQuery,
 
 describe('wantedThemes', () => {
   it('asks for the next theme from the territory tab, which has none of its own', () => {
-    expect(wantedThemes('territorio')).toEqual(['estoque'])
+    expect(wantedThemes('territorio')).toEqual(['chuva'])
   })
 
   it('asks for a theme tab and the one after it, in reading order', () => {
     expect(wantedThemes('uso')).toEqual(['uso', 'fogo'])
   })
 
-  it('asks only for the rain theme before the summary', () => {
-    expect(wantedThemes('chuva')).toEqual(['chuva'])
+  it('asks only for the flux theme before the summary', () => {
+    expect(wantedThemes('fluxo')).toEqual(['fluxo'])
   })
 
   it('asks for every theme on the summary', () => {
-    expect(wantedThemes('resumo')).toEqual(['estoque', 'fluxo', 'uso', 'fogo', 'chuva'])
+    expect(wantedThemes('resumo')).toEqual(['chuva', 'uso', 'fogo', 'estoque', 'fluxo'])
   })
 })
 
 describe('nextStep', () => {
   it('walks the tabs in order and stops at the summary', () => {
-    expect(nextStep('territorio')).toBe('estoque')
-    expect(nextStep('chuva')).toBe('resumo')
+    expect(nextStep('territorio')).toBe('chuva')
+    expect(nextStep('fluxo')).toBe('resumo')
     expect(nextStep('resumo')).toBeNull()
   })
 })
 
 describe('previousStep', () => {
   it('walks the tabs back and stops at the territory tab', () => {
-    expect(previousStep('resumo')).toBe('chuva')
-    expect(previousStep('estoque')).toBe('territorio')
+    expect(previousStep('resumo')).toBe('fluxo')
+    expect(previousStep('chuva')).toBe('territorio')
     expect(previousStep('territorio')).toBeNull()
   })
 })

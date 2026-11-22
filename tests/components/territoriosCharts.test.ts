@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import ComparisonBar, { type ComparisonBarProps } from '@/components/territorios/charts/ComparisonBar'
 import Dumbbell, { type DumbbellProps } from '@/components/territorios/charts/Dumbbell'
 import LevelsBar, { type Level, type LevelsBarProps } from '@/components/territorios/charts/LevelsBar'
+import { rainClassPct } from '@/components/territorios/charts/RainClassBar'
 import StepFigure from '@/components/territorios/charts/StepFigure'
 import YearBars, { type YearBarsProps } from '@/components/territorios/charts/YearBars'
 import YearStrip, { type YearStripProps } from '@/components/territorios/charts/YearStrip'
@@ -68,11 +69,14 @@ const CG_RAIN_MM = [
 function rainData(values: (number | null)[], highlightYear = 2024): RainChartData {
   const known = values.filter((v): v is number => v !== null)
   const meanMm = known.reduce((a, b) => a + b, 0) / known.length
+  const sorted = [...known].sort((a, b) => a - b)
+  const terciles = { lowMm: sorted[Math.floor(sorted.length / 3)], highMm: sorted[Math.floor((2 * sorted.length) / 3)] }
   const kindOf = (v: number | null): RainYearKind | null =>
-    v === null ? null : v < meanMm * 0.9 ? 'seco' : v > meanMm * 1.1 ? 'chuvoso' : 'normal'
+    v === null ? null : v < terciles.lowMm ? 'seco' : v > terciles.highMm ? 'chuvoso' : 'normal'
   return {
     years: values.map((valueMm, i) => ({ year: 1985 + i, valueMm, kind: kindOf(valueMm) })),
     meanMm,
+    terciles,
     highlightYear,
     mean: { here: meanMm, reference: 701 },
   }
@@ -101,17 +105,6 @@ describe('ComparisonBar', () => {
     expect(markup).toContain('Caatinga <b class="tg-num">55 t</b>')
     expect(markup).toContain('width:76.67%')
     expect(markup).toContain('--at:91.83%')
-    expectSound(markup)
-  })
-
-  it('compares the forest share, 13% against 27%, in the compact form', () => {
-    const markup = html(ComparisonBar, stock({
-      here: 13.4, reference: 27, max: 100, format: pct0, compact: true, color: STEP_COLORS.fluxo,
-      description: 'Área com árvores: aqui 13%, na Caatinga 27%.',
-    }))
-    expect(markup).toContain('tg-cmp--compact')
-    expect(markup).toContain('Aqui <b class="tg-num">13%</b>')
-    expect(markup).toContain('Caatinga <b class="tg-num">27%</b>')
     expectSound(markup)
   })
 
@@ -187,16 +180,23 @@ describe('YearBars', () => {
     peakYear: 1999,
     reference: 0.559,
     color: STEP_COLORS.fogo,
+    axisLabel: 'Área queimada (%)',
     description: 'Parte da área queimada em cada ano, de 1985 a 2023.',
   }
 
-  it('draws one bar per burned year of Campina Grande and labels 1999, 1985 and 2023', () => {
+  it('draws one bar per burned year of Campina Grande on a percent axis, every fifth year named', () => {
     const markup = html(YearBars, props)
     expect(markup.match(/class="tg-yearbars-col"/g)).toHaveLength(39)
     // 2019 burned nothing: no bar in its column.
     expect(markup.match(/class="tg-yearbars-bar"/g)).toHaveLength(38)
     expect(markup).toContain('1999: <b class="tg-num">0,6%</b>')
-    expect(markup).toContain('>1985</span><span>2023<')
+    const named = [...markup.matchAll(/<span style="left:[\d.]+%">(\d{4})<\/span>/g)].map((m) => m[1])
+    // 2020 would touch 2023, the last year, and stays unnamed.
+    expect(named).toEqual(['1985', '1990', '1995', '2000', '2005', '2010', '2015', '2023'])
+    // The 0,8 scale in quarters, and the axis named along its edge.
+    expect([...markup.matchAll(/<span style="bottom:[\d.]+%">([\d,]+)<\/span>/g)].map((m) => m[1]))
+      .toEqual(['0,0', '0,2', '0,4', '0,6', '0,8'])
+    expect(markup).toContain('>Área queimada (%)</span>')
     expect(markup).toContain('>Caatinga</span>')
     // The peak (0,56%) and the Caatinga mean (0,56%) end a 0,8 scale.
     expect(markup).toContain('--at:69.88%')
@@ -278,5 +278,25 @@ describe('YearStrip', () => {
     expect(markup).toContain('style="padding-left:20%"')
     expect(markup).toContain('1993: <b class="tg-num">259 mm</b>')
     expectSound(markup)
+  })
+})
+
+describe('rainClassPct', () => {
+  // Bands of 735 and 899 mm around an 817 mm mean, years from 500 to 1.200 mm.
+  const at = (mm: number) => rainClassPct(mm, 735, 899, 500, 1_200)
+
+  it('puts each class in its own third, the limits on the band edges', () => {
+    expect(at(817)).toBe(50)
+    expect(at(735)).toBeCloseTo(100 / 3, 1)
+    expect(at(899)).toBeCloseTo(200 / 3, 1)
+    expect(at(600)).toBeGreaterThan(0)
+    expect(at(600)).toBeLessThan(100 / 3)
+    expect(at(1_000)).toBeGreaterThan(200 / 3)
+  })
+
+  it('keeps the driest and rainiest years on the ends, and a value past them too', () => {
+    expect(at(500)).toBe(0)
+    expect(at(1_200)).toBe(100)
+    expect(rainClassPct(400, 735, 899, 500, 1_200)).toBe(0)
   })
 })

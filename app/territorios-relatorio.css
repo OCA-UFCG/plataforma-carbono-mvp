@@ -239,6 +239,48 @@ button.territorios-selo:focus-visible {
   grid-template-columns: minmax(0, 220px);
 }
 
+/* Under the panel and the map, across both columns: the way back at the panel's
+   side, the way on filling the rest with the next tab's name and question. */
+.territorios-relatorio > .territorios-painel-nav--largo {
+  grid-column: 1 / -1;
+}
+
+.territorios-painel-nav--largo {
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+}
+
+.territorios-painel-nav--largo .territorios-navegar:not(.territorios-navegar--voltar) {
+  justify-content: space-between;
+  padding-inline: 24px;
+}
+
+.territorios-navegar-texto {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.territorios-navegar-texto b {
+  font-weight: 600;
+}
+
+.territorios-navegar-detalhe {
+  font-weight: 400;
+  color: var(--am-400);
+}
+
+/* A phone has no room for the two side by side: one under the other, the way
+   back first, each across the column. */
+@media (max-width: 767px) {
+  .territorios-painel-nav--largo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
 .territorios-navegar {
   display: inline-flex;
   align-items: center;
@@ -283,7 +325,7 @@ button.territorios-selo:focus-visible {
 
 /* The territory's cards (19254:37459): its share of the biome at 172 px, its
    rank in the rest; D-DIN Bold 24 over Rubik 14. A territory under 0,1% of
-   the biome keeps the rank alone, across the column; the bioma has none, and
+   the biome keeps the rank alone, at its own width; the bioma has none, and
    its empty list takes no room. */
 .territorios-indicadores {
   display: grid;
@@ -298,8 +340,11 @@ button.territorios-selo:focus-visible {
   display: none;
 }
 
+/* Alone, the rank keeps the size of its words, as the territory step draws it. */
 .territorios-indicador:only-child {
   grid-column: 1 / -1;
+  justify-self: start;
+  min-width: 172px;
 }
 
 .territorios-indicador {

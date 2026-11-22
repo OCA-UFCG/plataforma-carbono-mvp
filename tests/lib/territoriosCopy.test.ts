@@ -8,8 +8,8 @@ import { SITE_COPY_TYPES } from '@/lib/content/site/types'
 describe('the Territórios copy', () => {
   it('has a type per tab, in the order of the tabs, between the presentation and "Sobre os dados"', () => {
     expect(Object.values(TERRITORIOS_COPY).map((t) => t.id)).toEqual([
-      'territoriosApresentacao', 'territoriosTerritorio', 'territoriosEstoque', 'territoriosFluxo',
-      'territoriosUso', 'territoriosFogo', 'territoriosChuva', 'territoriosSobreDados',
+      'territoriosApresentacao', 'territoriosTerritorio', 'territoriosChuva', 'territoriosUso',
+      'territoriosFogo', 'territoriosEstoque', 'territoriosFluxo', 'territoriosSobreDados',
     ])
   })
 
@@ -21,10 +21,21 @@ describe('the Territórios copy', () => {
   it('gives every tab its question and its source in "Sobre os dados"', () => {
     const copy = territoriosCopyDefaults()
 
-    for (const tab of [copy.territorio, copy.estoque, copy.fluxo, copy.uso, copy.fogo, copy.chuva]) {
+    for (const tab of [copy.territorio, copy.chuva, copy.uso, copy.fogo, copy.estoque, copy.fluxo]) {
       expect(tab.pergunta).toMatch(/\?$/)
       expect(tab.sobreTitulo).not.toBe('')
       expect(tab.sobreTexto).not.toBe('')
+    }
+  })
+
+  it('gives every theme a "Por que importa?" box with its linked word and its source', () => {
+    const copy = territoriosCopyDefaults()
+
+    for (const tab of [copy.chuva, copy.uso, copy.fogo, copy.estoque, copy.fluxo]) {
+      expect(tab.porqueTitulo).toMatch(/\?$/)
+      expect(tab.porqueTexto.match(/\{termo\}/g)).toHaveLength(1)
+      expect(tab.porqueTermo).not.toBe('')
+      expect(tab.fonte).not.toBe('')
     }
   })
 })
@@ -36,20 +47,30 @@ function edited<Key extends keyof TerritoriosCopy>(key: Key, entry: Record<strin
 
 describe('storyScript', () => {
   it('fills the years of each series from config/territorios/story.ts', () => {
-    expect(SHIPPED_STORY_SCRIPT.questions.uso).toBe(`Como mudou a vegetação nativa desde ${LAND_USE_YEARS[0]}?`)
-    expect(SHIPPED_STORY_SCRIPT.questions.fogo).toBe(`Quanto daqui já queimou desde ${FIRE_FIRST_YEAR}?`)
-    expect(SHIPPED_STORY_SCRIPT.questions.chuva).toBe(`${RAIN_LAST_YEAR} foi um ano seco ou chuvoso aqui?`)
+    expect(SHIPPED_STORY_SCRIPT.questions.chuva).toBe(`Como foi a chuva em ${RAIN_LAST_YEAR}?`)
+    expect(SHIPPED_STORY_SCRIPT.about.uso.text).toContain(`${LAND_USE_YEARS[0]} e ${LAND_USE_YEARS[1]}.`)
+    expect(SHIPPED_STORY_SCRIPT.about.fogo.text).toContain(`${FIRE_FIRST_YEAR} a`)
     expect(SHIPPED_STORY_SCRIPT.about.fluxo.text).toContain(`saldo de ${FLUX_FIRST_YEAR} a ${FLUX_LAST_YEAR}.`)
   })
 
   it('carries an edited question to the story, with its year filled', () => {
-    expect(storyScript(edited('uso', { pergunta: 'O que mudou desde {anoInicial}?' })).questions.uso)
-      .toBe('O que mudou desde 1985?')
+    expect(storyScript(edited('chuva', { pergunta: 'Choveu em {anoFinal}?' })).questions.chuva)
+      .toBe(`Choveu em ${RAIN_LAST_YEAR}?`)
   })
 
   it('keeps the shipped question when the edit names a placeholder the tab does not fill', () => {
-    expect(storyScript(edited('uso', { pergunta: 'O que mudou desde {ano}?' })).questions.uso)
-      .toBe('Como mudou a vegetação nativa desde 1985?')
+    expect(storyScript(edited('chuva', { pergunta: 'Choveu em {ano}?' })).questions.chuva)
+      .toBe(`Como foi a chuva em ${RAIN_LAST_YEAR}?`)
+  })
+
+  it('splits the "Por que importa?" text around its linked word, and reads without a link when the word is gone', () => {
+    expect(SHIPPED_STORY_SCRIPT.why.chuva.text).toEqual({
+      before: 'Na Caatinga, a chuva é um dos principais fatores que regulam a ',
+      term:   'fotossíntese',
+      after:  '.',
+    })
+    expect(storyScript(edited('chuva', { porqueTexto: 'A chuva regula a fotossíntese.' })).why.chuva.text)
+      .toEqual({ before: 'A chuva regula a fotossíntese.', term: null, after: '' })
   })
 
   // The uso, fogo and chuva questions show an editor {anoInicial}; the flux
@@ -59,14 +80,13 @@ describe('storyScript', () => {
       .toBe('As áreas com árvores tiraram ou lançaram carbono do ar?')
   })
 
-  it('carries the edited presentation, summary title and source', () => {
+  it('carries the edited presentation and source', () => {
     const script = storyScript({
       ...edited('apresentacao', { titulo: 'Escolha um território' }),
-      fogo: copyFromEntry(TERRITORIOS_COPY.fogo, { resumoTitulo: 'Queimadas', sobreTexto: 'MapBiomas Fogo, {anoInicial}–{anoFinal}.' }),
+      fogo: copyFromEntry(TERRITORIOS_COPY.fogo, { sobreTexto: 'MapBiomas Fogo, {anoInicial}–{anoFinal}.' }),
     })
 
     expect(script.intro.title).toBe('Escolha um território')
-    expect(script.summary.titles.fogo).toBe('Queimadas')
     expect(script.about.fogo.text).toBe('MapBiomas Fogo, 1985–2023.')
   })
 })

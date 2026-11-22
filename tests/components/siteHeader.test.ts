@@ -62,7 +62,7 @@ describe('SiteHeader on the marketing pages', () => {
 
     expect(markup).toMatch(/<header [^>]*lang="en"/)
     expect(markup).toContain('aria-label="Main navigation"')
-    for (const label of ['Home', 'About', 'Glossary', 'Communication', 'Territory summary', 'Platform']) {
+    for (const label of ['Home', 'About', 'Interactive Caatinga', 'Communication', 'Territory summary', 'Platform']) {
       expect(markup, label).toMatch(new RegExp(`<a [^>]*>${label}</a>`))
     }
     for (const button of markup.match(/<button [^>]*>En<\/button>/g) ?? []) expect(button).toContain('aria-pressed="true"')
