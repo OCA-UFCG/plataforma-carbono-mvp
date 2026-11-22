@@ -11,6 +11,7 @@ import {
 import type {
   AboutItem,
   BiomeReference,
+  NativeShareYear,
   PrecomputedFile,
   StepAnswer,
   TerritoryPayload,
@@ -28,9 +29,13 @@ const municipio = typeOf('municipio')
 const assentamento = typeOf('assentamento')
 const bioma = typeOf('bioma')
 
+/** One share a year from 1985, as the API's land use series. */
+const yearly = (values: number[]): NativeShareYear[] => values.map((sharePct, i) => ({ year: 1985 + i, sharePct }))
+
 // Over answers of the real API
-// (2026-09-27; fire on 2026-10-05) for Campina Grande and the PA Serra do
-// Monte, and the biome reference of config/territorios/precomputed.json.
+// (2026-09-27; fire on 2026-10-05; the land use series on 2026-11-22) for
+// Campina Grande and the PA Serra do Monte, and the biome reference of
+// config/territorios/precomputed.json.
 
 const BIOME: BiomeReference = {
   stockTotalTc:      4_160_240_473.1142607,
@@ -38,6 +43,13 @@ const BIOME: BiomeReference = {
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
   nativeSharePct:    { '1985': 74.06124587380222, '2025': 62.59887178552211 },
+  nativeSeries:      yearly([
+    74.06, 74.07, 73.89, 73.4, 72.8, 72.17, 71.64, 71.12, 70.62, 70.11,
+    69.79, 69.57, 69.45, 69.12, 69.14, 69.06, 68.81, 68.63, 68.39, 68.09,
+    68.01, 67.93, 67.84, 67.66, 67.52, 67.35, 67.12, 66.72, 66.44, 66.32,
+    66.13, 66.08, 66.06, 66.03, 65.92, 65.74, 65.38, 64.75, 63.97, 63.39,
+    62.6,
+  ]),
   fireBurnedSharePct: 12.037964993028348,
   fireRecurrenceSharesPct: {
     never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
@@ -50,7 +62,7 @@ function payload(over: Partial<TerritoryPayload>): TerritoryPayload {
   return {
     recorteId: 'municipios', recorteName: 'Municípios',
     featureId: 'campina-grande', featureName: 'Campina Grande', context: 'PB',
-    areaHa: 59_552.72506798451, biomaAreaHa: 86_617_415.51410055,
+    areaHa: 59_552.72506798451, biomaAreaHa: 86_617_415.51410055, caatingaSharePct: 100,
     bbox: [-36.12386, -7.38712, -35.70432, -7.15422], boundary: 'full',
     geometry: { type: 'Polygon', coordinates: [] },
     biome: BIOME,
@@ -107,6 +119,13 @@ const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
       '1985': { '3': 13_230_717, '4': 188_116_664, '15': 279_030_140, '21': 79_532_028, '24': 26_657_392, '25': 172_967, '29': 12_410, '33': 4_251_782, '41': 443_509 },
       '2025': { '3': 5_576_055, '4': 185_165_284, '15': 312_180_668, '21': 18_043_929, '24': 67_673_255, '25': 135_386, '33': 2_673_031 },
     },
+    series: yearly([
+      34.04, 34.32, 34.33, 32.65, 29.44, 28.42, 28.03, 27.08, 26.43, 26.47,
+      26.03, 25.1, 24.54, 24.26, 24.36, 25.8, 28.71, 29.54, 30.36, 31.26,
+      31.84, 32.19, 32.34, 32.27, 31.38, 32.07, 32.54, 32.62, 32.51, 32.74,
+      32.94, 33.24, 33.42, 33.46, 33.22, 33.03, 32.62, 31.87, 32.08, 31.81,
+      32.25,
+    ]),
   }),
   fogo: answer({
     theme: 'fogo',
@@ -143,6 +162,13 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
       '1985': { '4': 45_675_123, '15': 2_494_462, '21': 2_763_393, '33': 417_659 },
       '2025': { '4': 43_361_545, '15': 7_545_346, '21': 363_052, '33': 80_693 },
     },
+    series: yearly([
+      88.95, 91.5, 94.1, 95.64, 96.55, 96.78, 97.15, 97.12, 97.1, 97.08,
+      96.84, 96.44, 96.39, 96.39, 96.22, 96.69, 96.79, 96.26, 95.98, 95.02,
+      91.29, 89.53, 88.59, 88.02, 87.8, 87.82, 87.92, 88.92, 89.0, 88.6,
+      87.95, 87.37, 86.34, 85.3, 84.9, 84.67, 84.49, 84.1, 84.09, 84.09,
+      84.44,
+    ]),
   }),
   fogo: answer({
     theme: 'fogo',

@@ -50,6 +50,8 @@ export interface BiomeReference {
   fluxPerForestHaMg: number | null
   /** Percent (0..100) of native vegetation, per year. */
   nativeSharePct: { '1985': number; '2025': number } | null
+  /** The same share every year, for the chart's Caatinga line. */
+  nativeSeries: NativeShareYear[] | null
   /** Percent (0..100) of the region that burned at least once in the fire period. */
   fireBurnedSharePct: number | null
   /** Percent (0..100) of the region per number of years with fire. */
@@ -87,9 +89,11 @@ export interface FluxChart {
 }
 
 export interface LandUseChart {
-  /** Native vegetation share (0..100) in 1985 and 2024. */
+  /** Native vegetation share (0..100) in the first and last years. */
   here:      { from: number; to: number }
   reference: { from: number; to: number } | null
+  /** The share every year, here and in the Caatinga. */
+  series:    { here: NativeShareYear[]; reference: NativeShareYear[] | null }
 }
 
 /** Share (0..100) of the region per number of years with fire; adds up to 100. */
@@ -179,6 +183,11 @@ export interface TerritoryPayload {
    */
   areaHa:      number
   biomaAreaHa: number
+  /**
+   * Percent of the whole territory inside the biome; null for the biome itself
+   * and where the recorte's file does not carry it.
+   */
+  caatingaSharePct: number | null
   /** Its place among the territories of its type by area; null for the biome. */
   areaRank:    AreaRank | null
   bbox:        [number, number, number, number]
@@ -207,8 +216,16 @@ export interface FluxThemeData {
   regionAreaHa: number
 }
 
+/** Percent (0..100) of a region under native vegetation in one year; null without a mapped pixel. */
+export interface NativeShareYear {
+  year:     number
+  sharePct: number | null
+}
+
 export interface LandUseThemeData {
   theme: 'uso'
+  /** Every year from the first to the last of LAND_USE_YEARS. */
+  series: NativeShareYear[]
   /** Area in m² per MapBiomas class code, per year. Only shares are trusted, not the m² total. */
   areas: { '1985': Record<string, number>; '2025': Record<string, number> }
 }

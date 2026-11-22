@@ -57,6 +57,11 @@ export interface FeicaoResolvida {
   context?: string
   /** 'simplified' when it came from a `_clip` file; the document footnotes it. */
   boundary: 'full' | 'simplified'
+  /**
+   * Percent of the whole territory inside the biome, measured before the clip
+   * (`pct_caatinga`, scripts/build-recortes.py); absent where the file has none.
+   */
+  caatingaSharePct?: number
 }
 
 interface VectorEntry {
@@ -72,6 +77,7 @@ interface VectorEntry {
 
 interface IndexedFeicao extends FeicaoInfo {
   geometry: Geometry
+  caatingaSharePct?: number
 }
 
 interface RecorteIndex {
@@ -120,10 +126,14 @@ function buildIndex(recorteId: string): RecorteIndex | null {
     return null
   }
 
-  const feicoes: IndexedFeicao[] = featureEntries(geojson.features ?? [], {
+  const features = geojson.features ?? []
+  const feicoes: IndexedFeicao[] = featureEntries(features, {
     labelField,
     contextField: layer.contextField,
     layerName:    layer.name,
+  }).map((entry) => {
+    const share = features[entry.index]?.properties?.pct_caatinga
+    return typeof share === 'number' ? { ...entry, caatingaSharePct: share } : entry
   })
 
   return { feicoes, boundary: usesCoarse ? 'simplified' : 'full' }
@@ -164,5 +174,6 @@ export function getFeicao(recorteId: string, feicaoId: string): FeicaoResolvida 
     bbox:     computeBbox(found.geometry),
     areaHa:   areaM2 / 10_000,
     boundary: entry.boundary,
+    ...(found.caatingaSharePct !== undefined ? { caatingaSharePct: found.caatingaSharePct } : {}),
   }
 }

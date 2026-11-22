@@ -47,6 +47,7 @@ export const UI = {
   exploreTitle:     'Explore no mapa',
   exploreText:      `Veja a cobertura vegetal do território em ${LAND_USE_YEARS[0]} e em ${LAND_USE_YEARS[1]}.`,
   areaLabel:        'Área do território',
+  biomeShareLabel:  'Área na Caatinga',
   sourceLabel:      'Fonte dos dados:',
   newTab:           'abre em nova aba',
 
@@ -80,6 +81,8 @@ export const TERRITORY_SCRIPT = {
   title: (name: string, context?: string) => (context ? `${displayName(name)} (${context})` : displayName(name)),
   /** The territory's share of the biome, under its area (Figma 19254:37460). */
   biomeShare: 'da área da Caatinga',
+  /** Beside the share of the whole territory inside the biome: "do município está na Caatinga". */
+  inBiome: (unit: string, feminine: boolean) => `${feminine ? 'da' : 'do'} ${unit.toLowerCase()} está na Caatinga`,
   /** Its place by area among the territories of its type (19254:37461). */
   rankValue: (position: number, feminine: boolean) => `${numero(position, 0)}${feminine ? 'ª' : 'º'}`,
   rankText:  (total: number, plural: string, feminine: boolean) =>
@@ -203,9 +206,10 @@ export const CHART_SCRIPT = {
   fluxoShare: 'Parte da área com árvores',
   fluxoPerHa: 't de CO₂e por hectare com árvores',
   uso: {
-    description: (rows: string) => `Vegetação nativa em ${LAND_USE_FIRST} e ${LAND_USE_LAST}. ${rows}`,
+    description: (rows: string) => `Parte da área com vegetação nativa em cada ano, de ${LAND_USE_FIRST} a ${LAND_USE_LAST}. ${rows}`,
     row:         (name: string, from: string, to: string) => `${name}: de ${from} para ${to}.`,
     share:       `Vegetação nativa em ${LAND_USE_LAST}`,
+    axis:        'Vegetação nativa (%)',
   },
   fogo: {
     share:   'Área que já queimou',

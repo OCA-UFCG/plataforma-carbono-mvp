@@ -169,7 +169,7 @@ describe('StepIcon', () => {
 
 const NO_BIOME: BiomeReference = {
   stockTotalTc: null, stockDensityTcHa: null, forestSharePct: null, fluxPerForestHaMg: null,
-  nativeSharePct: null, fireBurnedSharePct: null, fireRecurrenceSharesPct: null,
+  nativeSharePct: null, nativeSeries: null, fireBurnedSharePct: null, fireRecurrenceSharesPct: null,
   fireAnnualMeanSharePct: null, rainMeanMm: null,
 }
 
@@ -177,7 +177,7 @@ const NO_BIOME: BiomeReference = {
 const JUAZEIRO: TerritoryPayload = {
   recorteId: 'municipios', recorteName: 'Municípios',
   featureId: 'juazeiro', featureName: 'Juazeiro', context: 'BA',
-  areaHa: 672_000, biomaAreaHa: 86_000_000,
+  areaHa: 672_000, biomaAreaHa: 86_000_000, caatingaSharePct: 100,
   bbox: [-40.9, -10.0, -39.9, -9.2], boundary: 'full',
   geometry: { type: 'Polygon', coordinates: [] },
   biome: NO_BIOME,
@@ -201,6 +201,8 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Área do município inteiro, na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
+    expect(markup).toContain('Área na Caatinga')
+    expect(markup).toMatch(/>100%<\/span><span class="tg-step-figure-unit">do município está na Caatinga</)
     // No "Por que importa?" here, and the ways to the other tabs run under
     // the report (TerritoriosApp).
     expect(markup).not.toContain('territorios-porque')

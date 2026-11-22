@@ -29,7 +29,8 @@ import { computeSeries } from '@/lib/mapa/zonalSeries'
 import { computeZonalStats, type ZonalStatsOutcome } from '@/lib/mapa/zonalStats'
 import { interiorPoint } from '@/lib/territorios/interiorPoint'
 import type { RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
-import type { TerritoryPayload, ThemeData, ThemeId, ThemeOrigin } from '@/types/territorios'
+import { LAND_USE_GROUPS } from '@/config/territorios/landUseGroups'
+import type { NativeShareYear, TerritoryPayload, ThemeData, ThemeId, ThemeOrigin } from '@/types/territorios'
 
 type Geometry = TerritoryPayload['geometry']
 
@@ -117,14 +118,75 @@ async function flux(ee: any, geometry: Geometry, areaHa: number): Promise<ThemeC
   }
 }
 
+/**
+ * Pixels per year the land use series reads at most. Forty-one years at 30 m
+ * took 5 s over Campina Grande (about 660 thousand pixels) but 89 s over
+ * Pernambuco and 128 s over Bahia; past the budget the scale grows with the
+ * area. A coarser read takes the classes from the asset's MODE pyramid, which
+ * leans to the majority class: 0.25 point of native share over Pernambuco at
+ * 200 m. Averaging the 30 m classes instead was exact but took 132 s, so the
+ * budget keeps a state near 100 to 200 m, where the lean stays below the whole
+ * points the story prints.
+ */
+const LAND_USE_SERIES_PIXELS = 8_000_000
+
+/** The series' scale: the layer's own until the budget, then wide enough to keep to it, in tens of metres. */
+export function landUseSeriesScaleM(areaHa: number, nativeScaleM: number): number {
+  const needed = Math.sqrt((areaHa * 1e4) / LAND_USE_SERIES_PIXELS)
+  return needed <= nativeScaleM ? nativeScaleM : Math.ceil(needed / 10) * 10
+}
+
+/**
+ * Native vegetation share of the region every year, in one reduction: per
+ * year, the pixel area of the native classes and of every mapped pixel, from
+ * the same image the map draws.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined): Promise<ThemeComputation> {
+async function nativeSeries(ee: any, geometry: Geometry, asset: GeeAssetConfig, scaleM: number): Promise<NativeShareYear[]> {
+  const [first, last] = LAND_USE_YEARS.map(Number)
+  const years = Array.from({ length: last - first + 1 }, (_, i) => first + i)
+  const codes = LAND_USE_GROUPS.filter((g) => g.native).flatMap((g) => g.codes)
+  const area = ee.Image.pixelArea().divide(1e4)
+  const bands = years.flatMap((year) => {
+    const classes = buildEeImage(ee, asset, `${year}-01-01`)
+    return [
+      area.multiply(classes.remap(codes, codes.map(() => 1), 0)).rename(`native_${year}`),
+      area.updateMask(classes.mask()).rename(`mapped_${year}`),
+    ]
+  })
+  const sums = await evaluate<Record<string, number | null>>(
+    ee.Image.cat(bands).reduceRegion({
+      reducer:    ee.Reducer.sum(),
+      geometry:   ee.Geometry(geometry),
+      scale:      scaleM,
+      maxPixels:  1e10,
+      bestEffort: true,
+      tileScale:  4,
+    }),
+  )
+  return years.map((year) => {
+    const nativeHa = sums?.[`native_${year}`]
+    const mappedHa = sums?.[`mapped_${year}`]
+    const sharePct = typeof nativeHa === 'number' && typeof mappedHa === 'number' && mappedHa > 0
+      ? (nativeHa / mappedHa) * 100
+      : null
+    return { year, sharePct }
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function landUse(ee: any, geometry: Geometry, areaHa: number, scaleM: number | undefined): Promise<ThemeComputation> {
   const native = assetOf('uso')
   const coarseScaleM = scaleM !== undefined && scaleM > (native.scale ?? 0) ? scaleM : null
   const asset = coarseScaleM === null ? native : { ...native, scale: coarseScaleM }
-  const outcomes = await Promise.all(LAND_USE_YEARS.map((year) =>
-    computeZonalStats(ee, { asset, geometry, temporalDate: `${year}-01-01`, colorType: 'categorical' }),
-  ))
+  const [outcomes, series] = await Promise.all([
+    Promise.all(LAND_USE_YEARS.map((year) =>
+      computeZonalStats(ee, { asset, geometry, temporalDate: `${year}-01-01`, colorType: 'categorical' }),
+    )),
+    // A scale given for the whole reduction (the biome's) holds for the series
+    // too, so its line ends on the shares the answer prints.
+    nativeSeries(ee, geometry, asset, coarseScaleM ?? landUseSeriesScaleM(areaHa, asset.scale ?? 30)),
+  ])
 
   if (outcomes.some((o) => !o.ok && o.status === 422)) return noPixels('zonal', coarseScaleM)
   const areas = outcomes.map((o) => {
@@ -137,7 +199,7 @@ async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined):
     status: 'available',
     origin: 'zonal',
     coarseScaleM,
-    data: { theme: 'uso', areas: { '1985': areas[0], '2025': areas[1] } },
+    data: { theme: 'uso', areas: { '1985': areas[0], '2025': areas[1] }, series },
   }
 }
 
@@ -253,7 +315,7 @@ export async function computeTheme(
   switch (theme) {
     case 'estoque':    return stock(ee, geometry)
     case 'fluxo':      return flux(ee, geometry, areaHa)
-    case 'uso':        return landUse(ee, geometry, input.landUseScaleM)
+    case 'uso':        return landUse(ee, geometry, areaHa, input.landUseScaleM)
     case 'fogo':       return fire(ee, geometry, areaHa)
     case 'chuva':      return rain(ee, geometry, areaHa)
   }

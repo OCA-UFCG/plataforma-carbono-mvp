@@ -11,5 +11,6 @@
 // and of nothing else (the routes ignore it), so a new value sends every such
 // fetch to a fresh entry the moment the release ships.
 //
-// Bump it with every regeneration that moves an id or redraws a feature.
-export const RECORTE_DATA_VERSION = '4'
+// Bump it with every regeneration that moves an id or redraws a feature, and
+// when the files gain a property the answers carry (`pct_caatinga`, 5).
+export const RECORTE_DATA_VERSION = '5'

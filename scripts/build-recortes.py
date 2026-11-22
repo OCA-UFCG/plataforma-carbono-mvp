@@ -77,11 +77,16 @@ CAATINGA_UF = set(caatinga["abbrev_state"])
 CAATINGA_NAMES = dict(zip(caatinga["code_muni"].astype(int), caatinga["name_muni"]))
 
 
-def mostly_inside(gdf):
-    """Rows with more than half of their area inside the biome; prints the rest that touch it."""
+def share_inside(gdf):
+    """The fraction of each row's area inside the biome, 0 to 1."""
     inside = gpd.clip(gdf, bioma_geom).to_crs(EQUAL_AREA).area
     whole = gdf.loc[inside.index].to_crs(EQUAL_AREA).area
-    share = (inside / whole).reindex(gdf.index).fillna(0)
+    return (inside / whole).reindex(gdf.index).fillna(0)
+
+
+def mostly_inside(gdf):
+    """Rows with more than half of their area inside the biome; prints the rest that touch it."""
+    share = share_inside(gdf)
     for i in share[(share > 0) & (share <= 0.5)].index:
         print(f"   fora: {gdf.at[i, gdf.columns[0]]} ({share[i]:.0%} na Caatinga)")
     return gdf[share > 0.5]
@@ -191,6 +196,10 @@ def polygonal(geom):
 
 def write(name, gdf, columns, tol):
     path = os.path.join(OUT, name + ".geojson")
+    # The share of the whole territory inside the biome, measured before the
+    # clip below drops the rest; the story's territory card shows it.
+    gdf = gdf.assign(pct_caatinga=(share_inside(gdf) * 100).round(1))
+    columns = columns + ["pct_caatinga"]
     kept = gdf if name in WHOLE else gpd.clip(gdf, bioma_geom, sort=True)
     kept = kept[~kept.geometry.is_empty & kept.geometry.notna()]
     kept = kept.loc[previous_order(path, kept, columns[0]).sort_values().index]
