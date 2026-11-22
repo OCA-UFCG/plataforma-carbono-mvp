@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-22T11:57:25.249Z",
+  "generatedAt": "2026-11-22T12:27:46.379Z",
   "entries": {
     "bioma|bioma-caatinga": {
       "featureName": "Bioma Caatinga",
@@ -844,6 +844,10 @@
               {
                 "date": "2024-01-01",
                 "value": 819.8898760858872
+              },
+              {
+                "date": "2025-01-01",
+                "value": 616.838210695593
               }
             ]
           }
