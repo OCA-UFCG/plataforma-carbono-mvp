@@ -60,6 +60,7 @@ export const LAYER_META: Record<string, LayerMeta> = {
   ndvi_modis:       { description: 'índice de vegetação NDVI',       source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   evi_modis:        { description: 'índice de vegetação EVI',        source: 'MODIS, 250 m',        kind: 'Raster contínuo' },
   chirps_precip:    { description: 'precipitação anual',             source: 'CHIRPS, 5,5 km',       kind: 'Raster contínuo' },
+  chirps3_pr:       { description: 'precipitação anual',             source: 'CHIRPS v3, 5,6 km',    kind: 'Raster contínuo' },
   brdwgd_pr:        { description: 'precipitação anual',             source: 'BR-DWGD, 11 km',       kind: 'Raster contínuo' },
   brdwgd_tmed:      { description: 'temperatura média do ar',        source: 'BR-DWGD, 11 km',       kind: 'Raster contínuo' },
   brdwgd_eto:       { description: 'evapotranspiração de referência anual', source: 'BR-DWGD, 11 km', kind: 'Raster contínuo' },
