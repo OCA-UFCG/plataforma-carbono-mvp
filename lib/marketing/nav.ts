@@ -53,7 +53,7 @@ export const HEADER_LINKS: NavLink[] = [
   { href: '/comunicacao', key: 'comunicacao', external: false },
 ]
 
-// The header's order, with "Recorte territorial" before the platform; Figma's
+// The header's order, with "Recorte Territorial" before the platform; Figma's
 // footer (18862:8257) predates the Glossário page and the Territórios story
 // and lists no entry for either.
 // The first link reads "Início" as in the header, not the design's "Home".
@@ -83,7 +83,7 @@ export const SOBRE_PAGES: SobrePage[] = [
 
 // The header entry to mark active on `pathname`: the one whose route is the
 // path itself or a parent of it, so every /sobre/* page lights "Sobre", the
-// story lights "Recorte territorial" and the platform lights "Plataforma". "/"
+// story lights "Recorte Territorial" and the platform lights "Plataforma". "/"
 // only owns itself, or it would own everything.
 export function activeNavHref(pathname: string): string | null {
   const owns = (route: string) =>

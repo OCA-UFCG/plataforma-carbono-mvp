@@ -91,18 +91,18 @@ describe('marketing nav registry', () => {
     }
   })
 
-  it('lists "Recorte territorial" in the footer, before the platform', () => {
+  it('lists "Recorte Territorial" in the footer, before the platform', () => {
     expect(FOOTER_LINKS.map((l) => MESSAGES.pt.Nav[l.key])).toEqual([
       'Início',
       'Sobre',
-      'Caatinga interativa',
+      'Caatinga Interativa',
       'Comunicação',
-      'Recorte territorial',
+      'Recorte Territorial',
       'Plataforma',
     ])
   })
 
-  it('sends "Recorte territorial" to the Territórios route group', () => {
+  it('sends "Recorte Territorial" to the Territórios route group', () => {
     const page = path.join(process.cwd(), 'app/(territorios)', TERRITORIOS_LINK.href, 'page.tsx')
     expect(existsSync(page), `${TERRITORIOS_LINK.href} has no page.tsx`).toBe(true)
   })
@@ -111,7 +111,7 @@ describe('marketing nav registry', () => {
     expect(HEADER_LINKS.map((l) => MESSAGES.pt.Nav[l.key])).toEqual([
       'Início',
       'Sobre',
-      'Caatinga interativa',
+      'Caatinga Interativa',
       'Comunicação',
     ])
     expect(SOBRE_PAGES.map((p) => MESSAGES.pt.Sobre.pages[p.slug])).toEqual([
@@ -177,7 +177,7 @@ describe('activeNavHref', () => {
     expect(activeNavHref('/comunicacao')).toBe('/comunicacao')
   })
 
-  it('marks "Recorte territorial" on the story, which renders this header too', () => {
+  it('marks "Recorte Territorial" on the story, which renders this header too', () => {
     expect(activeNavHref('/territorios')).toBe(TERRITORIOS_LINK.href)
     expect(activeNavHref('/territoriosx')).toBeNull()
   })

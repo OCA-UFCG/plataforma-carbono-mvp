@@ -1,6 +1,6 @@
 import { copyDefaults, defineCopy, line, paragraph, type Copy, type CopyType } from './site/model'
 
-// Copy of the Territórios story (/territorios, the "Recorte territorial"). Each
+// Copy of the Territórios story (/territorios, the "Recorte Territorial"). Each
 // tab has a content type, so an editor finds a tab's words in one entry: its
 // question, the box on why the theme matters and its source, and its source in
 // "Sobre os dados".
@@ -23,16 +23,16 @@ const ONE_ENTRY = 'Há uma única entrada deste tipo: edite-a, não crie outra.'
 const ANO_INICIAL = { anoInicial: 'primeiro ano dos dados' }
 const ANO_FINAL = { anoFinal: 'último ano dos dados' }
 const ANOS = { ...ANO_INICIAL, ...ANO_FINAL }
-const TERMO = { termo: 'palavra com link para a Caatinga interativa' }
+const TERMO = { termo: 'palavra com link para a Caatinga Interativa' }
 
 function tabDescription(tab: string): string {
-  return `Aba "${tab}" do recorte territorial (/territorios): a pergunta, a caixa "Por que importa?" com a fonte e a fonte em "Sobre os dados". O campo "Resumo · Título do cartão" não aparece mais na página. ${ONE_ENTRY}`
+  return `Aba "${tab}" do Recorte Territorial (/territorios): a pergunta, a caixa "Por que importa?" com a fonte e a fonte em "Sobre os dados". O campo "Resumo · Título do cartão" não aparece mais na página. ${ONE_ENTRY}`
 }
 
 export const TERRITORIOS_APRESENTACAO = defineCopy({
   id: 'territoriosApresentacao',
   name: 'Territórios · Apresentação',
-  description: `Abertura do recorte territorial (/territorios): o título, que fica também na escolha do território, o texto abaixo dele e o título da galeria de recortes. ${ONE_ENTRY}`,
+  description: `Abertura do Recorte Territorial (/territorios): o título, que fica também na escolha do território, o texto abaixo dele e o título da galeria de recortes. ${ONE_ENTRY}`,
   fields: {
     titulo: line('Título', 'Que território você quer conhecer?'),
     chamada: line(
@@ -46,7 +46,7 @@ export const TERRITORIOS_APRESENTACAO = defineCopy({
 export const TERRITORIOS_TERRITORIO = defineCopy({
   id: 'territoriosTerritorio',
   name: 'Territórios · Território',
-  description: `Aba "Território" do recorte territorial (/territorios): a pergunta e, em "Sobre os dados", a fonte do limite do bioma e a dos municípios, que entram inteiros. ${ONE_ENTRY}`,
+  description: `Aba "Território" do Recorte Territorial (/territorios): a pergunta e, em "Sobre os dados", a fonte do limite do bioma e a dos municípios, que entram inteiros. ${ONE_ENTRY}`,
   fields: {
     pergunta: line('Pergunta', 'Que território estamos conhecendo?'),
     sobreTitulo: line('Sobre os dados · Título', 'Território'),
@@ -170,7 +170,7 @@ export const TERRITORIOS_CHUVA = defineCopy({
 export const TERRITORIOS_SOBRE_DADOS = defineCopy({
   id: 'territoriosSobreDados',
   name: 'Territórios · Sobre os dados',
-  description: `Parte comum de "Sobre os dados", no fim do recorte territorial; a fonte de cada aba fica no tipo da aba. As notas entram no fim da fonte de uma aba quando o valor vem de um ponto do território ou foi calculado em quadrados maiores que os da camada. ${ONE_ENTRY}`,
+  description: `Parte comum de "Sobre os dados", no fim do Recorte Territorial; a fonte de cada aba fica no tipo da aba. As notas entram no fim da fonte de uma aba quando o valor vem de um ponto do território ou foi calculado em quadrados maiores que os da camada. ${ONE_ENTRY}`,
   fields: {
     titulo: line('Título', 'Sobre os dados'),
     unidadesTitulo: line('Unidades · Título', 'Unidades'),
