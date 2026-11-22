@@ -315,7 +315,8 @@ function quantile(sorted: number[], q: number): number {
 
 /**
  * Terciles of the annual rainfall from RAIN_FIRST_YEAR to RAIN_LAST_YEAR; null
- * with no year. On 40 years they leave 13 dry, 14 normal and 13 rainy.
+ * with no year. 40 years split 13, 14 and 13; the 41 from 1985 to 2025 split
+ * 14 dry, 13 normal and 14 rainy.
  */
 export function rainTerciles(series: TimeSeriesPoint[]): RainTerciles | null {
   const sorted = rainYearValues(series).sort((a, b) => a - b)

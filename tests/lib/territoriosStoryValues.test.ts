@@ -200,7 +200,7 @@ describe('rain', () => {
   })
 
   it('leaves years past the series out of the terciles, and has none without a year', () => {
-    expect(rainTerciles([...forty, { date: '2025-01-01', value: 9_999 }])).toEqual(rainTerciles(forty))
+    expect(rainTerciles([...forty, { date: '2026-01-01', value: 9_999 }])).toEqual(rainTerciles(forty))
     expect(rainTerciles([{ date: '1990-01-01', value: null }])).toBeNull()
   })
 
@@ -301,25 +301,25 @@ describe('comparison with the Caatinga', () => {
     expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2024': { '4': 1 } } }, withBiome)).toBeNull()
   })
 
-  it('lists every year from 1985 to 2024, classes each against the own mean and leaves a missing year unclassed', () => {
+  it('lists every year from 1985 to 2025, classes each by the terciles and leaves a missing year unclassed', () => {
     const series = [
       { date: '1984-01-01', value: 5_000 },
       { date: '1985-01-01', value: 1_000 },
       { date: '1986-01-01', value: null },
       { date: '2000-01-01', value: 890 },
-      { date: '2024-01-01', value: 1_110 },
+      { date: '2025-01-01', value: 1_110 },
     ]
     const chart = rainChart(series, withBiome)!
-    expect(chart.years).toHaveLength(40)
+    expect(chart.years).toHaveLength(41)
     expect(chart.meanMm).toBe(1_000)
-    expect(chart.highlightYear).toBe(2024)
+    expect(chart.highlightYear).toBe(2025)
     expect(chart.mean).toEqual({ here: 1_000, reference: BIOME.rainMeanMm })
 
     const year = (y: number) => chart.years.find((v) => v.year === y)
     expect(year(1985)).toEqual({ year: 1985, valueMm: 1_000, kind: 'normal' })
     expect(year(1986)).toEqual({ year: 1986, valueMm: null, kind: null })
     expect(year(2000)?.kind).toBe('seco')
-    expect(year(2024)?.kind).toBe('chuvoso')
+    expect(year(2025)?.kind).toBe('chuvoso')
     expect(year(1990)?.valueMm).toBeNull()
 
     expect(rainChart([{ date: '2024-01-01', value: null }], withBiome)).toBeNull()

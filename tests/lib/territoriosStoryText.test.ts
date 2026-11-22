@@ -122,7 +122,7 @@ const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
     series: annual([
       883.8, 731, 493.4, 686.5, 618.7, 383.9, 479.5, 492.9, 258.9, 533.9, 443.9, 510.1, 506, 275.6, 459.6,
       837.3, 532.6, 594.5, 498.3, 807.8, 553.6, 502.7, 578.8, 689.7, 699.4, 584.7, 912.5, 433.1, 611.4, 609.6,
-      499.2, 496.6, 433.8, 582.8, 568.7, 666.7, 379.6, 793.8, 610.5, 750.8,
+      499.2, 496.6, 433.8, 582.8, 568.7, 666.7, 379.6, 793.8, 610.5, 750.8, 512.1,
     ]),
   }),
 }
@@ -158,7 +158,7 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
     series: annual([
       631.4, 506.5, 283.1, 480, 468.3, 216.6, 295.8, 300.9, 131.6, 345.4, 288.7, 351.5, 343.3, 144.5, 320.5,
       539.1, 393.5, 440.5, 315.4, 561.6, 414.9, 366.6, 404.5, 532.3, 516.3, 409.7, 615.4, 272.3, 357.4, 369.8,
-      320.2, 329.4, 280.4, 408.6, 384.3, 491.3, 224.9, 499, 379.9, 532,
+      320.2, 329.4, 280.4, 408.6, 384.3, 491.3, 224.9, 499, 379.9, 532, 299.5,
     ]),
   }),
 }
@@ -218,9 +218,9 @@ describe('stepAnswer', () => {
         sentence: 'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
       },
       chuva: {
-        question: 'Como foi a chuva em 2024?',
-        headline: { value: '751', unit: 'mm em 2024' },
-        sentence: 'Chuvoso, 31% acima da média daqui (575 mm). Essa média fica abaixo da Caatinga (701 mm).',
+        question: 'Como foi a chuva em 2025?',
+        headline: { value: '512', unit: 'mm em 2025' },
+        sentence: 'Normal, perto da média daqui (573 mm). Essa média fica abaixo da Caatinga (701 mm).',
       },
     })
   })
@@ -233,7 +233,7 @@ describe('stepAnswer', () => {
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 30% da área, acima dos 27% da Caatinga.',
       uso:        'Eram 88% em 1985. A Caatinga tem 60%; aqui fica acima.',
       fogo:       'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
-      chuva:      'Chuvoso, 38% acima da média daqui (387 mm). Essa média fica abaixo da Caatinga (701 mm).',
+      chuva:      'Seco, 22% abaixo da média daqui (385 mm). Essa média fica abaixo da Caatinga (701 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '52', unit: 'km²' })
     expect(out.fogo.headline).toEqual({ value: '1,8%', unit: 'da área queimou ao menos uma vez' })
@@ -254,7 +254,7 @@ describe('stepAnswer', () => {
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
       fogo:       'O ano com mais fogo aqui foi 2021.',
-      chuva:      'Chuvoso, 15% acima da média daqui (692 mm).',
+      chuva:      'Normal, perto da média daqui (690 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
@@ -345,13 +345,13 @@ describe('stepAnswer', () => {
     })
   })
 
-  it('gives the mean when 2024 has no rain data', () => {
+  it('gives the mean when 2025 has no rain data', () => {
     const series = CG_ANSWERS.chuva.data!.theme === 'chuva' ? CG_ANSWERS.chuva.data!.series : []
-    const missing = answer({ theme: 'chuva', series: series.map((p) => (p.date.startsWith('2024') ? { ...p, value: null } : p)) })
+    const missing = answer({ theme: 'chuva', series: series.map((p) => (p.date.startsWith('2025') ? { ...p, value: null } : p)) })
 
     expect(step('chuva', CG, municipio, missing)).toMatchObject({
-      headline: { value: '570', unit: 'mm por ano, em média' },
-      sentence: 'Sem dado de 2024 aqui. Essa média fica abaixo da Caatinga (701 mm).',
+      headline: { value: '575', unit: 'mm por ano, em média' },
+      sentence: 'Sem dado de 2025 aqui. Essa média fica abaixo da Caatinga (701 mm).',
     })
   })
   it('reads its words from the script it is given', () => {

@@ -209,7 +209,7 @@ describe('ThemeStep', () => {
 
   it('waits for its data under the question, and says why the theme matters, with its Glossário word and source', () => {
     const markup = html(ThemeStep, { ...STEP, step: 'chuva' })
-    expect(markup).toContain('Como foi a chuva em 2024?</h3>')
+    expect(markup).toContain('Como foi a chuva em 2025?</h3>')
     expect(markup).toContain('Carregando os dados')
     expect(markup).toContain('Por que a chuva é relevante na absorção de carbono?')
     expect(markup).toMatch(/<a href="\/glossario\?termo=fotossintese" target="_blank" rel="noopener">fotossíntese<img[^>]*alt="\(abre em nova aba\)"/)
@@ -218,7 +218,7 @@ describe('ThemeStep', () => {
 
   it('asks the question an editor wrote, with its year filled', () => {
     const copy = { ...territoriosCopyDefaults(), chuva: copyFromEntry(TERRITORIOS_COPY.chuva, { pergunta: 'Choveu em {anoFinal}?' }) }
-    expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2024?')
+    expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2025?')
   })
 })
 
@@ -244,7 +244,7 @@ describe('StorySummary', () => {
     expect(markup.match(/<section class="territorios-resumo-etapa"/g)).toHaveLength(1)
     expect(markup.match(/<section class="territorios-resumo-etapa territorios-no-print"/g)).toHaveLength(5)
     expect(markup).toContain('Que território estamos conhecendo?</h4>')
-    expect(markup).toContain('Como foi a chuva em 2024?</h4>')
+    expect(markup).toContain('Como foi a chuva em 2025?</h4>')
     expect(markup).toContain('<h5 class="territorios-porque-titulo">Por que a chuva é relevante na absorção de carbono?</h5>')
     expect(markup).toContain('<header class="territorios-ficha-cabecalho territorios-so-impressao">')
     expect(markup).toContain('Juazeiro (BA)')
