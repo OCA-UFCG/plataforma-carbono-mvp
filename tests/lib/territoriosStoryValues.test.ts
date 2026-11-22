@@ -314,21 +314,15 @@ describe('comparison with the Caatinga', () => {
     expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2025': { '4': 1 } }, series }, withBiome)).toBeNull()
   })
 
-  it('ends both lines on the figures the step prints, read coarser or not', () => {
-    // A series read at a coarser scale than the areas, as over Bahia, ends a little off them.
-    const series = yearly([69.2, ...Array.from({ length: 39 }, () => 64), 58.7])
+  it('draws the series as measured, with the Caatinga line only where the biome has one', () => {
+    const series = yearly([70, ...Array.from({ length: 39 }, () => 64), 60])
     const chart = landUseChart({
       theme: 'uso',
       areas: { '1985': { '4': 700, '15': 300 }, '2025': { '4': 600, '15': 400 } },
       series,
     }, withBiome)!
-    const ends = (points: NativeShareYear[]) => [points[0], points[points.length - 1]]
-    expect(ends(chart.series.here)).toEqual([{ year: 1985, sharePct: 70 }, { year: 2025, sharePct: 60 }])
-    expect(chart.series.here.slice(1, -1)).toEqual(series.slice(1, -1))
-    expect(ends(chart.series.reference!)).toEqual([
-      { year: 1985, sharePct: BIOME.nativeSharePct!['1985'] },
-      { year: 2025, sharePct: BIOME.nativeSharePct!['2025'] },
-    ])
+    expect(chart.series.here).toBe(series)
+    expect(chart.series.reference).toBe(BIOME.nativeSeries)
     expect(landUseChart({ theme: 'uso', areas: { '1985': { '4': 1 }, '2025': { '4': 1 } }, series }, territory)!.series.reference)
       .toBeNull()
   })

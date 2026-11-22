@@ -33,7 +33,6 @@ import type {
   FluxThemeData,
   LandUseChart,
   LandUseThemeData,
-  NativeShareYear,
   RainChartData,
   RainTerciles,
   RainYearKind,
@@ -379,18 +378,6 @@ export function fluxChart(data: FluxThemeData, territory: TerritoryPayload): Flu
   }
 }
 
-/**
- * The series with its first and last years set to the step's own figures. Over
- * a large territory the series is read coarser than the areas (computeTheme.ts,
- * landUseSeriesScaleM), and the line must end on the number the step prints.
- */
-function pinnedEnds(series: NativeShareYear[], ends: { from: number; to: number }): NativeShareYear[] {
-  const [firstYear, lastYear] = LAND_USE_YEARS.map(Number)
-  return series.map((p) =>
-    p.year === firstYear ? { ...p, sharePct: ends.from } : p.year === lastYear ? { ...p, sharePct: ends.to } : p,
-  )
-}
-
 /** Null when either year has no MapBiomas pixel over the territory. */
 export function landUseChart(data: LandUseThemeData, territory: TerritoryPayload): LandUseChart | null {
   const [firstYear, lastYear] = LAND_USE_YEARS
@@ -399,15 +386,10 @@ export function landUseChart(data: LandUseThemeData, territory: TerritoryPayload
   if (from === null || to === null) return null
 
   const ref = territory.biome.nativeSharePct
-  const reference = ref ? { from: ref[firstYear], to: ref[lastYear] } : null
-  const refSeries = territory.biome.nativeSeries
   return {
-    here:   { from, to },
-    reference,
-    series: {
-      here:      pinnedEnds(data.series, { from, to }),
-      reference: refSeries && reference ? pinnedEnds(refSeries, reference) : refSeries,
-    },
+    here:      { from, to },
+    reference: ref ? { from: ref[firstYear], to: ref[lastYear] } : null,
+    series:    { here: data.series, reference: territory.biome.nativeSeries },
   }
 }
 
