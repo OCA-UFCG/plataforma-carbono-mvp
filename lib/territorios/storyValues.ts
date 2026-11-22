@@ -34,14 +34,12 @@ import type {
   LandUseChart,
   LandUseThemeData,
   RainChartData,
+  RainTerciles,
   RainYearKind,
   Reading,
   StockChart,
   TerritoryPayload,
 } from '@/types/territorios'
-
-/** Within this distance from the mean, the year reads as "perto da média". */
-export const RAIN_NEAR_MEAN_PCT = 10
 
 // Formatting for the visitor. Figures follow one rule: whole from 10 up, one
 // decimal below, and a positive value too small to print never reads as zero.
@@ -119,21 +117,6 @@ export function tonnesParts(t: number): Parts {
   const v = a / scale.size
   const value = i === 0 ? numero(v, 0) : v >= 10 ? numero(v, 0) : scaledNumber.format(printedValue(v))
   return { value, unit: printedValue(v) < 2 ? scale.one : scale.many }
-}
-
-export function formatTonnes(t: number): string {
-  return joinParts(tonnesParts(t))
-}
-
-/**
- * `formatTonnes` with the "t" spelled out: "812 toneladas", "462 mil
- * toneladas", "2,7 milhões de toneladas". Only a bare tonne agrees with its
- * number: "1 tonelada", "menos de 1 tonelada", but "1,5 milhão de toneladas".
- */
-export function formatTonnesInWords(t: number): string {
-  const { value, unit } = tonnesParts(t)
-  const singular = unit === 't' && (value === '1' || value === 'menos de 1')
-  return `${value} ${unit.replace(/t$/, singular ? 'tonelada' : 'toneladas')}`
 }
 
 // Territory
@@ -228,15 +211,16 @@ export function firePeakYear(data: FireThemeData): number | null {
 // Rain
 
 export interface RainComparison {
+  /** 'near' only on the mean itself, or without a mean to compare with. */
   direction: 'above' | 'below' | 'near'
   /** Distance from the mean, as a percent of it; never negative. */
   pct:       number
 }
 
+/** A year's rainfall against the mean; the class comes from the terciles (rainKind). */
 export function rainComparison(valueMm: number, meanMm: number): RainComparison {
-  if (!(meanMm > 0)) return { direction: 'near', pct: 0 }
+  if (!(meanMm > 0) || valueMm === meanMm) return { direction: 'near', pct: 0 }
   const pct = (Math.abs(valueMm - meanMm) / meanMm) * 100
-  if (pct < RAIN_NEAR_MEAN_PCT) return { direction: 'near', pct }
   return { direction: valueMm > meanMm ? 'above' : 'below', pct }
 }
 
@@ -307,13 +291,36 @@ function rainYear(point: TimeSeriesPoint): number {
   return Number(point.date.slice(0, 4))
 }
 
-/** Mean annual rainfall from RAIN_FIRST_YEAR to RAIN_LAST_YEAR, missing years left out; null with none. */
-export function rainMeanMm(series: TimeSeriesPoint[]): number | null {
-  const values = series
+/** Annual rainfall from RAIN_FIRST_YEAR to RAIN_LAST_YEAR, missing years left out. */
+function rainYearValues(series: TimeSeriesPoint[]): number[] {
+  return series
     .filter((p) => rainYear(p) >= RAIN_FIRST_YEAR && rainYear(p) <= RAIN_LAST_YEAR)
     .map((p) => p.value)
     .filter((v): v is number => v !== null && Number.isFinite(v))
+}
+
+/** Mean annual rainfall from RAIN_FIRST_YEAR to RAIN_LAST_YEAR, missing years left out; null with none. */
+export function rainMeanMm(series: TimeSeriesPoint[]): number | null {
+  const values = rainYearValues(series)
   return values.length ? values.reduce((total, v) => total + v, 0) / values.length : null
+}
+
+/** Value at quantile `q` of ascending values, interpolated between neighbours (R's type 7). */
+function quantile(sorted: number[], q: number): number {
+  const at = (sorted.length - 1) * q
+  const below = Math.floor(at)
+  const above = Math.ceil(at)
+  return sorted[below] + (sorted[above] - sorted[below]) * (at - below)
+}
+
+/**
+ * Terciles of the annual rainfall from RAIN_FIRST_YEAR to RAIN_LAST_YEAR; null
+ * with no year. On 40 years they leave 13 dry, 14 normal and 13 rainy.
+ */
+export function rainTerciles(series: TimeSeriesPoint[]): RainTerciles | null {
+  const sorted = rainYearValues(series).sort((a, b) => a - b)
+  if (sorted.length === 0) return null
+  return { lowMm: quantile(sorted, 1 / 3), highMm: quantile(sorted, 2 / 3) }
 }
 
 /** Rainfall of RAIN_LAST_YEAR; null when that year has no data. */
@@ -400,16 +407,18 @@ export function fireChart(data: FireThemeData, territory: TerritoryPayload): Fir
   }
 }
 
-/** A year against the territory's own mean, with the same 10% rule as rainComparison. */
-export function rainKind(valueMm: number, meanMm: number): RainYearKind {
-  const { direction } = rainComparison(valueMm, meanMm)
-  return direction === 'near' ? 'normal' : direction === 'above' ? 'chuvoso' : 'seco'
+/** A year by the terciles of the territory's own years: the driest third, the middle one or the rainiest. */
+export function rainKind(valueMm: number, terciles: RainTerciles): RainYearKind {
+  if (valueMm < terciles.lowMm) return 'seco'
+  if (valueMm > terciles.highMm) return 'chuvoso'
+  return 'normal'
 }
 
 /** Every year from RAIN_FIRST_YEAR to RAIN_LAST_YEAR; null when none has data. */
 export function rainChart(series: TimeSeriesPoint[], territory: TerritoryPayload): RainChartData | null {
   const meanMm = rainMeanMm(series)
-  if (meanMm === null) return null
+  const terciles = rainTerciles(series)
+  if (meanMm === null || terciles === null) return null
 
   const byYear = new Map<number, number>()
   for (const p of series) {
@@ -419,12 +428,13 @@ export function rainChart(series: TimeSeriesPoint[], territory: TerritoryPayload
   const years: RainChartData['years'] = []
   for (let year = RAIN_FIRST_YEAR; year <= RAIN_LAST_YEAR; year++) {
     const valueMm = byYear.get(year) ?? null
-    years.push({ year, valueMm, kind: valueMm === null ? null : rainKind(valueMm, meanMm) })
+    years.push({ year, valueMm, kind: valueMm === null ? null : rainKind(valueMm, terciles) })
   }
 
   return {
     years,
     meanMm,
+    terciles,
     highlightYear: RAIN_LAST_YEAR,
     mean: { here: meanMm, reference: territory.biome.rainMeanMm },
   }

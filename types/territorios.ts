@@ -114,10 +114,21 @@ export interface FireChart {
 
 export type RainYearKind = 'seco' | 'normal' | 'chuvoso'
 
+/**
+ * The limits of the year classes, from the territory's own years: a third of
+ * them fall under `lowMm` (dry), a third over `highMm` (rainy).
+ */
+export interface RainTerciles {
+  lowMm:  number
+  highMm: number
+}
+
 export interface RainChartData {
   years: { year: number; valueMm: number | null; kind: RainYearKind | null }[]
-  /** The territory's own 1985-2024 mean, which classifies the years. */
+  /** The territory's own 1985-2024 mean, which the answer compares the year with. */
   meanMm:         number
+  /** The terciles of the same years, which classify them. */
+  terciles:       RainTerciles
   highlightYear:  number
   /** Mean annual rainfall: here against the Caatinga. */
   mean: Comparison
@@ -134,24 +145,6 @@ export interface StepAnswer {
 
 /** Where the territory stands against the Caatinga, in words that judge nothing. */
 export type Reading = 'acima' | 'abaixo' | 'perto'
-
-/**
- * Whether a reading is good news for the territory: more carbon held, more
- * taken from the air, more native vegetation, less fire. The words of the
- * reading judge nothing; only the color of its badge does.
- */
-export type Tone = 'good' | 'bad' | 'neutral'
-
-/** One line of the final sheet. */
-export interface SummaryRow {
-  theme:    ThemeId
-  title:    string
-  headline: { value: string; unit: string } | null
-  sentence: string
-  reading:  Reading | null
-  /** Color of the reading's badge; null with no reading. */
-  tone:     Tone | null
-}
 
 /** One item of the "Sobre os dados" block at the end. */
 export interface AboutItem {

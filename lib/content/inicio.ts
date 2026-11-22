@@ -33,7 +33,7 @@ export const INICIO_HERO = defineCopy({
       'Foto 3 · Texto',
       'Obtenha um panorama resumido com dados sobre carbono, pressões ambientais e clima para o território do seu interesse',
     ),
-    foto3Botao: line('Foto 3 · Botão (abre o Resumo territorial)', 'Acesse o resumo territorial'),
+    foto3Botao: line('Foto 3 · Botão (abre o Recorte territorial)', 'Acesse o recorte territorial'),
     foto4Titulo: line('Foto 4 · Título', 'Em breve: Plataforma de dados ambientais'),
     foto4Texto: paragraph(
       'Foto 4 · Texto',

@@ -50,13 +50,13 @@ export const COMUNICACAO_PAGINA = defineCopy({
 
 export const GLOSSARIO_PAGINA = defineCopy({
   id: 'glossarioPagina',
-  name: 'Glossário · Página',
+  name: 'Caatinga interativa · Página',
   description:
-    'Título da página Glossário, no topo da barra lateral. O campo "Introdução · Texto" não aparece mais na página. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
+    'Título da página Caatinga interativa (/glossario), no topo da barra lateral. O campo "Introdução · Texto" não aparece mais na página. Os termos em si ainda estão no código (lib/glossario/termos.ts). Há uma única entrada deste tipo: edite-a, não crie outra.',
   localized: true,
   fields: {
     // The title over the sidebar, Figma node 19507:16727.
-    introTitulo: line('Introdução · Título', 'Glossário'),
+    introTitulo: line('Introdução · Título', 'Caatinga interativa'),
     // LEGACY: the paragraph of the intro band the redesign dropped
     // (19507:12478), unread since. It stays declared because
     // `npm run contentful:provision -- --apply` puts the whole content type,

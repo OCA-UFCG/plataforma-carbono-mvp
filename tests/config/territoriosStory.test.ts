@@ -14,6 +14,7 @@ import {
   storyTheme,
 } from '@/config/territorios/story'
 import { STATE_LOCATIVE } from '@/config/territorios/storyScript'
+import { TERMOS } from '@/lib/glossario/termos'
 import { listFeicoes } from '@/lib/mapa/recorteRegistry'
 import { ano, paradas } from '@/lib/mapa/temporal'
 import type { LayerConfig } from '@/types/mapa'
@@ -42,6 +43,15 @@ describe('STORY_THEMES', () => {
     const rainYears = yearsOf(storyTheme('chuva').layerId)
     expect(rainYears).toContain(String(RAIN_FIRST_YEAR))
     expect(rainYears).toContain(String(RAIN_LAST_YEAR))
+  })
+})
+
+describe('glossarySlug', () => {
+  // The story links /glossario?termo=<slug> without importing the terms, whose
+  // texts would ride into its bundle; an unknown slug opens the first term.
+  it('names a term the Glossário has, for every theme', () => {
+    const slugs = TERMOS.map((t) => t.slug)
+    for (const theme of STORY_THEMES) expect(slugs, theme.id).toContain(theme.glossarySlug)
   })
 })
 
