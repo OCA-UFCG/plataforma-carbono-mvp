@@ -99,14 +99,14 @@ function getBiomeReference(): BiomeReference {
   const rain = dataOf('chuva')
 
   const native1985 = landUse ? nativeSharePct(landUse.areas['1985']) : null
-  const native2024 = landUse ? nativeSharePct(landUse.areas['2024']) : null
+  const native2025 = landUse ? nativeSharePct(landUse.areas['2025']) : null
 
   biomeReference = {
     stockTotalTc:            stock && stock.report.totalTc > 0 ? stock.report.totalTc : null,
     stockDensityTcHa:        stock ? stockDensity(stock.report) : null,
     forestSharePct:          flux ? forestSharePct(flux) : null,
     fluxPerForestHaMg:       flux ? fluxPerForestHa(flux) : null,
-    nativeSharePct:          native1985 !== null && native2024 !== null ? { '1985': native1985, '2024': native2024 } : null,
+    nativeSharePct:          native1985 !== null && native2025 !== null ? { '1985': native1985, '2025': native2025 } : null,
     fireBurnedSharePct:      fire ? fireBurnedSharePct(fire) : null,
     fireRecurrenceSharesPct: fire ? fireRecurrenceSharesPct(fire) : null,
     fireAnnualMeanSharePct:  fire ? fireAnnualMeanSharePct(fire) : null,

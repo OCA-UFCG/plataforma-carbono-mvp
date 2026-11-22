@@ -125,7 +125,7 @@ const BIOMASS_BINS = [0, 10, 20, 40, 60, 90]
 // Mosaic of uses (21) counts as farming, as MapBiomas groups it. Rocky outcrop
 // (29) is left out of native vegetation.
 const NATIVE_FOREST = [3, 4, 5, 6, 49]
-const NATIVE_NONFOREST = [11, 12, 32, 50]
+const NATIVE_NONFOREST = [11, 12, 77, 32, 50]
 
 const STOCKS: StocksProfile = {
   archetype: 'stocks',
@@ -298,7 +298,7 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
         { label: 'Vegetação nativa florestal', color: '#1f8d49', codes: NATIVE_FOREST },
         { label: 'Vegetação nativa campestre e arbustiva', color: '#d6bc74', codes: NATIVE_NONFOREST },
         { label: 'Agropecuária', color: '#ffefc3', codes: [9, 15, 18, 20, 21, 35, 39, 40, 41, 46, 47, 48, 62] },
-        { label: 'Área não vegetada', color: '#d4271e', codes: [23, 24, 25, 29, 30, 75] },
+        { label: 'Área não vegetada', color: '#d4271e', codes: [23, 24, 25, 29, 30, 75, 91] },
         { label: 'Água', color: '#2532e4', codes: [31, 33] },
       ],
     },

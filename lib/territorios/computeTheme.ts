@@ -137,7 +137,7 @@ async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined):
     status: 'available',
     origin: 'zonal',
     coarseScaleM,
-    data: { theme: 'uso', areas: { '1985': areas[0], '2024': areas[1] } },
+    data: { theme: 'uso', areas: { '1985': areas[0], '2025': areas[1] } },
   }
 }
 

@@ -142,7 +142,7 @@ export interface RasterLayerConfig {
       offset?:      number
       unmaskValue?: number
       // Series whose year is in the band name, not in the dates of a collection
-      // (MapBiomas writes `classification_1985` to `classification_2024` in a
+      // (MapBiomas writes `classification_1985` to `classification_2025` in a
       // single image). With this, the chosen date selects the year's band instead
       // of filtering the collection, and it also holds for `image` assets.
       bandPattern?: string          // "classification_{ano}"

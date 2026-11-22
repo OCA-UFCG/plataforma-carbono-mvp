@@ -22,7 +22,7 @@ const ALLOWED: ReadonlySet<string> = (() => {
     set.add(assetKey(asset.id, asset.band))
 
     // A per-band temporal layer asks for a different band each year
-    // (`classification_1985` ... `classification_2024`). Without expanding the
+    // (`classification_1985` ... `classification_2025`). Without expanding the
     // range here, navigating in time would hit a 403 on the first stop that was
     // not the year configured in `asset.band`.
     if (asset.bandPattern && gee?.temporal) {

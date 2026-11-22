@@ -369,13 +369,13 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
   },
 
   lulc_mapbiomas: {
-    summary: 'Classes de uso e cobertura da terra, mapeadas em imagens Landsat, um mapa por ano de 1985 a 2024.',
-    period: '1985-2024',
+    summary: 'Classes de uso e cobertura da terra, mapeadas em imagens Landsat, um mapa por ano de 1985 a 2025.',
+    period: '1985-2025',
     resolution: '30 m',
-    source: 'MapBiomas, coleção 10.1',
+    source: 'MapBiomas, coleção 11',
     method: 'Classificação de imagens Landsat por aprendizado de máquina.',
     license: CC_BY,
-    citation: 'Projeto MapBiomas, Coleção 10.1 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, acessado em {acesso} através do link: https://brasil.mapbiomas.org',
+    citation: 'Projeto MapBiomas, Coleção 11 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, acessado em {acesso} através do link: https://brasil.mapbiomas.org',
   },
   fogo_frequencia: {
     summary: 'Número de anos com fogo em cada pixel, acumulado desde 1985, um mapa por ano de 1985 a 2023.',

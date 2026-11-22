@@ -48,7 +48,7 @@ const BIOME: BiomeReference = {
   stockDensityTcHa:  55.098642014364884,
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
-  nativeSharePct:    { '1985': 70.68324143590091, '2024': 60.083306882513774 },
+  nativeSharePct:    { '1985': 74.06124587380222, '2025': 62.59887178552211 },
   fireBurnedSharePct: 12.037964993028348,
   fireRecurrenceSharesPct: {
     never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
@@ -92,9 +92,9 @@ describe('fluxMetrics', () => {
 })
 
 describe('land use groups', () => {
-  it('puts each of the 30 lulc_mapbiomas codes in exactly one group', () => {
+  it('puts each of the 32 lulc_mapbiomas codes in exactly one group', () => {
     const codes = rasterLayer('lulc_mapbiomas').classes!.map((c) => c.value)
-    expect(codes).toHaveLength(30)
+    expect(codes).toHaveLength(32)
     for (const code of codes) {
       expect(LAND_USE_GROUPS.filter((g) => g.codes.includes(code))).toHaveLength(1)
     }
@@ -109,11 +109,12 @@ describe('land use groups', () => {
     ])
   })
 
-  it('counts the nine native codes as native, keeps urban area apart, and sends the rest to "outros"', () => {
+  it('counts the ten native codes as native, keeps urban area apart, and sends the rest to "outros"', () => {
+    // 77, "Formação Herbáceo Arbustiva", is new in Collection 11.
     expect(LAND_USE_GROUPS.filter((g) => g.native).flatMap((g) => g.codes).sort((a, b) => a - b))
-      .toEqual([3, 4, 5, 6, 11, 12, 32, 49, 50])
+      .toEqual([3, 4, 5, 6, 11, 12, 32, 49, 50, 77])
     expect(landUseGroupOf(24).id).toBe('urbana')
-    for (const code of [23, 25, 29, 30, 31, 33, 75, 0, 999]) expect(landUseGroupOf(code).id).toBe('outros')
+    for (const code of [23, 25, 29, 30, 31, 33, 75, 91, 0, 999]) expect(landUseGroupOf(code).id).toBe('outros')
   })
 
   it('keeps the groups in order, with "outros" only when it has area', () => {
@@ -294,11 +295,11 @@ describe('comparison with the Caatinga', () => {
   it('counts every native code in the land use chart, the campestre ones too', () => {
     const chart = landUseChart({
       theme: 'uso',
-      areas: { '1985': { '4': 500, '12': 200, '15': 300 }, '2024': { '4': 500, '12': 100, '24': 100, '15': 300 } },
+      areas: { '1985': { '4': 500, '12': 200, '15': 300 }, '2025': { '4': 500, '12': 100, '24': 100, '15': 300 } },
     }, withBiome)!
     expect(chart.here).toEqual({ from: 70, to: 60 })
-    expect(chart.reference).toEqual({ from: BIOME.nativeSharePct!['1985'], to: BIOME.nativeSharePct!['2024'] })
-    expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2024': { '4': 1 } } }, withBiome)).toBeNull()
+    expect(chart.reference).toEqual({ from: BIOME.nativeSharePct!['1985'], to: BIOME.nativeSharePct!['2025'] })
+    expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2025': { '4': 1 } } }, withBiome)).toBeNull()
   })
 
   it('lists every year from 1985 to 2025, classes each by the terciles and leaves a missing year unclassed', () => {

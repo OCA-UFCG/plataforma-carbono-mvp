@@ -85,7 +85,7 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
   {
     layerId: 'lulc_mapbiomas', order: 50, sectionColor: '#8A5A16',
     coverageContext: 'nesta classe de uso e cobertura',
-    methodology: 'Uso e cobertura da terra, MapBiomas coleção 10.1, 30 m, série anual de 1985 em diante.',
+    methodology: 'Uso e cobertura da terra, MapBiomas coleção 11, 30 m, série anual de 1985 em diante.',
     // The pixel values are class codes, so their mean is not a quantity.
     seriesKind: 'none',
   },

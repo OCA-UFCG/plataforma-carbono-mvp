@@ -49,7 +49,7 @@ export interface BiomeReference {
   /** Signed net flux 2001-2024 per hectare of GFW forest, Mg CO2e/ha. Negative = removal. */
   fluxPerForestHaMg: number | null
   /** Percent (0..100) of native vegetation, per year. */
-  nativeSharePct: { '1985': number; '2024': number } | null
+  nativeSharePct: { '1985': number; '2025': number } | null
   /** Percent (0..100) of the region that burned at least once in the fire period. */
   fireBurnedSharePct: number | null
   /** Percent (0..100) of the region per number of years with fire. */
@@ -210,7 +210,7 @@ export interface FluxThemeData {
 export interface LandUseThemeData {
   theme: 'uso'
   /** Area in m² per MapBiomas class code, per year. Only shares are trusted, not the m² total. */
-  areas: { '1985': Record<string, number>; '2024': Record<string, number> }
+  areas: { '1985': Record<string, number>; '2025': Record<string, number> }
 }
 
 export interface FireThemeData {

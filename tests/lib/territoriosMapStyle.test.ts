@@ -48,7 +48,7 @@ describe('land use raster', () => {
   })
 
   it('requests the band of the year asked for', () => {
-    expect(themeRaster('uso').request.temporalDate).toBe('2024-01-01')
+    expect(themeRaster('uso').request.temporalDate).toBe('2025-01-01')
     expect(themeRaster('uso', '1985').request.temporalDate).toBe('1985-01-01')
   })
 })
