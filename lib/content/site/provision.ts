@@ -4,6 +4,7 @@
 // The field IDs are the ones the GraphQL queries select; tests/scripts/
 // contentfulProvision.test.ts keeps the two in step. The display names are in
 // Portuguese because they are what the editor reads in the web interface.
+import { BANNER_LINK_MESSAGE, BANNER_LINK_PATTERN } from '../bannerLink'
 import { displayField, type CopyKind, type CopyType, type Placeholders } from './model'
 import { SITE_COPY_TYPES } from './types'
 
@@ -29,6 +30,11 @@ export type ProvisionedField = {
   placeholders?: Placeholders
   // Set on the fields of a copy type the site translates.
   localized?: boolean
+  // Set on a publication field the editor needs told about: the help under it.
+  help?: string
+  // Set on a publication field whose value must match a rule, with what the
+  // editor reads when it does not.
+  pattern?: { pattern: string; message: string }
 }
 
 export type ProvisionedType = {
@@ -105,6 +111,73 @@ const PUBLICATION_TYPES: ProvisionedType[] = [
       { id: 'caption', name: 'Legenda e fonte da foto', type: 'Text', required: false, localized: true },
     ],
   },
+  {
+    // The landing's hero carousel, one entry per banner (lib/content/banners.ts).
+    // Unlike the copy types, which hold a single entry, an editor makes a
+    // banner by adding an entry, so each field explains itself in the editor.
+    id: 'bannerInicio',
+    name: 'Banner do início',
+    description:
+      'Um banner do carrossel do topo da página inicial. Para criar outro, adicione uma entrada deste tipo; para tirar um do ar, despublique a entrada.',
+    displayField: 'title',
+    fields: [
+      {
+        id: 'title',
+        name: 'Título',
+        type: 'Symbol',
+        required: true,
+        localized: true,
+        help: 'Uma linha, em destaque sobre a foto.',
+      },
+      {
+        id: 'text',
+        name: 'Texto',
+        type: 'Text',
+        required: true,
+        localized: true,
+        help: 'Um parágrafo curto abaixo do título. Uma quebra de linha aqui vira uma quebra de linha na página.',
+      },
+      {
+        id: 'buttonLabel',
+        name: 'Texto do botão',
+        type: 'Symbol',
+        required: false,
+        localized: true,
+        help: 'Opcional. O botão só aparece com o texto e o link preenchidos.',
+      },
+      {
+        id: 'buttonLink',
+        name: 'Link do botão',
+        type: 'Symbol',
+        required: false,
+        pattern: { pattern: BANNER_LINK_PATTERN, message: BANNER_LINK_MESSAGE },
+        help: 'Opcional. Um caminho do site, como /sobre ou /comunicacao, ou um endereço completo começando com https://.',
+      },
+      {
+        id: 'photo',
+        name: 'Foto',
+        type: 'Link',
+        linkType: 'Asset',
+        required: true,
+        image: true,
+        help: 'Foto em paisagem, com pelo menos 1920 px de largura. O texto fica sobre o lado esquerdo, escurecido por um degradê: evite o assunto principal ali.',
+      },
+      {
+        id: 'credit',
+        name: 'Crédito da foto',
+        type: 'Symbol',
+        required: false,
+        help: 'Opcional. Nome de quem fez a foto, exibido como "Foto: nome".',
+      },
+      {
+        id: 'order',
+        name: 'Ordem',
+        type: 'Integer',
+        required: true,
+        help: 'Os banners aparecem do menor número para o maior.',
+      },
+    ],
+  },
 ]
 
 // A copy field is required unless declared optional: the page has a place for
@@ -154,8 +227,29 @@ function placeholderHelp(placeholders: Placeholders): string {
   return ` Marcadores: ${names}. Mantenha as chaves; com um marcador desconhecido, a página usa o texto padrão.`
 }
 
+// Contentful's own editor for each type of publication field: setting a help
+// text means naming the widget too.
+const PUBLICATION_WIDGETS: Record<ProvisionedField['type'], string> = {
+  Symbol: 'singleLine',
+  Text: 'multipleLine',
+  Date: 'datePicker',
+  Integer: 'numberEditor',
+  Link: 'assetLinkEditor',
+}
+
+// A publication field keeps Contentful's default editor unless it has help to
+// show; a copy field always gets a plain box and a hint of how it is read.
 export function toEditorControl(field: ProvisionedField) {
-  if (!field.copy) return null
+  if (!field.copy) {
+    if (!field.help) return null
+
+    return {
+      fieldId: field.id,
+      widgetNamespace: 'builtin',
+      widgetId: PUBLICATION_WIDGETS[field.type],
+      settings: { helpText: field.help },
+    }
+  }
 
   const help = field.required ? COPY_HELP[field.copy] : OPTIONAL_HELP
 
@@ -183,6 +277,7 @@ export function toCmaField(field: ProvisionedField) {
   // (lib/content/comunicacao.ts, findPublicacao).
   if (field.unique) validations.push({ unique: true })
   if (field.slug) validations.push({ regexp: { pattern: SLUG_PATTERN }, message: SLUG_MESSAGE })
+  if (field.pattern) validations.push({ regexp: { pattern: field.pattern.pattern }, message: field.pattern.message })
 
   return {
     id: field.id,

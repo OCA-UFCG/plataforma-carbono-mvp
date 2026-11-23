@@ -7,6 +7,7 @@ import {
   toEditorControl,
   toProvisionedType,
 } from '@/lib/content/site/provision'
+import { BANNER_LINK_MESSAGE, BANNER_LINK_PATTERN } from '@/lib/content/bannerLink'
 import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
 import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
@@ -65,6 +66,35 @@ describe('the provisioned content model', () => {
 
       expect(fieldIds(COLLECTIONS[collection as keyof typeof COLLECTIONS])).toContain('order')
     }
+  })
+
+  // The hero's banners, one entry each: what the editor fills in, in the order
+  // the editor reads it.
+  it('models a banner as the spec lists its fields', () => {
+    const banner = CONTENT_TYPES.find((c) => c.id === 'bannerInicio')!
+
+    expect(banner.name).toBe('Banner do início')
+    expect(banner.displayField).toBe('title')
+    expect(banner.fields.map((f) => [f.id, f.type, f.required])).toEqual([
+      ['title', 'Symbol', true],
+      ['text', 'Text', true],
+      ['buttonLabel', 'Symbol', false],
+      ['buttonLink', 'Symbol', false],
+      ['photo', 'Link', true],
+      ['credit', 'Symbol', false],
+      ['order', 'Integer', true],
+    ])
+    expect(toCmaField(banner.fields.find((f) => f.id === 'photo')!).validations).toEqual([
+      { linkMimetypeGroup: ['image'] },
+    ])
+  })
+
+  it('accepts only a site path or an https address as the banner link', () => {
+    const link = CONTENT_TYPES.find((c) => c.id === 'bannerInicio')!.fields.find((f) => f.id === 'buttonLink')!
+
+    expect(toCmaField(link).validations).toEqual([
+      { regexp: { pattern: BANNER_LINK_PATTERN }, message: BANNER_LINK_MESSAGE },
+    ])
   })
 
   it('carries every field the eventos query selects', () => {
@@ -164,6 +194,14 @@ describe('the provisioned institutional copy', () => {
     expect(localized.map((f) => f.id)).toEqual(['categoria', 'title', 'local', 'description', 'photoAlt', 'caption'])
   })
 
+  // The hero reads a banner's words in the visitor's language; the link, the
+  // photo, its credit and the order are the same in both.
+  it('translates the words of a banner, and not its link, photo, credit or order', () => {
+    const localized = CONTENT_TYPES.find((c) => c.id === 'bannerInicio')!.fields.filter((f) => toCmaField(f).localized)
+
+    expect(localized.map((f) => f.id)).toEqual(['title', 'text', 'buttonLabel'])
+  })
+
   // No page shows the training photos any more.
   it('leaves the training photos untranslated', () => {
     const fields = CONTENT_TYPES.find((c) => c.id === 'fotoFormacao')!.fields
@@ -226,6 +264,19 @@ describe('the provisioned institutional copy', () => {
       'Uma linha. Marcadores: {percentual} = parte da área; {anoInicial} = primeiro ano dos dados. Mantenha as chaves; com um marcador desconhecido, a página usa o texto padrão.',
     )
     expect(titulo).toBe('Uma linha.')
+  })
+
+  // A banner is made by editors who may never have seen the hero's code: each
+  // field says what it does right under it.
+  it('explains every banner field in the editor', () => {
+    const widgets = { Symbol: 'singleLine', Text: 'multipleLine', Integer: 'numberEditor', Link: 'assetLinkEditor' }
+
+    for (const field of CONTENT_TYPES.find((c) => c.id === 'bannerInicio')!.fields) {
+      const control = toEditorControl(field)
+
+      expect(control?.widgetId, field.id).toBe(widgets[field.type as keyof typeof widgets])
+      expect(control?.settings.helpText, field.id).toBeTruthy()
+    }
   })
 
   it('leaves the publication types to their default editors', () => {
