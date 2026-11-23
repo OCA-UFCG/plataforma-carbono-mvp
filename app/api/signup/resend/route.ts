@@ -4,11 +4,13 @@
  */
 
 import { after } from 'next/server'
+import type { UserRecord } from 'firebase-admin/auth'
 import { getFirebaseAdminAuth } from '@/lib/firebase-admin'
 import { hasApprovedAccess } from '@/lib/access/claims'
 import { isWellFormedEmail, normalizeEmail } from '@/lib/access/emailAddress'
 import { jsonNoStore, readJsonObject, rejectUntrustedOrLimited, rejectWhenSignupClosed } from '@/lib/access/http'
-import { sendVerificationEmail } from '@/lib/access/verification'
+import { readAccessRequest } from '@/lib/access/requests'
+import { sendInviteEmail, sendVerificationEmail } from '@/lib/access/verification'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,13 +20,22 @@ export const dynamic = 'force-dynamic'
  * password and access, and a confirmation link would let whoever reads its mailbox replace the
  * password on the confirmation page: that is the reset flow's job. A disabled account was rejected.
  */
-async function needsConfirmation(email: string): Promise<boolean> {
+async function accountNeedingConfirmation(email: string): Promise<UserRecord | null> {
   try {
     const user = await getFirebaseAdminAuth().getUserByEmail(email)
-    return !user.emailVerified && !user.disabled && !hasApprovedAccess(user.customClaims)
+    return !user.emailVerified && !user.disabled && !hasApprovedAccess(user.customClaims) ? user : null
   } catch {
-    return false
+    return null
   }
+}
+
+/**
+ * An invitee whose link expired gets the invite again: the signup's "Recebemos um cadastro…" would
+ * puzzle someone who never signed up. A request that cannot be read falls back to the signup's.
+ */
+async function sendNewLink(user: UserRecord, email: string) {
+  const request = await readAccessRequest(user.uid).catch(() => null)
+  await (request?.tier === 'invited' ? sendInviteEmail(email) : sendVerificationEmail(email))
 }
 
 export async function POST(req: Request) {
@@ -36,7 +47,8 @@ export async function POST(req: Request) {
     // After the response: the lookup and the mail take time only when the account exists, and
     // waiting for them would let the clock tell what the body hides.
     after(async () => {
-      if (await needsConfirmation(email)) await sendVerificationEmail(email)
+      const user = await accountNeedingConfirmation(email)
+      if (user) await sendNewLink(user, email)
     })
   }
 

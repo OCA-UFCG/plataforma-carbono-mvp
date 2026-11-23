@@ -40,6 +40,7 @@ export function createFakeFirestore() {
       set: async (data: Data) => write(name, id, data, false),
       update: async (data: Data) => write(name, id, data, true),
       applyUpdate: (data: Data) => write(name, id, data, true),
+      applySet: (data: Data) => write(name, id, data, false),
     }
   }
   type FakeDoc = ReturnType<typeof doc>
@@ -59,6 +60,7 @@ export function createFakeFirestore() {
   interface FakeTransaction {
     get(ref: FakeDoc): Promise<FakeSnapshot>
     update(ref: FakeDoc, data: Data): void
+    set(ref: FakeDoc, data: Data): void
   }
 
   const db = {
@@ -73,6 +75,9 @@ export function createFakeFirestore() {
         get: (ref) => ref.get(),
         update: (ref, data) => {
           writes.push(() => ref.applyUpdate(data))
+        },
+        set: (ref, data) => {
+          writes.push(() => ref.applySet(data))
         },
       })
       for (const apply of writes) apply()

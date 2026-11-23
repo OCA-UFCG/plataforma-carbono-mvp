@@ -18,12 +18,24 @@ export const APPROVED_ACCESS = 'approved'
 export const REQUESTED_ACCESS = 'requested'
 
 /**
- * How the account got in: `allowed` (a listed domain confirmed its address), `common` (an admin
- * approved it) or `legacy` (the backfill, for accounts that predate signup).
+ * The tier an access request carries: the domain rule's (`allowed`, `common`) or `invited`, which
+ * only an admin's invite writes (lib/access/invites.ts); resolveSignupTier never returns it.
  */
-export type AccessTier = SignupTier | 'legacy'
+export type RequestTier = SignupTier | 'invited'
 
-const ACCESS_TIERS: readonly AccessTier[] = ['allowed', 'common', 'legacy']
+/**
+ * How the account got in: `allowed` (a listed domain confirmed its address), `common` (an admin
+ * approved it), `invited` (an admin invited it) or `legacy` (the backfill, for accounts that
+ * predate signup).
+ */
+export type AccessTier = RequestTier | 'legacy'
+
+/**
+ * Every tier the gate accepts. A tier missing here reads as no access: a new tier that the
+ * code grants but this list lacks locks every account holding it out. The backfill keeps its own
+ * copy (scripts/backfill-access-claims.mjs).
+ */
+const ACCESS_TIERS: readonly AccessTier[] = ['allowed', 'common', 'invited', 'legacy']
 
 export interface AccessClaim {
   access: typeof APPROVED_ACCESS

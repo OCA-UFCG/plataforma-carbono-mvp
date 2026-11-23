@@ -1,6 +1,6 @@
 # Signup and access
 
-People request access themselves. Whoever has an email on a domain in `SIGNUP_ALLOWED_DOMAINS` gets in as soon as they confirm the address; everyone else describes how they intend to use the platform and waits for an admin. Design: `docs/superpowers/specs/2026-10-15-user-signup-design.md`.
+People request access themselves. Whoever has an email on a domain in `SIGNUP_ALLOWED_DOMAINS` gets in as soon as they confirm the address; everyone else describes how they intend to use the platform and waits for an admin. Admins can also invite partners, on any domain: an invitee gets in as soon as they confirm the address (see "Invites"). Design: `docs/superpowers/specs/2026-10-15-user-signup-design.md`; invites: `docs/superpowers/specs/2026-11-16-partner-invites-design.md`.
 
 This document exists because the feature **depends on manual steps outside the code**, one of which is the only defense against accounts created straight from the browser.
 
@@ -12,6 +12,9 @@ This document exists because the feature **depends on manual steps outside the c
   → POST /api/signup/confirm → password set → code applied → settle
        ├── listed domain → claim granted → "Acesso liberado"
        └── any other     → pending + email to the team → /aprovacoes → decision email
+
+/aprovacoes (admin) → POST /api/signup/invite → account without a password + invited request + invite email
+  → the same link → /cadastro/confirmacao → choose a password → settle → claim granted (tier `invited`)
 ```
 
 Login of a correct password without access: `access_pending` sends the person to `/aguardando-liberacao`; `email_unconfirmed` offers a new link; `access_granted` (the claim was granted during this login) makes the client sign in once more, since the first ID token predates the claim.
@@ -22,6 +25,22 @@ Login of a correct password without access: `access_pending` sends the person to
 - **The Firestore collection** `access-requests` **audits**: who asked, what they wrote, who decided and when.
 
 Do not invert them: authorizing from Firestore would add a database read to every request.
+
+## Invites
+
+Admins invite partners from the top of `/aprovacoes` (shown only while signup is open), up to 10 addresses per submission. The message is fixed: the admin types addresses only. An invitee describes no intention and skips the queue, whatever the domain. The route (`POST /api/signup/invite`, `lib/access/invites.ts`) checks the session, the origin and the admin list itself, and tells the admin what happened to each address:
+
+| The account | What the invite does | The admin sees |
+|---|---|---|
+| None | Creates it as signup does, with an `invited` request, and emails the invite | "Convite enviado" |
+| Holds access, disabled | Nothing: someone revoked it by hand | "Conta desativada. Reative pelo console do Firebase." |
+| Holds access | Nothing | "Já tem acesso" |
+| Email confirmed, no access (a pending or rejected request) | Re-enables it if rejected, approves it now and sends "Acesso liberado" | "Já tinha cadastro: acesso liberado" |
+| Email not confirmed | Re-enables it if rejected, turns the request into an invite and emails the invite | "Convite enviado" |
+
+Inviting an address again is how an invite is resent. A link that expired is renewed from the confirmation page, which sends the invite again, not the signup's email. The request records `invitedBy` and `invitedAt`, and the confirmation records the inviting admin as `decidedBy`; the team gets no email, since the team sent the invite. The claim's tier is `invited`.
+
+**The `invited` tier must reach production before anyone accepts an invite.** Beta and production share the accounts, but a merge deploys only beta. An image without the tier refuses an invitee's session, and its settlement re-grants the claim and revokes the person's tokens, ending their beta session too. Cut the production tag right after merging, and invite nobody until production carries it. **Rolling back** past the release that introduced invites locks every invitee out the same way.
 
 ## Firebase console steps
 
@@ -57,6 +76,8 @@ The emails go out through Gmail's SMTP with an **app password**, not the account
 
 Without credentials nothing is sent and the log says so: an `error` in production, an `info` in development.
 
+**A Gmail account can stop delivering without a bounce.** On 2026-11-16 the sending account's messages, sent by the platform and by hand alike, showed in its Sent folder and never reached any recipient, with no "Mail Delivery Subsystem" reply. If nobody receives anything, send a message by hand from the account's web mail before suspecting the code.
+
 ## Testing locally
 
 ```bash
@@ -65,6 +86,8 @@ ACCESS_ADMIN_EMAILS=signup-test-allowed@example.com MAIL_LOG_BODY=true npm run d
 ```
 
 `MAIL_LOG_BODY=true` prints each email's text, links included, to the dev server's log: copy the confirmation link from there. **Never set it outside your machine: the link is a credential.** Local development uses the same Firebase project as beta and production, so test signups create real accounts: delete them afterwards (their requests sit in `access-requests-local`).
+
+The body is printed only while the SMTP credentials are unset. To test an invite, put your own account in `ACCESS_ADMIN_EMAILS` and leave the SMTP variables out: the page then reports "Conta criada, mas o e-mail não saiu" for each invited address, since nothing was sent, and the invite's link is in the log. An invitee accepted locally gets the `invited` tier on the shared accounts, which production refuses until it carries the release: invite test addresses only.
 
 ## Variables
 
