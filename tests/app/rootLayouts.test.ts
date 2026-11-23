@@ -24,4 +24,12 @@ describe('root layouts', () => {
     expect(code).toMatch(/from ['"]@\/components\/a11y\/Announcer['"]/)
     expect(code).toMatch(/<Announcer \/>\s*<\/body>/)
   })
+
+  // (auth) mounts it through AuthAnalytics, which skips the pages whose URL
+  // carries a one-time code (tests/components/authAnalytics.test.ts).
+  it.each(['(mapa)', '(marketing)', '(territorios)'])('%s mounts Google Analytics', (group) => {
+    const code = source(group)
+    expect(code).toMatch(/from ['"]@\/components\/Analytics['"]/)
+    expect(code).toMatch(/<Analytics \/>/)
+  })
 })
