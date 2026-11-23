@@ -4,79 +4,19 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
-import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
-import type { INICIO_HERO } from "@/lib/content/inicio";
-import type { Copy } from "@/lib/content/site/model";
+import { isMarketingRoute } from "@/lib/marketing/nav";
+// Type only: lib/content/banners.ts is server-only, and this is a client
+// component.
+import type { Banner } from "@/lib/content/banners";
 import Linhas from "./Linhas";
 import styles from "./Hero.module.css";
 
-// What a photo shows over it: the text, set like Figma nodes 18862:8525 (h1)
-// and 18862:8526 (lead), and its own buttons, the first filled and the second
-// outlined like Figma's 18862:8529 and 18862:8530.
-// A card's button: its words come from Contentful, its target from here.
-type HeroAction = {
-  href: string;
-  label: string;
-  external: boolean;
-};
-
-type HeroCard = {
-  title: string;
-  lead: string;
-  actions: HeroAction[];
-};
-
-// The words come from Contentful (lib/content/inicio.ts); where each button
-// leads stays here.
-function heroCards(copy: Copy<typeof INICIO_HERO>): HeroCard[] {
-  return [
-    {
-      title: copy.foto1Titulo,
-      lead: copy.foto1Texto,
-      actions: [{ href: "/sobre", label: copy.foto1Botao, external: false }],
-    },
-    // Spells out the name.
-    {
-      title: copy.foto2Titulo,
-      lead: copy.foto2Texto,
-      actions: [{ href: "/comunicacao", label: copy.foto2Botao, external: false }],
-    },
-    {
-      title: copy.foto3Titulo,
-      lead: copy.foto3Texto,
-      actions: [{ href: TERRITORIOS_LINK.href, label: copy.foto3Botao, external: TERRITORIOS_LINK.external }],
-    },
-    {
-      title: copy.foto4Titulo,
-      lead: copy.foto4Texto,
-      actions: [{ href: MAPA_LINK.href, label: copy.foto4Botao, external: MAPA_LINK.external }],
-    },
-  ];
-}
-
-// The four rotating background photos (Figma node 18862:8516, "Background";
-// the design's own image fill is a single placeholder frame, so the rotation
-// behaviour absorbed from the deleted components/HeroBackground.tsx drives
-// these committed assets instead), each under the card of the same position.
-// `credit` is deliberately optional: the Figma overlay text "Foto: [nome da
-// equipe]" is placeholder copy, not real copy. The real, mandatory credit for
-// these photos is documented in IMAGENS.md ("Fotos de Artur Lourenço" —
-// "Crédito na página: 'Fotos: Artur Lourenço'"), the same wording the
-// pre-redesign hero rendered; it is filled in below so the overlay renders it
-// — see the `activePhoto.credit` check.
-type HeroPhoto = {
-  src: string;
-  credit?: string;
-};
-
-// The dots name the photos by their position in this list ("Hero.photoAlt" in
-// messages/); the file names keep their original numbering.
-const PHOTOS: HeroPhoto[] = [
-  { src: "/images/hero/hero2.jpg", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero3.jpg", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero1.jpg", credit: "Artur Lourenço" },
-  { src: "/images/hero/hero4.jpg", credit: "Artur Lourenço" },
-];
+// Each banner is a background photo and the card shown over it: the text, set
+// like Figma nodes 18862:8525 (h1) and 18862:8526 (lead), and at most one
+// button, filled like Figma's 18862:8529. Photos, words, buttons and how many
+// banners there are come from Contentful (lib/content/banners.ts, which also
+// holds the four shipped ones and their provenance). The dots name the photos
+// by their position ("Hero.photoAlt" in messages/).
 
 // The arrow of data-nordeste-frontend's banner carousel, the sprite symbol
 // "arrow" inlined: it points up and to the right, and the arrows turn it to
@@ -139,9 +79,8 @@ function subscribeReducedMotion(onChange: () => void) {
 // them abruptly, until the visitor presses the pause toggle beside the dots
 // (2026-11-23, not drawn in Figma). Under reduced motion the hero starts
 // paused and the toggle offers to start it.
-export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
+export default function Hero({ banners }: { banners: Banner[] }) {
   const t = useTranslations("Hero");
-  const cards = heroCards(copy);
   const [index, setIndex] = useState(0);
   // Bumped by every dot or arrow click, so a click restarts the wait in full
   // even when it picks the photo already showing.
@@ -171,24 +110,26 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   // A timeout per photo rather than one interval, so the wait starts over
   // whenever the photo changes, by the timer, a dot or an arrow.
   useEffect(() => {
-    if (!shouldRotate(PHOTOS.length, focusHeld, paused)) return;
+    if (!shouldRotate(banners.length, focusHeld, paused)) return;
     const id = setTimeout(
-      () => setIndex((i) => stepPhotoIndex(i, 1, PHOTOS.length)),
+      () => setIndex((i) => stepPhotoIndex(i, 1, banners.length)),
       ROTATION_INTERVAL_MS
     );
     return () => clearTimeout(id);
-  }, [index, clicks, focusHeld, paused]);
+  }, [index, clicks, focusHeld, paused, banners.length]);
 
   // The dots and the arrows both land here, so every manual change restarts
   // the wait.
   const goTo = (next: number) => {
     setIndex(next);
     setClicks((c) => c + 1);
-    setAnnouncement(t("announcement", { number: next + 1, total: PHOTOS.length, title: cards[next].title }));
+    setAnnouncement(t("announcement", { number: next + 1, total: banners.length, title: banners[next].title }));
   };
-  const step = (delta: number) => goTo(stepPhotoIndex(index, delta, PHOTOS.length));
+  const step = (delta: number) => goTo(stepPhotoIndex(index, delta, banners.length));
 
-  const activePhoto = PHOTOS[index];
+  const activeBanner = banners[index];
+  // With a single banner there is nothing to pick, step through or pause.
+  const rotates = banners.length >= 2;
 
   return (
     <section
@@ -204,11 +145,12 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
       }}
     >
       <div className={styles.background} aria-hidden>
-        {PHOTOS.map((photo, i) => (
+        {/* Keyed by position: two banners may share a photo. */}
+        {banners.map((banner, i) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            key={photo.src}
-            src={photo.src}
+            key={i}
+            src={banner.photo}
             alt=""
             className={styles.backgroundImage}
             style={{ opacity: i === index ? 1 : 0 }}
@@ -224,8 +166,10 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
             shifts the page below it. Only the active one is visible; the rest
             are inert, out of the accessibility tree and the tab order. */}
         <div className={styles.content}>
-          {cards.map((card, position) => {
+          {banners.map((banner, position) => {
             const active = position === index;
+            const action = banner.action;
+            const buttonClass = `${styles.primaryButton} text-ui-medium`;
             return (
               <div
                 key={position}
@@ -235,83 +179,88 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
                 {/* Figma groups the h1 and the lead in their own container
                     (19253:14755) with a 16px gap, tighter than the card's 24. */}
                 <div className={styles.copy}>
-                  <h1 className={styles.title}>{card.title}</h1>
+                  <h1 className={styles.title}>{banner.title}</h1>
                   <p className={`${styles.lead} text-lead`}>
-                    <Linhas texto={card.lead} />
+                    <Linhas texto={banner.text} />
                   </p>
                 </div>
-                <div className={styles.actions}>
-                  {card.actions.map((action, i) => {
-                    const className = `${i === 0 ? styles.primaryButton : styles.secondaryButton} text-ui-medium`;
-                    // An external link crosses a route group: a full page
-                    // load, not next/link.
-                    return action.external ? (
-                      <a key={action.href} href={action.href} className={className}>
-                        {action.label}
-                      </a>
-                    ) : (
-                      <Link key={action.href} href={action.href} className={className}>
+                {action && (
+                  <div className={styles.actions}>
+                    {/* A link outside the marketing pages crosses a route
+                        group: a full page load, not next/link. */}
+                    {isMarketingRoute(action.href) ? (
+                      <Link href={action.href} className={buttonClass}>
                         {action.label}
                       </Link>
-                    );
-                  })}
-                </div>
+                    ) : (
+                      <a href={action.href} className={buttonClass}>
+                        {action.label}
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      <div className={`container ${styles.dots}`}>
-        <div className={styles.dotList} role="group" aria-label={t("photoPicker")}>
-          {PHOTOS.map((photo, i) => (
-            <button
-              key={photo.src}
-              type="button"
-              className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
-              aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
-              aria-pressed={i === index}
-              onClick={() => goTo(i)}
-            />
-          ))}
+      {rotates && (
+        <div className={`container ${styles.dots}`}>
+          <div className={styles.dotList} role="group" aria-label={t("photoPicker")}>
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
+                aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
+                aria-pressed={i === index}
+                onClick={() => goTo(i)}
+              />
+            ))}
+          </div>
+          {/* Outside the photo picker: it picks no photo. The name says what a
+              press will do, as the WAI carousel pattern does, rather than an
+              aria-pressed "Pausar"; the one element swaps its label and glyph,
+              so keyboard focus stays on it across presses. */}
+          <button
+            ref={pauseToggle}
+            type="button"
+            className={styles.pause}
+            aria-label={t(paused ? "resume" : "pause")}
+            onClick={() => setPauseChoice(!paused)}
+          >
+            <PauseIcon paused={paused} />
+          </button>
         </div>
-        {/* Outside the photo picker: it picks no photo. The name says what a
-            press will do, as the WAI carousel pattern does, rather than an
-            aria-pressed "Pausar"; the one element swaps its label and glyph,
-            so keyboard focus stays on it across presses. */}
-        <button
-          ref={pauseToggle}
-          type="button"
-          className={styles.pause}
-          aria-label={t(paused ? "resume" : "pause")}
-          onClick={() => setPauseChoice(!paused)}
-        >
-          <PauseIcon paused={paused} />
-        </button>
-      </div>
+      )}
 
-      <button
-        type="button"
-        className={`${styles.arrow} ${styles.arrowPrevious}`}
-        aria-label={t("previous")}
-        onClick={() => step(-1)}
-      >
-        <ArrowIcon className={styles.arrowIconPrevious} />
-      </button>
-      <button
-        type="button"
-        className={`${styles.arrow} ${styles.arrowNext}`}
-        aria-label={t("next")}
-        onClick={() => step(1)}
-      >
-        <ArrowIcon className={styles.arrowIconNext} />
-      </button>
+      {rotates && (
+        <>
+          <button
+            type="button"
+            className={`${styles.arrow} ${styles.arrowPrevious}`}
+            aria-label={t("previous")}
+            onClick={() => step(-1)}
+          >
+            <ArrowIcon className={styles.arrowIconPrevious} />
+          </button>
+          <button
+            type="button"
+            className={`${styles.arrow} ${styles.arrowNext}`}
+            aria-label={t("next")}
+            onClick={() => step(1)}
+          >
+            <ArrowIcon className={styles.arrowIconNext} />
+          </button>
+        </>
+      )}
 
       <p className="sr-only" aria-live="polite">
         {announcement}
       </p>
 
-      {activePhoto.credit && <p className={styles.credit}>{t("credit", { name: activePhoto.credit })}</p>}
+      {activeBanner.credit && <p className={styles.credit}>{t("credit", { name: activeBanner.credit })}</p>}
     </section>
   );
 }

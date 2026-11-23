@@ -172,7 +172,7 @@ describe('the provisioned institutional copy', () => {
 
   it('translates every copy type of the translated pages', () => {
     const translated = [
-      ...['inicioHero', 'inicioDestaques', 'inicioPlataforma', 'inicioCaminhos'],
+      ...['inicioDestaques', 'inicioPlataforma', 'inicioCaminhos'],
       'comunicacaoPagina',
       'glossarioPagina',
       ...['sobreIntro', 'sobrePlataforma', 'sobreCaatinga', 'sobreCarbonoComunidades', 'sobreComoFunciona'],

@@ -7,7 +7,7 @@ import Comunicacao from "@/components/marketing/Comunicacao";
 import SiteFooter from "@/components/marketing/SiteFooter";
 import { getContentfulClient } from "@/lib/contentful";
 import { getComunicacaoContent } from "@/lib/content/comunicacao";
-import { INICIO_HERO } from "@/lib/content/inicio";
+import { getBanners } from "@/lib/content/banners";
 import { INICIO_DESTAQUES } from "@/lib/content/destaques";
 import { INICIO_PLATAFORMA, abasPlataforma } from "@/lib/content/plataforma";
 import { INICIO_CAMINHOS, caminhosCards } from "@/lib/content/caminhos";
@@ -19,11 +19,11 @@ export default async function LandingPage() {
   // The visitor's language, as i18n/request.ts read it from the cookie: the
   // interface labels and the Contentful copy follow the same one.
   const locale = await getSiteLocale();
-  const [conteudo, copy] = await Promise.all([
+  const [conteudo, banners, copy] = await Promise.all([
     getComunicacaoContent(getContentfulClient(), locale),
+    getBanners(getContentfulClient(), locale),
     loadSiteCopy(
       {
-        hero: INICIO_HERO,
         destaques: INICIO_DESTAQUES,
         plataforma: INICIO_PLATAFORMA,
         caminhos: INICIO_CAMINHOS,
@@ -37,7 +37,7 @@ export default async function LandingPage() {
     <>
       <SiteHeader />
       <main lang={HTML_LANG[locale]}>
-        <Hero copy={copy.hero} />
+        <Hero banners={banners} />
         <Destaques copy={copy.destaques} />
         <Plataforma titulo={copy.plataforma.titulo} abas={abasPlataforma(copy.plataforma)} />
         <Caminhos
