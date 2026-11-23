@@ -365,8 +365,10 @@
 
 .tg-strip-cells {
   display: flex;
+  align-items: flex-end;
   gap: 2px;
-  height: 32px;
+  height: 72px;
+  border-bottom: 1px solid var(--am-400, #526f78);
 }
 
 @container tg-strip (max-width: 359px) {
@@ -376,9 +378,66 @@
 }
 
 .tg-cell {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
-  border-radius: 2px;
+  height: var(--h, 100%);
+  border-radius: 2px 2px 0 0;
+  transition: height 120ms ease-out;
+}
+
+/* Hovered, the bar grows a little and a balloon over it gives the year. */
+.tg-cell:hover {
+  z-index: 1;
+  height: calc(var(--h, 100%) + 6px);
+}
+
+.tg-cell::before,
+.tg-cell::after {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.tg-cell::before {
+  content: '';
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--bg-texto-primario, #001d27);
+}
+
+.tg-cell::after {
+  content: attr(data-tip);
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-texto-primario, #001d27);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.tg-cell--tip-start::after {
+  left: 0;
+  transform: none;
+}
+
+.tg-cell--tip-end::after {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.tg-cell:hover::before,
+.tg-cell:hover::after {
+  visibility: visible;
 }
 
 .tg-cell--empty {
@@ -386,7 +445,6 @@
 }
 
 .tg-cell--highlight {
-  position: relative;
   outline: 2px solid var(--bg-texto-primario, #001d27);
   outline-offset: 1px;
 }
