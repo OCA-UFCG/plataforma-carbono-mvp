@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BANNERS_QUERY, DEFAULT_BANNERS, getBanners } from '@/lib/content/banners'
+import type { ContentfulVariables } from '@/lib/contentful'
 import { MAPA_LINK, TERRITORIOS_LINK } from '@/lib/marketing/nav'
 
 type Call = { query: string; variables?: unknown }
@@ -8,7 +9,7 @@ function clientReturning(payload: unknown, calls: Call[] = []) {
   return (async (query: string, variables?: unknown) => {
     calls.push({ query, variables })
     return payload
-  }) as <T>(query: string, variables?: Record<string, string>) => Promise<T>
+  }) as <T>(query: string, variables?: ContentfulVariables) => Promise<T>
 }
 
 const COMPLETE = {

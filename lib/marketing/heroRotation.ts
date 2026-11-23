@@ -8,6 +8,13 @@ export function stepPhotoIndex(index: number, delta: number, count: number): num
   return (((index + delta) % count) + count) % count
 }
 
+// The photo to show for `index` in a list of `count`: the index itself, or
+// the first photo once the list has shrunk under it (the banners are
+// Contentful's and change while the index lives on in the client).
+export function clampPhotoIndex(index: number, count: number): number {
+  return index < count ? index : 0
+}
+
 // Whether the rotation is paused: the visitor's own press of the pause toggle
 // when there was one (`null` until then), else their reduced-motion setting,
 // so that setting starts the hero paused but a press can still start it.

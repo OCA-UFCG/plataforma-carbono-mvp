@@ -71,4 +71,9 @@ describe('Hero banners', () => {
 
     expect(markup.match(/<img /g)).toHaveLength(2)
   })
+
+  // getBanners never returns an empty list, but the type allows one.
+  it('renders nothing for an empty list instead of throwing', () => {
+    expect(render([])).toBe('')
+  })
 })

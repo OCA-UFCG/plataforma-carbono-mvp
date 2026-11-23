@@ -5,10 +5,12 @@
 // (lib/content/banners.ts). Free of `server-only`: the provision script loads
 // this module under plain tsx.
 
-// A path of this site ("/", "/sobre") or an https address. "//host" and
-// "/\host" are refused because a browser reads both as another host. Written
+// A path of this site ("/", "/sobre") or an https address with a host, and no
+// whitespace anywhere. "//host" and "/\host" are refused because a browser
+// reads both as another host, and whitespace because a browser deletes tab, LF
+// and CR anywhere in a URL, turning "/<tab>/host" into "//host". Written
 // without a lookahead, which Contentful's validator is not known to support.
-export const BANNER_LINK_PATTERN = '^(/$|/[^/\\\\]|https://)'
+export const BANNER_LINK_PATTERN = String.raw`^(/|/[^/\\\s]\S*|https://[^/\\\s]\S*)$`
 
 export const BANNER_LINK_MESSAGE =
   'Use um caminho do site começando com uma barra, como /sobre, ou um endereço completo começando com https://.'

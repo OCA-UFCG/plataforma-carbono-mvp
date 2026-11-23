@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
+import { clampPhotoIndex, focusHolds, isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
 import { isMarketingRoute } from "@/lib/marketing/nav";
 // Type only: lib/content/banners.ts is server-only, and this is a client
 // component.
@@ -106,17 +106,25 @@ export default function Hero({ banners }: { banners: Banner[] }) {
     () => false
   );
   const paused = isPaused(pauseChoice, reducedMotion);
+  // IMPORTANT: read `current`, never `index`. The index survives
+  // router.refresh() (the language switch) while the banners come fresh from
+  // Contentful, so a banner unpublished meanwhile, or a failed read falling
+  // back to the shipped four, can leave it past the end of the list.
+  const current = clampPhotoIndex(index, banners.length);
 
   // A timeout per photo rather than one interval, so the wait starts over
   // whenever the photo changes, by the timer, a dot or an arrow.
   useEffect(() => {
     if (!shouldRotate(banners.length, focusHeld, paused)) return;
     const id = setTimeout(
-      () => setIndex((i) => stepPhotoIndex(i, 1, banners.length)),
+      () => setIndex((i) => stepPhotoIndex(clampPhotoIndex(i, banners.length), 1, banners.length)),
       ROTATION_INTERVAL_MS
     );
     return () => clearTimeout(id);
   }, [index, clicks, focusHeld, paused, banners.length]);
+
+  // getBanners never returns an empty list, but the type allows one.
+  if (banners.length === 0) return null;
 
   // The dots and the arrows both land here, so every manual change restarts
   // the wait.
@@ -125,9 +133,9 @@ export default function Hero({ banners }: { banners: Banner[] }) {
     setClicks((c) => c + 1);
     setAnnouncement(t("announcement", { number: next + 1, total: banners.length, title: banners[next].title }));
   };
-  const step = (delta: number) => goTo(stepPhotoIndex(index, delta, banners.length));
+  const step = (delta: number) => goTo(stepPhotoIndex(current, delta, banners.length));
 
-  const activeBanner = banners[index];
+  const activeBanner = banners[current];
   // With a single banner there is nothing to pick, step through or pause.
   const rotates = banners.length >= 2;
 
@@ -153,7 +161,7 @@ export default function Hero({ banners }: { banners: Banner[] }) {
             src={banner.photo}
             alt=""
             className={styles.backgroundImage}
-            style={{ opacity: i === index ? 1 : 0 }}
+            style={{ opacity: i === current ? 1 : 0 }}
             loading={i === 0 ? "eager" : "lazy"}
           />
         ))}
@@ -167,7 +175,7 @@ export default function Hero({ banners }: { banners: Banner[] }) {
             are inert, out of the accessibility tree and the tab order. */}
         <div className={styles.content}>
           {banners.map((banner, position) => {
-            const active = position === index;
+            const active = position === current;
             const action = banner.action;
             const buttonClass = `${styles.primaryButton} text-ui-medium`;
             return (
@@ -212,9 +220,9 @@ export default function Hero({ banners }: { banners: Banner[] }) {
               <button
                 key={i}
                 type="button"
-                className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
+                className={`${styles.dot}${i === current ? ` ${styles.dotActive}` : ""}`}
                 aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
-                aria-pressed={i === index}
+                aria-pressed={i === current}
                 onClick={() => goTo(i)}
               />
             ))}

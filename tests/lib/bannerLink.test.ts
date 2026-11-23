@@ -9,6 +9,7 @@ describe('bannerLink', () => {
       ['/', '/'],
       ['/sobre', '/sobre'],
       ['/comunicacao#eventos', '/comunicacao#eventos'],
+      ['/sobre/caatinga', '/sobre/caatinga'],
       ['https://www.gov.br/sudene', 'https://www.gov.br/sudene'],
       ['  /sobre ', '/sobre'],
     ]
@@ -26,6 +27,15 @@ describe('bannerLink', () => {
       'http://site.org',
       '//evil.example',
       '/\\evil.example',
+      // A browser deletes tab, LF and CR anywhere in a URL, so each of these
+      // is "//evil.example" or "/\\evil.example" to it: another host.
+      '/\t/evil.example',
+      '/\n/evil.example',
+      '/\r\\evil.example',
+      '/\t\\evil.example',
+      '/sobre\t/x',
+      'https://',
+      'https:///evil.example',
       'javascript:alert(1)',
       'mailto:a@b.org',
     ]
