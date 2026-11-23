@@ -36,7 +36,9 @@
     "previous": "Previous photo",
     "next": "Next photo",
     "announcement": "Photo {number} of {total}: {title}",
-    "credit": "Photo: {name}"
+    "credit": "Photo: {name}",
+    "pause": "Pause the photo rotation",
+    "resume": "Resume the photo rotation"
   },
   "Plataforma": {
     "region": "Platform",

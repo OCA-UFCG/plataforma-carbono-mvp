@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stepPhotoIndex } from '@/lib/marketing/heroRotation'
+import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from '@/lib/marketing/heroRotation'
 
 describe('stepPhotoIndex', () => {
   it('moves one photo forward and back', () => {
@@ -23,5 +23,43 @@ describe('stepPhotoIndex', () => {
   it('wraps a delta larger than the count', () => {
     expect(stepPhotoIndex(1, -6, 4)).toBe(3)
     expect(stepPhotoIndex(1, 6, 4)).toBe(3)
+  })
+})
+
+describe('isPaused', () => {
+  it('follows reduced motion until the visitor chooses', () => {
+    expect(isPaused(null, false)).toBe(false)
+    expect(isPaused(null, true)).toBe(true)
+  })
+
+  it('lets the visitor override reduced motion either way', () => {
+    expect(isPaused(false, true)).toBe(false)
+    expect(isPaused(true, false)).toBe(true)
+  })
+})
+
+describe('shouldRotate', () => {
+  it('rotates several photos with nothing holding them', () => {
+    expect(shouldRotate(4, false, false)).toBe(true)
+  })
+
+  it('holds on keyboard focus, on pause, and with a single photo', () => {
+    expect(shouldRotate(4, true, false)).toBe(false)
+    expect(shouldRotate(4, false, true)).toBe(false)
+    expect(shouldRotate(1, false, false)).toBe(false)
+  })
+})
+
+describe('focusHolds', () => {
+  it('holds the rotation while keyboard focus is inside the hero', () => {
+    expect(focusHolds(true, false)).toBe(true)
+  })
+
+  it('lets a mouse click focus a control without holding', () => {
+    expect(focusHolds(false, false)).toBe(false)
+  })
+
+  it('does not hold on the pause toggle, so "Retomar" resumes at once', () => {
+    expect(focusHolds(true, true)).toBe(false)
   })
 })

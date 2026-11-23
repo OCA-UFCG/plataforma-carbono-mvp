@@ -36,7 +36,9 @@
     "previous": "Foto anterior",
     "next": "Próxima foto",
     "announcement": "Foto {number} de {total}: {title}",
-    "credit": "Foto: {name}"
+    "credit": "Foto: {name}",
+    "pause": "Pausar a troca de fotos",
+    "resume": "Retomar a troca de fotos"
   },
   "Plataforma": {
     "region": "Plataforma",

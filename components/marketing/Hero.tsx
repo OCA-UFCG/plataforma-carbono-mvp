@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { stepPhotoIndex } from "@/lib/marketing/heroRotation";
+import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
 import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
 import type { INICIO_HERO } from "@/lib/content/inicio";
 import type { Copy } from "@/lib/content/site/model";
@@ -102,14 +102,43 @@ function ArrowIcon({ className }: { className: string }) {
   );
 }
 
+// The pause toggle's glyphs, drawn in the dots' tint: two bars while the
+// photos rotate (the press will pause), a triangle while they are paused.
+function PauseIcon({ paused }: { paused: boolean }) {
+  return (
+    <svg viewBox="0 0 10 10" width={10} height={10} fill="currentColor" aria-hidden>
+      {paused ? (
+        <path d="M2 0L10 5L2 10Z" />
+      ) : (
+        <>
+          <rect x="1" width="3" height="10" />
+          <rect x="6" width="3" height="10" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 // Long enough to read the longest cards (the first and the third, 27 words
 // each as shipped) after their 0.8s fade-in.
 const ROTATION_INTERVAL_MS = 10000;
 
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+// Follows the reduced-motion setting live, so turning it on mid-visit pauses
+// the hero unless the visitor has pressed the toggle.
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
 // Hero, Figma node 18862:8516 ("Background"), 495px tall under the 76px
 // header. Rotation logic absorbed from the deleted components/HeroBackground.tsx:
-// auto-advance every 10s unless the user prefers reduced motion, cross-fading
-// between photos rather than swapping them abruptly.
+// auto-advance every 10s, cross-fading between photos rather than swapping
+// them abruptly, until the visitor presses the pause toggle beside the dots
+// (2026-11-23, not drawn in Figma). Under reduced motion the hero starts
+// paused and the toggle offers to start it.
 export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   const t = useTranslations("Hero");
   const cards = heroCards(copy);
@@ -120,25 +149,35 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   // Set while keyboard focus is inside the hero, which holds the rotation: the
   // next card would make the focused button inert and drop the focus. A mouse
   // click on a dot or an arrow focuses it without :focus-visible, so it does
-  // not hold.
+  // not hold, and neither does the pause toggle (see `focusHolds`).
   const [focusHeld, setFocusHeld] = useState(false);
+  const pauseToggle = useRef<HTMLButtonElement>(null);
   // What the polite live region reads after a dot or an arrow changes the
   // photo. Only those set it, never the timer, so the rotation does not
   // interrupt a screen reader every 10s.
   const [announcement, setAnnouncement] = useState("");
+  // The visitor's press of the pause toggle, `null` until the first one. A dot
+  // or an arrow leaves it alone, so a paused hero stays paused.
+  const [pauseChoice, setPauseChoice] = useState<boolean | null>(null);
+  // `false` on the server, where the setting is unknown: the hero renders
+  // rotating and a reduced-motion browser flips it to paused on hydration.
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION).matches,
+    () => false
+  );
+  const paused = isPaused(pauseChoice, reducedMotion);
 
   // A timeout per photo rather than one interval, so the wait starts over
   // whenever the photo changes, by the timer, a dot or an arrow.
   useEffect(() => {
-    if (PHOTOS.length < 2 || focusHeld) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
+    if (!shouldRotate(PHOTOS.length, focusHeld, paused)) return;
     const id = setTimeout(
       () => setIndex((i) => stepPhotoIndex(i, 1, PHOTOS.length)),
       ROTATION_INTERVAL_MS
     );
     return () => clearTimeout(id);
-  }, [index, clicks, focusHeld]);
+  }, [index, clicks, focusHeld, paused]);
 
   // The dots and the arrows both land here, so every manual change restarts
   // the wait.
@@ -156,7 +195,10 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
       id="inicio"
       className={styles.hero}
       aria-label={t("region")}
-      onFocus={(event) => setFocusHeld((event.target as Element).matches(":focus-visible"))}
+      onFocus={(event) => {
+        const target = event.target as Element;
+        setFocusHeld(focusHolds(target.matches(":focus-visible"), target === pauseToggle.current));
+      }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusHeld(false);
       }}
@@ -220,17 +262,32 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
         </div>
       </div>
 
-      <div className={`container ${styles.dots}`} role="group" aria-label={t("photoPicker")}>
-        {PHOTOS.map((photo, i) => (
-          <button
-            key={photo.src}
-            type="button"
-            className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
-            aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
-            aria-pressed={i === index}
-            onClick={() => goTo(i)}
-          />
-        ))}
+      <div className={`container ${styles.dots}`}>
+        <div className={styles.dotList} role="group" aria-label={t("photoPicker")}>
+          {PHOTOS.map((photo, i) => (
+            <button
+              key={photo.src}
+              type="button"
+              className={`${styles.dot}${i === index ? ` ${styles.dotActive}` : ""}`}
+              aria-label={t("showPhoto", { alt: t("photoAlt", { number: i + 1 }) })}
+              aria-pressed={i === index}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+        {/* Outside the photo picker: it picks no photo. The name says what a
+            press will do, as the WAI carousel pattern does, rather than an
+            aria-pressed "Pausar"; the one element swaps its label and glyph,
+            so keyboard focus stays on it across presses. */}
+        <button
+          ref={pauseToggle}
+          type="button"
+          className={styles.pause}
+          aria-label={t(paused ? "resume" : "pause")}
+          onClick={() => setPauseChoice(!paused)}
+        >
+          <PauseIcon paused={paused} />
+        </button>
       </div>
 
       <button
