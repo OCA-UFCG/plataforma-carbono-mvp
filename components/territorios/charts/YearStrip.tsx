@@ -12,6 +12,8 @@ import '@/app/territorios-graficos.css'
 export interface YearStripProps {
   data:        RainChartData
   description: string
+  /** The highlighted year's rainfall over its cell; off where the step already prints it. */
+  callout?:    boolean
 }
 
 const KINDS: { kind: RainYearKind; name: string }[] = [
@@ -29,7 +31,7 @@ function fillOf(kind: RainYearKind): CSSProperties {
   return { background: RAIN_COLORS[kind], boxShadow: outlineOf(RAIN_COLORS[kind]) }
 }
 
-export default function YearStrip({ data, description }: YearStripProps) {
+export default function YearStrip({ data, description, callout = true }: YearStripProps) {
   const { years, highlightYear } = data
   const count = years.length
   const at = years.findIndex((y) => y.year === highlightYear)
@@ -44,7 +46,7 @@ export default function YearStrip({ data, description }: YearStripProps) {
 
   return (
     <ChartFigure description={description} className="tg-strip">
-      {highlighted && (
+      {callout && highlighted && (
         <p className="tg-tag" style={calloutAt}>
           {highlighted.year}:{' '}
           <b className="tg-num">{highlighted.valueMm === null ? 'sem dado' : formatMm(highlighted.valueMm)}</b>

@@ -3,7 +3,7 @@ import { defineCopy, line, list, paragraph, type Copy } from './site/model'
 
 // Copy of the landing's "Duas formas de explorar os dados" section (Caminhos,
 // Figma node 19253:14778), which replaced the Ferramenta band: two cards, the
-// territorial summary and the data platform. The words are the design's, the
+// Recorte territorial and the data platform. The words are the design's, the
 // hover list from its hover state (19253:15506), except the second card's
 // button: the design labels both "Ver Resumo", and the one that opens the
 // platform says so instead.
@@ -33,23 +33,23 @@ export const INICIO_CAMINHOS = defineCopy({
   id: 'inicioCaminhos',
   name: 'Início · Duas formas de explorar',
   description:
-    'Seção da página inicial com os dois cartões que levam ao resumo territorial e à plataforma de dados. A lista de cada cartão aparece ao passar o mouse. Há uma única entrada deste tipo: edite-a, não crie outra.',
+    'Seção da página inicial com os dois cartões que levam ao recorte territorial e à plataforma de dados. A lista de cada cartão aparece ao passar o mouse. Há uma única entrada deste tipo: edite-a, não crie outra.',
   localized: true,
   fields: {
     chamada: line('Chamada acima do título', 'Duas formas de explorar os dados'),
     titulo: line('Título', 'Os mesmos dados de carbono, dois caminhos'),
-    resumoSelo: line('Resumo territorial · Selo', 'Mais direto'),
-    resumoTitulo: line('Resumo territorial · Título', 'Resumo territorial'),
+    resumoSelo: line('Recorte territorial · Selo', 'Mais direto'),
+    resumoTitulo: line('Recorte territorial · Título', 'Recorte territorial'),
     resumoTexto: paragraph(
-      'Resumo territorial · Texto',
+      'Recorte territorial · Texto',
       'Escolha um município e veja, em uma página, um panorama dos dados de carbono do seu território.',
     ),
-    resumoItens: list('Resumo territorial · Lista', [
+    resumoItens: list('Recorte territorial · Lista', [
       'Panorama dos indicadores do município',
       'Leitura rápida, sem precisar configurar nada',
       'Adaptado para o território escolhido',
     ]),
-    resumoBotao: line('Resumo territorial · Botão', 'Ver Resumo'),
+    resumoBotao: line('Recorte territorial · Botão', 'Ver recorte'),
     plataformaSelo: line('Plataforma · Selo', 'Mais detalhado'),
     plataformaTitulo: line('Plataforma · Título', 'Plataforma de dados'),
     plataformaTexto: paragraph(

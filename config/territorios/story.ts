@@ -78,25 +78,29 @@ export interface StoryTheme {
   railLabel: string
   /** Year of the map on this step; null for a static layer. */
   mapYear:   string | null
+  /** The Glossário term the linked word of "Por que importa?" opens. */
+  glossarySlug: string
 }
 
+// The order of the steps, the tabs and the summary's rows: the conditions of
+// the place first (rain, land use, fire), then the carbon they shape.
 export const STORY_THEMES: StoryTheme[] = [
-  { id: 'estoque',    layerId: 'estoque_carbono',  railLabel: 'Estoque',      mapYear: null },
-  { id: 'fluxo',      layerId: 'gfw_netflux',      railLabel: 'Fluxo',        mapYear: null },
-  { id: 'uso',        layerId: 'lulc_mapbiomas',   railLabel: 'Uso da terra', mapYear: '2024' },
-  { id: 'fogo',       layerId: 'fogo_frequencia',  railLabel: 'Fogo',         mapYear: '2023' },
-  { id: 'chuva',      layerId: 'brdwgd_pr',        railLabel: 'Chuva',        mapYear: '2024' },
+  { id: 'chuva',   layerId: 'brdwgd_pr',       railLabel: 'Chuva',        mapYear: '2025', glossarySlug: 'fotossintese' },
+  { id: 'uso',     layerId: 'lulc_mapbiomas',  railLabel: 'Uso da terra', mapYear: '2024', glossarySlug: 'estoque-de-carbono' },
+  { id: 'fogo',    layerId: 'fogo_frequencia', railLabel: 'Fogo',         mapYear: '2023', glossarySlug: 'fluxos-de-carbono' },
+  { id: 'estoque', layerId: 'estoque_carbono', railLabel: 'Estoque',      mapYear: null,   glossarySlug: 'estoque-de-carbono' },
+  { id: 'fluxo',   layerId: 'gfw_netflux',     railLabel: 'Fluxo',        mapYear: null,   glossarySlug: 'fluxos-de-carbono' },
 ]
 
-export const STEPS: StepId[] = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva', 'resumo']
+export const STEPS: StepId[] = ['territorio', 'chuva', 'uso', 'fogo', 'estoque', 'fluxo', 'resumo']
 
 export const STEP_LABELS: Record<StepId, string> = {
   territorio: 'Território',
-  estoque:    'Estoque',
-  fluxo:      'Fluxo',
+  chuva:      'Chuva',
   uso:        'Uso da terra',
   fogo:       'Fogo',
-  chuva:      'Chuva',
+  estoque:    'Estoque',
+  fluxo:      'Fluxo',
   resumo:     'Resumo',
 }
 
@@ -134,7 +138,8 @@ export const RAIN_POINT_BELOW_HA = 3_100
 
 export const LAND_USE_YEARS = ['1985', '2024'] as const
 export const RAIN_FIRST_YEAR = 1985
-export const RAIN_LAST_YEAR = 2024
+/** The rain step shows the last whole year, the one before the current. */
+export const RAIN_LAST_YEAR = 2025
 
 /** MapBiomas Fogo collection 3: frequency and annual burned area, 1985 to 2023. */
 export const FIRE_FIRST_YEAR = 1985

@@ -4,10 +4,8 @@ import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
 import { SHIPPED_STORY_SCRIPT } from '@/config/territorios/storyScript'
 import {
   aboutItems,
-  readingTone,
   stepAnswer,
   territoryIndicators,
-  summaryRows,
   type SummaryInput,
 } from '@/lib/territorios/storyText'
 import type {
@@ -15,7 +13,6 @@ import type {
   BiomeReference,
   PrecomputedFile,
   StepAnswer,
-  SummaryRow,
   TerritoryPayload,
   TerritoryTypeId,
   ThemeData,
@@ -125,7 +122,7 @@ const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
     series: annual([
       883.8, 731, 493.4, 686.5, 618.7, 383.9, 479.5, 492.9, 258.9, 533.9, 443.9, 510.1, 506, 275.6, 459.6,
       837.3, 532.6, 594.5, 498.3, 807.8, 553.6, 502.7, 578.8, 689.7, 699.4, 584.7, 912.5, 433.1, 611.4, 609.6,
-      499.2, 496.6, 433.8, 582.8, 568.7, 666.7, 379.6, 793.8, 610.5, 750.8,
+      499.2, 496.6, 433.8, 582.8, 568.7, 666.7, 379.6, 793.8, 610.5, 750.8, 512.1,
     ]),
   }),
 }
@@ -161,7 +158,7 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
     series: annual([
       631.4, 506.5, 283.1, 480, 468.3, 216.6, 295.8, 300.9, 131.6, 345.4, 288.7, 351.5, 343.3, 144.5, 320.5,
       539.1, 393.5, 440.5, 315.4, 561.6, 414.9, 366.6, 404.5, 532.3, 516.3, 409.7, 615.4, 272.3, 357.4, 369.8,
-      320.2, 329.4, 280.4, 408.6, 384.3, 491.3, 224.9, 499, 379.9, 532,
+      320.2, 329.4, 280.4, 408.6, 384.3, 491.3, 224.9, 499, 379.9, 532, 299.5,
     ]),
   }),
 }
@@ -170,7 +167,6 @@ const STEPS = ['territorio', 'estoque', 'fluxo', 'uso', 'fogo', 'chuva'] as cons
 type Step = typeof STEPS[number]
 
 const answers: StepAnswer[] = []
-const rows: SummaryRow[] = []
 const abouts: AboutItem[][] = []
 
 type Input = Omit<SummaryInput, 'script'>
@@ -178,12 +174,6 @@ type Input = Omit<SummaryInput, 'script'>
 function step(s: Step, territory: TerritoryPayload, type: TerritoryType, response?: ThemeResponse): StepAnswer {
   const out = stepAnswer(s, { territory, type, response, script: SHIPPED_STORY_SCRIPT })
   answers.push(out)
-  return out
-}
-
-function sheet(input: Input): SummaryRow[] {
-  const out = summaryRows({ ...input, script: SHIPPED_STORY_SCRIPT })
-  rows.push(...out)
   return out
 }
 
@@ -203,14 +193,14 @@ describe('stepAnswer', () => {
   it('tells the story of Campina Grande', () => {
     expect(story(CG, municipio, CG_ANSWERS)).toEqual({
       territorio: {
-        question: 'Onde fica e qual é o tamanho?',
+        question: 'Que território estamos conhecendo?',
         headline: { value: '596', unit: 'km²' },
         sentence: 'Área do município inteiro, na Paraíba.',
       },
       estoque: {
-        question: 'Quanto carbono a vegetação original guardaria aqui?',
-        headline: { value: '46', unit: 't de carbono por hectare' },
-        sentence: 'Abaixo da Caatinga (55 t por hectare). No total, 2,7 milhões de toneladas de carbono.',
+        question: 'Quanto carbono a vegetação original e o solo guardariam aqui?',
+        headline: { value: '2,7 milhões', unit: 'de toneladas de carbono' },
+        sentence: '46 t por hectare, abaixo da Caatinga (55 t).',
       },
       fluxo: {
         question: 'As áreas com árvores tiraram ou lançaram carbono do ar?',
@@ -218,19 +208,19 @@ describe('stepAnswer', () => {
         sentence: 'Tiraram mais carbono do que lançaram. Cobrem 13% da área, abaixo dos 27% da Caatinga.',
       },
       uso: {
-        question: 'Como mudou a vegetação nativa desde 1985?',
+        question: 'Como estava a cobertura vegetal nativa?',
         headline: { value: '27%', unit: 'de vegetação nativa em 2024' },
         sentence: 'Eram 34% em 1985. A Caatinga tem 60%; aqui fica abaixo.',
       },
       fogo: {
-        question: 'Quanto daqui já queimou desde 1985?',
+        question: 'Como o fogo afetou o território ao longo do tempo?',
         headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
         sentence: 'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
       },
       chuva: {
-        question: '2024 foi um ano seco ou chuvoso aqui?',
-        headline: { value: '751', unit: 'mm em 2024' },
-        sentence: 'Chuvoso, 31% acima da média daqui (575 mm). Essa média fica abaixo da Caatinga (701 mm).',
+        question: 'Como foi a chuva em 2025?',
+        headline: { value: '512', unit: 'mm em 2025' },
+        sentence: 'Normal, perto da média daqui (573 mm). Essa média fica abaixo da Caatinga (701 mm).',
       },
     })
   })
@@ -239,11 +229,11 @@ describe('stepAnswer', () => {
     const out = story(PA, assentamento, PA_ANSWERS)
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
       territorio: 'Área dentro da Caatinga, na Paraíba.',
-      estoque:    'Abaixo da Caatinga (55 t por hectare). No total, 211 mil toneladas de carbono.',
+      estoque:    '41 t por hectare, abaixo da Caatinga (55 t).',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 30% da área, acima dos 27% da Caatinga.',
       uso:        'Eram 88% em 1985. A Caatinga tem 60%; aqui fica acima.',
       fogo:       'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
-      chuva:      'Chuvoso, 38% acima da média daqui (387 mm). Essa média fica abaixo da Caatinga (701 mm).',
+      chuva:      'Seco, 22% abaixo da média daqui (385 mm). Essa média fica abaixo da Caatinga (701 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '52', unit: 'km²' })
     expect(out.fogo.headline).toEqual({ value: '1,8%', unit: 'da área queimou ao menos uma vez' })
@@ -260,16 +250,15 @@ describe('stepAnswer', () => {
 
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
       territorio: 'A Caatinga inteira, em nove estados.',
-      estoque:    'No total, 4,2 bilhões de toneladas de carbono.',
+      estoque:    '55 t por hectare.',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
       fogo:       'O ano com mais fogo aqui foi 2021.',
-      chuva:      'Chuvoso, 15% acima da média daqui (692 mm).',
+      chuva:      'Normal, perto da média daqui (690 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
     expect(out.fogo.headline).toEqual({ value: '12%', unit: 'da área queimou ao menos uma vez' })
-    expect(sheet({ responses, territory: caatingaItself, type: bioma }).map((r) => r.reading)).toEqual([null, null, null, null, null])
 
     const items = about({ responses, territory: caatingaItself, type: bioma })
     expect(items.map((i) => i.title)).not.toContain('Comparação com a Caatinga')
@@ -312,7 +301,7 @@ describe('stepAnswer', () => {
 
   it('leaves the answer empty while a theme loads or after it fails', () => {
     expect(step('estoque', CG, municipio)).toEqual({
-      question: 'Quanto carbono a vegetação original guardaria aqui?', headline: null, sentence: '',
+      question: 'Quanto carbono a vegetação original e o solo guardariam aqui?', headline: null, sentence: '',
     })
     expect(step('chuva', CG, municipio, answer(null, { theme: 'chuva', status: 'unavailable', origin: null })).sentence).toBe('')
   })
@@ -320,7 +309,6 @@ describe('stepAnswer', () => {
   it('says "sem dado" where the inventory has no pixel, and names the part it covers', () => {
     const responses = { ...CG_ANSWERS, estoque: answer(null, { theme: 'estoque' }) }
     expect(step('estoque', CG, municipio, responses.estoque)).toMatchObject({ headline: null, sentence: 'Sem dado de carbono para esta área.' })
-    expect(sheet({ responses, territory: CG, type: municipio })[0]).toMatchObject({ headline: null, reading: null })
 
     const stockText = (territory: TerritoryPayload) =>
       about({ responses: CG_ANSWERS, territory, type: municipio }).find((i) => i.title === 'Estoque')?.text
@@ -340,14 +328,6 @@ describe('stepAnswer', () => {
       headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
       sentence: 'Nenhuma área queimada registrada de 1985 a 2023.',
     })
-    const row = sheet({ responses: { fogo: none }, territory: PA, type: assentamento })[3]
-    expect(row).toEqual({
-      theme: 'fogo', title: 'Área que já queimou',
-      headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
-      sentence: 'Na Caatinga, 12%. Nenhum fogo de 1985 a 2023.',
-      // Less fire than the Caatinga is good news.
-      reading: 'abaixo', tone: 'good',
-    })
   })
 
   it('states an equilibrium without a figure, and an emission against a Caatinga that removed', () => {
@@ -363,28 +343,16 @@ describe('stepAnswer', () => {
       headline: { value: '1,2', unit: 'mil t de CO₂e' },
       sentence: 'Lançaram mais carbono do que tiraram. Cobrem 5,0% da área, abaixo dos 27% da Caatinga.',
     })
-
-    const [, balanceRow] = sheet({ responses: { fluxo: balance }, territory: CG, type: municipio })
-    expect(balanceRow).toMatchObject({ headline: null, reading: null, sentence: 'No saldo, as áreas com árvores tiraram e lançaram a mesma quantidade.' })
-    const [, emissionRow] = sheet({ responses: { fluxo: emission }, territory: CG, type: municipio })
-    expect(emissionRow).toEqual({
-      theme: 'fluxo', title: 'Carbono trocado com o ar',
-      headline: { value: '12', unit: 't de CO₂e por hectare com árvores' },
-      sentence: 'No saldo, as áreas com árvores lançaram no ar 1,2 mil t de CO₂e. Na Caatinga, tiraram mais do que lançaram.',
-      reading: null, tone: null,
-    })
   })
 
-  it('gives the mean when 2024 has no rain data', () => {
+  it('gives the mean when 2025 has no rain data', () => {
     const series = CG_ANSWERS.chuva.data!.theme === 'chuva' ? CG_ANSWERS.chuva.data!.series : []
-    const missing = answer({ theme: 'chuva', series: series.map((p) => (p.date.startsWith('2024') ? { ...p, value: null } : p)) })
+    const missing = answer({ theme: 'chuva', series: series.map((p) => (p.date.startsWith('2025') ? { ...p, value: null } : p)) })
 
     expect(step('chuva', CG, municipio, missing)).toMatchObject({
-      headline: { value: '570', unit: 'mm por ano, em média' },
-      sentence: 'Sem dado de 2024 aqui. Essa média fica abaixo da Caatinga (701 mm).',
+      headline: { value: '575', unit: 'mm por ano, em média' },
+      sentence: 'Sem dado de 2025 aqui. Essa média fica abaixo da Caatinga (701 mm).',
     })
-    expect(sheet({ responses: { chuva: missing }, territory: CG, type: municipio }).at(-1)?.sentence)
-      .toBe('Na Caatinga, 701 mm. Sem dado de 2024.')
   })
   it('reads its words from the script it is given', () => {
     const shipped = SHIPPED_STORY_SCRIPT
@@ -396,55 +364,9 @@ describe('stepAnswer', () => {
     expect(stepAnswer('fogo', { territory: CG, type: municipio, response: CG_ANSWERS.fogo, script: { ...shipped, answers } }).sentence)
       .toBe('Na Caatinga, 12%. Pico em 1999.')
 
-    const summary = { ...shipped.summary, titles: { ...shipped.summary.titles, chuva: 'Precipitação' } }
-    expect(summaryRows({ responses: CG_ANSWERS, territory: CG, type: municipio, script: { ...shipped, summary } }).at(-1)?.title)
-      .toBe('Precipitação')
-
     const aboutScript = { ...shipped.about, units: { title: 'Unidades de medida', text: 'Toneladas.' } }
     expect(aboutItems({ responses: CG_ANSWERS, territory: CG, type: municipio, script: { ...shipped, about: aboutScript } }).at(-2))
       .toEqual({ title: 'Unidades de medida', text: 'Toneladas.' })
-  })
-})
-
-describe('summaryRows', () => {
-  it('fills one line per theme for Campina Grande, each read against the Caatinga', () => {
-    expect(sheet({ responses: CG_ANSWERS, territory: CG, type: municipio })).toEqual([
-      {
-        theme: 'estoque', title: 'Carbono da vegetação original',
-        headline: { value: '46', unit: 't C por hectare' },
-        sentence: 'No total, 2,7 milhões de t C. Na Caatinga, 55 t C por hectare.',
-        reading: 'abaixo', tone: 'bad',
-      },
-      {
-        theme: 'fluxo', title: 'Carbono trocado com o ar',
-        headline: { value: '58', unit: 't de CO₂e por hectare com árvores' },
-        sentence: 'No saldo, as áreas com árvores tiraram do ar 462 mil t de CO₂e. Na Caatinga, 68 t por hectare com árvores.',
-        reading: 'abaixo', tone: 'bad',
-      },
-      {
-        theme: 'uso', title: 'Vegetação nativa',
-        headline: { value: '27%', unit: 'da área em 2024' },
-        sentence: 'Eram 34% em 1985. Na Caatinga, de 71% para 60%.',
-        reading: 'abaixo', tone: 'bad',
-      },
-      {
-        theme: 'fogo', title: 'Área que já queimou',
-        headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
-        sentence: 'Na Caatinga, 12%. Mais fogo em 1999.',
-        reading: 'abaixo', tone: 'good',
-      },
-      {
-        theme: 'chuva', title: 'Chuva',
-        headline: { value: '575', unit: 'mm por ano, em média' },
-        sentence: 'Na Caatinga, 701 mm. 2024 foi chuvoso, com 751 mm.',
-        reading: 'abaixo', tone: 'neutral',
-      },
-    ])
-  })
-
-  it('leaves the line of a theme still loading or failed empty', () => {
-    const out = sheet({ responses: { estoque: answer(null, { status: 'unavailable', origin: null }) }, territory: CG, type: municipio })
-    expect(out.map((r) => r.sentence)).toEqual(['', '', '', '', ''])
   })
 })
 
@@ -488,32 +410,12 @@ describe('every answer, line and item', () => {
       const said = [a.headline?.value, a.headline?.unit, a.sentence].filter(Boolean).join(' ')
       expect(words(said), said).toBeLessThanOrEqual(21)
     }
-    for (const r of rows) expect(words(r.sentence), r.sentence).toBeLessThanOrEqual(22)
 
     const lines = [
       ...answers.flatMap((a) => [a.question, a.sentence, a.headline?.value ?? '', a.headline?.unit ?? '']),
-      ...rows.flatMap((r) => [r.title, r.sentence, r.headline?.value ?? '', r.headline?.unit ?? '']),
       ...abouts.flat().flatMap((i) => [i.title, i.text]),
     ]
     for (const line of lines) expect(line).not.toMatch(/[{}]|undefined|NaN/)
-  })
-})
-
-describe('readingTone', () => {
-  it('colors a reading by whether it is good news for the territory', () => {
-    expect(readingTone('acima', true)).toBe('good')
-    expect(readingTone('abaixo', true)).toBe('bad')
-    expect(readingTone('acima', false)).toBe('bad')
-    expect(readingTone('abaixo', false)).toBe('good')
-  })
-
-  it('stays neutral close to the Caatinga and for a theme that judges nothing', () => {
-    expect(readingTone('perto', true)).toBe('neutral')
-    expect(readingTone('acima', null)).toBe('neutral')
-  })
-
-  it('has no tone without a reading', () => {
-    expect(readingTone(null, true)).toBeNull()
   })
 })
 

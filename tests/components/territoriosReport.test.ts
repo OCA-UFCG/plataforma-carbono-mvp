@@ -38,11 +38,11 @@ describe('ReportTabs', () => {
     expect(buttons(markup)).toEqual([
       { text: 'Localização', disabled: false },
       { text: 'Território', disabled: true },
-      { text: 'Estoque', disabled: true },
-      { text: 'Fluxo', disabled: true },
+      { text: 'Chuva', disabled: true },
       { text: 'Uso da terra', disabled: true },
       { text: 'Fogo', disabled: true },
-      { text: 'Chuva', disabled: true },
+      { text: 'Estoque', disabled: true },
+      { text: 'Fluxo', disabled: true },
       { text: 'Resumo', disabled: true },
     ])
     expect(markup).toMatch(/aria-current="step"[^>]*>Localização</)
@@ -144,6 +144,16 @@ describe('PanelNav', () => {
     expect(markup).toContain('seta-direita-desabilitada.svg')
   })
 
+  it('names the next tab and its question across the report', () => {
+    const markup = html(PanelNav, {
+      wide: true,
+      back: { label: 'Território', onClick: noop },
+      next: { label: 'Uso da terra', detail: 'Como estava a cobertura vegetal nativa?', onClick: noop },
+    })
+    expect(markup).toContain('territorios-painel-nav--largo')
+    expect(markup).toContain('<b>Uso da terra</b><span class="territorios-navegar-detalhe">Como estava a cobertura vegetal nativa?</span>')
+  })
+
   it('has only the way back on the summary', () => {
     expect(buttons(html(PanelNav, { back: { label: 'Chuva', onClick: noop } }))).toEqual([{ text: 'Chuva', disabled: false }])
   })
@@ -176,32 +186,39 @@ const JUAZEIRO: TerritoryPayload = {
 
 const STEP = {
   territory: JUAZEIRO, type: typeOf('municipio'), load: { kind: 'loading' } as const,
-  expired: false, onRetry: noop, leave: { label: 'Localização', onClick: noop }, onOpen: noop,
+  expired: false, onRetry: noop,
 }
 
 describe('ThemeStep', () => {
-  it('lays out the territory tab of Figma 19254:37447', () => {
+  it('titles the territory tab with its question, over the area card and the rank', () => {
     const markup = html(ThemeStep, { ...STEP, step: 'territorio' })
     expect(markup).toContain('<h3 id="etapa-territorio-titulo" class="territorios-etapa-titulo" style="color:#587c22" tabindex="-1">')
     expect(markup).toContain('/images/territorios/icones/territorio.svg')
-    expect(markup).toContain('Onde fica e qual é o tamanho?')
+    expect(markup).toContain('Que território estamos conhecendo?</h3>')
+    expect(markup).toContain('Quais as principais características do território?')
+    expect(markup).toContain('Área do território')
     expect(markup).toContain('>6.720<')
     expect(markup).toContain('Área do município inteiro, na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
-    // The first tab's way back leaves the report.
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Localização', 'Estoque'])
+    // No "Por que importa?" here, and the ways to the other tabs run under
+    // the report (TerritoriosApp).
+    expect(markup).not.toContain('territorios-porque')
+    expect(buttons(markup)).toEqual([])
   })
 
-  it('names the previous theme and the summary on the last theme\'s buttons, and waits for its data', () => {
+  it('waits for its data under the question, and says why the theme matters, with its Glossário word and source', () => {
     const markup = html(ThemeStep, { ...STEP, step: 'chuva' })
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Fogo', 'Resumo'])
+    expect(markup).toContain('Como foi a chuva em 2025?</h3>')
     expect(markup).toContain('Carregando os dados')
+    expect(markup).toContain('Por que a chuva é relevante na absorção de carbono?')
+    expect(markup).toMatch(/<a href="\/glossario\?termo=fotossintese" target="_blank" rel="noopener">fotossíntese<img[^>]*alt="\(abre em nova aba\)"/)
+    expect(markup).toContain('BR-DWGD (Xavier et al., 2022)')
   })
 
   it('asks the question an editor wrote, with its year filled', () => {
     const copy = { ...territoriosCopyDefaults(), chuva: copyFromEntry(TERRITORIOS_COPY.chuva, { pergunta: 'Choveu em {anoFinal}?' }) }
-    expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2024?')
+    expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2025?')
   })
 })
 
@@ -221,17 +238,21 @@ describe('StorySummary', () => {
     expect(html(StorySummary, { ...SUMMARY, hidden: true })).toMatch(/<section id="etapa-resumo"[^>]* hidden=""/)
   })
 
-  it('lays out a card per theme, the name for paper only, and the way back', () => {
+  it('repeats every step under its question, the name for paper only, and the way back', () => {
     const markup = html(StorySummary, { ...SUMMARY, hidden: false })
-    // Cards still loading stay off the printed sheet.
-    expect(markup.match(/<li class="territorios-ficha territorios-no-print"/g)).toHaveLength(5)
+    // The territory's step needs no request; the themes still loading stay off the printed sheet.
+    expect(markup.match(/<section class="territorios-resumo-etapa"/g)).toHaveLength(1)
+    expect(markup.match(/<section class="territorios-resumo-etapa territorios-no-print"/g)).toHaveLength(5)
+    expect(markup).toContain('Que território estamos conhecendo?</h4>')
+    expect(markup).toContain('Como foi a chuva em 2025?</h4>')
+    expect(markup).toContain('<h5 class="territorios-porque-titulo">Por que a chuva é relevante na absorção de carbono?</h5>')
     expect(markup).toContain('<header class="territorios-ficha-cabecalho territorios-so-impressao">')
     expect(markup).toContain('Juazeiro (BA)')
     expect(markup).toContain('/images/territorios/icones/abrir.svg')
-    expect(buttons(markup).map((b) => b.text)).toEqual(['Chuva'])
+    expect(buttons(markup).map((b) => b.text)).toEqual(['Fluxo'])
   })
 
-  it('puts a card\'s title before its reading, so heading navigation lands ahead of the badge', () => {
+  it('shows a ready step as its tab does, its charts a heading level down', () => {
     const fire: ThemeResponse = {
       recorteId: 'municipios', featureId: 'juazeiro', theme: 'fogo', status: 'available', origin: 'zonal', coarseScaleM: null,
       data: {
@@ -244,10 +265,9 @@ describe('StorySummary', () => {
       territory: { ...JUAZEIRO, biome: { ...NO_BIOME, fireBurnedSharePct: 12 } },
       loads: { ...LOADING_ALL, fogo: { kind: 'ready', response: fire } },
     })
-    const title = markup.indexOf('<h4 class="territorios-ficha-titulo">Área que já queimou</h4>')
-    const badge = markup.indexOf('<p class="territorios-ficha-leitura" data-tom="good">Abaixo da Caatinga</p>')
-    expect(title).toBeGreaterThan(-1)
-    expect(badge).toBeGreaterThan(title)
+    expect(markup).toContain('Como o fogo afetou o território ao longo do tempo?</h4>')
+    expect(markup).toContain('>3,1%<')
+    expect(markup).toContain('<h5 class="territorios-grafico-titulo">Quantas vezes o fogo atingiu o território?</h5>')
   })
 
   it('offers a retry on a failed card, named for its theme', () => {

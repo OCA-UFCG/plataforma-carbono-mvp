@@ -13,12 +13,12 @@ import {
   fluxMetrics,
   formatArea,
   formatPercent,
-  formatTonnes,
-  formatTonnesInWords,
   landUseChart,
   landUseGroupShares,
   rainChart,
   rainComparison,
+  rainKind,
+  rainTerciles,
   readingOf,
   stockChart,
   tonnesParts,
@@ -187,11 +187,27 @@ describe('fire', () => {
 })
 
 describe('rain', () => {
-  it('calls a year within 10% of the mean near it, and 10% away above or below', () => {
+  // 40 years of 401 to 440 mm, one per millimetre.
+  const forty = Array.from({ length: 40 }, (_, i) => ({ date: `${1985 + i}-01-01`, value: 401 + i }))
+
+  it('splits the 40 years of a territory into 13 dry, 14 normal and 13 rainy', () => {
+    const terciles = rainTerciles(forty)!
+    expect(terciles).toEqual({ lowMm: 414, highMm: 427 })
+    const kinds = forty.map((p) => rainKind(p.value, terciles))
+    expect(kinds.filter((k) => k === 'seco')).toHaveLength(13)
+    expect(kinds.filter((k) => k === 'normal')).toHaveLength(14)
+    expect(kinds.filter((k) => k === 'chuvoso')).toHaveLength(13)
+  })
+
+  it('leaves years past the series out of the terciles, and has none without a year', () => {
+    expect(rainTerciles([...forty, { date: '2026-01-01', value: 9_999 }])).toEqual(rainTerciles(forty))
+    expect(rainTerciles([{ date: '1990-01-01', value: null }])).toBeNull()
+  })
+
+  it('measures a year from the mean, near only on the mean itself', () => {
     expect(rainComparison(110, 100)).toEqual({ direction: 'above', pct: 10 })
-    expect(rainComparison(109.9, 100).direction).toBe('near')
-    expect(rainComparison(90, 100)).toEqual({ direction: 'below', pct: 10 })
-    expect(rainComparison(90.1, 100).direction).toBe('near')
+    expect(rainComparison(97, 100)).toEqual({ direction: 'below', pct: 3 })
+    expect(rainComparison(100, 100)).toEqual({ direction: 'near', pct: 0 })
   })
 
 })
@@ -213,6 +229,7 @@ describe('formatting for the visitor', () => {
   })
 
   it('writes tonnes in "mil", "milhões" and "bilhões", with at most three significant digits', () => {
+    const formatTonnes = (t: number) => Object.values(tonnesParts(t)).join(' ')
     expect(formatTonnes(0)).toBe('0 t')
     expect(formatTonnes(0.4)).toBe('menos de 1 t')
     expect(formatTonnes(999)).toBe('999 t')
@@ -227,15 +244,6 @@ describe('formatting for the visitor', () => {
     expect(tonnesParts(211_419)).toEqual({ value: '211', unit: 'mil t' })
   })
 
-  it('spells the tonnes out, singular only for a bare tonne below 2', () => {
-    expect(formatTonnesInWords(0.4)).toBe('menos de 1 tonelada')
-    expect(formatTonnesInWords(1.2)).toBe('1 tonelada')
-    expect(formatTonnesInWords(999)).toBe('999 toneladas')
-    expect(formatTonnesInWords(1_234)).toBe('1,2 mil toneladas')
-    expect(formatTonnesInWords(1_500_000)).toBe('1,5 milhão de toneladas')
-    expect(formatTonnesInWords(2_727_845)).toBe('2,7 milhões de toneladas')
-    expect(formatTonnesInWords(4_160_240_473)).toBe('4,2 bilhões de toneladas')
-  })
 
   it('writes percents whole from 10 up and with one decimal below', () => {
     expect(formatPercent(0)).toBe('0%')
@@ -293,25 +301,25 @@ describe('comparison with the Caatinga', () => {
     expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2024': { '4': 1 } } }, withBiome)).toBeNull()
   })
 
-  it('lists every year from 1985 to 2024, classes each against the own mean and leaves a missing year unclassed', () => {
+  it('lists every year from 1985 to 2025, classes each by the terciles and leaves a missing year unclassed', () => {
     const series = [
       { date: '1984-01-01', value: 5_000 },
       { date: '1985-01-01', value: 1_000 },
       { date: '1986-01-01', value: null },
       { date: '2000-01-01', value: 890 },
-      { date: '2024-01-01', value: 1_110 },
+      { date: '2025-01-01', value: 1_110 },
     ]
     const chart = rainChart(series, withBiome)!
-    expect(chart.years).toHaveLength(40)
+    expect(chart.years).toHaveLength(41)
     expect(chart.meanMm).toBe(1_000)
-    expect(chart.highlightYear).toBe(2024)
+    expect(chart.highlightYear).toBe(2025)
     expect(chart.mean).toEqual({ here: 1_000, reference: BIOME.rainMeanMm })
 
     const year = (y: number) => chart.years.find((v) => v.year === y)
     expect(year(1985)).toEqual({ year: 1985, valueMm: 1_000, kind: 'normal' })
     expect(year(1986)).toEqual({ year: 1986, valueMm: null, kind: null })
     expect(year(2000)?.kind).toBe('seco')
-    expect(year(2024)?.kind).toBe('chuvoso')
+    expect(year(2025)?.kind).toBe('chuvoso')
     expect(year(1990)?.valueMm).toBeNull()
 
     expect(rainChart([{ date: '2024-01-01', value: null }], withBiome)).toBeNull()

@@ -17,20 +17,18 @@ export interface ComparisonBarProps {
   label?:          string
   hereLabel?:      string
   referenceLabel?: string
-  /** Smaller bar and text, for the final sheet. */
-  compact?:        boolean
   description:     string
 }
 
 export default function ComparisonBar({
   here, reference, max, format, color, label,
-  hereLabel = 'Aqui', referenceLabel = 'Caatinga', compact = false, description,
+  hereLabel = 'Aqui', referenceLabel = 'Caatinga', description,
 }: ComparisonBarProps) {
   const herePct = scalePct(here, max)
   const refPct = reference === null ? null : scalePct(reference, max)
 
   return (
-    <ChartFigure description={description} className={compact ? 'tg-cmp tg-cmp--compact' : 'tg-cmp'}>
+    <ChartFigure description={description} className="tg-cmp">
       {label && <p className="tg-chart-title">{label}</p>}
       <p className="tg-tag" style={anchorAt(herePct)}>
         {hereLabel} <b className="tg-num">{format(here)}</b>

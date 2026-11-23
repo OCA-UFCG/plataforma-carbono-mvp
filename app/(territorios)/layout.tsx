@@ -22,7 +22,7 @@ import { Analytics } from '@/components/Analytics'
 // :root, for the map components the story reuses, and a var() on :root only
 // resolves if --font-sans is set on that same element.
 export const metadata: Metadata = {
-  title: 'Territórios | Caativar',
+  title: 'Recorte territorial | Caativar',
   robots: { index: false, follow: false },
   icons: FAVICON,
 }

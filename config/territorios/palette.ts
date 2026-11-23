@@ -31,6 +31,12 @@ export const STEP_COLORS: Record<StepId, string> = {
 /** The Caatinga reference marker in every comparison chart. */
 export const REFERENCE_COLOR = '#001d27'
 
+/**
+ * The Caatinga's bar beside the territory's in the stock comparison: the stock
+ * green lightened, so the territory's bar stays the one that stands out.
+ */
+export const PAIR_REFERENCE_COLOR = '#93b8aa'
+
 /** --bg-fundo, the surface the charts and the map legend sit on. */
 export const SURFACE_COLOR = '#fefefb'
 

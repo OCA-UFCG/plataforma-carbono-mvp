@@ -166,37 +166,6 @@
   box-shadow: 0 0 0 2px var(--bg-fundo, #fefefb);
 }
 
-/* The summary card's bar (Figma 19254:17361): the value above an 11 px track,
-   the Caatinga below it, in 12 px with the figure in medium. #d9d9d9 is the
-   design's track, with no token of its own. */
-.tg-cmp--compact .tg-tag,
-.tg-cmp--compact .tg-chart-title {
-  font-size: 12px;
-  line-height: 20px;
-}
-
-.tg-cmp--compact .tg-tag b {
-  font-weight: 500;
-}
-
-.tg-cmp--compact .tg-cmp-track {
-  height: 11px;
-  margin: 2px 0;
-  background: #d9d9d9;
-  border-radius: 4px;
-}
-
-.tg-cmp--compact .tg-cmp-fill {
-  border-radius: 4px;
-}
-
-.tg-cmp--compact .tg-cmp-marker {
-  top: -2px;
-  bottom: -1px;
-  width: 3px;
-  left: clamp(0px, calc(var(--at) - 1.5px), calc(100% - 3px));
-}
-
 /* LevelsBar */
 
 .tg-levels-rows {
@@ -396,13 +365,68 @@
 
 /* YearBars */
 
+/* The plot with its percent axis on the left, the years under it and the
+   axis name turned along the left edge. */
+.tg-yearbars-frame {
+  display: grid;
+  grid-template-columns: 16px 32px minmax(0, 1fr);
+  grid-template-rows: 120px auto;
+  column-gap: 4px;
+  margin-top: 4px;
+}
+
+.tg-yearbars-unit {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  justify-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--am-400, #526f78);
+}
+
+.tg-yearbars-axis {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--am-400, #526f78);
+}
+
+.tg-yearbars-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+}
+
+.tg-yearbars-years {
+  position: relative;
+  grid-column: 3;
+  grid-row: 2;
+  height: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--am-400, #526f78);
+}
+
+.tg-yearbars-years span {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+}
+
 .tg-yearbars-plot {
   position: relative;
+  grid-column: 3;
+  grid-row: 1;
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 64px;
-  margin-top: 4px;
+  border-left: 1px solid var(--am-400, #526f78);
   border-bottom: 1px solid var(--am-400, #526f78);
 }
 
@@ -444,4 +468,102 @@
 .tg-yearbars-ref--high .tg-yearbars-ref-label {
   bottom: auto;
   top: 4px;
+}
+
+/* Rain class bar (RainClassBar): three equal bands with their limits above,
+   and a pointer under the year's place. */
+
+.tg-class-bands {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tg-class-band {
+  display: grid;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.tg-class-band--normal {
+  text-align: center;
+}
+
+.tg-class-band--chuvoso {
+  text-align: right;
+}
+
+.tg-class-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tg-class-segment {
+  display: block;
+}
+
+.tg-class-marker {
+  position: relative;
+  height: 40px;
+}
+
+/* The pointer and its label sit at --at, the label kept inside the bar. */
+.tg-class-pointer {
+  position: absolute;
+  top: 4px;
+  left: clamp(6px, var(--at), calc(100% - 6px));
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid var(--bg-texto-primario, #001d27);
+  transform: translateX(-50%);
+}
+
+.tg-class-label {
+  position: absolute;
+  top: 16px;
+  left: clamp(40px, var(--at), calc(100% - 40px));
+  transform: translateX(-50%);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Two bars on one scale (PairBars): name, track, value. */
+
+.tg-pair {
+  display: grid;
+  gap: 8px;
+}
+
+.tg-pair-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.tg-pair-track {
+  height: 16px;
+  background: var(--am-100, #e6eaeb);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tg-pair-fill {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.tg-pair-row .tg-tag {
+  min-width: 64px;
+  text-align: right;
 }

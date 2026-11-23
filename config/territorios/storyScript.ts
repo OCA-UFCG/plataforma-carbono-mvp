@@ -11,10 +11,11 @@
 // Templates receive values already formatted by lib/territorios/storyValues.ts;
 // lib/territorios/storyText.ts picks the variant.
 //
-// A step shows a question of at most ten words, a big figure and an answer of
-// at most twenty-one, and compares the territory with the whole Caatinga in the
-// words "acima", "abaixo" and "perto". Sources, periods, definitions and
-// caveats wait in "Sobre os dados", at the end.
+// A step is titled by a question of at most ten words, shows a big figure and
+// an answer of at most twenty-one, and compares the territory with the whole
+// Caatinga in the words "acima", "abaixo" and "perto". Its box "Por que
+// importa?" names the source; periods, definitions and caveats wait in "Sobre
+// os dados", at the end.
 
 import { fillPlaceholders as fill } from '@/lib/content/site/model'
 import { territoriosCopyDefaults, type TerritoriosCopy } from '@/lib/content/territorios'
@@ -42,7 +43,12 @@ export const UI = {
 
   stepsLabel:       'Etapas',
   changeTerritory:  'Trocar território',
-  mapYear:          'Ano do mapa',
+  mapYear:          'Mostrar no mapa:',
+  exploreTitle:     'Explore no mapa',
+  exploreText:      `Veja a cobertura vegetal do território em ${LAND_USE_YEARS[0]} e em ${LAND_USE_YEARS[1]}.`,
+  areaLabel:        'Área do território',
+  sourceLabel:      'Fonte dos dados:',
+  newTab:           'abre em nova aba',
 
   summaryUnavailable: 'Indisponível no momento.',
   share:            'Compartilhar',
@@ -101,24 +107,11 @@ export const STATE_LOCATIVE: Record<string, string> = {
   SE: 'em Sergipe',
 }
 
-/** A reading on the final sheet. */
-export const READING_LABELS: Record<Reading, string> = {
-  acima:  'Acima da Caatinga',
-  abaixo: 'Abaixo da Caatinga',
-  perto:  'Perto da Caatinga',
-}
-
 /** Years of the rain strip. */
 export const RAIN_KIND_LABELS: Record<RainYearKind, string> = {
   seco:    'Seco',
   normal:  'Normal',
   chuvoso: 'Chuvoso',
-}
-
-const READING_OPENING: Record<Reading, string> = {
-  acima:  'Acima',
-  abaixo: 'Abaixo',
-  perto:  'Perto',
 }
 
 /**
@@ -138,11 +131,12 @@ export const ANSWER_SCRIPT = {
     biome:   'A Caatinga inteira, em nove estados.',
   },
   estoque: {
-    unit:    't de carbono por hectare',
-    compare: (reading: Reading, biome: string) =>
-      `${READING_OPENING[reading]} da Caatinga (${biome} t por hectare).`,
-    total:   (tonnes: string) => `No total, ${tonnes} de carbono.`,
-    noData:  'Sem dado de carbono para esta área.',
+    /** Under the total: "de toneladas de carbono". */
+    unit:      (tonnes: string) => `${tonnes} de carbono`,
+    perHa:     (here: string, reading: Reading, biome: string) =>
+      `${here} t por hectare, ${reading} da Caatinga (${biome} t).`,
+    perHaOnly: (here: string) => `${here} t por hectare.`,
+    noData:    'Sem dado de carbono para esta área.',
   },
   fluxo: {
     unit:      (tonnes: string) => `${tonnes} de CO₂e`,
@@ -170,63 +164,14 @@ export const ANSWER_SCRIPT = {
   chuva: {
     unit:     `mm em ${RAIN_LAST_YEAR}`,
     meanUnit: 'mm por ano, em média',
+    // The class is the year's tercile among the territory's own years.
     chuvoso:  (pct: string, mean: string) => `Chuvoso, ${pct} acima da média daqui (${mean} mm).`,
     seco:     (pct: string, mean: string) => `Seco, ${pct} abaixo da média daqui (${mean} mm).`,
-    normal:   (mean: string) => `Perto da média daqui (${mean} mm).`,
+    normal:   (mean: string) => `Normal, perto da média daqui (${mean} mm).`,
+    kindOnly: (kind: string, mean: string) => `${kind} para os anos daqui, cuja média é ${mean} mm.`,
     missing:  `Sem dado de ${RAIN_LAST_YEAR} aqui.`,
     compare:  (biome: string, reading: Reading) => `Essa média fica ${reading} da Caatinga (${biome} mm).`,
     noData:   'Sem dado de chuva aqui.',
-  },
-}
-
-/** Lines of the final sheet, where the stock unit shortens to "t C". */
-export const SUMMARY_ROW_SCRIPT = {
-  estoque: {
-    // No-break spaces keep "t C" and its number on one line.
-    unit:  't C por hectare',
-    total: (tonnes: string) => `No total, ${tonnes} C.`,
-    biome: (biome: string) => `Na Caatinga, ${biome} t C por hectare.`,
-  },
-  fluxo: {
-    unit:     't de CO₂e por hectare com árvores',
-    removal:  (tonnes: string) => `No saldo, as áreas com árvores tiraram do ar ${tonnes} de CO₂e.`,
-    emission: (tonnes: string) => `No saldo, as áreas com árvores lançaram no ar ${tonnes} de CO₂e.`,
-    balance:  'No saldo, as áreas com árvores tiraram e lançaram a mesma quantidade.',
-    // The unit beside it and the sentence before carry the "CO₂e".
-    biome:    (biome: string) => `Na Caatinga, ${biome} t por hectare com árvores.`,
-    /** The row compares per hectare with trees, not the share the step compares. */
-    readings: {
-      acima:  'Acima da Caatinga por hectare com árvores',
-      abaixo: 'Abaixo da Caatinga por hectare com árvores',
-      perto:  'Perto da Caatinga por hectare com árvores',
-    } satisfies Record<Reading, string>,
-    /** When the Caatinga went the other way, or stayed even, and no length compares. */
-    biomeDirection: {
-      removal:  'Na Caatinga, tiraram mais do que lançaram.',
-      emission: 'Na Caatinga, lançaram mais do que tiraram.',
-      neutral:  'Na Caatinga, ficaram em equilíbrio.',
-    },
-  },
-  uso: {
-    unit:   `da área em ${LAND_USE_LAST}`,
-    before: (pct: string) => `Eram ${pct} em ${LAND_USE_FIRST}.`,
-    biome:  (from: string, to: string) => `Na Caatinga, de ${from} para ${to}.`,
-  },
-  fogo: {
-    unit:  'da área queimou ao menos uma vez',
-    biome: (biome: string) => `Na Caatinga, ${biome}.`,
-    peak:  (year: number) => `Mais fogo em ${year}.`,
-    none:  `Nenhum fogo de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
-  },
-  chuva: {
-    unit:  'mm por ano, em média',
-    biome: (biome: string) => `Na Caatinga, ${biome} mm.`,
-    year: {
-      chuvoso: (mm: string) => `${RAIN_LAST_YEAR} foi chuvoso, com ${mm} mm.`,
-      seco:    (mm: string) => `${RAIN_LAST_YEAR} foi seco, com ${mm} mm.`,
-      normal:  (mm: string) => `${RAIN_LAST_YEAR} ficou perto da média, com ${mm} mm.`,
-    } satisfies Record<RainYearKind, (mm: string) => string>,
-    missing: `Sem dado de ${RAIN_LAST_YEAR}.`,
   },
 }
 
@@ -239,11 +184,22 @@ function joinNonEmpty(...parts: (string | null)[]): string {
  * chart aloud with the figures the drawing labels.
  */
 export const CHART_SCRIPT = {
-  here:  'Aqui',
+  here:  'Território',
   biome: 'Caatinga',
+  /** The question over each chart, as the step's title asks its own. */
+  titles: {
+    estoque:      'Como o território se compara à Caatinga?',
+    uso:          'Quanto a vegetação nativa mudou?',
+    fogoYears:    'Quanto do território queimou ao longo do tempo?',
+    fogoLevels:   'Quantas vezes o fogo atingiu o território?',
+    chuvaClass:   'Como esse ano é classificado?',
+    chuvaStrip:   'Como foi a classificação ao longo do tempo?',
+    territorio:   'Quais as principais características do território?',
+  },
   compare: (label: string, here: string, biome: string | null) =>
     biome === null ? `${label}: ${here}.` : `${label}: aqui ${here}; na Caatinga, ${biome}.`,
   estoque:    't de carbono por hectare',
+  estoquePerHa: 't/ha',
   fluxoShare: 'Parte da área com árvores',
   fluxoPerHa: 't de CO₂e por hectare com árvores',
   uso: {
@@ -253,6 +209,7 @@ export const CHART_SCRIPT = {
   },
   fogo: {
     share:   'Área que já queimou',
+    axis:    'Área queimada (%)',
     years:   (peak: string | null, biome: string | null) => joinNonEmpty(
       `Parte da área queimada em cada ano, de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
       peak ?? 'Nenhum ano com fogo.',
@@ -269,12 +226,34 @@ export const CHART_SCRIPT = {
     },
   },
   chuva: {
+    /** The bands of the year's class, by the territory's own mean. */
+    bands: {
+      seco:    (low: string) => `abaixo de ${low} mm`,
+      normal:  (low: string, high: string) => `${low} a ${high} mm`,
+      chuvoso: (high: string) => `acima de ${high} mm`,
+    },
+    classDescription: (year: number, kind: string, mm: string, low: string, high: string) =>
+      `${year}: ${kind}, ${mm} mm. Pelos terços dos anos daqui, seco abaixo de ${low} mm, normal de ${low} a ${high} mm, chuvoso acima de ${high} mm.`,
     strip: (seco: number, normal: number, chuvoso: number) =>
-      `Chuva de ${RAIN_FIRST_YEAR} a ${RAIN_LAST_YEAR} contra a média daqui. Anos secos: ${seco}; normais: ${normal}; chuvosos: ${chuvoso}.`,
+      `Chuva de ${RAIN_FIRST_YEAR} a ${RAIN_LAST_YEAR}, em terços dos anos daqui. Anos secos: ${seco}; normais: ${normal}; chuvosos: ${chuvoso}.`,
     year:    (year: number, kind: string, mm: string) => `${year}: ${kind}, ${mm} mm.`,
     noYear:  (year: number) => `${year}: sem dado.`,
     mean:    'Chuva média por ano, em mm',
   },
+}
+
+/** A text around its one linked word: `{termo}` marks where the word goes. */
+export interface LinkedText {
+  before: string
+  /** Null when the text names no `{termo}`: it then reads without a link. */
+  term:   string | null
+  after:  string
+}
+
+function linkedText(template: string, term: string): LinkedText {
+  const at = template.indexOf('{termo}')
+  if (at < 0) return { before: template, term: null, after: '' }
+  return { before: template.slice(0, at), term, after: template.slice(at + '{termo}'.length) }
 }
 
 /**
@@ -285,6 +264,11 @@ export const CHART_SCRIPT = {
  */
 export function storyScript(copy: TerritoriosCopy) {
   const { apresentacao, territorio, estoque, fluxo, uso, fogo, chuva, sobre } = copy
+  const why = (tab: typeof chuva | typeof uso | typeof fogo | typeof estoque | typeof fluxo) => ({
+    title:  tab.porqueTitulo,
+    text:   linkedText(tab.porqueTexto, tab.porqueTermo),
+    source: tab.fonte,
+  })
   return {
     intro: {
       title:     apresentacao.titulo,
@@ -296,8 +280,8 @@ export function storyScript(copy: TerritoriosCopy) {
       territorio: territorio.pergunta,
       estoque:    estoque.pergunta,
       fluxo:      fluxo.pergunta,
-      uso:        fill(uso.pergunta, { anoInicial: LAND_USE_FIRST }),
-      fogo:       fill(fogo.pergunta, { anoInicial: FIRE_FIRST_YEAR }),
+      uso:        uso.pergunta,
+      fogo:       fogo.pergunta,
       chuva:      fill(chuva.pergunta, { anoFinal: RAIN_LAST_YEAR }),
     } satisfies Record<Exclude<StepId, 'resumo'>, string>,
     territory: {
@@ -305,16 +289,14 @@ export function storyScript(copy: TerritoriosCopy) {
       rankText:   TERRITORY_SCRIPT.rankText,
     },
     answers: ANSWER_SCRIPT,
-    summary: {
-      ...SUMMARY_ROW_SCRIPT,
-      titles: {
-        estoque: estoque.resumoTitulo,
-        fluxo:   fluxo.resumoTitulo,
-        uso:     uso.resumoTitulo,
-        fogo:    fogo.resumoTitulo,
-        chuva:   chuva.resumoTitulo,
-      } satisfies Record<ThemeId, string>,
-    },
+    /** The box under each theme's answer: why it matters, and its source. */
+    why: {
+      chuva:   why(chuva),
+      uso:     why(uso),
+      fogo:    why(fogo),
+      estoque: why(estoque),
+      fluxo:   why(fluxo),
+    } satisfies Record<ThemeId, unknown>,
     /**
      * "Sobre os dados", at the end: everything the steps leave out. At most 250
      * words with every conditional sentence in (tests/lib/territoriosStoryText.test.ts).

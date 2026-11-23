@@ -61,7 +61,7 @@
   max-width: none;
 }
 
-/* Inline nav: HEADER_LINKS, the "Resumo territorial" link + the Mapas button. */
+/* Inline nav: HEADER_LINKS, the "Recorte territorial" link + the Mapas button. */
 .nav {
   display: flex;
   align-items: center;

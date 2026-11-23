@@ -4,17 +4,16 @@
 import { useEffect, useRef, useState } from 'react'
 import '@/app/territorios-resumo.css'
 import PanelNav from './PanelNav'
-import StepChart from './StepChart'
+import StepContent from './StepContent'
 import StepIcon from './StepIcon'
 import { useStoryScript } from './StoryScriptContext'
-import StepFigure from './charts/StepFigure'
 import { CHOOSER } from '@/config/territorios/chooserScript'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
-import { clippedToBiome, STEP_LABELS, type TerritoryType } from '@/config/territorios/story'
-import { READING_LABELS, SUMMARY_ROW_SCRIPT, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { clippedToBiome, STEP_LABELS, STEPS, type TerritoryType } from '@/config/territorios/story'
+import { TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { previousStep, sectionId } from '@/lib/territorios/storyTabs'
-import { aboutItems, summaryRows } from '@/lib/territorios/storyText'
+import { aboutItems } from '@/lib/territorios/storyText'
 import { formatArea } from '@/lib/territorios/storyValues'
 import type { ThemeLoad } from './ThemeStep'
 import type { StepId, ThemeId, TerritoryPayload, ThemeResponse } from '@/types/territorios'
@@ -32,12 +31,15 @@ export interface StorySummaryProps {
   onOpen:    (step: StepId) => void
 }
 
+/** Every step but the summary itself, in the order of the tabs. */
+const SUMMARY_STEPS = STEPS.filter((step): step is Exclude<StepId, 'resumo'> => step !== 'resumo')
+
 /**
- * The summary tab (Figma 19254:37467): a card per theme, its reading as a
- * badge colored by whether it is good news, "Sobre os dados" folded, and the
- * way back. Printing outputs this section alone, with the fold open, whichever
- * tab is on screen; the band that names the territory does not print, so the
- * name heads the sheet on paper only.
+ * The summary tab: every step again, as its tab shows it under its question,
+ * then "Sobre os dados" folded and the way back. Printing outputs this
+ * section alone, with the fold open, whichever tab is on screen; the band that
+ * names the territory does not print, so the name heads the sheet on paper
+ * only.
  */
 export default function StorySummary({
   hidden, territory, type, loads, expired, onRetry, onOpen,
@@ -73,9 +75,7 @@ export default function StorySummary({
   for (const [theme, load] of Object.entries(loads) as [ThemeId, ThemeLoad][]) {
     if (load.kind === 'ready') responses[theme] = load.response
   }
-  const input = { responses, territory, type, script }
-  const rows = summaryRows(input)
-  const about = aboutItems(input)
+  const about = aboutItems({ responses, territory, type, script })
   const title = TERRITORY_SCRIPT.title(territory.featureName, type.id === 'estado' ? undefined : territory.context)
   const id = sectionId('resumo')
 
@@ -94,57 +94,33 @@ export default function StorySummary({
         </p>
       </header>
 
-      <ul className="territorios-fichas">
-        {rows.map((row) => {
-          const load = loads[row.theme]
-          const color = STEP_COLORS[row.theme]
+      <div className="territorios-resumo-etapas">
+        {SUMMARY_STEPS.map((step) => {
+          const load = step === 'territorio' ? null : loads[step]
           return (
-            <li
-              key={row.theme}
+            <section
+              key={step}
               // A print from another tab can come before this theme was ever requested.
-              className={load.kind === 'loading' ? 'territorios-ficha territorios-no-print' : 'territorios-ficha'}
+              className={load?.kind === 'loading' ? 'territorios-resumo-etapa territorios-no-print' : 'territorios-resumo-etapa'}
+              aria-labelledby={`${id}-${step}`}
             >
-              {/* The title comes first, so heading navigation lands ahead of the
-                  badge; the stylesheet lifts the badge above it, as drawn. */}
-              <div className="territorios-ficha-topo">
-                <h4 className="territorios-ficha-titulo">{row.title}</h4>
-                {row.reading && row.tone && (
-                  <p className="territorios-ficha-leitura" data-tom={row.tone}>
-                    {row.theme === 'fluxo' ? SUMMARY_ROW_SCRIPT.fluxo.readings[row.reading] : READING_LABELS[row.reading]}
-                  </p>
-                )}
-              </div>
-              {load.kind === 'loading' ? (
-                <p className="territorios-ficha-estado">{UI.loading}</p>
-              ) : load.kind === 'failed' || load.response.status === 'unavailable' ? (
-                <div className="territorios-ficha-estado">
-                  <p>{UI.summaryUnavailable}</p>
-                  {!expired && (
-                    <button
-                      type="button"
-                      className="territorios-btn territorios-btn--contorno territorios-no-print"
-                      onClick={() => onRetry(row.theme)}
-                      aria-label={`${UI.retry}: ${STEP_LABELS[row.theme]}`}
-                    >
-                      {UI.retry}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="territorios-ficha-valor">
-                    {row.headline && <StepFigure value={row.headline.value} unit={row.headline.unit} color={color} />}
-                    <p className="territorios-ficha-frase">{row.sentence}</p>
-                  </div>
-                  <div className="territorios-ficha-grafico">
-                    <StepChart theme={row.theme} response={load.response} territory={territory} type={type} compact />
-                  </div>
-                </>
-              )}
-            </li>
+              <h4 id={`${id}-${step}`} className="territorios-resumo-etapa-titulo" style={{ color: STEP_COLORS[step] }}>
+                <StepIcon step={step} />
+                {script.questions[step]}
+              </h4>
+              <StepContent
+                step={step}
+                territory={territory}
+                type={type}
+                load={load ?? { kind: 'loading' }}
+                expired={expired}
+                onRetry={() => { if (step !== 'territorio') onRetry(step) }}
+                level={5}
+              />
+            </section>
           )
         })}
-      </ul>
+      </div>
 
       <details ref={aboutRef} className="territorios-sobre">
         <summary>
