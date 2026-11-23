@@ -49,8 +49,8 @@ export const MAX_REPORT_LAYERS = 8
 
 /**
  * First year the report form offers: MapBiomas's first, where land use, fire
- * and soil carbon begin. BR-DWGD's precipitation goes back to 1961, but a year
- * before 1985 would leave every other section without data.
+ * and soil carbon begin. CHIRPS v3's precipitation goes back to 1981, but a
+ * year before 1985 would leave every other section without data.
  */
 export const REPORT_FIRST_YEAR = 1985
 
@@ -109,9 +109,9 @@ export const REPORT_LAYERS: readonly ReportLayerConfig[] = [
     trend: { phenomenon: 'produtividade líquida', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {
-    layerId: 'brdwgd_pr', order: 90, sectionColor: '#2B4C7E',
+    layerId: 'chirps3_pr', order: 90, sectionColor: '#2B4C7E',
     coverageContext: 'nesta faixa de precipitação',
-    methodology: 'Precipitação anual acumulada, BR-DWGD (Xavier et al., 2022): chuva diária interpolada das estações em grade de 0,1°, somada no ano.',
+    methodology: 'Precipitação anual acumulada, CHIRPS v3 (Funk et al., 2026): estimativas de satélite combinadas com pluviômetros em grade de 0,05°, somadas no ano.',
     trend: { phenomenon: 'precipitação', increaseTerm: 'aumento', decreaseTerm: 'redução' },
   },
   {
@@ -128,12 +128,12 @@ export function getReportLayer(layerId: string): ReportLayerConfig | undefined {
 }
 
 /**
- * Layers whose section another one took over. `chirps_precip` held the
- * precipitation section until BR-DWGD replaced it, and a saved report URL that
- * still names it gets the current section instead of a 400 for the whole
- * document.
+ * Layers whose section another one took over. `chirps_precip` (CHIRPS v2.0)
+ * held the precipitation section until BR-DWGD replaced it, and `brdwgd_pr`
+ * until CHIRPS v3 did; a saved report URL that still names either gets the
+ * current section instead of a 400 for the whole document.
  */
-const REPLACED_REPORT_LAYERS = new Map([['chirps_precip', 'brdwgd_pr']])
+const REPLACED_REPORT_LAYERS = new Map([['chirps_precip', 'chirps3_pr'], ['brdwgd_pr', 'chirps3_pr']])
 
 /** The layer a report request means, after any replacement. */
 export function currentReportLayerId(layerId: string): string {

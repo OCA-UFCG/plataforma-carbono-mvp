@@ -281,7 +281,7 @@ describe('stepAnswer', () => {
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Entre 1985 e 2025, a área com vegetação nativa no território diminuiu 11 pontos percentuais (p.p.).',
       fogo:       '',
-      chuva:      'A chuva ficou próxima da média do território (690 mm), sendo considerado um ano normal.',
+      chuva:      'A chuva ficou 20% abaixo da média do território (767 mm), sendo considerado um ano seco.',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
