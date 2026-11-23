@@ -33,12 +33,13 @@ const MOBILE_PANEL_ID = "site-header-mobile-panel";
 // Each language names itself, so these two labels are not translated.
 const LANGUAGES: { locale: SiteLocale; label: string }[] = [
   { locale: "pt", label: "PT-BR" },
-  { locale: "en", label: "En" },
+  { locale: "en", label: "EN" },
 ];
 
-// The PT-BR / En control from the Figma design (19272:44342). Each option is a
+// The PT-BR / EN control from the Figma design (19272:44342), which writes the
+// second label "En"; it is capitalized here to match PT-BR. Each option is a
 // toggle button, the chosen one pressed and filled; `lang` makes a screen
-// reader say "En" in English. Choosing writes the NEXT_LOCALE cookie and
+// reader say "EN" in English. Choosing writes the NEXT_LOCALE cookie and
 // renders the page again. So far only the landing page is in English: the
 // other pages keep their Portuguese under this header.
 function LanguageSwitch({ className }: { className?: string }) {

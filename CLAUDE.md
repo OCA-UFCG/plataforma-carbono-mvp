@@ -77,7 +77,7 @@ The Territórios story (`/territorios`) reads its copy the same way: one type pe
 
 ### Languages (Portuguese and English)
 
-The site speaks Portuguese and, page by page, English. The visitor's choice is the `NEXT_LOCALE` cookie (`lib/locale.ts`), set by the header's PT-BR/En switch (`components/marketing/useSiteLocale.ts`); the URLs carry no locale. next-intl reads the cookie on the server (`i18n/request.ts`).
+The site speaks Portuguese and, page by page, English. The visitor's choice is the `NEXT_LOCALE` cookie (`lib/locale.ts`), set by the header's PT-BR/EN switch (`components/marketing/useSiteLocale.ts`); the URLs carry no locale. next-intl reads the cookie on the server (`i18n/request.ts`).
 
 - **Contentful copy.** A translated copy type sets `localized: true` (`defineCopy`); its English lives in the space's `en-US` locale, which falls back to `pt-BR` field by field, so an untranslated field shows in Portuguese. Pages pass the locale to `loadSiteCopy` and `getComunicacaoContent`; Portuguese, the default locale, names none. Provisioning puts the whole content type, so a type marked localized in the space must be marked here too, or the next `--apply` drops its English.
 - **Interface labels and alt texts** live in `messages/pt.json` and `messages/en.json`; `tests/i18n/messages.test.ts` keeps their keys and placeholders in step. Each root layout's `NextIntlClientProvider` sends the browser only the namespaces its client components read (`i18n/clientMessages.ts`): a new client component that calls `useTranslations` needs its namespace listed there.

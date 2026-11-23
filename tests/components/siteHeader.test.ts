@@ -46,7 +46,7 @@ describe('SiteHeader on the marketing pages', () => {
     pathname.current = '/'
     const markup = render()
     const portugues = markup.match(/<button [^>]*>PT-BR<\/button>/g) ?? []
-    const ingles = markup.match(/<button [^>]*>En<\/button>/g) ?? []
+    const ingles = markup.match(/<button [^>]*>EN<\/button>/g) ?? []
 
     // The inline bar and the mobile panel each carry the switch.
     expect(portugues).toHaveLength(2)
@@ -65,7 +65,7 @@ describe('SiteHeader on the marketing pages', () => {
     for (const label of ['Home', 'About', 'Interactive Caatinga', 'Communication', 'Territory summary', 'Platform']) {
       expect(markup, label).toMatch(new RegExp(`<a [^>]*>${label}</a>`))
     }
-    for (const button of markup.match(/<button [^>]*>En<\/button>/g) ?? []) expect(button).toContain('aria-pressed="true"')
+    for (const button of markup.match(/<button [^>]*>EN<\/button>/g) ?? []) expect(button).toContain('aria-pressed="true"')
     expect(markup).not.toContain('Navegação principal')
   })
 
