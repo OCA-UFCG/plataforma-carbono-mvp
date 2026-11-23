@@ -8,6 +8,7 @@ import {
   getComunicacaoContent,
   listPublicacoes,
 } from '@/lib/content/comunicacao'
+import { BANNERS_QUERY } from '@/lib/content/banners'
 import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery, loadSiteCopy } from '@/lib/content/site/fetch'
 import { rejectedFields } from '@/lib/content/site/model'
@@ -122,5 +123,13 @@ describe.skipIf(!isContentfulConfigured(process.env))('the configured Contentful
     const response = await getContentfulClient()!<{ eventoCollection?: { items: unknown[] } }>(EVENTOS_QUERY)
 
     expect(response.eventoCollection?.items).toBeInstanceOf(Array)
+  })
+
+  // getBanners would hide a space never provisioned with `bannerInicio`
+  // behind the shipped banners; the query runs here without that net.
+  it('serves the banners query, with every field the hero reads', async () => {
+    const response = await getContentfulClient()!<{ bannerInicioCollection?: { items: unknown[] } }>(BANNERS_QUERY)
+
+    expect(response.bannerInicioCollection?.items).toBeInstanceOf(Array)
   })
 })

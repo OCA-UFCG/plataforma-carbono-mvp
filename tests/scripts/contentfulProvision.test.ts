@@ -8,6 +8,7 @@ import {
   toProvisionedType,
 } from '@/lib/content/site/provision'
 import { BANNER_LINK_MESSAGE, BANNER_LINK_PATTERN } from '@/lib/content/bannerLink'
+import { BANNERS_QUERY } from '@/lib/content/banners'
 import { COMUNICACAO_QUERY } from '@/lib/content/comunicacao'
 import { EVENTOS_QUERY } from '@/lib/content/eventos'
 import { copyQuery } from '@/lib/content/site/fetch'
@@ -87,6 +88,14 @@ describe('the provisioned content model', () => {
     expect(toCmaField(banner.fields.find((f) => f.id === 'photo')!).validations).toEqual([
       { linkMimetypeGroup: ['image'] },
     ])
+  })
+
+  it('carries every field the banners query selects, and the order it sorts by', () => {
+    const selected = selectedFields(BANNERS_QUERY, 'bannerInicioCollection')
+
+    expect(selected.length).toBeGreaterThan(0)
+    expect(fieldIds('bannerInicio')).toEqual(expect.arrayContaining(selected))
+    expect(fieldIds('bannerInicio')).toContain('order')
   })
 
   it('accepts only a site path or an https address as the banner link', () => {
