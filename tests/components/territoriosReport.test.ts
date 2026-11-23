@@ -222,6 +222,25 @@ describe('ThemeStep', () => {
     const copy = { ...territoriosCopyDefaults(), chuva: copyFromEntry(TERRITORIOS_COPY.chuva, { pergunta: 'Choveu em {anoFinal}?' }) }
     expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2025?')
   })
+
+  it('keeps the land use answer when the yearly series failed, without its chart', () => {
+    // 60% native in 1985 (class 3), 45% in 2025.
+    const landUse = (series: { year: number; sharePct: number | null }[] | null): ThemeResponse => ({
+      recorteId: 'municipios', featureId: 'juazeiro', theme: 'uso', status: 'available', origin: 'zonal', coarseScaleM: null,
+      data: { theme: 'uso', areas: { '1985': { 3: 60, 15: 40 }, '2025': { 3: 45, 15: 55 } }, series },
+    })
+    const step = (series: { year: number; sharePct: number | null }[] | null) =>
+      html(ThemeStep, { ...STEP, step: 'uso', load: { kind: 'ready', response: landUse(series) } })
+
+    const withChart = step([{ year: 1985, sharePct: 60 }, { year: 2025, sharePct: 45 }])
+    expect(withChart).toContain('tg-lines')
+
+    const without = step(null)
+    expect(without).toContain('>45%<')
+    expect(without).toContain('diminuiu 15 pontos percentuais (p.p.)')
+    expect(without).not.toContain('tg-lines')
+    expect(without).not.toContain('Quanto a vegetação nativa mudou?')
+  })
 })
 
 const LOADING_ALL = {

@@ -92,8 +92,8 @@ export interface LandUseChart {
   /** Native vegetation share (0..100) in the first and last years. */
   here:      { from: number; to: number }
   reference: { from: number; to: number } | null
-  /** The share every year, here and in the Caatinga. */
-  series:    { here: NativeShareYear[]; reference: NativeShareYear[] | null }
+  /** The share every year, here and in the Caatinga; null where its reduction failed. */
+  series:    { here: NativeShareYear[] | null; reference: NativeShareYear[] | null }
 }
 
 /** Share (0..100) of the region per number of years with fire; adds up to 100. */
@@ -224,8 +224,11 @@ export interface NativeShareYear {
 
 export interface LandUseThemeData {
   theme: 'uso'
-  /** Every year from the first to the last of LAND_USE_YEARS. */
-  series: NativeShareYear[]
+  /**
+   * Every year from the first to the last of LAND_USE_YEARS; null when its
+   * reduction failed, which leaves the step its two years without the chart.
+   */
+  series: NativeShareYear[] | null
   /** Area in m² per MapBiomas class code, per year. Only shares are trusted, not the m² total. */
   areas: { '1985': Record<string, number>; '2025': Record<string, number> }
 }

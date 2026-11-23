@@ -163,11 +163,18 @@ async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined):
   const native = assetOf('uso')
   const coarseScaleM = scaleM !== undefined && scaleM > (native.scale ?? 0) ? scaleM : null
   const asset = coarseScaleM === null ? native : { ...native, scale: coarseScaleM }
+  // The series only draws the chart; the step's figures come from the two
+  // years' areas. Over the largest states it takes most of the Earth Engine
+  // deadline, so a failure leaves the step without the chart instead of
+  // without its answer.
   const [outcomes, series] = await Promise.all([
     Promise.all(LAND_USE_YEARS.map((year) =>
       computeZonalStats(ee, { asset, geometry, temporalDate: `${year}-01-01`, colorType: 'categorical' }),
     )),
-    nativeSeries(ee, geometry, asset),
+    nativeSeries(ee, geometry, asset).catch((err: unknown) => {
+      console.error(`[computeTheme] uso: yearly series failed: ${err instanceof Error ? err.message : err}`)
+      return null
+    }),
   ])
 
   if (outcomes.some((o) => !o.ok && o.status === 422)) return noPixels('zonal', coarseScaleM)

@@ -188,7 +188,8 @@ export default function StepChart({ theme, response, territory, type, titleLevel
     case 'uso': {
       const data = dataOf(response, 'uso')
       const chart = data && landUseChart(data, territory)
-      if (!chart) return null
+      // Without the series the answer above still gives both years.
+      if (!chart || !chart.series.here) return null
       const rows = [{ label: alone ? CHART_SCRIPT.biome : CHART_SCRIPT.here, ...chart.here }]
       const lines: YearLine[] = [{ label: rows[0].label, color: LAND_USE_COLORS.nativa, points: chart.series.here }]
       if (!alone && chart.reference && chart.series.reference) {

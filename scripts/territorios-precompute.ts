@@ -70,7 +70,10 @@ async function main(): Promise<number> {
         areaHa:        feicao.areaHa,
         landUseScaleM: BIOME_LAND_USE_SCALE_M,
       })
-      entry.themes[theme] = { status: result.status, coarseScaleM: result.coarseScaleM, data: result.data }
+      // Live, a failed series only hides the chart; here it would drop the
+      // Caatinga line from every territory's chart until the next run.
+      if (result.data?.theme === 'uso' && result.data.series === null) throw new Error('uso: the yearly series failed')
+      entry.themes[theme] ={ status: result.status, coarseScaleM: result.coarseScaleM, data: result.data }
       console.log(`${theme}: ${result.status}, origin ${result.origin}, scale ${result.coarseScaleM ?? 'native'}, ${Date.now() - started} ms`)
     } catch (err) {
       failed++
