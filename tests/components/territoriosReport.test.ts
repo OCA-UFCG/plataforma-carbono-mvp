@@ -213,7 +213,7 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Carregando os dados')
     expect(markup).toContain('Por que a chuva é relevante na absorção de carbono?')
     expect(markup).toMatch(/<a href="\/glossario\?termo=fotossintese" target="_blank" rel="noopener">fotossíntese<img[^>]*alt="\(abre em nova aba\)"/)
-    expect(markup).toContain('BR-DWGD (Xavier et al., 2022)')
+    expect(markup).toContain('CHIRPS v3 (Funk et al., 2026)')
   })
 
   it('asks the question an editor wrote, with its year filled', () => {

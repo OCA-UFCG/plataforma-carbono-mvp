@@ -1130,6 +1130,56 @@
       "hidden": true
     },
     {
+      "id": "chirps3_pr",
+      "name": "Precipitação Anual",
+      "type": "raster",
+      "source": "gee",
+      "clipToLayerId": "bioma",
+      "gee": {
+        "asset": {
+          "type": "imageCollection",
+          "id": "projects/obscaatinga/assets/caativar/chirps3_anual",
+          "band": "pr",
+          "filterDate": [
+            "2025-01-01",
+            "2026-01-01"
+          ],
+          "reducer": "first",
+          "scale": 5565.97
+        },
+        "visParams": {
+          "min": 200,
+          "max": 1400,
+          "palette": [
+            "#ffffd9",
+            "#edf8b1",
+            "#c7e9b4",
+            "#7fcdbb",
+            "#41b6c4",
+            "#1d91c0",
+            "#225ea8",
+            "#0c2c84"
+          ]
+        },
+        "temporal": {
+          "dateRange": [
+            "1981-01-01",
+            "2025-01-01"
+          ]
+        }
+      },
+      "visible": false,
+      "opacity": 80,
+      "colorType": "continuous",
+      "rescale": [
+        200,
+        1400
+      ],
+      "unit": "mm/ano",
+      "theme": "ambiente",
+      "subtheme": "clima"
+    },
+    {
       "id": "brdwgd_pr",
       "name": "Precipitação Anual",
       "type": "raster",
@@ -1177,7 +1227,8 @@
       ],
       "unit": "mm/ano",
       "theme": "ambiente",
-      "subtheme": "clima"
+      "subtheme": "clima",
+      "hidden": true
     },
     {
       "id": "brdwgd_tmed",

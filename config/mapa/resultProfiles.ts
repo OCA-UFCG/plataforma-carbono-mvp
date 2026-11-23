@@ -268,6 +268,11 @@ export const RESULT_PROFILES: Readonly<Record<string, ResultProfile>> = {
     meanLabel: 'Chuva no ano',
     unit: 'mm',
   },
+  chirps3_pr: {
+    archetype: 'annual',
+    meanLabel: 'Chuva no ano',
+    unit: 'mm',
+  },
   brdwgd_pr: {
     archetype: 'annual',
     meanLabel: 'Chuva no ano',
