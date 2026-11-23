@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isPaused, shouldRotate, stepPhotoIndex } from '@/lib/marketing/heroRotation'
+import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from '@/lib/marketing/heroRotation'
 
 describe('stepPhotoIndex', () => {
   it('moves one photo forward and back', () => {
@@ -47,5 +47,19 @@ describe('shouldRotate', () => {
     expect(shouldRotate(4, true, false)).toBe(false)
     expect(shouldRotate(4, false, true)).toBe(false)
     expect(shouldRotate(1, false, false)).toBe(false)
+  })
+})
+
+describe('focusHolds', () => {
+  it('holds the rotation while keyboard focus is inside the hero', () => {
+    expect(focusHolds(true, false)).toBe(true)
+  })
+
+  it('lets a mouse click focus a control without holding', () => {
+    expect(focusHolds(false, false)).toBe(false)
+  })
+
+  it('does not hold on the pause toggle, so "Retomar" resumes at once', () => {
+    expect(focusHolds(true, true)).toBe(false)
   })
 })

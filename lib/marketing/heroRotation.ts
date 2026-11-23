@@ -20,3 +20,11 @@ export function isPaused(choice: boolean | null, reducedMotion: boolean): boolea
 export function shouldRotate(count: number, focusHeld: boolean, paused: boolean): boolean {
   return count >= 2 && !focusHeld && !paused
 }
+
+// Whether a focus inside the hero holds the rotation: keyboard focus does, so
+// the next card cannot make the focused button inert and drop it; a mouse
+// click does not. The pause toggle is the exception, since it sits outside the
+// cards and a press of "Retomar" there must start the photos at once.
+export function focusHolds(focusVisible: boolean, onPauseToggle: boolean): boolean {
+  return focusVisible && !onPauseToggle
+}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
+import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from "@/lib/marketing/heroRotation";
 import { MAPA_LINK, TERRITORIOS_LINK } from "@/lib/marketing/nav";
 import type { INICIO_HERO } from "@/lib/content/inicio";
 import type { Copy } from "@/lib/content/site/model";
@@ -149,8 +149,9 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
   // Set while keyboard focus is inside the hero, which holds the rotation: the
   // next card would make the focused button inert and drop the focus. A mouse
   // click on a dot or an arrow focuses it without :focus-visible, so it does
-  // not hold.
+  // not hold, and neither does the pause toggle (see `focusHolds`).
   const [focusHeld, setFocusHeld] = useState(false);
+  const pauseToggle = useRef<HTMLButtonElement>(null);
   // What the polite live region reads after a dot or an arrow changes the
   // photo. Only those set it, never the timer, so the rotation does not
   // interrupt a screen reader every 10s.
@@ -194,7 +195,10 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
       id="inicio"
       className={styles.hero}
       aria-label={t("region")}
-      onFocus={(event) => setFocusHeld((event.target as Element).matches(":focus-visible"))}
+      onFocus={(event) => {
+        const target = event.target as Element;
+        setFocusHeld(focusHolds(target.matches(":focus-visible"), target === pauseToggle.current));
+      }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusHeld(false);
       }}
@@ -276,6 +280,7 @@ export default function Hero({ copy }: { copy: Copy<typeof INICIO_HERO> }) {
             aria-pressed "Pausar"; the one element swaps its label and glyph,
             so keyboard focus stays on it across presses. */}
         <button
+          ref={pauseToggle}
           type="button"
           className={styles.pause}
           aria-label={t(paused ? "resume" : "pause")}

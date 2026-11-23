@@ -235,9 +235,10 @@
 }
 
 /* Pause toggle, 2026-11-23 (not drawn in Figma): a 10px glyph in the active
- * dot's tint, full white on hover and focus like the arrows brighten. The
- * 24px box is the hit area (WCAG 2.5.8); it overflows the 13px row into its
- * bottom padding, centred, so the row keeps its height. */
+ * dot's tint, turning full white on hover and focus. The 24px box is the hit
+ * area (WCAG 2.5.8); centred on the 13px row, it overflows 5.5px each way,
+ * into the row's bottom padding and .contentArea's, so the row keeps its
+ * height. */
 .pause {
   display: flex;
   flex: none;
