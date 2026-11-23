@@ -1518,14 +1518,14 @@
       "gee": {
         "asset": {
           "type": "image",
-          "id": "projects/mapbiomas-public/assets/brazil/lulc/collection10_1/mapbiomas_brazil_collection10_1_coverage_v1",
-          "band": "classification_2024",
+          "id": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_coverage_v3",
+          "band": "classification_2025",
           "scale": 30,
           "bandPattern": "classification_{ano}"
         },
         "visParams": {
           "min": 0,
-          "max": 75,
+          "max": 91,
           "palette": [
             "#ffffff",
             "#32a65e",
@@ -1533,7 +1533,7 @@
             "#1f8d49",
             "#7dc975",
             "#04381d",
-            "#026975",
+            "#007785",
             "#ffffff",
             "#ffffff",
             "#7a5900",
@@ -1556,7 +1556,7 @@
             "#0000ff",
             "#ffffff",
             "#ffffff",
-            "#ffaa5f",
+            "#ad5100",
             "#9c0027",
             "#091077",
             "#fc8114",
@@ -1577,7 +1577,7 @@
             "#9932cc",
             "#e6ccff",
             "#02d659",
-            "#ad5100",
+            "#ffaa5f",
             "#ffffff",
             "#ffffff",
             "#ffffff",
@@ -1602,13 +1602,29 @@
             "#ffffff",
             "#ffffff",
             "#ffffff",
-            "#c12100"
+            "#757272",
+            "#ffffff",
+            "#86b074",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#ffffff",
+            "#403d3e"
           ]
         },
         "temporal": {
           "dateRange": [
             "1985-01-01",
-            "2024-01-01"
+            "2025-01-01"
           ]
         }
       },
@@ -1634,7 +1650,7 @@
         {
           "value": 6,
           "label": "Floresta Alagável",
-          "color": "#026975"
+          "color": "#007785"
         },
         {
           "value": 49,
@@ -1652,6 +1668,11 @@
           "color": "#d6bc74"
         },
         {
+          "value": 77,
+          "label": "Formação Herbáceo Arbustiva",
+          "color": "#86b074"
+        },
+        {
           "value": 32,
           "label": "Apicum",
           "color": "#fc8114"
@@ -1659,12 +1680,12 @@
         {
           "value": 29,
           "label": "Afloramento Rochoso",
-          "color": "#ffaa5f"
+          "color": "#ad5100"
         },
         {
           "value": 50,
-          "label": "Restinga Herbácea",
-          "color": "#ad5100"
+          "label": "Restinga Herbácea ou Arbustiva",
+          "color": "#ffaa5f"
         },
         {
           "value": 15,
@@ -1748,8 +1769,13 @@
         },
         {
           "value": 75,
-          "label": "Usina Fotovoltaica (beta)",
-          "color": "#c12100"
+          "label": "Usina Fotovoltaica",
+          "color": "#757272"
+        },
+        {
+          "value": 91,
+          "label": "Parque Eólico (beta)",
+          "color": "#403d3e"
         },
         {
           "value": 25,

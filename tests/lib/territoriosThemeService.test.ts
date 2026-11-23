@@ -97,8 +97,8 @@ describe('biome reference', () => {
     expect(biome.forestSharePct).toBeCloseTo(26.78, 2)
     // Signed: the Caatinga removed more than it emitted.
     expect(biome.fluxPerForestHaMg).toBeCloseTo(-68.13, 2)
-    expect(biome.nativeSharePct?.['1985']).toBeCloseTo(70.68, 2)
-    expect(biome.nativeSharePct?.['2024']).toBeCloseTo(60.08, 2)
+    expect(biome.nativeSharePct?.['1985']).toBeCloseTo(74.06, 2)
+    expect(biome.nativeSharePct?.['2025']).toBeCloseTo(62.60, 2)
     expect(biome.fireBurnedSharePct).toBeCloseTo(12.04, 2)
     expect(biome.fireRecurrenceSharesPct?.never).toBeCloseTo(87.96, 2)
     expect(Object.values(biome.fireRecurrenceSharesPct ?? {}).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10)

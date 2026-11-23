@@ -28,7 +28,7 @@ export interface GeeAssetConfig {
   // reading. Leave undefined to keep the asset's own masking.
   unmaskValue?: number
   // Series whose year is in the band name instead of in the dates of a
-  // collection. MapBiomas writes `classification_1985` to `classification_2024`
+  // collection. MapBiomas writes `classification_1985` to `classification_2025`
   // in a single image, and Fogo writes the accumulated frequency in
   // `fire_frequency_1985_1985` to `fire_frequency_1985_2023`. With this field
   // the requested year selects the band, which also brings `image` assets into

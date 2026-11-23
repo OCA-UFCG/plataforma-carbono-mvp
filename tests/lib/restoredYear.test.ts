@@ -42,7 +42,7 @@ describe('the year a temporal GEE raster opens on', () => {
 
     await activate()
 
-    expect(requested).toEqual(['2024-01-01'])
-    expect(useStore.getState().temporalDate.lulc_mapbiomas).toBe('2024-01-01')
+    expect(requested).toEqual(['2025-01-01'])
+    expect(useStore.getState().temporalDate.lulc_mapbiomas).toBe('2025-01-01')
   })
 })

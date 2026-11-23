@@ -86,7 +86,7 @@ export interface StoryTheme {
 // the place first (rain, land use, fire), then the carbon they shape.
 export const STORY_THEMES: StoryTheme[] = [
   { id: 'chuva',   layerId: 'chirps3_pr',      railLabel: 'Chuva',        mapYear: '2025', glossarySlug: 'fotossintese' },
-  { id: 'uso',     layerId: 'lulc_mapbiomas',  railLabel: 'Uso da terra', mapYear: '2024', glossarySlug: 'estoque-de-carbono' },
+  { id: 'uso',     layerId: 'lulc_mapbiomas',  railLabel: 'Uso da terra', mapYear: '2025', glossarySlug: 'estoque-de-carbono' },
   { id: 'fogo',    layerId: 'fogo_frequencia', railLabel: 'Fogo',         mapYear: '2023', glossarySlug: 'fluxos-de-carbono' },
   { id: 'estoque', layerId: 'estoque_carbono', railLabel: 'Estoque',      mapYear: null,   glossarySlug: 'estoque-de-carbono' },
   { id: 'fluxo',   layerId: 'gfw_netflux',     railLabel: 'Fluxo',        mapYear: null,   glossarySlug: 'fluxos-de-carbono' },
@@ -134,7 +134,8 @@ export const FLUX_COARSE_SCALE_M = 100
  */
 export const RAIN_POINT_BELOW_HA = 3_100
 
-export const LAND_USE_YEARS = ['1985', '2024'] as const
+/** The first year of MapBiomas and the last whole one, as the rain step shows it. */
+export const LAND_USE_YEARS = ['1985', '2025'] as const
 export const RAIN_FIRST_YEAR = 1985
 /** The rain step shows the last whole year, the one before the current. */
 export const RAIN_LAST_YEAR = 2025

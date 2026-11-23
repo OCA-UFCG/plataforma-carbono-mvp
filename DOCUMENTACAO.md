@@ -272,7 +272,7 @@ natureza, e era a única classe de problema aqui sem nenhuma guarda.
 | `gfw_netflux` | Fluxo Líquido de Carbono Florestal (GFW) | `sat-io/.../forest_carbon_fluxes/net_flux`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_emissions` | Emissões Brutas (GFW) | `.../gross_emissions`, banda `b1` | contínua | Mg CO2e/ha |
 | `gfw_removals` | Remoções Brutas (GFW) | `.../gross_removals`, banda `b1` | contínua | Mg CO2/ha |
-| `lulc_mapbiomas` | Uso e Cobertura (MapBiomas 2024) | `mapbiomas-public/.../lulc/collection10_1/...`, banda `classification_2024` | categórica (30 classes) | classe |
+| `lulc_mapbiomas` | Uso e Cobertura (MapBiomas 2025) | `mapbiomas-public/.../lulc/collection11/mapbiomas_brazil_collection11_coverage_v3`, banda `classification_2025`, 1985-2025 | categórica (32 classes; a 77, Formação Herbáceo Arbustiva, conta como vegetação nativa, e a 91, Parque Eólico, como área não vegetada) | classe |
 | `fogo_frequencia` | Frequência de Fogo (1985-2023) | `mapbiomas-public/.../fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1`, banda `fire_frequency_1985_2023` | contínua | anos com fogo |
 | `degradacao_terra` | Índice de Degradação da Terra (2021) | `ee-arturlourenco/assets/id_2021_recode_mask_int`, banda `b1` | categórica (6 classes) | classe |
 | `ndvi_modis` | NDVI (MODIS 2023) | `MODIS/061/MOD13Q1`, banda `NDVI`, ×0,0001 | contínua | NDVI |

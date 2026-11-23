@@ -29,7 +29,7 @@ export const UNCLASSIFIED_GROUP_ID = 'outros'
 export const LAND_USE_GROUPS: LandUseGroup[] = [
   {
     id: NATIVE_GROUP_ID, label: 'Vegetação nativa',
-    codes: [3, 4, 5, 6, 49, 11, 12, 32, 50], color: LAND_USE_COLORS.nativa, native: true,
+    codes: [3, 4, 5, 6, 49, 11, 12, 77, 32, 50], color: LAND_USE_COLORS.nativa, native: true,
   },
   {
     id: FARMING_GROUP_ID, label: 'Agropecuária',
@@ -41,7 +41,7 @@ export const LAND_USE_GROUPS: LandUseGroup[] = [
   },
   {
     id: UNCLASSIFIED_GROUP_ID, label: 'Água e outras áreas',
-    codes: [23, 25, 29, 30, 31, 33, 75], color: LAND_USE_COLORS.outros, native: false,
+    codes: [23, 25, 29, 30, 31, 33, 75, 91], color: LAND_USE_COLORS.outros, native: false,
   },
 ]
 

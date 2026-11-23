@@ -37,7 +37,7 @@ const BIOME: BiomeReference = {
   stockDensityTcHa:  55.098642014364884,
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
-  nativeSharePct:    { '1985': 70.68324143590091, '2024': 60.083306882513774 },
+  nativeSharePct:    { '1985': 74.06124587380222, '2025': 62.59887178552211 },
   fireBurnedSharePct: 12.037964993028348,
   fireRecurrenceSharesPct: {
     never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
@@ -104,8 +104,8 @@ const CG_ANSWERS: Record<ThemeId, ThemeResponse> = {
   uso: answer({
     theme: 'uso',
     areas: {
-      '1985': { '3': 14_256_121, '4': 187_560_909, '15': 129_221_329, '20': 304_359, '21': 224_696_239, '24': 32_182_722, '25': 213_871, '29': 19_507, '33': 4_089_097, '41': 442_622 },
-      '2024': { '3': 6_331_473, '4': 155_538_012, '15': 277_382_456, '20': 560_964, '21': 73_281_012, '24': 77_141_617, '25': 211_536, '29': 7_097, '33': 2_532_609 },
+      '1985': { '3': 13_230_717, '4': 188_116_664, '15': 279_030_140, '21': 79_532_028, '24': 26_657_392, '25': 172_967, '29': 12_410, '33': 4_251_782, '41': 443_509 },
+      '2025': { '3': 5_576_055, '4': 185_165_284, '15': 312_180_668, '21': 18_043_929, '24': 67_673_255, '25': 135_386, '33': 2_673_031 },
     },
   }),
   fogo: answer({
@@ -140,8 +140,8 @@ const PA_ANSWERS: Record<ThemeId, ThemeResponse> = {
   uso: answer({
     theme: 'uso',
     areas: {
-      '1985': { '3': 24, '4': 45_719_966, '15': 1_273_299, '21': 4_408_830, '29': 7_094, '33': 419_432 },
-      '2024': { '3': 24, '4': 40_043_147, '15': 7_512_563, '21': 4_184_236, '29': 7_094, '33': 81_580 },
+      '1985': { '4': 45_675_123, '15': 2_494_462, '21': 2_763_393, '33': 417_659 },
+      '2025': { '4': 43_361_545, '15': 7_545_346, '21': 363_052, '33': 80_693 },
     },
   }),
   fogo: answer({
@@ -209,8 +209,8 @@ describe('stepAnswer', () => {
       },
       uso: {
         question: 'Como estava a cobertura vegetal nativa?',
-        headline: { value: '27%', unit: 'de vegetação nativa em 2024' },
-        sentence: 'Eram 34% em 1985. A Caatinga tem 60%; aqui fica abaixo.',
+        headline: { value: '32%', unit: 'de vegetação nativa em 2025' },
+        sentence: 'Eram 34% em 1985. A Caatinga tem 63%; aqui fica abaixo.',
       },
       fogo: {
         question: 'Como o fogo afetou o território ao longo do tempo?',
@@ -231,7 +231,7 @@ describe('stepAnswer', () => {
       territorio: 'Área dentro da Caatinga, na Paraíba.',
       estoque:    '41 t por hectare, abaixo da Caatinga (55 t).',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 30% da área, acima dos 27% da Caatinga.',
-      uso:        'Eram 88% em 1985. A Caatinga tem 60%; aqui fica acima.',
+      uso:        'Eram 89% em 1985. A Caatinga tem 63%; aqui fica acima.',
       fogo:       'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
       chuva:      'Seco, 22% abaixo da média daqui (385 mm). Essa média fica abaixo da Caatinga (701 mm).',
     })
@@ -252,7 +252,7 @@ describe('stepAnswer', () => {
       territorio: 'A Caatinga inteira, em nove estados.',
       estoque:    '55 t por hectare.',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
-      uso:        'Eram 71% em 1985.',
+      uso:        'Eram 74% em 1985.',
       fogo:       'O ano com mais fogo aqui foi 2021.',
       chuva:      'Seco, 20% abaixo da média daqui (767 mm).',
     })

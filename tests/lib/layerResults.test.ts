@@ -171,7 +171,7 @@ describe('server-side pieces', () => {
 describe('period in the header', () => {
   it('names the selected year, the static year or the declared period', () => {
     expect(layerPeriod(layer('lulc_mapbiomas'), profile('lulc_mapbiomas'), '2019-01-01')).toBe('2019')
-    expect(layerPeriod(layer('lulc_mapbiomas'), profile('lulc_mapbiomas'))).toBe('2024')
+    expect(layerPeriod(layer('lulc_mapbiomas'), profile('lulc_mapbiomas'))).toBe('2025')
     expect(layerPeriod(layer('chirps_precip'), profile('chirps_precip'))).toBe('2023')
     expect(layerPeriod(layer('gfw_netflux'), profile('gfw_netflux'))).toBe('2001 a 2024')
     expect(layerPeriod(layer('estoque_carbono'), profile('estoque_carbono'))).toBeUndefined()

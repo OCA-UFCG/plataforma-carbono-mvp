@@ -113,13 +113,13 @@ export const TERRITORIOS_USO = defineCopy({
     porqueTitulo: line('Por que importa · Título', 'Por que o uso da terra importa?'),
     porqueTexto: paragraph('Por que importa · Texto', 'A conversão da vegetação para outros usos, como pastagem, reduz os {termo}.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'estoques de carbono'),
-    fonte: line('Fonte dos dados', 'MapBiomas, coleção 10.1'),
+    fonte: line('Fonte dos dados', 'MapBiomas, coleção 11'),
     // LEGACY, see the note at the top.
     resumoTitulo: line('Resumo · Título do cartão', 'Vegetação nativa'),
     sobreTitulo: line('Sobre os dados · Título', 'Uso da terra'),
     sobreTexto: paragraph(
       'Sobre os dados · Texto',
-      'MapBiomas, coleção 10.1, 30 m, {anoInicial} e {anoFinal}. Vegetação nativa: formações florestal, savânica e campestre, mangue, floresta alagável, restingas, campo alagado e apicum. Agropecuária inclui áreas de lavoura e pasto misturados.',
+      'MapBiomas, coleção 11, 30 m, {anoInicial} e {anoFinal}. Vegetação nativa: formações florestal, savânica, campestre e herbáceo-arbustiva, mangue, floresta alagável, restingas, campo alagado e apicum. Agropecuária inclui áreas de lavoura e pasto misturados.',
       ANOS,
     ),
   },
