@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import precomputedJson from '@/config/territorios/precomputed.json'
 import { TERRITORY_TYPES, type TerritoryType } from '@/config/territorios/story'
-import { SHIPPED_STORY_SCRIPT } from '@/config/territorios/storyScript'
+import { SHIPPED_STORY_SCRIPT, storyScript } from '@/config/territorios/storyScript'
+import { territoriosCopyDefaults } from '@/lib/content/territorios'
 import {
   aboutItems,
   stepAnswer,
@@ -221,12 +222,12 @@ describe('stepAnswer', () => {
       territorio: {
         question: 'Que território estamos conhecendo?',
         headline: { value: '596', unit: 'km²' },
-        sentence: 'Área do município inteiro, na Paraíba.',
+        sentence: 'Campina Grande é um município localizado na Paraíba.',
       },
       estoque: {
         question: 'Quanto carbono a vegetação original e o solo guardariam aqui?',
         headline: { value: '2,7 milhões', unit: 'de toneladas de carbono' },
-        sentence: '46 t por hectare, abaixo da Caatinga (55 t).',
+        sentence: '',
       },
       fluxo: {
         question: 'As áreas com árvores tiraram ou lançaram carbono do ar?',
@@ -235,18 +236,18 @@ describe('stepAnswer', () => {
       },
       uso: {
         question: 'Como estava a cobertura vegetal nativa?',
-        headline: { value: '32%', unit: 'de vegetação nativa em 2025' },
-        sentence: 'Eram 34% em 1985. A Caatinga tem 63%; aqui fica abaixo.',
+        headline: { value: '32%', unit: 'do território com vegetação nativa' },
+        sentence: 'Entre 1985 e 2025, a área com vegetação nativa no território diminuiu 1,8 pontos percentuais (p.p.). Esse valor é inferior à redução que houve na Caatinga, de 11 p.p.',
       },
       fogo: {
         question: 'Como o fogo afetou o território ao longo do tempo?',
-        headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez' },
-        sentence: 'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
+        headline: { value: '3,1%', unit: 'da área queimou ao menos uma vez entre 1985 e 2023' },
+        sentence: 'Para esse mesmo período, 12% da Caatinga queimou ao menos uma vez.',
       },
       chuva: {
         question: 'Como foi a chuva em 2025?',
-        headline: { value: '512', unit: 'mm em 2025' },
-        sentence: 'Normal, perto da média daqui (573 mm). Essa média fica abaixo da Caatinga (701 mm).',
+        headline: { value: '512', unit: 'mm de chuva' },
+        sentence: 'A chuva ficou próxima da média do território (573 mm), sendo considerado um ano normal. Essa média é inferior à da Caatinga (701 mm).',
       },
     })
   })
@@ -254,15 +255,15 @@ describe('stepAnswer', () => {
   it('tells the story of a settlement', () => {
     const out = story(PA, assentamento, PA_ANSWERS)
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
-      territorio: 'Área dentro da Caatinga, na Paraíba.',
-      estoque:    '41 t por hectare, abaixo da Caatinga (55 t).',
+      territorio: 'Serra do Monte é um assentamento localizado na Paraíba.',
+      estoque:    '',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 30% da área, acima dos 27% da Caatinga.',
-      uso:        'Eram 89% em 1985. A Caatinga tem 63%; aqui fica acima.',
-      fogo:       'Na Caatinga, 12%. O ano com mais fogo aqui foi 1999.',
-      chuva:      'Seco, 22% abaixo da média daqui (385 mm). Essa média fica abaixo da Caatinga (701 mm).',
+      uso:        'Entre 1985 e 2025, a área com vegetação nativa no território diminuiu 4,5 pontos percentuais (p.p.). Esse valor é inferior à redução que houve na Caatinga, de 11 p.p.',
+      fogo:       'Para esse mesmo período, 12% da Caatinga queimou ao menos uma vez.',
+      chuva:      'A chuva ficou 22% abaixo da média do território (385 mm), sendo considerado um ano seco. Essa média é inferior à da Caatinga (701 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '52', unit: 'km²' })
-    expect(out.fogo.headline).toEqual({ value: '1,8%', unit: 'da área queimou ao menos uma vez' })
+    expect(out.fogo.headline).toEqual({ value: '1,8%', unit: 'da área queimou ao menos uma vez entre 1985 e 2023' })
   })
 
   it('never compares the Caatinga with itself', () => {
@@ -276,15 +277,15 @@ describe('stepAnswer', () => {
 
     expect(Object.fromEntries(STEPS.map((s) => [s, out[s].sentence]))).toEqual({
       territorio: 'A Caatinga inteira, em nove estados.',
-      estoque:    '55 t por hectare.',
+      estoque:    '',
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
-      uso:        'Eram 74% em 1985.',
-      fogo:       'O ano com mais fogo aqui foi 2021.',
-      chuva:      'Normal, perto da média daqui (690 mm).',
+      uso:        'Entre 1985 e 2025, a área com vegetação nativa no território diminuiu 11 pontos percentuais (p.p.).',
+      fogo:       '',
+      chuva:      'A chuva ficou próxima da média do território (690 mm), sendo considerado um ano normal.',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })
-    expect(out.fogo.headline).toEqual({ value: '12%', unit: 'da área queimou ao menos uma vez' })
+    expect(out.fogo.headline).toEqual({ value: '12%', unit: 'da área queimou ao menos uma vez entre 1985 e 2023' })
 
     const items = about({ responses, territory: caatingaItself, type: bioma })
     expect(items.map((i) => i.title)).not.toContain('Comparação com a Caatinga')
@@ -296,15 +297,17 @@ describe('stepAnswer', () => {
     expect(items.find((i) => i.title === 'Estoque')?.text).toMatch(/O inventário cobre 87% desta área; o total vale só para essa parte\.$/)
   })
 
-  it('says a municipality enters whole, past the biome edge', () => {
-    expect(step('territorio', payload({ context: 'BA' }), municipio).sentence).toBe('Área do município inteiro, na Bahia.')
-    expect(step('territorio', payload({ context: 'XX' }), municipio).sentence).toBe('Área do município inteiro.')
+  it('names the territory, its kind and its state', () => {
+    expect(step('territorio', payload({ context: 'BA' }), municipio).sentence).toBe('Campina Grande é um município localizado na Bahia.')
+    expect(step('territorio', payload({ context: 'XX' }), municipio).sentence).toBe('Campina Grande é um município.')
+    expect(step('territorio', payload({ context: 'PE' }), typeOf('terra_indigena')).sentence)
+      .toBe('Campina Grande é uma terra indígena localizada em Pernambuco.')
   })
 
   it('places the territory in its states, or in the biome for a state', () => {
     expect(step('territorio', payload({ context: 'SE/BA' }), assentamento).sentence)
-      .toBe('Área dentro da Caatinga, em Sergipe e na Bahia.')
-    expect(step('territorio', payload({ context: 'XX' }), assentamento).sentence).toBe('Área dentro da Caatinga.')
+      .toBe('Campina Grande é um assentamento localizado em Sergipe e na Bahia.')
+    expect(step('territorio', payload({ context: 'XX' }), assentamento).sentence).toBe('Campina Grande é um assentamento.')
     expect(step('territorio', payload({ recorteId: 'estados', areaHa: 5_210_000 }), typeOf('estado')).sentence)
       .toBe('Área dentro da Caatinga, 6,0% do bioma.')
     expect(step('territorio', payload({ areaHa: 0.4 }), municipio).headline).toEqual({ value: 'menos de 1', unit: 'ha' })
@@ -351,7 +354,7 @@ describe('stepAnswer', () => {
       annual: burned(Array.from({ length: 39 }, () => 0)),
     })
     expect(step('fogo', PA, assentamento, none)).toMatchObject({
-      headline: { value: '0%', unit: 'da área queimou ao menos uma vez' },
+      headline: { value: '0%', unit: 'da área queimou ao menos uma vez entre 1985 e 2023' },
       sentence: 'Nenhuma área queimada registrada de 1985 a 2023.',
     })
   })
@@ -377,7 +380,7 @@ describe('stepAnswer', () => {
 
     expect(step('chuva', CG, municipio, missing)).toMatchObject({
       headline: { value: '575', unit: 'mm por ano, em média' },
-      sentence: 'Sem dado de 2025 aqui. Essa média fica abaixo da Caatinga (701 mm).',
+      sentence: 'Sem dado de 2025 aqui. Essa média é inferior à da Caatinga (701 mm).',
     })
   })
   it('reads its words from the script it is given', () => {
@@ -386,9 +389,11 @@ describe('stepAnswer', () => {
     expect(stepAnswer('estoque', { territory: CG, type: municipio, script: { ...shipped, questions } }).question)
       .toBe('Quanto carbono há aqui?')
 
-    const answers = { ...shipped.answers, fogo: { ...shipped.answers.fogo, peak: (year: number) => `Pico em ${year}.` } }
-    expect(stepAnswer('fogo', { territory: CG, type: municipio, response: CG_ANSWERS.fogo, script: { ...shipped, answers } }).sentence)
-      .toBe('Na Caatinga, 12%. Pico em 1999.')
+    // An answer edited in Contentful, with its placeholder, reaches the sentence.
+    const copy = territoriosCopyDefaults()
+    const edited = storyScript({ ...copy, fogo: { ...copy.fogo, respostaComparacao: 'Na Caatinga, {percentualCaatinga}.' } })
+    expect(stepAnswer('fogo', { territory: CG, type: municipio, response: CG_ANSWERS.fogo, script: edited }).sentence)
+      .toBe('Na Caatinga, 12%.')
 
     const aboutScript = { ...shipped.about, units: { title: 'Unidades de medida', text: 'Toneladas.' } }
     expect(aboutItems({ responses: CG_ANSWERS, territory: CG, type: municipio, script: { ...shipped, about: aboutScript } }).at(-2))
@@ -428,13 +433,13 @@ describe('aboutItems', () => {
 })
 
 describe('every answer, line and item', () => {
-  it('keeps questions within 10 words, answers with their figure within 21, and nothing unfilled', () => {
+  it('keeps questions within 10 words, answers with their figure within 40, and nothing unfilled', () => {
     expect(answers.length).toBeGreaterThan(20)
     for (const a of answers) {
       expect(words(a.question), a.question).toBeLessThanOrEqual(10)
       // The big figure is part of the answer the visitor reads.
       const said = [a.headline?.value, a.headline?.unit, a.sentence].filter(Boolean).join(' ')
-      expect(words(said), said).toBeLessThanOrEqual(21)
+      expect(words(said), said).toBeLessThanOrEqual(40)
     }
 
     const lines = [

@@ -3,13 +3,13 @@
 // (storyScript() in config/territorios/storyScript.ts) with the numbers of
 // storyValues.ts.
 //
-// A sentence never names the feature: settlement names arrive in capitals and
-// with "PA " prefixes, and the recorte types differ in gender. The biome
-// variants drop the comparisons with the biome, which would compare the
-// Caatinga with itself.
+// Only the territory step names the feature, through displayName(), which
+// drops the "PA " of settlements and their capitals. The biome variants drop
+// the comparisons with the biome, which would compare the Caatinga with itself.
 
 import { clippedToBiome, type TerritoryType } from '@/config/territorios/story'
-import { FEMININE_TYPES, STATE_LOCATIVE, TERRITORY_SCRIPT, type StoryScript } from '@/config/territorios/storyScript'
+import { FEMININE_TYPES, STATE_LOCATIVE, TERRITORY_SCRIPT, type Change, type StoryScript } from '@/config/territorios/storyScript'
+import { displayName } from '@/lib/territorios/featureIds'
 import {
   areaParts,
   biomeAreaSharePct,
@@ -107,9 +107,11 @@ function territoryAnswer({ territory, type, script }: StepInput): Answer {
     // A state is the one type whose share of the biome is not "menos de 0,1%".
     sentence = s.state(formatPercent(biomeAreaSharePct(territory)))
   } else {
-    const [located, plain] = clippedToBiome(type) ? [s.located, s.plain] : [s.wholeLocated, s.wholePlain]
+    const name = displayName(territory.featureName)
+    const noun = type.unitLabel.toLowerCase()
+    const feminine = FEMININE_TYPES.has(type.id)
     const where = stateLocative(territory.context)
-    sentence = where ? located(where) : plain
+    sentence = where ? s.located(name, noun, feminine, where) : s.plain(name, noun, feminine)
   }
   return { headline: areaParts(territory.areaHa), sentence }
 }
@@ -139,19 +141,15 @@ export function territoryIndicators(
   return items
 }
 
-function stockAnswer({ response, territory, type, script }: StepInput): Answer {
+function stockAnswer({ response, territory, script }: StepInput): Answer {
   const s = script.answers.estoque
   const data = availableData(response, 'estoque')
   const chart = data && stockChart(data.report, territory)
   // "Sem dado", never zero: where the inventory has no pixel nothing was measured.
   if (!data || !chart) return { headline: null, sentence: s.noData }
 
-  const { here, reference } = chart.density
-  const cmp = against(here, reference, type)
-  return {
-    headline: stockTotalParts(data.report.totalTc, s),
-    sentence: cmp ? s.perHa(formatNumber(here), cmp.reading, formatNumber(cmp.reference)) : s.perHaOnly(formatNumber(here)),
-  }
+  // The comparison per hectare is the step's chart.
+  return { headline: stockTotalParts(data.report.totalTc, s), sentence: '' }
 }
 
 /**
@@ -190,18 +188,31 @@ function fluxAnswer({ response, territory, type, script }: StepInput): Answer {
   }
 }
 
+/**
+ * The change of a share in percentage points, as the answer prints it. A change
+ * that rounds to zero is no change.
+ */
+function pointsChange({ from, to }: { from: number; to: number }): { change: Change; points: string; magnitude: number } {
+  const magnitude = Math.abs(to - from)
+  const points = formatNumber(magnitude)
+  const change: Change = /^0(,0+)?$/.test(points) ? 'none' : to < from ? 'down' : 'up'
+  return { change, points, magnitude }
+}
+
 function landUseAnswer({ response, territory, type, script }: StepInput): Answer {
   const s = script.answers.uso
   const data = availableData(response, 'uso')
   const chart = data && landUseChart(data, territory)
   if (!chart) return { headline: null, sentence: s.noData }
 
-  const cmp = against(chart.here.to, chart.reference?.to ?? null, type)
+  const here = pointsChange(chart.here)
+  const biome = chart.reference && !isBioma(type) ? pointsChange(chart.reference) : null
+  const reading = biome && readingOf(here.magnitude, biome.magnitude)
   return {
     headline: { value: formatPercent(chart.here.to), unit: s.unit },
     sentence: joinSentences(
-      s.before(formatPercent(chart.here.from)),
-      cmp && s.compare(formatPercent(cmp.reference), cmp.reading),
+      s.change(here.change, here.points),
+      biome && reading && s.compare(here.change, biome.change, reading, biome.points),
     ),
   }
 }
@@ -215,10 +226,10 @@ function fireAnswer({ response, territory, type, script }: StepInput): Answer {
   const peak = firePeakYear(data)
   // Nothing burned is an answer too, and the comparison would only restate it.
   if (peak === null) return { headline: { value: formatPercent(share), unit: s.unit }, sentence: s.none }
-  const cmp = against(share, territory.biome.fireBurnedSharePct, type)
+  const reference = isBioma(type) ? null : territory.biome.fireBurnedSharePct
   return {
     headline: { value: formatPercent(share), unit: s.unit },
-    sentence: joinSentences(cmp && s.compare(formatPercent(cmp.reference)), s.peak(peak)),
+    sentence: reference === null ? '' : s.compare(formatPercent(reference)),
   }
 }
 
@@ -228,8 +239,8 @@ function rainYearSentence(s: StoryScript['answers']['chuva'], lastMm: number, ch
   switch (rainKind(lastMm, chart.terciles)) {
     // A rainy year below the mean, or a dry one above it, would take a very
     // skewed series; the sentence then names the class without the distance.
-    case 'chuvoso': return direction === 'above' ? s.chuvoso(formatPercent(pct), mean) : s.kindOnly('Chuvoso', mean)
-    case 'seco':    return direction === 'below' ? s.seco(formatPercent(pct), mean) : s.kindOnly('Seco', mean)
+    case 'chuvoso': return direction === 'above' ? s.chuvoso(formatPercent(pct), mean) : s.kindOnly('chuvoso', mean)
+    case 'seco':    return direction === 'below' ? s.seco(formatPercent(pct), mean) : s.kindOnly('seco', mean)
     case 'normal':  return s.normal(mean)
   }
 }

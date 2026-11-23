@@ -198,7 +198,7 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Quais as principais características do território?')
     expect(markup).toContain('Área do território')
     expect(markup).toContain('>6.720<')
-    expect(markup).toContain('Área do município inteiro, na Bahia.')
+    expect(markup).toContain('Juazeiro é um município localizado na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
     expect(markup).toContain('Área na Caatinga')
