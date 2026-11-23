@@ -54,6 +54,7 @@ const BRDWGD_CITATION = 'Xavier, A. C., Scanlon, B. R., King, C. W., & Alves, A.
 // No license: the authors' README only asks for the citation, and the CC BY 4.0
 // some catalogs list is not theirs.
 const BRDWGD_LAYER = { period: '1961-2025', resolution: '11 km', source: BRDWGD_SOURCE, citation: BRDWGD_CITATION }
+const CHIRPS3_CITATION = 'Funk, C., Peterson, P., Harrison, L., et al. (2026). The Climate Hazards Center Infrared Precipitation with Stations, Version 3. Scientific Data, 13, 718. https://doi.org/10.1038/s41597-026-07096-4. Dados: Climate Hazards Center (2025), https://doi.org/10.15780/G2JQ0P, acessados em {acesso}.'
 const ANNUAL_MEAN = 'A média anual esconde a grande variação entre a estação chuvosa e a seca.'
 const GFW_SOURCE = 'Global Forest Watch, fluxos de carbono florestal, modelo v1.4.2 (Harris et al., 2021; Gibbs et al., 2025)'
 const GFW_EXTENT = 'Só entram áreas com dossel acima de 30% em 2000, de árvores com mais de 5 m, ou com ganho de cobertura de 2000 a 2020.'
@@ -424,6 +425,15 @@ export const LAYER_INFO: Record<string, LayerInfo> = {
     method: 'Estimativas de satélite combinadas com dados de pluviômetros, em grade de 0,05°.',
     license: CC0,
     citation: 'Funk, C., Peterson, P., Landsfeld, M., Pedreros, D., Verdin, J., Shukla, S., Husak, G., Rowland, J., Harrison, L., Hoell, A., & Michaelsen, J. (2015). The climate hazards infrared precipitation with stations, a new environmental record for monitoring extremes. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66',
+  },
+  chirps3_pr: {
+    summary: 'Chuva acumulada no ano, um mapa por ano de 1981 a 2025.',
+    period: '1981-2025',
+    resolution: '5,6 km',
+    source: 'CHIRPS v3, Climate Hazards Center (UCSB)',
+    method: 'Estimativas de satélite combinadas com dados de pluviômetros em grade de 0,05°, somadas nas 72 pêntadas do ano.',
+    license: CC_BY,
+    citation: CHIRPS3_CITATION,
   },
   brdwgd_pr: {
     ...BRDWGD_LAYER,

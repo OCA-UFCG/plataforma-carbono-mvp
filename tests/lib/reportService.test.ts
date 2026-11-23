@@ -103,7 +103,7 @@ describe('buildReportShell', () => {
       ...base, feicaoId: 'crato', layerIds: ['chirps_precip', 'brdwgd_pr', 'solo_carbono'],
     })
 
-    expect(shell.analyses.map((a) => a.layerId)).toEqual(['solo_carbono', 'brdwgd_pr'])
+    expect(shell.analyses.map((a) => a.layerId)).toEqual(['solo_carbono', 'chirps3_pr'])
   })
 
   it('rejects an unknown recorte or feature', () => {

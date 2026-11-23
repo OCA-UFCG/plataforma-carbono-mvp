@@ -254,7 +254,7 @@ describe('stepAnswer', () => {
       fluxo:      'Tiraram mais carbono do que lançaram. Cobrem 27% da área.',
       uso:        'Eram 71% em 1985.',
       fogo:       'O ano com mais fogo aqui foi 2021.',
-      chuva:      'Normal, perto da média daqui (690 mm).',
+      chuva:      'Seco, 20% abaixo da média daqui (767 mm).',
     })
     expect(out.territorio.headline).toEqual({ value: '866.174', unit: 'km²' })
     expect(out.fluxo.headline).toEqual({ value: '1,6', unit: 'bilhão de t de CO₂e' })

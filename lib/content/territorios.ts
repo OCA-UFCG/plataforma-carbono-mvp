@@ -155,13 +155,13 @@ export const TERRITORIOS_CHUVA = defineCopy({
     porqueTitulo: line('Por que importa · Título', 'Por que a chuva é relevante na absorção de carbono?'),
     porqueTexto: paragraph('Por que importa · Texto', 'Na Caatinga, a chuva é um dos principais fatores que regulam a {termo}.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'fotossíntese'),
-    fonte: line('Fonte dos dados', 'BR-DWGD (Xavier et al., 2022)'),
+    fonte: line('Fonte dos dados', 'CHIRPS v3 (Funk et al., 2026)'),
     // LEGACY, see the note at the top.
     resumoTitulo: line('Resumo · Título do cartão', 'Chuva'),
     sobreTitulo: line('Sobre os dados · Título', 'Chuva'),
     sobreTexto: paragraph(
       'Sobre os dados · Texto',
-      'BR-DWGD, 11 km, de {anoInicial} a {anoFinal}. Seco, normal e chuvoso: terços dos anos do próprio território.',
+      'CHIRPS v3, 5,6 km, de {anoInicial} a {anoFinal}. Seco, normal e chuvoso: terços dos anos do próprio território.',
       ANOS,
     ),
   },
