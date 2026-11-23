@@ -52,7 +52,7 @@ describe('getBanners', () => {
       {
         title: 'T',
         text: 'X',
-        photo: 'https://images.ctfassets.net/s/a/b/foto.jpg?w=1920&q=75&fm=webp',
+        photo: 'https://images.ctfassets.net/s/a/b/foto.jpg?w=1920&q=75&fm=jpg&fl=progressive',
         credit: undefined,
         action: { href: '/sobre', label: 'Ver' },
       },

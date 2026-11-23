@@ -73,10 +73,13 @@ export const DEFAULT_BANNERS: Banner[] = [
 ]
 
 // PERF: asks Contentful's Images API for a photo sized for the hero, which
-// spans the viewport (the shipped files are 1600×1200). An editor uploading a
-// 4000×3000 phone photo would otherwise ship it raw, several MB, on the first
-// thing the landing paints.
-export const BANNER_PHOTO_PARAMS = 'w=1920&q=75&fm=webp'
+// spans the viewport. An editor uploading a 4000×3000 phone photo would
+// otherwise ship it raw, several MB, on the first thing the landing paints.
+// The API never enlarges a smaller photo (the shipped ones stay 1600×1200).
+// INTENTIONAL: progressive JPEG, not WebP. Measured on 2026-11-23 on the
+// shipped hero2.jpg (455 KB, already optimized with Pillow): WebP at q=75 came
+// back at 627 KB, JPEG at q=75 at 445 KB.
+export const BANNER_PHOTO_PARAMS = 'w=1920&q=75&fm=jpg&fl=progressive'
 
 // The item fields sit 8 spaces in, like EVENTOS_QUERY's:
 // tests/scripts/contentfulProvision.test.ts reads them back at that depth to
