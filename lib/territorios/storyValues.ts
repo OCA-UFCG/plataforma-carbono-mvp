@@ -389,6 +389,7 @@ export function landUseChart(data: LandUseThemeData, territory: TerritoryPayload
   return {
     here:      { from, to },
     reference: ref ? { from: ref[firstYear], to: ref[lastYear] } : null,
+    series:    { here: data.series, reference: territory.biome.nativeSeries },
   }
 }
 

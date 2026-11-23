@@ -10,8 +10,9 @@ import StepFigure from './charts/StepFigure'
 import { UI_ICONS } from '@/config/territorios/icons'
 import { STEP_COLORS } from '@/config/territorios/palette'
 import { STEP_LABELS, storyTheme, type TerritoryType } from '@/config/territorios/story'
-import { CHART_SCRIPT, UI } from '@/config/territorios/storyScript'
+import { CHART_SCRIPT, FEMININE_TYPES, TERRITORY_SCRIPT, UI } from '@/config/territorios/storyScript'
 import { stepAnswer, territoryIndicators } from '@/lib/territorios/storyText'
+import { formatPercent } from '@/lib/territorios/storyValues'
 import type { StepId, TerritoryPayload } from '@/types/territorios'
 
 export interface StepContentProps {
@@ -78,6 +79,21 @@ export default function StepContent({
             {answer.sentence && <p className="territorios-resposta-frase">{answer.sentence}</p>}
           </div>
         </div>
+        {territory.caatingaSharePct !== null && (
+          <div className="territorios-cartao">
+            <span className="territorios-cartao-icone">
+              <img src={UI_ICONS.leaf} alt="" width={24} height={24} />
+            </span>
+            <div className="territorios-cartao-conteudo">
+              <p className="territorios-cartao-rotulo">{UI.biomeShareLabel}</p>
+              <StepFigure
+                value={formatPercent(territory.caatingaSharePct)}
+                unit={TERRITORY_SCRIPT.inBiome(type.unitLabel, FEMININE_TYPES.has(type.id))}
+                color={color}
+              />
+            </div>
+          </div>
+        )}
         <ul className="territorios-indicadores">
           {territoryIndicators({ territory, type, script }).map((item) => (
             <li key={item.text} className="territorios-indicador">

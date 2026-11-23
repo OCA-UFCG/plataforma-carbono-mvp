@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { createElement, type ComponentType } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import ComparisonBar, { type ComparisonBarProps } from '@/components/territorios/charts/ComparisonBar'
-import Dumbbell, { type DumbbellProps } from '@/components/territorios/charts/Dumbbell'
 import LevelsBar, { type Level, type LevelsBarProps } from '@/components/territorios/charts/LevelsBar'
 import { rainClassPct } from '@/components/territorios/charts/RainClassBar'
 import StepFigure from '@/components/territorios/charts/StepFigure'
 import YearBars, { type YearBarsProps } from '@/components/territorios/charts/YearBars'
+import YearLines, { labelTops, linePath, type YearLinesProps } from '@/components/territorios/charts/YearLines'
 import YearStrip, { type YearStripProps } from '@/components/territorios/charts/YearStrip'
 import { inkOn } from '@/components/territorios/charts/ChartFigure'
-import { FIRE_COLORS, LAND_USE_COLORS, STEP_COLORS } from '@/config/territorios/palette'
+import { FIRE_COLORS, LAND_USE_COLORS, REFERENCE_COLOR, STEP_COLORS } from '@/config/territorios/palette'
 import { contrast } from '@/lib/color'
 import type { RainChartData, RainYearKind } from '@/types/territorios'
 
@@ -36,7 +36,6 @@ function expectSound(markup: string) {
 
 const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const tPerHa = (n: number) => `${nf0.format(n)} t`
-const pct0 = (n: number) => `${nf0.format(n)}%`
 
 const FIRE_LEVELS: Level[] = [
   { key: 'never', name: 'Nunca queimou', color: FIRE_COLORS.never },
@@ -217,32 +216,52 @@ describe('YearBars', () => {
   })
 })
 
-describe('Dumbbell', () => {
-  const props: DumbbellProps = {
-    rows: [
-      { label: 'Aqui', from: 34.0, to: 27.3 },
-      { label: 'Caatinga', from: 70.7, to: 60.1 },
+describe('YearLines', () => {
+  // Native vegetation of Campina Grande and of the Caatinga, 1985-2025, as the
+  // API returned it on 2026-11-22, the step's figures at both ends.
+  const yearly = (values: number[]) => values.map((sharePct, i) => ({ year: 1985 + i, sharePct }))
+  const CG = yearly([
+    34.04, 34.32, 34.33, 32.65, 29.44, 28.42, 28.03, 27.08, 26.43, 26.47, 26.03, 25.1, 24.54, 24.26, 24.36, 25.8,
+    28.71, 29.54, 30.36, 31.26, 31.84, 32.19, 32.34, 32.27, 31.38, 32.07, 32.54, 32.62, 32.51, 32.74, 32.94, 33.24,
+    33.42, 33.46, 33.22, 33.03, 32.62, 31.87, 32.08, 31.81, 32.25,
+  ])
+  const BIOME = yearly([
+    74.06, 74.07, 73.89, 73.4, 72.8, 72.17, 71.64, 71.12, 70.62, 70.11, 69.79, 69.57, 69.45, 69.12, 69.14, 69.06,
+    68.81, 68.63, 68.39, 68.09, 68.01, 67.93, 67.84, 67.66, 67.52, 67.35, 67.12, 66.72, 66.44, 66.32, 66.13, 66.08,
+    66.06, 66.03, 65.92, 65.74, 65.38, 64.75, 63.97, 63.39, 62.6,
+  ])
+  const props: YearLinesProps = {
+    lines: [
+      { label: 'Território', color: LAND_USE_COLORS.nativa, points: CG },
+      { label: 'Caatinga', color: REFERENCE_COLOR, points: BIOME, dashed: true },
     ],
-    fromLabel: '1985',
-    toLabel: '2024',
-    color: LAND_USE_COLORS.nativa,
-    format: pct0,
-    description: 'Vegetação nativa: aqui de 34% em 1985 para 27% em 2024; na Caatinga, de 71% para 60%.',
+    axisLabel: 'Vegetação nativa (%)',
+    description: 'Parte da área com vegetação nativa em cada ano, de 1985 a 2025.',
   }
 
-  it('draws native vegetation in 1985 and 2024, here and in the Caatinga', () => {
-    const markup = html(Dumbbell, props)
-    for (const value of ['34%', '27%', '71%', '60%']) expect(markup).toContain(`>${value}<`)
-    expect(markup).toContain('left:27.3%;width:6.7%')
-    expect(markup).toContain('>0%</span><span>100%<')
+  it('draws 41 years of Campina Grande against the Caatinga, each line ending in its value', () => {
+    const markup = html(YearLines, props)
+    expect(markup).toContain('d="M0 65.96 L2.5 65.68 L5 65.67')
+    expect(markup).toMatch(/L100 67\.75" stroke="#47651b"/)
+    expect(markup.match(/tg-lines-path--dashed/g)).toHaveLength(1)
+    expect(markup).toContain('>32%</b>')
+    expect(markup).toContain('>63%</b>')
+    const years = [...markup.matchAll(/left:[\d.]+%">(\d{4})</g)].map((m) => Number(m[1]))
+    expect(years).toEqual([1985, 1995, 2005, 2015, 2025])
+    expect(markup).toContain('>Vegetação nativa (%)<')
     expectSound(markup)
   })
 
-  it('keeps an unchanged value and a value past the maximum on the scale', () => {
-    const markup = html(Dumbbell, { ...props, rows: [{ label: 'Aqui', from: 50, to: 50 }, { label: 'Caatinga', from: 0, to: 140 }] })
-    expect(markup).toContain('left:50%;width:0%')
-    expect(markup).toContain('left:0%;width:100%')
-    expectSound(markup)
+  it('breaks a line at a year without data and keeps it on the axis past either end', () => {
+    expect(linePath([
+      { year: 2000, sharePct: 40 }, { year: 2001, sharePct: null }, { year: 2002, sharePct: 120 }, { year: 2003, sharePct: -5 },
+    ], 2000, 3)).toBe('M0 60 M66.67 0 L100 100')
+  })
+
+  it('pushes apart end labels that would touch, without leaving the plot', () => {
+    expect(labelTops([62.6, 32.25])).toEqual([37.4, 67.75])
+    expect(labelTops([50, 48])).toEqual([50, 63])
+    expect(labelTops([1, 0.5, null])).toEqual([87, 100, null])
   })
 })
 

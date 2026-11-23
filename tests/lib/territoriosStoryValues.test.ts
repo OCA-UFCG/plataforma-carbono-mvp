@@ -24,18 +24,21 @@ import {
   tonnesParts,
 } from '@/lib/territorios/storyValues'
 import type { RasterLayerConfig } from '@/types/mapa'
-import type { BiomeReference, FireThemeData, TerritoryPayload } from '@/types/territorios'
+import type { BiomeReference, FireThemeData, NativeShareYear, TerritoryPayload } from '@/types/territorios'
+
+/** One share a year from 1985, as the API's land use series. */
+const yearly = (values: number[]): NativeShareYear[] => values.map((sharePct, i) => ({ year: 1985 + i, sharePct }))
 
 const NO_BIOME: BiomeReference = {
   stockTotalTc: 4_160_240_473, stockDensityTcHa: null, forestSharePct: null, fluxPerForestHaMg: null,
-  nativeSharePct: null, fireBurnedSharePct: 12, fireRecurrenceSharesPct: null, fireAnnualMeanSharePct: null,
+  nativeSharePct: null, nativeSeries: null, fireBurnedSharePct: 12, fireRecurrenceSharesPct: null, fireAnnualMeanSharePct: null,
   rainMeanMm: null,
 }
 
 const territory: TerritoryPayload = {
   recorteId: 'municipios', recorteName: 'Municípios',
   featureId: 'campina-grande-pb', featureName: 'Campina Grande', context: 'PB',
-  areaHa: 59_412, biomaAreaHa: 86_281_800,
+  areaHa: 59_412, biomaAreaHa: 86_281_800, caatingaSharePct: 100,
   bbox: [-36.1, -7.4, -35.7, -7.1], boundary: 'full',
   geometry: { type: 'Polygon', coordinates: [] },
   biome: NO_BIOME,
@@ -49,6 +52,13 @@ const BIOME: BiomeReference = {
   forestSharePct:    26.777871129590096,
   fluxPerForestHaMg: -68.1317101317378,
   nativeSharePct:    { '1985': 74.06124587380222, '2025': 62.59887178552211 },
+  nativeSeries:      yearly([
+    74.06, 74.07, 73.89, 73.4, 72.8, 72.17, 71.64, 71.12, 70.62, 70.11,
+    69.79, 69.57, 69.45, 69.12, 69.14, 69.06, 68.81, 68.63, 68.39, 68.09,
+    68.01, 67.93, 67.84, 67.66, 67.52, 67.35, 67.12, 66.72, 66.44, 66.32,
+    66.13, 66.08, 66.06, 66.03, 65.92, 65.74, 65.38, 64.75, 63.97, 63.39,
+    62.6,
+  ]),
   fireBurnedSharePct: 12.037964993028348,
   fireRecurrenceSharesPct: {
     never: 87.96203500697166, once: 7.3746054989168215, twoToFour: 4.113356427102522, fivePlus: 0.5500030670090056,
@@ -293,13 +303,28 @@ describe('comparison with the Caatinga', () => {
   })
 
   it('counts every native code in the land use chart, the campestre ones too', () => {
+    const series = yearly(Array.from({ length: 41 }, () => 65))
     const chart = landUseChart({
       theme: 'uso',
       areas: { '1985': { '4': 500, '12': 200, '15': 300 }, '2025': { '4': 500, '12': 100, '24': 100, '15': 300 } },
+      series,
     }, withBiome)!
     expect(chart.here).toEqual({ from: 70, to: 60 })
     expect(chart.reference).toEqual({ from: BIOME.nativeSharePct!['1985'], to: BIOME.nativeSharePct!['2025'] })
-    expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2025': { '4': 1 } } }, withBiome)).toBeNull()
+    expect(landUseChart({ theme: 'uso', areas: { '1985': {}, '2025': { '4': 1 } }, series }, withBiome)).toBeNull()
+  })
+
+  it('draws the series as measured, with the Caatinga line only where the biome has one', () => {
+    const series = yearly([70, ...Array.from({ length: 39 }, () => 64), 60])
+    const chart = landUseChart({
+      theme: 'uso',
+      areas: { '1985': { '4': 700, '15': 300 }, '2025': { '4': 600, '15': 400 } },
+      series,
+    }, withBiome)!
+    expect(chart.series.here).toBe(series)
+    expect(chart.series.reference).toBe(BIOME.nativeSeries)
+    expect(landUseChart({ theme: 'uso', areas: { '1985': { '4': 1 }, '2025': { '4': 1 } }, series }, territory)!.series.reference)
+      .toBeNull()
   })
 
   it('lists every year from 1985 to 2025, classes each by the terciles and leaves a missing year unclassed', () => {

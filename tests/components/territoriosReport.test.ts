@@ -169,7 +169,7 @@ describe('StepIcon', () => {
 
 const NO_BIOME: BiomeReference = {
   stockTotalTc: null, stockDensityTcHa: null, forestSharePct: null, fluxPerForestHaMg: null,
-  nativeSharePct: null, fireBurnedSharePct: null, fireRecurrenceSharesPct: null,
+  nativeSharePct: null, nativeSeries: null, fireBurnedSharePct: null, fireRecurrenceSharesPct: null,
   fireAnnualMeanSharePct: null, rainMeanMm: null,
 }
 
@@ -177,7 +177,7 @@ const NO_BIOME: BiomeReference = {
 const JUAZEIRO: TerritoryPayload = {
   recorteId: 'municipios', recorteName: 'Municípios',
   featureId: 'juazeiro', featureName: 'Juazeiro', context: 'BA',
-  areaHa: 672_000, biomaAreaHa: 86_000_000,
+  areaHa: 672_000, biomaAreaHa: 86_000_000, caatingaSharePct: 100,
   bbox: [-40.9, -10.0, -39.9, -9.2], boundary: 'full',
   geometry: { type: 'Polygon', coordinates: [] },
   biome: NO_BIOME,
@@ -198,9 +198,11 @@ describe('ThemeStep', () => {
     expect(markup).toContain('Quais as principais características do território?')
     expect(markup).toContain('Área do território')
     expect(markup).toContain('>6.720<')
-    expect(markup).toContain('Área do município inteiro, na Bahia.')
+    expect(markup).toContain('Juazeiro é um município localizado na Bahia.')
     expect(markup).toContain('<ul class="territorios-indicadores">')
     expect(markup).toContain('maior entre os 1.210 municípios')
+    expect(markup).toContain('Área na Caatinga')
+    expect(markup).toMatch(/>100%<\/span><span class="tg-step-figure-unit">do município está na Caatinga</)
     // No "Por que importa?" here, and the ways to the other tabs run under
     // the report (TerritoriosApp).
     expect(markup).not.toContain('territorios-porque')
@@ -219,6 +221,25 @@ describe('ThemeStep', () => {
   it('asks the question an editor wrote, with its year filled', () => {
     const copy = { ...territoriosCopyDefaults(), chuva: copyFromEntry(TERRITORIOS_COPY.chuva, { pergunta: 'Choveu em {anoFinal}?' }) }
     expect(html(ThemeStep, { ...STEP, step: 'chuva' }, copy)).toContain('Choveu em 2025?')
+  })
+
+  it('keeps the land use answer when the yearly series failed, without its chart', () => {
+    // 60% native in 1985 (class 3), 45% in 2025.
+    const landUse = (series: { year: number; sharePct: number | null }[] | null): ThemeResponse => ({
+      recorteId: 'municipios', featureId: 'juazeiro', theme: 'uso', status: 'available', origin: 'zonal', coarseScaleM: null,
+      data: { theme: 'uso', areas: { '1985': { 3: 60, 15: 40 }, '2025': { 3: 45, 15: 55 } }, series },
+    })
+    const step = (series: { year: number; sharePct: number | null }[] | null) =>
+      html(ThemeStep, { ...STEP, step: 'uso', load: { kind: 'ready', response: landUse(series) } })
+
+    const withChart = step([{ year: 1985, sharePct: 60 }, { year: 2025, sharePct: 45 }])
+    expect(withChart).toContain('tg-lines')
+
+    const without = step(null)
+    expect(without).toContain('>45%<')
+    expect(without).toContain('diminuiu 15 pontos percentuais (p.p.)')
+    expect(without).not.toContain('tg-lines')
+    expect(without).not.toContain('Quanto a vegetação nativa mudou?')
   })
 })
 

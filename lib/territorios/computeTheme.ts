@@ -29,7 +29,8 @@ import { computeSeries } from '@/lib/mapa/zonalSeries'
 import { computeZonalStats, type ZonalStatsOutcome } from '@/lib/mapa/zonalStats'
 import { interiorPoint } from '@/lib/territorios/interiorPoint'
 import type { RasterLayerConfig, TimeSeriesPoint } from '@/types/mapa'
-import type { TerritoryPayload, ThemeData, ThemeId, ThemeOrigin } from '@/types/territorios'
+import { LAND_USE_GROUPS } from '@/config/territorios/landUseGroups'
+import type { NativeShareYear, TerritoryPayload, ThemeData, ThemeId, ThemeOrigin } from '@/types/territorios'
 
 type Geometry = TerritoryPayload['geometry']
 
@@ -117,14 +118,64 @@ async function flux(ee: any, geometry: Geometry, areaHa: number): Promise<ThemeC
   }
 }
 
+/**
+ * Native vegetation share of the region every year, in one reduction: per
+ * year, the pixel area of the native classes and of every mapped pixel, from
+ * the same image the map draws, at the scale of the step's areas. Forty-one
+ * years at 30 m took 5 s over Campina Grande but 89 s over Pernambuco and
+ * 128 s over Bahia; precomputing the recortes will take that off the visit.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function nativeSeries(ee: any, geometry: Geometry, asset: GeeAssetConfig): Promise<NativeShareYear[]> {
+  const [first, last] = LAND_USE_YEARS.map(Number)
+  const years = Array.from({ length: last - first + 1 }, (_, i) => first + i)
+  const codes = LAND_USE_GROUPS.filter((g) => g.native).flatMap((g) => g.codes)
+  const area = ee.Image.pixelArea().divide(1e4)
+  const bands = years.flatMap((year) => {
+    const classes = buildEeImage(ee, asset, `${year}-01-01`)
+    return [
+      area.multiply(classes.remap(codes, codes.map(() => 1), 0)).rename(`native_${year}`),
+      area.updateMask(classes.mask()).rename(`mapped_${year}`),
+    ]
+  })
+  const sums = await evaluate<Record<string, number | null>>(
+    ee.Image.cat(bands).reduceRegion({
+      reducer:    ee.Reducer.sum(),
+      geometry:   ee.Geometry(geometry),
+      scale:      asset.scale,
+      maxPixels:  1e10,
+      bestEffort: true,
+      tileScale:  4,
+    }),
+  )
+  return years.map((year) => {
+    const nativeHa = sums?.[`native_${year}`]
+    const mappedHa = sums?.[`mapped_${year}`]
+    const sharePct = typeof nativeHa === 'number' && typeof mappedHa === 'number' && mappedHa > 0
+      ? (nativeHa / mappedHa) * 100
+      : null
+    return { year, sharePct }
+  })
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined): Promise<ThemeComputation> {
   const native = assetOf('uso')
   const coarseScaleM = scaleM !== undefined && scaleM > (native.scale ?? 0) ? scaleM : null
   const asset = coarseScaleM === null ? native : { ...native, scale: coarseScaleM }
-  const outcomes = await Promise.all(LAND_USE_YEARS.map((year) =>
-    computeZonalStats(ee, { asset, geometry, temporalDate: `${year}-01-01`, colorType: 'categorical' }),
-  ))
+  // The series only draws the chart; the step's figures come from the two
+  // years' areas. Over the largest states it takes most of the Earth Engine
+  // deadline, so a failure leaves the step without the chart instead of
+  // without its answer.
+  const [outcomes, series] = await Promise.all([
+    Promise.all(LAND_USE_YEARS.map((year) =>
+      computeZonalStats(ee, { asset, geometry, temporalDate: `${year}-01-01`, colorType: 'categorical' }),
+    )),
+    nativeSeries(ee, geometry, asset).catch((err: unknown) => {
+      console.error(`[computeTheme] uso: yearly series failed: ${err instanceof Error ? err.message : err}`)
+      return null
+    }),
+  ])
 
   if (outcomes.some((o) => !o.ok && o.status === 422)) return noPixels('zonal', coarseScaleM)
   const areas = outcomes.map((o) => {
@@ -137,7 +188,7 @@ async function landUse(ee: any, geometry: Geometry, scaleM: number | undefined):
     status: 'available',
     origin: 'zonal',
     coarseScaleM,
-    data: { theme: 'uso', areas: { '1985': areas[0], '2025': areas[1] } },
+    data: { theme: 'uso', areas: { '1985': areas[0], '2025': areas[1] }, series },
   }
 }
 

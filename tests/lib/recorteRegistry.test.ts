@@ -69,6 +69,12 @@ describe('listFeicoes', () => {
 })
 
 describe('getFeicao', () => {
+  it("carries the share of the whole territory inside the biome, kept or clipped", () => {
+    // Campina Grande enters whole and lies all in the Caatinga; Bahia is clipped to it.
+    expect(getFeicao('municipios', 'campina-grande')?.caatingaSharePct).toBe(100)
+    expect(getFeicao('estados', 'bahia')?.caatingaSharePct).toBe(62.2)
+  })
+
   it('resolves a feature to a geometry, a bbox and a geodesic area in hectares', () => {
     const feicao = getFeicao('municipios', 'campina-grande')
 

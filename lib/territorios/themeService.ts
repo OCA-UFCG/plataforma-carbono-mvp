@@ -107,6 +107,7 @@ function getBiomeReference(): BiomeReference {
     forestSharePct:          flux ? forestSharePct(flux) : null,
     fluxPerForestHaMg:       flux ? fluxPerForestHa(flux) : null,
     nativeSharePct:          native1985 !== null && native2025 !== null ? { '1985': native1985, '2025': native2025 } : null,
+    nativeSeries:            landUse ? landUse.series : null,
     fireBurnedSharePct:      fire ? fireBurnedSharePct(fire) : null,
     fireRecurrenceSharesPct: fire ? fireRecurrenceSharesPct(fire) : null,
     fireAnnualMeanSharePct:  fire ? fireAnnualMeanSharePct(fire) : null,
@@ -147,6 +148,7 @@ export function getTerritory(recorteId: string, featureId: string): TerritoryPay
     // The registry's spherical area stays the WebSIG's; the visitor reads this one.
     areaHa:      ellipsoidAreaHa(feicao.geometry),
     biomaAreaHa: biomeAreaHa,
+    caatingaSharePct: recorteId === BIOMA_RECORTE_ID ? null : feicao.caatingaSharePct ?? null,
     areaRank:    recorteId === BIOMA_RECORTE_ID ? null : rankByArea(recorteAreas(recorteId), feicao.id),
     bbox:        feicao.bbox,
     boundary:    feicao.boundary,

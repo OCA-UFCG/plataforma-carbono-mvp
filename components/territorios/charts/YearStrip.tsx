@@ -1,5 +1,5 @@
-// One cell per year, colored by the year's class against the territory's own
-// mean, with the highlighted year outlined and its rainfall written above it.
+// One bar per year, as tall as the year's rainfall and colored by its class
+// against the territory's own series, with the highlighted year outlined and its rainfall written above it.
 // Adapted from the `Strip` of components/mapa/results/PointSeries.tsx (commit
 // c5eab2a, branch feat/resultados-por-camada).
 
@@ -31,12 +31,18 @@ function fillOf(kind: RainYearKind): CSSProperties {
   return { background: RAIN_COLORS[kind], boxShadow: outlineOf(RAIN_COLORS[kind]) }
 }
 
+// Each bar's height is the year's rainfall against the wettest year of the series.
+function barHeight(mm: number, maxMm: number): CSSProperties {
+  return { '--h': `${maxMm > 0 ? round2((mm / maxMm) * 100) : 0}%` } as CSSProperties
+}
+
 export default function YearStrip({ data, description, callout = true }: YearStripProps) {
   const { years, highlightYear } = data
   const count = years.length
   const at = years.findIndex((y) => y.year === highlightYear)
   const highlighted = at >= 0 ? years[at] : null
   const hasGap = years.some((y) => y.kind === null || y.valueMm === null)
+  const maxMm = Math.max(0, ...years.map((y) => y.valueMm ?? 0))
 
   // The value sits over its cell: from the cell's left edge in the left half,
   // ending at its right edge in the right half.
@@ -54,16 +60,18 @@ export default function YearStrip({ data, description, callout = true }: YearStr
       )}
       <div className="tg-strip-box">
         <div className="tg-strip-cells">
-          {years.map((y) => {
+          {years.map((y, i) => {
             const kind = y.valueMm === null ? null : y.kind
             const name = KINDS.find((k) => k.kind === kind)?.name.toLowerCase()
-            const classes = ['tg-cell', kind ? '' : 'tg-cell--empty', y.year === highlightYear ? 'tg-cell--highlight' : '']
+            // The balloon opens toward the middle so the end cells keep it inside the chart.
+            const side = (i + 0.5) / count < 0.2 ? 'tg-cell--tip-start' : (i + 0.5) / count > 0.8 ? 'tg-cell--tip-end' : ''
+            const classes = ['tg-cell', kind ? '' : 'tg-cell--empty', y.year === highlightYear ? 'tg-cell--highlight' : '', side]
             return (
               <span
                 key={y.year}
                 className={classes.filter(Boolean).join(' ')}
-                style={kind ? fillOf(kind) : undefined}
-                title={y.valueMm === null || !name ? `${y.year}: sem dado` : `${y.year}: ${formatMm(y.valueMm)}, ${name}`}
+                style={kind && y.valueMm !== null ? { ...fillOf(kind), ...barHeight(y.valueMm, maxMm) } : undefined}
+                data-tip={y.valueMm === null || !name ? `${y.year}: sem dado` : `${y.year}: ${formatMm(y.valueMm)}, ${name}`}
               />
             )
           })}

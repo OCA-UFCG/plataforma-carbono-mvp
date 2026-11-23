@@ -4,14 +4,21 @@
 
 import type { ReactNode } from 'react'
 import ComparisonBar from './charts/ComparisonBar'
-import Dumbbell from './charts/Dumbbell'
 import LevelsBar, { type Level } from './charts/LevelsBar'
 import PairBars from './charts/PairBars'
 import RainClassBar from './charts/RainClassBar'
 import YearBars from './charts/YearBars'
+import YearLines, { type YearLine } from './charts/YearLines'
 import YearStrip from './charts/YearStrip'
-import { FIRE_COLORS, FLUX_COLORS, LAND_USE_COLORS, PAIR_REFERENCE_COLOR, STEP_COLORS } from '@/config/territorios/palette'
-import { LAND_USE_YEARS, type TerritoryType } from '@/config/territorios/story'
+import {
+  FIRE_COLORS,
+  FLUX_COLORS,
+  LAND_USE_COLORS,
+  PAIR_REFERENCE_COLOR,
+  REFERENCE_COLOR,
+  STEP_COLORS,
+} from '@/config/territorios/palette'
+import type { TerritoryType } from '@/config/territorios/story'
 import { CHART_SCRIPT, RAIN_KIND_LABELS } from '@/config/territorios/storyScript'
 import {
   chartMax,
@@ -42,8 +49,6 @@ export interface StepChartProps {
   /** Heading level of each chart's question: 4 in a tab, 5 in the summary. */
   titleLevel?: 4 | 5
 }
-
-const [FIRST_YEAR, LAST_YEAR] = LAND_USE_YEARS
 
 /** A chart under the question it answers, a heading level below the step's own. */
 function Titled({ title, level, children }: { title: string; level: 4 | 5; children: ReactNode }) {
@@ -183,17 +188,19 @@ export default function StepChart({ theme, response, territory, type, titleLevel
     case 'uso': {
       const data = dataOf(response, 'uso')
       const chart = data && landUseChart(data, territory)
-      if (!chart) return null
+      // Without the series the answer above still gives both years.
+      if (!chart || !chart.series.here) return null
       const rows = [{ label: alone ? CHART_SCRIPT.biome : CHART_SCRIPT.here, ...chart.here }]
-      if (!alone && chart.reference) rows.push({ label: CHART_SCRIPT.biome, ...chart.reference })
+      const lines: YearLine[] = [{ label: rows[0].label, color: LAND_USE_COLORS.nativa, points: chart.series.here }]
+      if (!alone && chart.reference && chart.series.reference) {
+        rows.push({ label: CHART_SCRIPT.biome, ...chart.reference })
+        lines.push({ label: CHART_SCRIPT.biome, color: REFERENCE_COLOR, points: chart.series.reference, dashed: true })
+      }
       return (
         <Titled level={titleLevel} title={CHART_SCRIPT.titles.uso}>
-        <Dumbbell
-          rows={rows}
-          fromLabel={FIRST_YEAR}
-          toLabel={LAST_YEAR}
-          color={LAND_USE_COLORS.nativa}
-          format={formatPercent}
+        <YearLines
+          lines={lines}
+          axisLabel={CHART_SCRIPT.uso.axis}
           description={CHART_SCRIPT.uso.description(
             rows.map((r) => CHART_SCRIPT.uso.row(r.label, formatPercent(r.from), formatPercent(r.to))).join(' '),
           )}

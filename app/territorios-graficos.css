@@ -104,8 +104,7 @@
   gap: 8px;
 }
 
-.tg-legend .tg-swatch,
-.tg-legend .tg-dot {
+.tg-legend .tg-swatch {
   margin-top: 4px;
 }
 
@@ -244,79 +243,117 @@
   min-width: 0;
 }
 
-/* Dumbbell */
+/* YearLines */
 
-.tg-db-key {
-  margin: 0 0 8px;
-}
-
-.tg-dot {
-  display: inline-block;
-  flex: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tg-dot--from {
-  border: 2px solid var(--c);
-  background: var(--bg-fundo, #fefefb);
-}
-
-.tg-dot--to {
-  background: var(--c);
-}
-
-.tg-db-rows {
+/* As YearBars: the axis name turned along the left edge, the percent axis,
+   the plot and the years under it; the last values sit right of the plot.
+   LABEL_GAP in YearLines.tsx assumes the 160 px plot. */
+.tg-lines-frame {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
+  grid-template-columns: 16px 32px minmax(0, 1fr) 48px;
+  grid-template-rows: 160px auto;
+  column-gap: 4px;
+  margin-top: 4px;
 }
 
-.tg-db-plot {
-  min-width: 0;
+.tg-lines-unit {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  justify-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--am-400, #526f78);
 }
 
-.tg-db-track {
+.tg-lines-axis {
   position: relative;
-  height: 12px;
-  margin: 4px 0;
-}
-
-.tg-db-track::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: var(--am-200, #bfcace);
-}
-
-.tg-db-line {
-  position: absolute;
-  top: 4px;
-  height: 4px;
-  background: var(--c);
-}
-
-.tg-db-track .tg-dot {
-  position: absolute;
-  top: 0;
-  left: clamp(0px, calc(var(--at) - 6px), calc(100% - 12px));
-}
-
-.tg-db-track .tg-dot--to {
-  box-shadow: 0 0 0 2px var(--bg-fundo, #fefefb);
-}
-
-.tg-db-axis {
-  display: flex;
-  justify-content: space-between;
+  grid-column: 2;
+  grid-row: 1;
   font-size: 12px;
   line-height: 16px;
   color: var(--am-400, #526f78);
+}
+
+.tg-lines-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+}
+
+.tg-lines-plot {
+  grid-column: 3;
+  grid-row: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border-left: 1px solid var(--am-400, #526f78);
+  border-bottom: 1px solid var(--am-400, #526f78);
+}
+
+.tg-lines-grid {
+  stroke: var(--am-200, #bfcace);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.tg-lines-path {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.tg-lines-path--dashed {
+  stroke-dasharray: 6 4;
+  stroke-linecap: butt;
+}
+
+.tg-lines-ends {
+  position: relative;
+  grid-column: 4;
+  grid-row: 1;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tg-lines-ends b {
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.tg-lines-years {
+  position: relative;
+  grid-column: 3;
+  grid-row: 2;
+  height: 20px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--am-400, #526f78);
+}
+
+.tg-lines-years span {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.tg-lines-key {
+  flex: none;
+  width: 20px;
+  margin-top: 9px;
+  border-top: 3px solid var(--c);
+}
+
+.tg-lines-key--dashed {
+  border-top-style: dashed;
 }
 
 /* YearStrip */
@@ -328,8 +365,10 @@
 
 .tg-strip-cells {
   display: flex;
+  align-items: flex-end;
   gap: 2px;
-  height: 32px;
+  height: 72px;
+  border-bottom: 1px solid var(--am-400, #526f78);
 }
 
 @container tg-strip (max-width: 359px) {
@@ -339,9 +378,66 @@
 }
 
 .tg-cell {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
-  border-radius: 2px;
+  height: var(--h, 100%);
+  border-radius: 2px 2px 0 0;
+  transition: height 120ms ease-out;
+}
+
+/* Hovered, the bar grows a little and a balloon over it gives the year. */
+.tg-cell:hover {
+  z-index: 1;
+  height: calc(var(--h, 100%) + 6px);
+}
+
+.tg-cell::before,
+.tg-cell::after {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.tg-cell::before {
+  content: '';
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--bg-texto-primario, #001d27);
+}
+
+.tg-cell::after {
+  content: attr(data-tip);
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-texto-primario, #001d27);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.tg-cell--tip-start::after {
+  left: 0;
+  transform: none;
+}
+
+.tg-cell--tip-end::after {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.tg-cell:hover::before,
+.tg-cell:hover::after {
+  visibility: visible;
 }
 
 .tg-cell--empty {
@@ -349,7 +445,6 @@
 }
 
 .tg-cell--highlight {
-  position: relative;
   outline: 2px solid var(--bg-texto-primario, #001d27);
   outline-offset: 1px;
 }

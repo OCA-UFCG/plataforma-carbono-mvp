@@ -1,6 +1,6 @@
 import { copyDefaults, defineCopy, line, paragraph, type Copy, type CopyType } from './site/model'
 
-// Copy of the Territórios story (/territorios, the "Recorte territorial"). Each
+// Copy of the Territórios story (/territorios, the "Recorte Territorial"). Each
 // tab has a content type, so an editor finds a tab's words in one entry: its
 // question, the box on why the theme matters and its source, and its source in
 // "Sobre os dados".
@@ -11,6 +11,10 @@ import { copyDefaults, defineCopy, line, paragraph, type Copy, type CopyType } f
 // content type, and Contentful refuses to drop a field that was not omitted
 // first (see GLOSSARIO_PAGINA in lib/content/paginas.ts). The presentation over the gallery of types and the shared part of
 // "Sobre os dados" have a type each.
+//
+// Each tab's answer, the sentence under its big figure, is a set of fields
+// named "Resposta · ...": the page picks one by the data (a dry or rainy year,
+// a loss or a gain of native vegetation) and fills its placeholders.
 //
 // What stays in config/territorios/: interface labels (tabs, buttons, loading
 // and error messages), the chart descriptions read by screen readers, the
@@ -23,16 +27,19 @@ const ONE_ENTRY = 'Há uma única entrada deste tipo: edite-a, não crie outra.'
 const ANO_INICIAL = { anoInicial: 'primeiro ano dos dados' }
 const ANO_FINAL = { anoFinal: 'último ano dos dados' }
 const ANOS = { ...ANO_INICIAL, ...ANO_FINAL }
-const TERMO = { termo: 'palavra com link para a Caatinga interativa' }
+const TIPO = { nome: 'nome do território', tipo: 'tipo com artigo, como "um município" ou "uma terra indígena"' }
+const MEDIA = { media: 'média anual do território, em mm' }
+const VARIACAO_CAATINGA = { variacaoCaatinga: 'variação da Caatinga em pontos percentuais' }
+const TERMO = { termo: 'palavra com link para a Caatinga Interativa' }
 
 function tabDescription(tab: string): string {
-  return `Aba "${tab}" do recorte territorial (/territorios): a pergunta, a caixa "Por que importa?" com a fonte e a fonte em "Sobre os dados". O campo "Resumo · Título do cartão" não aparece mais na página. ${ONE_ENTRY}`
+  return `Aba "${tab}" do Recorte Territorial (/territorios): a pergunta, a caixa "Por que importa?" com a fonte e a fonte em "Sobre os dados". O campo "Resumo · Título do cartão" não aparece mais na página. ${ONE_ENTRY}`
 }
 
 export const TERRITORIOS_APRESENTACAO = defineCopy({
   id: 'territoriosApresentacao',
   name: 'Territórios · Apresentação',
-  description: `Abertura do recorte territorial (/territorios): o título, que fica também na escolha do território, o texto abaixo dele e o título da galeria de recortes. ${ONE_ENTRY}`,
+  description: `Abertura do Recorte Territorial (/territorios): o título, que fica também na escolha do território, o texto abaixo dele e o título da galeria de recortes. ${ONE_ENTRY}`,
   fields: {
     titulo: line('Título', 'Que território você quer conhecer?'),
     chamada: line(
@@ -46,9 +53,19 @@ export const TERRITORIOS_APRESENTACAO = defineCopy({
 export const TERRITORIOS_TERRITORIO = defineCopy({
   id: 'territoriosTerritorio',
   name: 'Territórios · Território',
-  description: `Aba "Território" do recorte territorial (/territorios): a pergunta e, em "Sobre os dados", a fonte do limite do bioma e a dos municípios, que entram inteiros. ${ONE_ENTRY}`,
+  description: `Aba "Território" do Recorte Territorial (/territorios): a pergunta e, em "Sobre os dados", a fonte do limite do bioma e a dos municípios, que entram inteiros. ${ONE_ENTRY}`,
   fields: {
     pergunta: line('Pergunta', 'Que território estamos conhecendo?'),
+    respostaLocalizado: line('Resposta · Com o estado', '{nome} é {tipo} {localizado} {estado}.', {
+      ...TIPO,
+      localizado: '"localizado" ou "localizada", conforme o tipo',
+      estado: 'estado com a preposição, como "na Paraíba"',
+    }),
+    respostaSemEstado: line('Resposta · Sem o estado', '{nome} é {tipo}.', TIPO),
+    respostaEstado: line('Resposta · Estado', 'Área dentro da Caatinga, {parteBioma} do bioma.', {
+      parteBioma: 'parte do bioma dentro do estado',
+    }),
+    respostaBioma: line('Resposta · Bioma', 'A Caatinga inteira, em nove estados.'),
     sobreTitulo: line('Sobre os dados · Título', 'Território'),
     sobreTexto: paragraph('Sobre os dados · Texto', 'Área dentro do limite da Caatinga, segundo o IBGE (2019).'),
     sobreTextoMunicipios: paragraph(
@@ -64,6 +81,10 @@ export const TERRITORIOS_ESTOQUE = defineCopy({
   description: tabDescription('Estoque'),
   fields: {
     pergunta: line('Pergunta', 'Quanto carbono a vegetação original e o solo guardariam aqui?'),
+    unidade: line('Número · Unidade', '{toneladas} de carbono', {
+      toneladas: '"toneladas", "de toneladas" ou "tonelada", conforme o número',
+    }),
+    respostaSemDado: line('Resposta · Sem dado', 'Sem dado de carbono para esta área.'),
     porqueTitulo: line('Por que importa · Título', 'Por que o estoque de carbono importa?'),
     porqueTexto: paragraph('Por que importa · Texto', 'O carbono está presente nos troncos, galhos, folhas e raízes das plantas, além da matéria orgânica do solo. Esses {termo} podem ser afetados pelas mudanças no uso da terra.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'reservatórios de carbono'),
@@ -89,6 +110,19 @@ export const TERRITORIOS_FLUXO = defineCopy({
   description: tabDescription('Fluxo'),
   fields: {
     pergunta: line('Pergunta', 'As áreas com árvores tiraram ou lançaram carbono do ar?'),
+    unidade: line('Número · Unidade', '{toneladas} de CO₂e', { toneladas: 'escala da tonelada, como "mil t"' }),
+    respostaRemocao: line('Resposta · Remoção', 'Tiraram mais carbono do que lançaram.'),
+    respostaEmissao: line('Resposta · Emissão', 'Lançaram mais carbono do que tiraram.'),
+    respostaEquilibrio: line('Resposta · Equilíbrio', 'Tiraram e lançaram no ar a mesma quantidade de carbono.'),
+    respostaParte: line('Resposta · Parte da área', 'Cobrem {percentual} da área, {posicao} dos {percentualCaatinga} da Caatinga.', {
+      percentual: 'parte do território com árvores',
+      posicao: '"acima", "abaixo" ou "perto"',
+      percentualCaatinga: 'parte da Caatinga com árvores',
+    }),
+    respostaParteSemCaatinga: line('Resposta · Parte da área, sem comparação', 'Cobrem {percentual} da área.', {
+      percentual: 'parte do território com árvores',
+    }),
+    respostaSemArvores: line('Resposta · Sem árvores', 'Não há áreas com árvores mapeadas aqui.'),
     porqueTitulo: line('Por que importa · Título', 'Por que o fluxo de carbono importa?'),
     porqueTexto: paragraph('Por que importa · Texto', 'A vegetação tira CO₂ do ar ao crescer e o devolve quando é desmatada, queimada ou degradada. Essas trocas são os {termo} do território.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'fluxos de carbono'),
@@ -110,6 +144,43 @@ export const TERRITORIOS_USO = defineCopy({
   description: tabDescription('Uso da terra'),
   fields: {
     pergunta: line('Pergunta', 'Como estava a cobertura vegetal nativa?'),
+    unidade: line('Número · Unidade', 'do território com vegetação nativa'),
+    respostaDiminuiu: line(
+      'Resposta · Perda',
+      'Entre {anoInicial} e {anoFinal}, a área com vegetação nativa no território diminuiu {variacao} pontos percentuais (p.p.).',
+      { ...ANOS, variacao: 'variação em pontos percentuais' },
+    ),
+    respostaAumentou: line(
+      'Resposta · Ganho',
+      'Entre {anoInicial} e {anoFinal}, a área com vegetação nativa no território aumentou {variacao} pontos percentuais (p.p.).',
+      { ...ANOS, variacao: 'variação em pontos percentuais' },
+    ),
+    respostaEstavel: line(
+      'Resposta · Sem variação',
+      'Entre {anoInicial} e {anoFinal}, a área com vegetação nativa no território se manteve.',
+      ANOS,
+    ),
+    respostaComparacaoPerda: line(
+      'Resposta · Comparação, perda nos dois',
+      'Esse valor é {comparacao} à redução que houve na Caatinga, de {variacaoCaatinga} p.p.',
+      { comparacao: '"superior", "inferior" ou "próximo"', ...VARIACAO_CAATINGA },
+    ),
+    respostaComparacaoGanho: line(
+      'Resposta · Comparação, ganho nos dois',
+      'Esse valor é {comparacao} ao aumento que houve na Caatinga, de {variacaoCaatinga} p.p.',
+      { comparacao: '"superior", "inferior" ou "próximo"', ...VARIACAO_CAATINGA },
+    ),
+    respostaCaatingaPerda: line(
+      'Resposta · Perda só na Caatinga',
+      'Na Caatinga, houve redução de {variacaoCaatinga} p.p.',
+      VARIACAO_CAATINGA,
+    ),
+    respostaCaatingaGanho: line(
+      'Resposta · Ganho só na Caatinga',
+      'Na Caatinga, houve aumento de {variacaoCaatinga} p.p.',
+      VARIACAO_CAATINGA,
+    ),
+    respostaSemDado: line('Resposta · Sem dado', 'Sem dado de uso da terra aqui.'),
     porqueTitulo: line('Por que importa · Título', 'Por que o uso da terra importa?'),
     porqueTexto: paragraph('Por que importa · Texto', 'A conversão da vegetação para outros usos, como pastagem, reduz os {termo}.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'estoques de carbono'),
@@ -131,6 +202,14 @@ export const TERRITORIOS_FOGO = defineCopy({
   description: tabDescription('Fogo'),
   fields: {
     pergunta: line('Pergunta', 'Como o fogo afetou o território ao longo do tempo?'),
+    unidade: line('Número · Unidade', 'da área queimou ao menos uma vez entre {anoInicial} e {anoFinal}', ANOS),
+    respostaComparacao: line(
+      'Resposta · Comparação',
+      'Para esse mesmo período, {percentualCaatinga} da Caatinga queimou ao menos uma vez.',
+      { percentualCaatinga: 'parte da Caatinga que queimou ao menos uma vez' },
+    ),
+    respostaNenhum: line('Resposta · Sem fogo', 'Nenhuma área queimada registrada de {anoInicial} a {anoFinal}.', ANOS),
+    respostaSemDado: line('Resposta · Sem dado', 'Sem dado de fogo aqui.'),
     porqueTitulo: line('Por que importa · Título', 'Por que o fogo importa?'),
     porqueTexto: paragraph('Por que importa · Texto', 'O fogo é um dos principais fatores de mudança na cobertura vegetal e pode contribuir para a {termo}.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'liberação de CO₂ para a atmosfera'),
@@ -152,6 +231,35 @@ export const TERRITORIOS_CHUVA = defineCopy({
   description: tabDescription('Chuva'),
   fields: {
     pergunta: line('Pergunta', 'Como foi a chuva em {anoFinal}?', ANO_FINAL),
+    unidade: line('Número · Unidade', 'mm de chuva'),
+    unidadeMedia: line('Número · Unidade, sem dado do ano', 'mm por ano, em média'),
+    respostaChuvoso: line(
+      'Resposta · Ano chuvoso',
+      'A chuva ficou {percentual} acima da média do território ({media} mm), sendo considerado um ano chuvoso.',
+      { percentual: 'distância da média', ...MEDIA },
+    ),
+    respostaSeco: line(
+      'Resposta · Ano seco',
+      'A chuva ficou {percentual} abaixo da média do território ({media} mm), sendo considerado um ano seco.',
+      { percentual: 'distância da média', ...MEDIA },
+    ),
+    respostaNormal: line(
+      'Resposta · Ano normal',
+      'A chuva ficou próxima da média do território ({media} mm), sendo considerado um ano normal.',
+      MEDIA,
+    ),
+    respostaClasse: line(
+      'Resposta · Chuvoso abaixo da média ou seco acima dela',
+      'Ano considerado {classe}; a média do território é {media} mm.',
+      { classe: '"seco" ou "chuvoso"', ...MEDIA },
+    ),
+    respostaSemAno: line('Resposta · Sem dado do ano', 'Sem dado de {anoFinal} aqui.', ANO_FINAL),
+    respostaComparacao: line(
+      'Resposta · Comparação',
+      'Essa média é {comparacao} à da Caatinga ({mediaCaatinga} mm).',
+      { comparacao: '"superior", "inferior" ou "próxima"', mediaCaatinga: 'média anual da Caatinga, em mm' },
+    ),
+    respostaSemDado: line('Resposta · Sem dado', 'Sem dado de chuva aqui.'),
     porqueTitulo: line('Por que importa · Título', 'Por que a chuva é relevante na absorção de carbono?'),
     porqueTexto: paragraph('Por que importa · Texto', 'Na Caatinga, a chuva é um dos principais fatores que regulam a {termo}.', TERMO),
     porqueTermo: line('Por que importa · Palavra com link', 'fotossíntese'),
@@ -170,7 +278,7 @@ export const TERRITORIOS_CHUVA = defineCopy({
 export const TERRITORIOS_SOBRE_DADOS = defineCopy({
   id: 'territoriosSobreDados',
   name: 'Territórios · Sobre os dados',
-  description: `Parte comum de "Sobre os dados", no fim do recorte territorial; a fonte de cada aba fica no tipo da aba. As notas entram no fim da fonte de uma aba quando o valor vem de um ponto do território ou foi calculado em quadrados maiores que os da camada. ${ONE_ENTRY}`,
+  description: `Parte comum de "Sobre os dados", no fim do Recorte Territorial; a fonte de cada aba fica no tipo da aba. As notas entram no fim da fonte de uma aba quando o valor vem de um ponto do território ou foi calculado em quadrados maiores que os da camada. ${ONE_ENTRY}`,
   fields: {
     titulo: line('Título', 'Sobre os dados'),
     unidadesTitulo: line('Unidades · Título', 'Unidades'),

@@ -4,17 +4,15 @@
 // storyScript(), at the end of this file, turns that copy into the templates
 // lib/territorios/storyText.ts fills, with the years of each series from
 // config/territorios/story.ts. What stays here is what the copy leaves in
-// code: interface labels, the answers and summary sentences (for now), the
-// chart descriptions read by screen readers, the summary's badges and the
-// grammar tables.
+// code: interface labels, the chart descriptions read by screen readers, the
+// summary's badges and the grammar tables.
 //
 // Templates receive values already formatted by lib/territorios/storyValues.ts;
 // lib/territorios/storyText.ts picks the variant.
 //
 // A step is titled by a question of at most ten words, shows a big figure and
-// an answer of at most twenty-one, and compares the territory with the whole
-// Caatinga in the words "acima", "abaixo" and "perto". Its box "Por que
-// importa?" names the source; periods, definitions and caveats wait in "Sobre
+// an answer of at most forty, and compares the territory with the whole
+// Caatinga. Its box "Por que importa?" names the source; periods, definitions and caveats wait in "Sobre
 // os dados", at the end.
 
 import { fillPlaceholders as fill } from '@/lib/content/site/model'
@@ -47,6 +45,7 @@ export const UI = {
   exploreTitle:     'Explore no mapa',
   exploreText:      `Veja a cobertura vegetal do território em ${LAND_USE_YEARS[0]} e em ${LAND_USE_YEARS[1]}.`,
   areaLabel:        'Área do território',
+  biomeShareLabel:  'Área na Caatinga',
   sourceLabel:      'Fonte dos dados:',
   newTab:           'abre em nova aba',
 
@@ -80,6 +79,8 @@ export const TERRITORY_SCRIPT = {
   title: (name: string, context?: string) => (context ? `${displayName(name)} (${context})` : displayName(name)),
   /** The territory's share of the biome, under its area (Figma 19254:37460). */
   biomeShare: 'da área da Caatinga',
+  /** Beside the share of the whole territory inside the biome: "do município está na Caatinga". */
+  inBiome: (unit: string, feminine: boolean) => `${feminine ? 'da' : 'do'} ${unit.toLowerCase()} está na Caatinga`,
   /** Its place by area among the territories of its type (19254:37461). */
   rankValue: (position: number, feminine: boolean) => `${numero(position, 0)}${feminine ? 'ª' : 'º'}`,
   rankText:  (total: number, plural: string, feminine: boolean) =>
@@ -114,66 +115,12 @@ export const RAIN_KIND_LABELS: Record<RainYearKind, string> = {
   chuvoso: 'Chuvoso',
 }
 
-/**
- * Answers while the story runs. The question already names the subject ("as
- * áreas com árvores", "a vegetação nativa"), so the answers start from the
- * figure. `tonnes` comes with its scale: "2,7 milhões de t".
- */
-export const ANSWER_SCRIPT = {
-  territorio: {
-    located: (where: string) => `Área dentro da Caatinga, ${where}.`,
-    plain:   'Área dentro da Caatinga.',
-    // A municipality enters whole, past the biome edge (clippedToBiome).
-    wholeLocated: (where: string) => `Área do município inteiro, ${where}.`,
-    wholePlain:   'Área do município inteiro.',
-    state:   (biomePct: string) => `Área dentro da Caatinga, ${biomePct} do bioma.`,
-    // Nine features in the estados layer (tests/config/territoriosStory.test.ts).
-    biome:   'A Caatinga inteira, em nove estados.',
-  },
-  estoque: {
-    /** Under the total: "de toneladas de carbono". */
-    unit:      (tonnes: string) => `${tonnes} de carbono`,
-    perHa:     (here: string, reading: Reading, biome: string) =>
-      `${here} t por hectare, ${reading} da Caatinga (${biome} t).`,
-    perHaOnly: (here: string) => `${here} t por hectare.`,
-    noData:    'Sem dado de carbono para esta área.',
-  },
-  fluxo: {
-    unit:      (tonnes: string) => `${tonnes} de CO₂e`,
-    removal:   'Tiraram mais carbono do que lançaram.',
-    emission:  'Lançaram mais carbono do que tiraram.',
-    balance:   'Tiraram e lançaram no ar a mesma quantidade de carbono.',
-    share:     (pct: string, reading: Reading, biome: string) =>
-      `Cobrem ${pct} da área, ${reading} dos ${biome} da Caatinga.`,
-    shareOnly: (pct: string) => `Cobrem ${pct} da área.`,
-    noForest:  'Não há áreas com árvores mapeadas aqui.',
-  },
-  uso: {
-    unit:    `de vegetação nativa em ${LAND_USE_LAST}`,
-    before:  (pct: string) => `Eram ${pct} em ${LAND_USE_FIRST}.`,
-    compare: (biome: string, reading: Reading) => `A Caatinga tem ${biome}; aqui fica ${reading}.`,
-    noData:  'Sem dado de uso da terra aqui.',
-  },
-  fogo: {
-    unit:    'da área queimou ao menos uma vez',
-    compare: (biome: string) => `Na Caatinga, ${biome}.`,
-    peak:    (year: number) => `O ano com mais fogo aqui foi ${year}.`,
-    none:    `Nenhuma área queimada registrada de ${FIRE_FIRST_YEAR} a ${FIRE_LAST_YEAR}.`,
-    noData:  'Sem dado de fogo aqui.',
-  },
-  chuva: {
-    unit:     `mm em ${RAIN_LAST_YEAR}`,
-    meanUnit: 'mm por ano, em média',
-    // The class is the year's tercile among the territory's own years.
-    chuvoso:  (pct: string, mean: string) => `Chuvoso, ${pct} acima da média daqui (${mean} mm).`,
-    seco:     (pct: string, mean: string) => `Seco, ${pct} abaixo da média daqui (${mean} mm).`,
-    normal:   (mean: string) => `Normal, perto da média daqui (${mean} mm).`,
-    kindOnly: (kind: string, mean: string) => `${kind} para os anos daqui, cuja média é ${mean} mm.`,
-    missing:  `Sem dado de ${RAIN_LAST_YEAR} aqui.`,
-    compare:  (biome: string, reading: Reading) => `Essa média fica ${reading} da Caatinga (${biome} mm).`,
-    noData:   'Sem dado de chuva aqui.',
-  },
-}
+/** The territory against the biome, as the answers word it. */
+const MEAN_READING: Record<Reading, string> = { acima: 'superior', abaixo: 'inferior', perto: 'próxima' }
+const VALUE_READING: Record<Reading, string> = { acima: 'superior', abaixo: 'inferior', perto: 'próximo' }
+
+/** Which way a share moved between the first and the last year. */
+export type Change = 'down' | 'up' | 'none'
 
 function joinNonEmpty(...parts: (string | null)[]): string {
   return parts.filter(Boolean).join(' ')
@@ -203,9 +150,10 @@ export const CHART_SCRIPT = {
   fluxoShare: 'Parte da área com árvores',
   fluxoPerHa: 't de CO₂e por hectare com árvores',
   uso: {
-    description: (rows: string) => `Vegetação nativa em ${LAND_USE_FIRST} e ${LAND_USE_LAST}. ${rows}`,
+    description: (rows: string) => `Parte da área com vegetação nativa em cada ano, de ${LAND_USE_FIRST} a ${LAND_USE_LAST}. ${rows}`,
     row:         (name: string, from: string, to: string) => `${name}: de ${from} para ${to}.`,
     share:       `Vegetação nativa em ${LAND_USE_LAST}`,
+    axis:        'Vegetação nativa (%)',
   },
   fogo: {
     share:   'Área que já queimou',
@@ -288,7 +236,68 @@ export function storyScript(copy: TerritoriosCopy) {
       biomeShare: TERRITORY_SCRIPT.biomeShare,
       rankText:   TERRITORY_SCRIPT.rankText,
     },
-    answers: ANSWER_SCRIPT,
+    /** The sentence under each step's big figure; storyText.ts picks the variant. */
+    answers: {
+      territorio: {
+        located: (name: string, noun: string, feminine: boolean, where: string) => fill(territorio.respostaLocalizado, {
+          nome: name, tipo: `${feminine ? 'uma' : 'um'} ${noun}`, localizado: feminine ? 'localizada' : 'localizado', estado: where,
+        }),
+        plain: (name: string, noun: string, feminine: boolean) =>
+          fill(territorio.respostaSemEstado, { nome: name, tipo: `${feminine ? 'uma' : 'um'} ${noun}` }),
+        state: (biomePct: string) => fill(territorio.respostaEstado, { parteBioma: biomePct }),
+        biome: territorio.respostaBioma,
+      },
+      estoque: {
+        /** Under the total: "de toneladas de carbono". */
+        unit:   (tonnes: string) => fill(estoque.unidade, { toneladas: tonnes }),
+        noData: estoque.respostaSemDado,
+      },
+      fluxo: {
+        unit:      (tonnes: string) => fill(fluxo.unidade, { toneladas: tonnes }),
+        removal:   fluxo.respostaRemocao,
+        emission:  fluxo.respostaEmissao,
+        balance:   fluxo.respostaEquilibrio,
+        share:     (pct: string, reading: Reading, biome: string) =>
+          fill(fluxo.respostaParte, { percentual: pct, posicao: reading, percentualCaatinga: biome }),
+        shareOnly: (pct: string) => fill(fluxo.respostaParteSemCaatinga, { percentual: pct }),
+        noForest:  fluxo.respostaSemArvores,
+      },
+      uso: {
+        unit:   uso.unidade,
+        change: (change: Change, points: string) => {
+          const years = { anoInicial: LAND_USE_FIRST, anoFinal: LAND_USE_LAST }
+          if (change === 'none') return fill(uso.respostaEstavel, years)
+          return fill(change === 'down' ? uso.respostaDiminuiu : uso.respostaAumentou, { ...years, variacao: points })
+        },
+        /** The biome's change beside the territory's; compared only when both went the same way. */
+        compare: (here: Change, biome: Change, reading: Reading, biomePoints: string) => {
+          if (biome === 'none') return null
+          const values = { comparacao: VALUE_READING[reading], variacaoCaatinga: biomePoints }
+          if (here === biome) return fill(biome === 'down' ? uso.respostaComparacaoPerda : uso.respostaComparacaoGanho, values)
+          return fill(biome === 'down' ? uso.respostaCaatingaPerda : uso.respostaCaatingaGanho, values)
+        },
+        noData: uso.respostaSemDado,
+      },
+      fogo: {
+        unit:    fill(fogo.unidade, { anoInicial: FIRE_FIRST_YEAR, anoFinal: FIRE_LAST_YEAR }),
+        compare: (biome: string) => fill(fogo.respostaComparacao, { percentualCaatinga: biome }),
+        none:    fill(fogo.respostaNenhum, { anoInicial: FIRE_FIRST_YEAR, anoFinal: FIRE_LAST_YEAR }),
+        noData:  fogo.respostaSemDado,
+      },
+      chuva: {
+        unit:     chuva.unidade,
+        meanUnit: chuva.unidadeMedia,
+        // The class is the year's tercile among the territory's own years.
+        chuvoso:  (pct: string, mean: string) => fill(chuva.respostaChuvoso, { percentual: pct, media: mean }),
+        seco:     (pct: string, mean: string) => fill(chuva.respostaSeco, { percentual: pct, media: mean }),
+        normal:   (mean: string) => fill(chuva.respostaNormal, { media: mean }),
+        kindOnly: (kind: RainYearKind, mean: string) => fill(chuva.respostaClasse, { classe: kind, media: mean }),
+        missing:  fill(chuva.respostaSemAno, { anoFinal: RAIN_LAST_YEAR }),
+        compare:  (biome: string, reading: Reading) =>
+          fill(chuva.respostaComparacao, { comparacao: MEAN_READING[reading], mediaCaatinga: biome }),
+        noData:   chuva.respostaSemDado,
+      },
+    },
     /** The box under each theme's answer: why it matters, and its source. */
     why: {
       chuva:   why(chuva),

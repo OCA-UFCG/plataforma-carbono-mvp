@@ -6,8 +6,8 @@ import { copyDefaults } from '@/lib/content/site/model'
 const CARDS = caminhosCards(copyDefaults(INICIO_CAMINHOS))
 
 describe('caminhos content', () => {
-  it('ships the two cards the design lays out, the recorte territorial first', () => {
-    expect(CARDS.map((c) => c.titulo)).toEqual(['Recorte territorial', 'Plataforma de dados'])
+  it('ships the two cards the design lays out, the Recorte Territorial first', () => {
+    expect(CARDS.map((c) => c.titulo)).toEqual(['Recorte Territorial', 'Plataforma de dados'])
   })
 
   it('sends each card to its product, across the route groups', () => {
