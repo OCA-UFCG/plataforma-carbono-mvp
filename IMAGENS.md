@@ -8,7 +8,7 @@ Fotos de autoria de Artur Lourenço, originais no zip `../fotos/photos_caatinga.
 
 | Arquivo | Onde aparece |
 |---|---|
-| `hero/hero1.jpg` a `hero4.jpg` | Carrossel automático do hero (rotação a cada 10 s), na ordem `hero2`, `hero3`, `hero1`, `hero4` |
+| `hero/hero1.jpg` a `hero4.jpg` | Reserva do carrossel do hero (`DEFAULT_BANNERS` em `lib/content/banners.ts`), na ordem `hero2`, `hero3`, `hero1`, `hero4`, usada sem Contentful ou sem nenhum banner publicado. Com o Contentful, as fotos vêm das entradas "Banner do início" (ver "Hero") |
 
 `hero/hero5.jpg` saiu quando o carrossel passou a ter uma foto por card. `cta_caatinga.jpg`, `sobre_caatinga.jpg` e a galeria em mosaico (`galeria/cg1.jpg` a `cg9.jpg`, `importa/imp1.jpg` a `imp3.jpg`) foram removidos do projeto junto com as seções que os usavam; nenhum desses arquivos, nem as pastas `galeria/` e `importa/`, existe mais em `public/images/`. As imagens antigas de NASA e Wikimedia também já haviam sido removidas. A pasta `../fotos/caatinga_artur` tem mais paisagens disponíveis para trocas.
 
@@ -52,7 +52,7 @@ cortando a casa, que é o assunto. As duas são recortadas pelo **centro**. Para
 
 **Autoria não documentada.** Nem este documento nem o arquivo do Figma registram quem fez estas
 duas fotos. Não foram atribuídas para evitar crédito incorreto. Se forem de Artur Lourenço, como
-as cinco do hero, valem o mesmo crédito obrigatório.
+as quatro do hero, valem o mesmo crédito obrigatório.
 
 Elas vivem no repositório porque o modelo de conteúdo não tem campo para "foto do card" — só
 `cover`. Quando esse campo existir, remover o mapa `FOTOS` em `components/marketing/Comunicacao.tsx`
@@ -173,7 +173,9 @@ Os ícones da página de publicação (`public/icons/conteudo/`) são os SVGs ex
 
 ## Hero
 
-O hero usa um carrossel de cinco fotos de Artur Lourenço (`hero/hero1-5.jpg`), com rotação automática e fade, atrás do overlay em gradiente e do texto branco. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual. Para trocar ou reordenar, editar a constante `PHOTOS` em `components/marketing/Hero.tsx`; o crédito exibido ("Foto: Artur Lourenço") vem do campo `credit` de cada entrada dessa constante e só aparece quando ele está preenchido.
+O hero é um carrossel de banners, com rotação automática a cada 10 s e fade, atrás do overlay em gradiente e do texto branco. Desde 23/11/2026 cada banner é uma entrada do tipo "Banner do início" (`bannerInicio`) no Contentful, com foto, título, texto, botão opcional, crédito e ordem: para criar um banner, adiciona-se uma entrada; para tirá-lo do ar, despublica-se; trocar a foto é trocar o asset, sem deploy. A página pede cada foto ao Contentful com no máximo 1920 px de largura, em JPEG progressivo com qualidade 75 (`BANNER_PHOTO_PARAMS` em `lib/content/banners.ts`), então um original grande de celular não chega inteiro ao visitante. O Contentful não amplia fotos menores. O formato é JPEG e não WebP porque, medido nas fotos atuais (já otimizadas), o WebP saiu 38% maior.
+
+As quatro fotos de Artur Lourenço em `hero/hero1.jpg` a `hero4.jpg` (1600×1200) ficam como reserva (`DEFAULT_BANNERS`), mostradas sem Contentful, sem nenhum banner publicado ou numa falha da API. O crédito exibido ("Foto: Artur Lourenço") vem do campo "Crédito da foto" de cada banner e só aparece quando ele está preenchido. O handoff sugeria uma composição Sentinel-2 do bioma; as fotos de campo foram preferidas pelo apelo visual.
 
 ## Tipografia
 

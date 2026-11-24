@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { focusHolds, isPaused, shouldRotate, stepPhotoIndex } from '@/lib/marketing/heroRotation'
+import { clampPhotoIndex, focusHolds, isPaused, shouldRotate, stepPhotoIndex } from '@/lib/marketing/heroRotation'
 
 describe('stepPhotoIndex', () => {
   it('moves one photo forward and back', () => {
@@ -61,5 +61,21 @@ describe('focusHolds', () => {
 
   it('does not hold on the pause toggle, so "Retomar" resumes at once', () => {
     expect(focusHolds(true, true)).toBe(false)
+  })
+})
+
+// The index is client state and survives router.refresh() (the language
+// switch), while the banner list comes fresh from Contentful: an editor
+// unpublishing one, or a failed read falling back to the shipped four, can
+// leave the index past the end of the list.
+describe('clampPhotoIndex', () => {
+  it('keeps an index inside the list', () => {
+    expect(clampPhotoIndex(0, 4)).toBe(0)
+    expect(clampPhotoIndex(3, 4)).toBe(3)
+  })
+
+  it('goes back to the first photo when the list shrank under the index', () => {
+    expect(clampPhotoIndex(4, 4)).toBe(0)
+    expect(clampPhotoIndex(7, 2)).toBe(0)
   })
 })

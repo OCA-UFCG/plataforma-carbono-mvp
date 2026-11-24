@@ -81,6 +81,19 @@ export const SOBRE_PAGES: SobrePage[] = [
   { slug: 'como-funciona', href: '/sobre/como-funciona' },
 ]
 
+// Whether `href` is a route of the (marketing) group, the only routes
+// next/link may reach from a marketing page: any other one crosses a root
+// layout and needs a full page load (CLAUDE.md, "Three sibling root layouts").
+// For a link typed in Contentful, such as a hero banner's button.
+export function isMarketingRoute(href: string): boolean {
+  const path = href.split(/[?#]/)[0]
+
+  return (
+    path === '/' ||
+    HEADER_LINKS.some(({ href: route }) => route !== '/' && (path === route || path.startsWith(`${route}/`)))
+  )
+}
+
 // The header entry to mark active on `pathname`: the one whose route is the
 // path itself or a parent of it, so every /sobre/* page lights "Sobre", the
 // story lights "Recorte Territorial" and the platform lights "Plataforma". "/"

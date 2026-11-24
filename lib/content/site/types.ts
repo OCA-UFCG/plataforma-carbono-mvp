@@ -1,5 +1,4 @@
 import type { CopyType } from './model'
-import { INICIO_HERO } from '../inicio'
 import { INICIO_DESTAQUES } from '../destaques'
 import { INICIO_PLATAFORMA } from '../plataforma'
 import { INICIO_CAMINHOS } from '../caminhos'
@@ -14,7 +13,6 @@ import { TERRITORIOS_COPY } from '../territorios'
 // them, then the Territórios story's. scripts/contentful-provision.mts creates
 // them and seeds each with its shipped values.
 export const SITE_COPY_TYPES: CopyType[] = [
-  INICIO_HERO,
   INICIO_DESTAQUES,
   INICIO_PLATAFORMA,
   INICIO_CAMINHOS,

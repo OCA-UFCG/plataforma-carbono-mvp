@@ -10,6 +10,7 @@ import {
   SOBRE_PAGES,
   TERRITORIOS_LINK,
   activeNavHref,
+  isMarketingRoute,
 } from '@/lib/marketing/nav'
 import { MESSAGES } from '@/tests/helpers/intl'
 
@@ -192,5 +193,18 @@ describe('activeNavHref', () => {
   it('marks nothing for a route no entry owns', () => {
     expect(activeNavHref('/sobrefalso')).toBeNull()
     expect(activeNavHref('/outra')).toBeNull()
+  })
+})
+
+// A hero banner's link is typed in Contentful; only a route of the (marketing)
+// group may go through next/link, every other one is a full page load.
+describe('isMarketingRoute', () => {
+  it('tells the marketing pages from the rest', () => {
+    for (const href of ['/', '/?x=1', '/sobre', '/sobre/caatinga', '/glossario', '/comunicacao#eventos']) {
+      expect(isMarketingRoute(href), href).toBe(true)
+    }
+    for (const href of ['/territorios', '/mapa', '/login', '/sobrexyz', 'https://www.gov.br']) {
+      expect(isMarketingRoute(href), href).toBe(false)
+    }
   })
 })
