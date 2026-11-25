@@ -34,11 +34,11 @@ describe('Sidebar themes (Figma 19430:58769)', () => {
   })
 
   it('heads each theme with its icon and the count of layers on', () => {
-    expect(header('Vegetação')).toContain('/icons/mapa/grass.svg')
-    expect(header('Vegetação')).toMatch(/data-count="1"/)
-    expect(header('Uso do solo e pressões')).toContain('/icons/mapa/landslide.svg')
-    expect(header('Uso do solo e pressões')).toMatch(/data-count="0"/)
-    expect(header('Ambiente')).toContain('/icons/mapa/nature.svg')
+    expect(header('Carbono')).toContain('/icons/mapa/nature.svg')
+    expect(header('Carbono')).toMatch(/data-count="1"/)
+    expect(header('Uso da terra e pressões')).toContain('/icons/mapa/landslide.svg')
+    expect(header('Uso da terra e pressões')).toMatch(/data-count="0"/)
+    expect(header('Clima e relevo')).not.toMatch(/(grass|nature|landslide)\.svg/)
   })
 
   it('names the subthemes of the open theme in plain text, not as toggles', () => {
@@ -53,7 +53,7 @@ describe('Sidebar themes (Figma 19430:58769)', () => {
   })
 
   it('marks the theme headers, the layer cards and their "i" for the tour', () => {
-    // The fixture has layers in three themes: Vegetação, Uso do solo and Ambiente.
+    // The fixture has layers in three themes: Carbono, Uso da terra and Clima e relevo.
     expect(markup.match(/<button [^>]*data-tour-reveal="theme"/g)?.length).toBe(3)
     expect(markup).toMatch(/<div [^>]*data-tour="layer-card"/)
     expect(markup).toMatch(/<button (?=[^>]*data-tour="layer-info")(?=[^>]*data-layer-id="estoque")[^>]*>/)

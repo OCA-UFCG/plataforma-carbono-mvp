@@ -43,7 +43,7 @@ describe('ActiveLayers (Figma 19430:58765)', () => {
   it('gives each card the theme icon, unit, ficha, opacity and a way to switch it off', () => {
     state.layers = [estoque]
     const markup = render()
-    expect(markup).toContain('/icons/mapa/grass.svg')
+    expect(markup).toContain('/icons/mapa/nature.svg')
     expect(markup).toContain('t C/ha')
     expect(markup).toMatch(/aria-label="Ficha da camada Estoque Total"/)
     expect(markup).toMatch(/<input [^>]*type="range"[^>]*aria-label="Opacidade de Estoque Total"/)
