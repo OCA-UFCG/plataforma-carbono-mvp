@@ -1,15 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({
-  getMap: vi.fn((_vis: unknown, done: (result: unknown, err?: unknown) => void) =>
-    done({ urlFormat: 'https://earthengine.googleapis.com/v1/tiles/{z}/{x}/{y}' })),
-  getAuthenticatedRequest: vi.fn<() => Promise<{ uid: string } | null>>(async () => null),
-}))
+const mocks = vi.hoisted(() => {
+  const getMap = vi.fn((_vis: unknown, done: (result: unknown, err?: unknown) => void) =>
+    done({ urlFormat: 'https://earthengine.googleapis.com/v1/tiles/{z}/{x}/{y}' }))
+  // Each clip hands back the same image, so getMap is reached whichever runs.
+  const image: { getMap: typeof getMap; clip: ReturnType<typeof vi.fn>; clipToCollection: ReturnType<typeof vi.fn> } = {
+    getMap,
+    clip:             vi.fn(() => image),
+    clipToCollection: vi.fn(() => image),
+  }
+  const ee = {
+    FeatureCollection: vi.fn((id: string) => ({ id, geometry: vi.fn(() => ({ dissolved: id })) })),
+  }
+  return {
+    getMap, image, ee,
+    getAuthenticatedRequest: vi.fn<() => Promise<{ uid: string } | null>>(async () => null),
+  }
+})
 
-vi.mock('@/lib/mapa/geeAuth', () => ({ initGee: vi.fn(async () => {}), getEe: vi.fn(() => ({})) }))
+vi.mock('@/lib/mapa/geeAuth', () => ({ initGee: vi.fn(async () => {}), getEe: vi.fn(() => mocks.ee) }))
 vi.mock('@/lib/mapa/geeImage', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/mapa/geeImage')>(),
-  buildEeImage: vi.fn(() => ({ getMap: mocks.getMap })),
+  buildEeImage: vi.fn(() => mocks.image),
 }))
 // Every case reaches Earth Engine: a cached URL would skip the part under test.
 vi.mock('@/lib/mapa/tileCache', () => ({ getTileCache: () => null, setTileCache: () => {} }))
@@ -62,6 +74,30 @@ describe('POST /api/gee/tile session', () => {
     const response = await POST(request(platformRequest))
 
     expect(response.status).toBe(200)
+    expect(mocks.getMap).toHaveBeenCalledOnce()
+  })
+})
+
+describe('POST /api/gee/tile clip to the biome', () => {
+  const fogo = (appConfig.layers as RasterLayerConfig[]).find((l) => l.id === 'fogo_frequencia')!
+  const bioma = appConfig.layers.find((l) => l.id === 'bioma') as { clipAsset: string }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.getAuthenticatedRequest.mockResolvedValue({ uid: 'u' })
+  })
+
+  // clip(fc.geometry()) draws the same pixels, byte for byte, but a year step of
+  // the fire layer took 14.7 s against 1.7 s (medians, docs/tile-clip-performance.md).
+  it('clips to the GEE asset with clipToCollection, never through its dissolved geometry', async () => {
+    const response = await POST(request({
+      asset: fogo.gee!.asset, clipId: 'bioma', temporalDate: '2010-01-01', visParams: fogo.gee!.visParams,
+    }))
+
+    expect(response.status).toBe(200)
+    expect(mocks.image.clipToCollection).toHaveBeenCalledOnce()
+    expect(mocks.image.clipToCollection.mock.calls[0][0]).toMatchObject({ id: bioma.clipAsset })
+    expect(mocks.image.clip).not.toHaveBeenCalled()
     expect(mocks.getMap).toHaveBeenCalledOnce()
   })
 })

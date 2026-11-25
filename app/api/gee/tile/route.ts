@@ -176,12 +176,15 @@ export async function POST(req: Request) {
     let clipRegion: unknown = null   // exact boundary for image.clip()
     let sampleRegion: unknown = null // fast rectangle for pixel sampling
     if (clipAssetId) {
-      // Native GEE asset: indexed by GEE, so clipping at FULL boundary detail
-      // is fast (~2s), no simplification needed, sharp edges.
-      clipRegion = ee.FeatureCollection(clipAssetId).geometry()
-      image = image.clip(clipRegion)
+      // Native GEE asset, clipped at full boundary detail with no
+      // simplification. clipToCollection, not clip(fc.geometry()): both draw
+      // the same pixels, byte for byte, but with the merged geometry a year
+      // step of the fire layer took 14.7 s against 1.7 s here, getMap and the
+      // tiles in view together (medians, docs/tile-clip-performance.md).
+      const fc = ee.FeatureCollection(clipAssetId)
+      image = image.clipToCollection(fc)
       // Only used by the live-Jenks fallback (offline breaks skip sampling).
-      sampleRegion = clipRegion
+      sampleRegion = fc.geometry()
     } else if (clipGeometry && typeof clipGeometry === 'object') {
       const fc = ee.FeatureCollection(clipGeometry)
       // Simplify the boundary aggressively (500m) before clipping. The biome
