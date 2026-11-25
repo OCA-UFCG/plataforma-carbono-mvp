@@ -147,9 +147,10 @@ describe('draw order by layer', () => {
     vi.unstubAllGlobals()
   })
   const order = () => useStore.getState().layers.map((layer) => layer.id)
-  it('starts in the order the themes gave: Carbono, then Uso do solo, then Ambiente', () => {
-    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('ndvi_modis'))
+  it('starts in the order the themes gave: Carbono, Vegetação, Uso da terra, then Clima e relevo', () => {
+    expect(order().indexOf('estoque_carbono')).toBeLessThan(order().indexOf('biomassa_gedi'))
     expect(order().indexOf('biomassa_gedi')).toBeLessThan(order().indexOf('lulc_mapbiomas'))
+    expect(order().indexOf('lulc_mapbiomas')).toBeLessThan(order().indexOf('chirps3_pr'))
   })
 
   it('draws a layer moved up above the layer it was put before', () => {

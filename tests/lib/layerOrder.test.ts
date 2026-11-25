@@ -108,7 +108,7 @@ describe('applyGroupOrder', () => {
 
 describe('default orders', () => {
   it('follow groups.ts, without Território', () => {
-    expect(DEFAULT_THEME_ORDER).toEqual(['carbono', 'uso_solo', 'ambiente', 'localidades'])
+    expect(DEFAULT_THEME_ORDER).toEqual(['carbono', 'vegetacao', 'uso_solo', 'ambiente', 'localidades'])
     expect(DEFAULT_SUBTHEME_ORDER.carbono[0]).toBe('estoques')
     expect(DEFAULT_SUBTHEME_ORDER.territorio).toBeUndefined()
   })
@@ -116,11 +116,11 @@ describe('default orders', () => {
 
 describe('sanitizeThemeOrder', () => {
   it('keeps a valid stored order', () => {
-    expect(sanitizeThemeOrder(['ambiente', 'carbono', 'uso_solo', 'localidades'])).toEqual(['ambiente', 'carbono', 'uso_solo', 'localidades'])
+    expect(sanitizeThemeOrder(['ambiente', 'vegetacao', 'carbono', 'uso_solo', 'localidades'])).toEqual(['ambiente', 'vegetacao', 'carbono', 'uso_solo', 'localidades'])
   })
 
   it('drops unknown ids, duplicates and Território, and appends what is missing', () => {
-    expect(sanitizeThemeOrder(['uso_solo', 'territorio', 'x', 'uso_solo', 42])).toEqual(['uso_solo', 'carbono', 'ambiente', 'localidades'])
+    expect(sanitizeThemeOrder(['uso_solo', 'territorio', 'x', 'uso_solo', 42])).toEqual(['uso_solo', 'carbono', 'vegetacao', 'ambiente', 'localidades'])
   })
 
   it('falls back to the default for anything that is not a list', () => {
@@ -132,7 +132,7 @@ describe('sanitizeThemeOrder', () => {
 describe('sanitizeSubthemeOrder', () => {
   it('sanitizes each theme and fills the ones not stored', () => {
     const out = sanitizeSubthemeOrder({ carbono: ['fluxos', 'estoques', 'nope'], territorio: ['limites'] })
-    expect(out.carbono.slice(0, 3)).toEqual(['fluxos', 'estoques', 'estrutura'])
+    expect(out.carbono.slice(0, 3)).toEqual(['fluxos', 'estoques', 'emissoes'])
     expect(out.carbono).toHaveLength(DEFAULT_SUBTHEME_ORDER.carbono.length)
     expect(out.uso_solo).toEqual(DEFAULT_SUBTHEME_ORDER.uso_solo)
     expect(out.territorio).toBeUndefined()

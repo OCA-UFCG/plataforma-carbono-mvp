@@ -39,29 +39,39 @@ export const THEMES: ThemeInfo[] = [
     ],
   },
   {
-    id: 'carbono', label: 'Vegetação', color: '#4F791E',
-    icon: '/icons/mapa/grass.svg', tint: 'var(--role-marca-ancora-container)',
+    // Everything measured in carbon or CO2e: stocks, forest fluxes, emissions.
+    id: 'carbono', label: 'Carbono', color: '#4F791E',
+    icon: '/icons/mapa/nature.svg', tint: 'var(--role-marca-ancora-container)',
     subthemes: [
       { id: 'estoques', label: 'Estoques de carbono', exclusive: true },
-      { id: 'estrutura', label: 'Estrutura', exclusive: true },
-      { id: 'fluxos', label: 'Fluxos de carbono', exclusive: true },
+      { id: 'fluxos', label: 'Fluxos de carbono florestal', exclusive: true },
+      { id: 'emissoes', label: 'Emissões de gases de efeito estufa', exclusive: true },
     ],
   },
   {
-    id: 'uso_solo', label: 'Uso do solo e pressões', color: '#DD8637',
+    // The living vegetation: its greenness, productivity, biomass and height.
+    id: 'vegetacao', label: 'Vegetação', color: '#6B8E23',
+    icon: '/icons/mapa/grass.svg', tint: 'var(--role-categorica1-container)',
+    subthemes: [
+      { id: 'indices', label: 'Índices de vegetação', exclusive: true },
+      { id: 'produtividade', label: 'Produtividade primária', exclusive: true },
+      { id: 'estrutura', label: 'Biomassa e estrutura', exclusive: true },
+    ],
+  },
+  {
+    id: 'uso_solo', label: 'Uso da terra e pressões', color: '#DD8637',
     icon: '/icons/mapa/landslide.svg', tint: 'var(--bg-superficie-variante)',
     subthemes: [
       { id: 'cobertura', label: 'Uso e cobertura da terra', exclusive: true },
       { id: 'fogo', label: 'Fogo', exclusive: true },
       { id: 'degradacao', label: 'Degradação da terra', exclusive: true },
-      { id: 'emissoes', label: 'Emissões de gases de efeito estufa', exclusive: true },
     ],
   },
   {
-    id: 'ambiente', label: 'Ambiente', color: '#A78400',
-    icon: '/icons/mapa/nature.svg', tint: 'var(--role-categorica1-container)',
+    // The design draws three themes; this one, like Localidades, takes the
+    // panel's neutral fill and no icon.
+    id: 'ambiente', label: 'Clima e relevo', color: '#A78400', tint: 'var(--am-050)',
     subthemes: [
-      { id: 'vegetacao', label: 'Índices de vegetação', exclusive: true },
       { id: 'clima', label: 'Clima', exclusive: true },
       // Altitude and slope replace each other; the hillshades are `overlay`
       // layers, combined with either and drawn above them by default.

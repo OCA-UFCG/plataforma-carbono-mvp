@@ -505,7 +505,7 @@
         120
       ],
       "unit": "t/ha",
-      "theme": "carbono",
+      "theme": "vegetacao",
       "subtheme": "estrutura"
     },
     {
@@ -564,7 +564,7 @@
         120
       ],
       "unit": "t/ha",
-      "theme": "carbono",
+      "theme": "vegetacao",
       "subtheme": "estrutura"
     },
     {
@@ -624,7 +624,7 @@
         120
       ],
       "unit": "t/ha",
-      "theme": "carbono",
+      "theme": "vegetacao",
       "subtheme": "estrutura",
       "hidden": true
     },
@@ -662,7 +662,7 @@
         100
       ],
       "unit": "t C/ha",
-      "theme": "carbono",
+      "theme": "vegetacao",
       "subtheme": "estrutura",
       "hidden": true
     },
@@ -703,7 +703,7 @@
         15
       ],
       "unit": "m",
-      "theme": "carbono",
+      "theme": "vegetacao",
       "subtheme": "estrutura"
     },
     {
@@ -756,8 +756,8 @@
         2500
       ],
       "unit": "g C/m²/ano",
-      "theme": "carbono",
-      "subtheme": "fluxos"
+      "theme": "vegetacao",
+      "subtheme": "produtividade"
     },
     {
       "id": "gpp_pml",
@@ -803,8 +803,8 @@
       "opacity": 80,
       "colorType": "continuous",
       "unit": "g C/m²/ano",
-      "theme": "carbono",
-      "subtheme": "fluxos"
+      "theme": "vegetacao",
+      "subtheme": "produtividade"
     },
     {
       "id": "npp_modis",
@@ -856,8 +856,8 @@
         1400
       ],
       "unit": "g C/m²/ano",
-      "theme": "carbono",
-      "subtheme": "fluxos"
+      "theme": "vegetacao",
+      "subtheme": "produtividade"
     },
     {
       "id": "gfw_netflux",
@@ -1022,8 +1022,8 @@
         0.8
       ],
       "unit": "NDVI",
-      "theme": "ambiente",
-      "subtheme": "vegetacao"
+      "theme": "vegetacao",
+      "subtheme": "indices"
     },
     {
       "id": "evi_modis",
@@ -1075,8 +1075,8 @@
         0.6
       ],
       "unit": "EVI",
-      "theme": "ambiente",
-      "subtheme": "vegetacao"
+      "theme": "vegetacao",
+      "subtheme": "indices"
     },
     {
       "id": "chirps_precip",
@@ -1922,7 +1922,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -1943,7 +1943,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -1964,7 +1964,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -1985,7 +1985,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -2006,7 +2006,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -2027,7 +2027,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -2048,7 +2048,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     },
     {
@@ -2069,7 +2069,7 @@
           "2025-01-01"
         ]
       },
-      "theme": "uso_solo",
+      "theme": "carbono",
       "subtheme": "emissoes"
     }
   ]
